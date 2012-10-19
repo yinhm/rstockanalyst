@@ -1,0 +1,1 @@
+qmake -t vcapp RStockAnalyst.pro -o RStockAnalyst.vcproj
