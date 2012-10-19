@@ -7,5 +7,11 @@ TEMPLATE = app
 QT += core \
     gui \
 	xml
+	
 
-SOURCES += main.cpp
+PRECOMPILED_HEADER = StdAfx.h
+
+
+HEADERS += StdAfx.h StockDrv.h STKDRV.h
+
+SOURCES += main.cpp STKDRV.cpp
