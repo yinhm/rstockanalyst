@@ -12,6 +12,6 @@ QT += core \
 PRECOMPILED_HEADER = StdAfx.h
 
 
-HEADERS += StdAfx.h StockDrv.h STKDRV.h
+HEADERS += StdAfx.h StockDrv.h STKDRV.h MainWindow.h
 
-SOURCES += main.cpp STKDRV.cpp
+SOURCES += main.cpp STKDRV.cpp MainWindow.cpp
