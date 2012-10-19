@@ -17,28 +17,27 @@ public:
 	CSTKDRV();
 	virtual ~CSTKDRV();
 public:
-	int Stock_Init(HWND hWnd,UINT uMsg,int nWorkMode);
-	int Stock_Quit(HWND hWnd);
-	int GetTotalNumber();
-	int GetStockByNoEx(int nNo,RCV_REPORT_STRUCTEx* pBuf);
-	int GetStockByCodeEx(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTEx* pBuf);
-	int SetupReceiver(BOOL bSetup);
-	DWORD GetStockDrvInfo(int nInfo,void* pBuf);
+	static void InitStockDrv();
+	static int Stock_Init(HWND hWnd,UINT uMsg,int nWorkMode);
+	static int Stock_Quit(HWND hWnd);
+	static int GetTotalNumber();
+	static int GetStockByNoEx(int nNo,RCV_REPORT_STRUCTEx* pBuf);
+	static int GetStockByCodeEx(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTEx* pBuf);
+	static int SetupReceiver(BOOL bSetup);
+	static DWORD GetStockDrvInfo(int nInfo,void* pBuf);
 
 
 
 private:
-	int (WINAPI* m_pfnStock_Init)(HWND hWnd,UINT Msg,int nWorkMode);
-	int (WINAPI* m_pfnStock_Quit)(HWND hWnd);
-	int (WINAPI* m_pfnGetTotalNumber)();
-	int (WINAPI* m_pfnGetStockByNoEx)(int nNo,RCV_REPORT_STRUCTEx* pBuf);
-	int (WINAPI* m_pfnGetStockByCodeEx)(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTEx* pBuf);
-	int	(WINAPI* m_pfnSetupReceiver)(BOOL bSetup);
-	DWORD (WINAPI* m_pfnGetStockDrvInfo)(int nInfo,void * pBuf);
+	static int (WINAPI* m_pfnStock_Init)(HWND hWnd,UINT Msg,int nWorkMode);
+	static int (WINAPI* m_pfnStock_Quit)(HWND hWnd);
+	static int (WINAPI* m_pfnGetTotalNumber)();
+	static int (WINAPI* m_pfnGetStockByNoEx)(int nNo,RCV_REPORT_STRUCTEx* pBuf);
+	static int (WINAPI* m_pfnGetStockByCodeEx)(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTEx* pBuf);
+	static int	(WINAPI* m_pfnSetupReceiver)(BOOL bSetup);
+	static DWORD (WINAPI* m_pfnGetStockDrvInfo)(int nInfo,void * pBuf);
 
-private:
-	void GetAdress();
-	HINSTANCE	m_hSTKDrv;
+	static HINSTANCE	m_hSTKDrv;
 };
 
 #endif 
