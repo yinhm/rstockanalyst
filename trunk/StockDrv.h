@@ -575,7 +575,7 @@ int WINAPI 	GetTotalNumber();
 //		    NoStockData	无股票数据	
 // 注:
 //			该函数提供股票数据的主要数据;分析软件刚运行时,可以快速建立数据框架
-int WINAPI 	GetStockByNoEx(int nNo,RCV_REPORT_STRUCTEx * pBuf);			
+int WINAPI 	GetStockByNoEx(int nNo,RCV_REPORT_STRUCTEx * pBuf);		
 
 // 由股号取股票数据(扩展)
 // 入口参数:	
