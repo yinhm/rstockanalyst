@@ -10,4 +10,6 @@
 
 #include <Windows.h>
 
+#include "StockDrv.h"
+
 #endif // !defined(AFX_STDAFX_H__61A31CEB_9707_11D1_ACAB_0000E823DBFD__INCLUDED_)
