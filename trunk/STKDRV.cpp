@@ -9,8 +9,8 @@
 int (WINAPI* CSTKDRV::m_pfnStock_Init)(HWND hWnd,UINT Msg,int nWorkMode)= NULL;
 int (WINAPI* CSTKDRV::m_pfnStock_Quit)(HWND hWnd)= NULL;
 int (WINAPI* CSTKDRV::m_pfnGetTotalNumber)();
-int (WINAPI* CSTKDRV::m_pfnGetStockByNoEx)(int nNo,RCV_REPORT_STRUCTEx* pBuf)= NULL;
-int (WINAPI* CSTKDRV::m_pfnGetStockByCodeEx)(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTEx* pBuf)= NULL;
+int (WINAPI* CSTKDRV::m_pfnGetStockByNoEx)(int nNo,RCV_REPORT_STRUCTExV3* pBuf)= NULL;
+int (WINAPI* CSTKDRV::m_pfnGetStockByCodeEx)(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTExV3* pBuf)= NULL;
 int	(WINAPI* CSTKDRV::m_pfnSetupReceiver)(BOOL bSetup)= NULL;
 DWORD (WINAPI* CSTKDRV::m_pfnGetStockDrvInfo)(int nInfo,void * pBuf)= NULL;
 
@@ -60,9 +60,9 @@ void CSTKDRV::InitStockDrv()
 	m_pfnGetTotalNumber = \
 		(int (WINAPI*)())GetProcAddress(m_hSTKDrv,"GetTotalNumber");
 	m_pfnGetStockByNoEx = \
-		(int (WINAPI*)(int,RCV_REPORT_STRUCTEx*))GetProcAddress(m_hSTKDrv,"GetStockByNoEx");
+		(int (WINAPI*)(int,RCV_REPORT_STRUCTExV3*))GetProcAddress(m_hSTKDrv,"GetStockByNoEx");
 	m_pfnGetStockByCodeEx = \
-		(int (WINAPI*)(char*,int,RCV_REPORT_STRUCTEx*))GetProcAddress(m_hSTKDrv,"GetStockByCodeEx");
+		(int (WINAPI*)(char*,int,RCV_REPORT_STRUCTExV3*))GetProcAddress(m_hSTKDrv,"GetStockByCodeEx");
 	m_pfnSetupReceiver = \
 		(int	(WINAPI *)(BOOL))GetProcAddress(m_hSTKDrv,"SetupReceiver");
 	m_pfnGetStockDrvInfo = \
@@ -90,14 +90,14 @@ int CSTKDRV::GetTotalNumber()
 	return ((*m_pfnGetTotalNumber)());
 }
 
-int CSTKDRV::GetStockByNoEx( int nNo,RCV_REPORT_STRUCTEx* pBuf )
+int CSTKDRV::GetStockByNoEx( int nNo,RCV_REPORT_STRUCTExV3* pBuf )
 {
 	if(!m_pfnGetStockByNoEx)
 		return -1;
 	return((*m_pfnGetStockByNoEx)(nNo,pBuf));
 }
 
-int CSTKDRV::GetStockByCodeEx( char* pszStockCode,int nMarket,RCV_REPORT_STRUCTEx* pBuf )
+int CSTKDRV::GetStockByCodeEx( char* pszStockCode,int nMarket,RCV_REPORT_STRUCTExV3* pBuf )
 {
 	if(!m_pfnGetStockByCodeEx)
 		return -1;
