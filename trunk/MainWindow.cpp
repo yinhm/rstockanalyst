@@ -1,25 +1,31 @@
 #include "StdAfx.h"
 #include "MainWindow.h"
 #include "STKDRV.h"
+#include "BaseMarketWidget.h"
 #include <iostream>
 using namespace std;
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
 
-CMainWindow::CMainWindow( QWidget* parent/*=0*/, Qt::WindowFlags flags/*=0 */ )
-	: QMainWindow(parent,flags)
+CMainWindow::CMainWindow()
+	: QMainWindow()
 {
+	m_pMdiArea = new QMdiArea();
+	m_pMdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	m_pMdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	setCentralWidget(m_pMdiArea);
 
+	m_pMdiArea->addSubWindow(new CBaseMarketWidget);
 }
 
-CMainWindow::~CMainWindow(void)
+CMainWindow::~CMainWindow()
 {
 
 }
 
 bool CMainWindow::setupStockDrv()
 {
-	if(CSTKDRV::Stock_Init(this->winId(),RSTOCK_ANALYST_MAINMSG,RCV_WORK_MEMSHARE)>0)
+	if(CSTKDRV::Stock_Init(this->winId(),RSTOCK_ANALYST_MAINMSG,RCV_WORK_SENDMSG)>0)
 	{
 		if(CSTKDRV::SetupReceiver(TRUE)>0)
 			return true;
@@ -41,8 +47,6 @@ bool CMainWindow::winEvent( MSG* message, long* result )
 long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 {
 	RCV_DATA* pHeader;
-	int i;
-
 	pHeader = (RCV_DATA*)lParam;
 
 	//  对于处理速度慢的数据类型,最好将 pHeader->m_pData 指向的数据备份,再作处理
@@ -50,12 +54,21 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 	switch( wParam )
 	{
 	case RCV_REPORT:                        // 共享数据引用方式,股票行情
-		cout<<"文件类型:"<<pHeader->m_wDataType<<endl;
-		for(i=0; i<pHeader->m_nPacketNum; i++)
 		{
-			cout<<pHeader->m_pReport[i].m_szName<<endl;
-//			RCV_REPORT_STRUCTEx pBuffer = pHeader->m_pReport[i];
-//			cout<<pBuffer.m_szName<<endl;
+			cout<<"文件类型:"<<pHeader->m_wDataType<<endl;
+			if(pHeader->m_nPacketNum<1)
+				break;
+
+			RCV_REPORT_STRUCTExV3* pReport = pHeader->m_pReportV3;
+			int iIndex = 0;
+			while(iIndex<pHeader->m_nPacketNum)
+			{
+				if(pReport->m_cbSize<1)
+					break;
+				cout<<pReport->m_szLabel<<"	"<<pReport->m_szName<<endl;
+				pReport = (pReport+pReport->m_cbSize);
+				++iIndex;
+			}
 		}
 		break;
 
