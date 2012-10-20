@@ -12,6 +12,6 @@ QT += core \
 PRECOMPILED_HEADER = StdAfx.h
 
 
-HEADERS += StdAfx.h StockDrv.h STKDRV.h MainWindow.h
+HEADERS += StdAfx.h StockDrv.h STKDRV.h MainWindow.h BaseMarketWidget.h
 
-SOURCES += main.cpp STKDRV.cpp MainWindow.cpp
+SOURCES += main.cpp STKDRV.cpp MainWindow.cpp BaseMarketWidget.cpp
