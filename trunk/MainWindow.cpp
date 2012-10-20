@@ -2,6 +2,7 @@
 #include "MainWindow.h"
 #include "STKDRV.h"
 #include "BaseMarketWidget.h"
+#include "DataEngine.h"
 #include <iostream>
 using namespace std;
 
@@ -55,17 +56,25 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 	{
 	case RCV_REPORT:                        // 共享数据引用方式,股票行情
 		{
-			cout<<"文件类型:"<<pHeader->m_wDataType<<endl;
 			if(pHeader->m_nPacketNum<1)
 				break;
 
 			RCV_REPORT_STRUCTExV3* pReport = pHeader->m_pReportV3;
+
 			int iIndex = 0;
 			while(iIndex<pHeader->m_nPacketNum)
 			{
 				if(pReport->m_cbSize<1)
 					break;
-				cout<<pReport->m_szLabel<<"	"<<pReport->m_szName<<endl;
+
+				qRcvReportItem* pItem = CDataEngine::getDataEngine()->getBaseMarket(QString::fromLocal8Bit(pReport->m_szLabel));
+				if(pItem==NULL)
+					pItem = new qRcvReportItem(pReport);
+				else
+					pItem->resetItem(pReport);
+
+				CDataEngine::getDataEngine()->setBaseMarket(pItem);
+
 				pReport = (pReport+pReport->m_cbSize);
 				++iIndex;
 			}
