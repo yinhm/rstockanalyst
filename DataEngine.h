@@ -1,7 +1,25 @@
 #pragma once
 #include <QtCore>
 
-struct qRcvReportItem
+struct qRcvHistoryData
+{
+	time_t	time;				//UCT
+	float	fOpen;			//开盘
+	float	fHigh;			//最高
+	float	fLow;				//最低
+	float	fClose;			//收盘
+	float	fVolume;			//量
+	float	fAmount;			//额
+	WORD	wAdvance;			//涨数,仅大盘有效
+	WORD	wDecline;			//跌数,仅大盘有效
+
+	qRcvHistoryData(RCV_HISTORY_STRUCTEx* p)
+	{
+		memcpy(&time,&p->m_time,sizeof(qRcvHistoryData));
+	}
+};
+
+struct qRcvReportData
 {
 	QDateTime	tmTime;			//成交时间
 	DWORD		wMarket;		//股票市场类型
@@ -30,7 +48,9 @@ struct qRcvReportItem
 	float	fSellPrice5;		//申卖价5
 	float	fSellVolume5;		//申卖量5
 
-	qRcvReportItem(RCV_REPORT_STRUCTExV3* p)
+	QMap<time_t,qRcvHistoryData> mapHistorys;
+
+	qRcvReportData(RCV_REPORT_STRUCTExV3* p)
 	{
 		tmTime = QDateTime::fromTime_t(p->m_time);
 		wMarket = p->m_wMarket;
@@ -90,11 +110,15 @@ public:
 	}
 
 public:
-	QList<qRcvReportItem*> getBaseMarket()
+	//重新初始化所有股票数据
+	void initAllReport();
+
+	//获取基本行情数据
+	QList<qRcvReportData*> getBaseMarket()
 	{
 		return m_mapBaseMarket.values();
 	}
-	qRcvReportItem* getBaseMarket(const QString& qsCode)
+	qRcvReportData* getBaseMarket(const QString& qsCode)
 	{
 		if(m_mapBaseMarket.contains(qsCode))
 		{
@@ -102,13 +126,22 @@ public:
 		}
 		return NULL;
 	}
-	void setBaseMarket(qRcvReportItem* p)
+	void setBaseMarket(qRcvReportData* p)
 	{
 		m_mapBaseMarket[p->qsCode] = p;
 	}
 
+	//补充日线数据
+	void appendHistory(const QString& code, const qRcvHistoryData& p)
+	{
+		if(!m_mapBaseMarket.contains(code))
+			return;
+		qRcvReportData* pData = m_mapBaseMarket[code];
+		pData->mapHistorys.insert(p.time,p);
+	}
+
 private:
-	QMap<QString,qRcvReportItem*> m_mapBaseMarket;
+	QMap<QString,qRcvReportData*> m_mapBaseMarket;
 
 private:
 	static CDataEngine* m_pDataEngine;

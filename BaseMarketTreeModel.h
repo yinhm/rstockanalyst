@@ -26,11 +26,12 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
 public slots:
-	void updateModelData();
+	void clearReports();
+	void appendReport(qRcvReportData* data);
 
 private:
 	QStringList m_listHeader;
-	QList<qRcvReportItem*> m_listItems;
+	QList<qRcvReportData*> m_listItems;
 };
 
 #endif	//BASE_MARKET_TREEMODEL_H

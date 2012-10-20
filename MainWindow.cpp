@@ -28,7 +28,7 @@ CMainWindow::~CMainWindow()
 
 bool CMainWindow::setupStockDrv()
 {
-	if(CSTKDRV::Stock_Init(this->winId(),RSTOCK_ANALYST_MAINMSG,RCV_WORK_SENDMSG)>0)
+	if(CSTKDRV::Stock_Init(this->winId(),RSTOCK_ANALYST_MAINMSG,RCV_WORK_MEMSHARE)>0)
 	{
 		if(CSTKDRV::SetupReceiver(TRUE)>0)
 			return true;
@@ -62,23 +62,22 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 				break;
 
 			RCV_REPORT_STRUCTExV3* pReport = pHeader->m_pReportV3;
-
-			int iIndex = 0;
-			while(iIndex<pHeader->m_nPacketNum)
+			for(int i=0;i<pHeader->m_nPacketNum;++i)
 			{
-				if(pReport->m_cbSize<1)
-					break;
+				pReport = (pHeader->m_pReportV3+i);
+				if(QString::fromLocal8Bit(pReport->m_szLabel).isEmpty())
+				{
+					int j = 0;
+					++j;
+				}
 
-				qRcvReportItem* pItem = CDataEngine::getDataEngine()->getBaseMarket(QString::fromLocal8Bit(pReport->m_szLabel));
+				qRcvReportData* pItem = CDataEngine::getDataEngine()->getBaseMarket(QString::fromLocal8Bit(pReport->m_szLabel));
 				if(pItem==NULL)
-					pItem = new qRcvReportItem(pReport);
+					pItem = new qRcvReportData(pReport);
 				else
 					pItem->resetItem(pReport);
 
 				CDataEngine::getDataEngine()->setBaseMarket(pItem);
-
-				pReport = (pReport+pReport->m_cbSize);
-				++iIndex;
 			}
 			m_pBaseMarketWidget->updateBaseMarket();
 		}
@@ -89,15 +88,48 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 			switch(pHeader->m_wDataType)
 			{
 			case FILE_HISTORY_EX:               // 补日线数据
+				{
+					if(pHeader->m_nPacketNum<1)
+						break;
+
+					RCV_HISTORY_STRUCTEx* pHistory = pHeader->m_pDay;
+					int iIndex = 0;
+					while(iIndex<pHeader->m_nPacketNum)
+					{
+						CDataEngine::getDataEngine()->appendHistory(QString::fromLocal8Bit(pHistory->m_head.m_szLabel),
+							qRcvHistoryData(pHistory));
+						pHistory = pHeader->m_pDay++;
+						++iIndex;
+					}
+				}
 				break;
 
 			case FILE_MINUTE_EX:                // 补分钟线数据
+				{
+					int i = 0;
+				}
 				break;
 
 			case FILE_BASE_EX:                  // 钱龙兼容基本资料文件,m_szFileName仅包含文件名
+				{
+					int i = 0;
+				}
 				break;
 
 			case FILE_NEWS_EX:                  // 新闻类,其类型由m_szFileName中子目录名来定
+				{
+					int i = 0;
+				}
+				break;
+			case FILE_POWER_EX:
+				{
+					int i = 0;
+				}
+				break;
+			default:
+				{
+					int j = 0;
+				}
 				break;
 			}
 		}

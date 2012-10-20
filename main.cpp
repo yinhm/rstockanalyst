@@ -18,7 +18,9 @@ int main(int argc, char *argv[])
 	mainWindow.show();
 
 	if(!mainWindow.setupStockDrv())
+	{
 		return app.exit();
+	}
 
 	return app.exec();
 }

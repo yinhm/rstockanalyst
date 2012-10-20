@@ -47,14 +47,14 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 	if(index.row()>m_listItems.size())
 		return QVariant();
 
-	qRcvReportItem* itemData = m_listItems.at(index.row());
+	qRcvReportData* itemData = m_listItems.at(index.row());
 
 	switch(index.column())
 	{
 	case 0:
 		{
 			//索引号
-			return index.row();
+			return index.row()+1;
 		}
 		break;
 	case 1:
@@ -80,7 +80,7 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 	case 4:
 		{
 			//量比
-			return QVariant();
+			return QString(tr("现成交总手/〖(过去5个交易日平均每分钟成交量)×当日累计开市 时间(分)"));
 		}
 		break;
 	case 5:
@@ -92,37 +92,37 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 	case 6:
 		{
 			//前收
-			return QVariant();
+			return QString("%1").arg(itemData->fLastClose,0,'f',2);
 		}
 		break;
 	case 7:
 		{
 			//今开
-			return QVariant();
+			return QString("%1").arg(itemData->fOpen,0,'f',2);
 		}
 		break;
 	case 8:
 		{
 			//最高
-			return QVariant();
+			return QString("%1").arg(itemData->fHigh,0,'f',2);
 		}
 		break;
 	case 9:
 		{
 			//最低
-			return QVariant();
+			return QString("%1").arg(itemData->fLow,0,'f',2);;
 		}
 		break;
 	case 10:
 		{
 			//最新
-			return QVariant();
+			return QString("%1").arg(itemData->fNewPrice,0,'f',2);;
 		}
 		break;
 	case 11:
 		{
 			//总手
-			return QVariant();
+			return QString("%1").arg(itemData->fVolume,0,'f',0);
 		}
 		break;
 	case 12:
@@ -134,7 +134,7 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 	case 13:
 		{
 			//现手
-			return QVariant();
+			return QString("%1").arg(itemData->fSellPrice[0],0,'f',2);
 		}
 		break;
 	case 14:
@@ -237,10 +237,16 @@ int CBaseMarketTreeModel::rowCount(const QModelIndex &parent) const
     return m_listItems.size();
 }
 
-
-void CBaseMarketTreeModel::updateModelData()
+void CBaseMarketTreeModel::appendReport( qRcvReportData* data )
 {
-	m_listItems = CDataEngine::getDataEngine()->getBaseMarket();
+	beginInsertRows (QModelIndex(),m_listItems.size(),m_listItems.size());
+	m_listItems.append(data);
+	endInsertRows();
+}
 
-	reset();
+void CBaseMarketTreeModel::clearReports()
+{
+	beginRemoveRows(QModelIndex(),0,m_listItems.size()-1);
+	m_listItems.clear();
+	endRemoveRows();
 }
