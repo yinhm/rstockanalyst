@@ -90,6 +90,10 @@ public:
 	}
 
 public:
+	QList<qRcvReportItem*> getBaseMarket()
+	{
+		return m_mapBaseMarket.values();
+	}
 	qRcvReportItem* getBaseMarket(const QString& qsCode)
 	{
 		if(m_mapBaseMarket.contains(qsCode))

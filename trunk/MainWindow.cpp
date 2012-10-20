@@ -16,7 +16,9 @@ CMainWindow::CMainWindow()
 	m_pMdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 	setCentralWidget(m_pMdiArea);
 
-	m_pMdiArea->addSubWindow(new CBaseMarketWidget);
+	m_pBaseMarketWidget = new CBaseMarketWidget;
+
+	m_pMdiArea->addSubWindow(m_pBaseMarketWidget);
 }
 
 CMainWindow::~CMainWindow()
@@ -78,23 +80,26 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 				pReport = (pReport+pReport->m_cbSize);
 				++iIndex;
 			}
+			m_pBaseMarketWidget->updateBaseMarket();
 		}
 		break;
 
 	case RCV_FILEDATA:                      // 共享数据引用方式,文件
-		switch(pHeader->m_wDataType)
 		{
-		case FILE_HISTORY_EX:               // 补日线数据
-			break;
+			switch(pHeader->m_wDataType)
+			{
+			case FILE_HISTORY_EX:               // 补日线数据
+				break;
 
-		case FILE_MINUTE_EX:                // 补分钟线数据
-			break;
+			case FILE_MINUTE_EX:                // 补分钟线数据
+				break;
 
-		case FILE_BASE_EX:                  // 钱龙兼容基本资料文件,m_szFileName仅包含文件名
-			break;
+			case FILE_BASE_EX:                  // 钱龙兼容基本资料文件,m_szFileName仅包含文件名
+				break;
 
-		case FILE_NEWS_EX:                  // 新闻类,其类型由m_szFileName中子目录名来定
-			break;
+			case FILE_NEWS_EX:                  // 新闻类,其类型由m_szFileName中子目录名来定
+				break;
+			}
 		}
 		break;
 

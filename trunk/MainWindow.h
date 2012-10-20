@@ -1,5 +1,6 @@
 #pragma once
 #include <QtGui>
+#include "BaseMarketWidget.h"
 
 class CMainWindow : public QMainWindow
 {
@@ -20,5 +21,6 @@ protected:
 
 private:
 	QMdiArea* m_pMdiArea;
+	CBaseMarketWidget* m_pBaseMarketWidget;
 };
 
