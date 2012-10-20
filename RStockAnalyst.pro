@@ -13,7 +13,7 @@ PRECOMPILED_HEADER = StdAfx.h
 
 
 HEADERS += StdAfx.h StockDrv.h STKDRV.h MainWindow.h BaseMarketWidget.h \
-			DataEngine.h
+			DataEngine.h BaseMarketTreeModel.h
 
 SOURCES += main.cpp STKDRV.cpp MainWindow.cpp BaseMarketWidget.cpp \
-			DataEngine.cpp
+			DataEngine.cpp BaseMarketTreeModel.cpp
