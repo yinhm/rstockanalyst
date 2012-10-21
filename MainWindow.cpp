@@ -93,13 +93,23 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 						break;
 
 					RCV_HISTORY_STRUCTEx* pHistory = pHeader->m_pDay;
-					int iIndex = 0;
-					while(iIndex<pHeader->m_nPacketNum)
+					QString qsCode;
+ 					for(int i=0;i<pHeader->m_nPacketNum;++i)
 					{
-						CDataEngine::getDataEngine()->appendHistory(QString::fromLocal8Bit(pHistory->m_head.m_szLabel),
-							qRcvHistoryData(pHistory));
-						pHistory = pHeader->m_pDay++;
-						++iIndex;
+						pHistory = (pHeader->m_pDay+i);
+						if(pHistory->m_time == EKE_HEAD_TAG)
+						{
+							qsCode = QString::fromLocal8Bit(pHistory->m_head.m_szLabel);
+							cout<<pHistory->m_head.m_szLabel<<endl;
+						}
+						else
+						{
+							if(!CDataEngine::getDataEngine()->appendHistory(qsCode,
+								qRcvHistoryData(pHistory)))
+							{
+								cout<<"No Code:"<<qsCode.toLocal8Bit().data()<<endl;
+							}
+						}
 					}
 				}
 				break;
