@@ -14,6 +14,7 @@ CDataEngine::~CDataEngine(void)
 
 void CDataEngine::initAllReport()
 {
+	return;
 	int iTotal = CSTKDRV::GetTotalNumber();
 	for(int i=0;i<iTotal;++i)
 	{

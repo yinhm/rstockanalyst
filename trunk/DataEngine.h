@@ -132,12 +132,14 @@ public:
 	}
 
 	//补充日线数据
-	void appendHistory(const QString& code, const qRcvHistoryData& p)
+	bool appendHistory(const QString& code, const qRcvHistoryData& p)
 	{
 		if(!m_mapBaseMarket.contains(code))
-			return;
+			return false;
 		qRcvReportData* pData = m_mapBaseMarket[code];
 		pData->mapHistorys.insert(p.time,p);
+
+		return true;
 	}
 
 private:
