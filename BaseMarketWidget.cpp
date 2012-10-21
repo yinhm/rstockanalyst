@@ -28,6 +28,11 @@ CBaseMarketWidget::CBaseMarketWidget()
 	m_pViewOther->setStyleSheet("QTreeView::branch {image:none;}");
 	m_pViewOther->setModel(m_pModelHK);
 
+	connect(m_pViewSHA,SIGNAL(clicked(const QModelIndex&)),this,SLOT(treeItemClicked(const QModelIndex&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(historyChanged(const QString&)),m_pModelSHA,SLOT(historyChanged(const QString&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(historyChanged(const QString&)),m_pModelSZ,SLOT(historyChanged(const QString&)));
+
+
 	QVBoxLayout* pLayout = new QVBoxLayout;
 
 	setLayout(pLayout);
@@ -63,6 +68,37 @@ void CBaseMarketWidget::updateBaseMarket()
 		else
 		{
 			m_pModelOther->appendReport(pReport);
+		}
+	}
+}
+
+void CBaseMarketWidget::treeItemClicked( const QModelIndex& index )
+{
+	QTreeView* pTreeView = reinterpret_cast<QTreeView*>(sender());
+	if(pTreeView == m_pViewSHA)
+	{
+		qRcvReportData* pReport = m_pModelSHA->data(index,Qt::UserRole).value<qRcvReportData*>();
+		if(pReport)
+		{
+			QDialog dlg;
+			QVBoxLayout layout;
+			dlg.setLayout(&layout);
+
+			QTreeWidget treeWidget(&dlg);
+			layout.addWidget(&treeWidget);
+			treeWidget.setHeaderLabels(QStringList()<<"Time"<<"High");
+
+			QMap<time_t,qRcvHistoryData>::iterator iter = pReport->mapHistorys.begin();
+			while(iter!=pReport->mapHistorys.end())
+			{
+				QTreeWidgetItem* pItem = new QTreeWidgetItem(&treeWidget);
+				pItem->setData(0,Qt::DisplayRole,QDateTime::fromTime_t(iter->time).toString());
+				pItem->setData(1,Qt::DisplayRole,iter->fHigh);
+				treeWidget.addTopLevelItem(pItem);
+				++iter;
+			}
+
+			dlg.exec();
 		}
 	}
 }

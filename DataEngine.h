@@ -96,6 +96,9 @@ struct qRcvReportData
 	}
 };
 
+Q_DECLARE_METATYPE(qRcvReportData*);
+Q_DECLARE_METATYPE(qRcvHistoryData*);
+
 class CDataEngine : public QObject
 {
 	Q_OBJECT
@@ -132,15 +135,15 @@ public:
 	}
 
 	//补充日线数据
-	bool appendHistory(const QString& code, const qRcvHistoryData& p)
+	bool appendHistory(const QString& code, const qRcvHistoryData& p);
+	void endHistory(const QString& code)
 	{
-		if(!m_mapBaseMarket.contains(code))
-			return false;
-		qRcvReportData* pData = m_mapBaseMarket[code];
-		pData->mapHistorys.insert(p.time,p);
-
-		return true;
+		if(m_mapBaseMarket.contains(code))
+			emit historyChanged(code);
 	}
+
+signals:
+	void historyChanged(const QString&);
 
 private:
 	QMap<QString,qRcvReportData*> m_mapBaseMarket;
