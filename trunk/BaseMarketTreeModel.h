@@ -27,11 +27,13 @@ public:
 
 public slots:
 	void clearReports();
-	void appendReport(qRcvReportData* data);
+	bool appendReport(qRcvReportData* data);
+	void historyChanged(const QString& qsCode);
 
 private:
 	QStringList m_listHeader;
 	QList<qRcvReportData*> m_listItems;
+	QMap<QString,int> m_mapTable;			//股票代码和index对照表，方便快速查找
 };
 
 #endif	//BASE_MARKET_TREEMODEL_H

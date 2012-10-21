@@ -12,6 +12,7 @@ public:
 
 public slots:
 	void updateBaseMarket();
+	void treeItemClicked(const QModelIndex& index);
 
 private:
 	//…œ÷§Aπ…

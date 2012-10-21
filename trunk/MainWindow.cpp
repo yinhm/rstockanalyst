@@ -58,6 +58,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 	{
 	case RCV_REPORT:                        // 共享数据引用方式,股票行情
 		{
+			cout<< "####Comming reports####"<<endl;
 			if(pHeader->m_nPacketNum<1)
 				break;
 
@@ -92,6 +93,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					if(pHeader->m_nPacketNum<1)
 						break;
 
+					QTime timeBein = QTime::currentTime();
 					RCV_HISTORY_STRUCTEx* pHistory = pHeader->m_pDay;
 					QString qsCode;
  					for(int i=0;i<pHeader->m_nPacketNum;++i)
@@ -99,18 +101,22 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 						pHistory = (pHeader->m_pDay+i);
 						if(pHistory->m_time == EKE_HEAD_TAG)
 						{
+							CDataEngine::getDataEngine()->endHistory(qsCode);
 							qsCode = QString::fromLocal8Bit(pHistory->m_head.m_szLabel);
-							cout<<pHistory->m_head.m_szLabel<<endl;
 						}
 						else
 						{
 							if(!CDataEngine::getDataEngine()->appendHistory(qsCode,
 								qRcvHistoryData(pHistory)))
 							{
-								cout<<"No Code:"<<qsCode.toLocal8Bit().data()<<endl;
+		//						cout<<"No Code:"<<qsCode.toLocal8Bit().data()<<endl;
 							}
 						}
 					}
+					CDataEngine::getDataEngine()->endHistory(qsCode);
+
+					cout<<"Packet cout:"<<pHeader->m_nPacketNum<<endl;
+					cout<<"UseTime:"<<QTime::currentTime().msecsTo(timeBein)<<"m secs"<<endl;
 				}
 				break;
 

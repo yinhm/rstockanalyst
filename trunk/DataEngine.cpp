@@ -14,6 +14,7 @@ CDataEngine::~CDataEngine(void)
 
 void CDataEngine::initAllReport()
 {
+	//废弃，无法使用
 	return;
 	int iTotal = CSTKDRV::GetTotalNumber();
 	for(int i=0;i<iTotal;++i)
@@ -32,4 +33,13 @@ void CDataEngine::initAllReport()
 			}
 		}
 	}
+}
+
+bool CDataEngine::appendHistory( const QString& code, const qRcvHistoryData& p )
+{
+	if(!m_mapBaseMarket.contains(code))
+		return false;
+	qRcvReportData* pData = m_mapBaseMarket[code];
+	pData->mapHistorys.insert(p.time,p);
+	return true;
 }
