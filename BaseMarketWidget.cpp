@@ -8,29 +8,19 @@ CBaseMarketWidget::CBaseMarketWidget()
 	pTabWidget->setTabPosition(QTabWidget::South);
 	pTabWidget->setTabShape(QTabWidget::Triangular);
 
-	m_pModelSHA = new CBaseMarketTreeModel;
+	m_pModelSHA = new CBaseMarketTreeModel(SH_MARKET_EX);
 	m_pViewSHA = new QTreeView;
 	m_pViewSHA->setStyleSheet("QTreeView::branch {image:none;}");
 	m_pViewSHA->setModel(m_pModelSHA);
 
-	m_pModelSZ = new CBaseMarketTreeModel;
+	m_pModelSZ = new CBaseMarketTreeModel(SZ_MARKET_EX);
 	m_pViewSZ = new QTreeView;
 	m_pViewSZ->setStyleSheet("QTreeView::branch {image:none;}");
 	m_pViewSZ->setModel(m_pModelSZ);
 
-	m_pModelHK = new CBaseMarketTreeModel;
-	m_pViewHK = new QTreeView;
-	m_pViewHK->setStyleSheet("QTreeView::branch {image:none;}");
-	m_pViewHK->setModel(m_pModelHK);
-
-	m_pModelOther = new CBaseMarketTreeModel;
-	m_pViewOther = new QTreeView;
-	m_pViewOther->setStyleSheet("QTreeView::branch {image:none;}");
-	m_pViewOther->setModel(m_pModelHK);
-
 	connect(m_pViewSHA,SIGNAL(clicked(const QModelIndex&)),this,SLOT(treeItemClicked(const QModelIndex&)));
-	connect(CDataEngine::getDataEngine(),SIGNAL(historyChanged(const QString&)),m_pModelSHA,SLOT(historyChanged(const QString&)));
-	connect(CDataEngine::getDataEngine(),SIGNAL(historyChanged(const QString&)),m_pModelSZ,SLOT(historyChanged(const QString&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(baseMarketChanged(const QString&)),m_pModelSHA,SLOT(updateBaseMarket(const QString&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(baseMarketChanged(const QString&)),m_pModelSZ,SLOT(updateBaseMarket(const QString&)));
 
 
 	QVBoxLayout* pLayout = new QVBoxLayout;
@@ -40,36 +30,10 @@ CBaseMarketWidget::CBaseMarketWidget()
 
 	pTabWidget->addTab(m_pViewSHA,tr("上海A股"));
 	pTabWidget->addTab(m_pViewSZ,tr("深圳指数"));
-	pTabWidget->addTab(m_pViewHK,tr("香港股市"));
-	pTabWidget->addTab(m_pViewOther,tr("Other"));
 }
 
 CBaseMarketWidget::~CBaseMarketWidget(void)
 {
-}
-
-void CBaseMarketWidget::updateBaseMarket()
-{
-	QList<qRcvReportData*> listReports = CDataEngine::getDataEngine()->getBaseMarket();
-	foreach(qRcvReportData* pReport,listReports)
-	{
-		if(pReport->wMarket==SH_MARKET_EX)
-		{
-			m_pModelSHA->appendReport(pReport);
-		}
-		else if(pReport->wMarket==SZ_MARKET_EX)
-		{
-			m_pModelSZ->appendReport(pReport);
-		}
-		else if(pReport->wMarket==HK_MARKET_EX)
-		{
-			m_pModelHK->appendReport(pReport);
-		}
-		else
-		{
-			m_pModelOther->appendReport(pReport);
-		}
-	}
 }
 
 void CBaseMarketWidget::treeItemClicked( const QModelIndex& index )
@@ -92,7 +56,7 @@ void CBaseMarketWidget::treeItemClicked( const QModelIndex& index )
 			while(iter!=pReport->mapHistorys.end())
 			{
 				QTreeWidgetItem* pItem = new QTreeWidgetItem(&treeWidget);
-				pItem->setData(0,Qt::DisplayRole,QDateTime::fromTime_t(iter->time).toString());
+				pItem->setData(0,Qt::DisplayRole,iter->time);
 				pItem->setData(1,Qt::DisplayRole,iter->fHigh);
 				treeWidget.addTopLevelItem(pItem);
 				++iter;

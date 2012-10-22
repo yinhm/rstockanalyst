@@ -16,7 +16,7 @@ class CBaseMarketTreeModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    CBaseMarketTreeModel(QObject *parent = 0);
+    CBaseMarketTreeModel(WORD wMarket,QObject *parent = 0);
     ~CBaseMarketTreeModel();
 
     QVariant data(const QModelIndex &index, int role) const;
@@ -28,9 +28,11 @@ public:
 public slots:
 	void clearReports();
 	bool appendReport(qRcvReportData* data);
-	void historyChanged(const QString& qsCode);
+	void updateBaseMarket(const QString& qsCode);
+//	void resetReports();					//重新更新所有的数据
 
 private:
+	WORD m_wMarket;							//该Model表示的股票市场类型
 	QStringList m_listHeader;
 	QList<qRcvReportData*> m_listItems;
 	QMap<QString,int> m_mapTable;			//股票代码和index对照表，方便快速查找

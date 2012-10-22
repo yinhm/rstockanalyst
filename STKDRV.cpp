@@ -41,6 +41,7 @@ void CSTKDRV::InitStockDrv()
 	if(QFile::exists(qsDriver))
 	{
 		m_hSTKDrv = LoadLibrary(qsDriver.toStdWString().data());
+	//	m_hSTKDrv = LoadLibrary(L"C:\\YjStock\\Stockdrv.dll");
 	}
 	else
 	{
