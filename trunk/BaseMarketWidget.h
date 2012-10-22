@@ -11,7 +11,6 @@ public:
 
 
 public slots:
-	void updateBaseMarket();
 	void treeItemClicked(const QModelIndex& index);
 
 private:
@@ -22,13 +21,5 @@ private:
 	//深圳指数
 	CBaseMarketTreeModel* m_pModelSZ;
 	QTreeView* m_pViewSZ;
-
-	//香港股市
-	CBaseMarketTreeModel* m_pModelHK;
-	QTreeView* m_pViewHK;
-
-	//其它
-	CBaseMarketTreeModel* m_pModelOther;
-	QTreeView* m_pViewOther;
 };
 

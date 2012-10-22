@@ -1,9 +1,11 @@
 #pragma once
 #include <QtCore>
 
+#define	R_TIME_ZONE	8
+
 struct qRcvHistoryData
 {
-	time_t	time;				//UCT
+	time_t	time;			//UCT
 	float	fOpen;			//开盘
 	float	fHigh;			//最高
 	float	fLow;				//最低
@@ -13,6 +15,10 @@ struct qRcvHistoryData
 	WORD	wAdvance;			//涨数,仅大盘有效
 	WORD	wDecline;			//跌数,仅大盘有效
 
+	qRcvHistoryData()
+	{
+
+	}
 	qRcvHistoryData(RCV_HISTORY_STRUCTEx* p)
 	{
 		memcpy(&time,&p->m_time,sizeof(qRcvHistoryData));
@@ -21,7 +27,7 @@ struct qRcvHistoryData
 
 struct qRcvReportData
 {
-	QDateTime	tmTime;			//成交时间
+	time_t	tmTime;			//成交时间
 	DWORD		wMarket;		//股票市场类型
 	QString		qsCode;			//股票代码
 	QString		qsName;			//股票名称
@@ -52,7 +58,7 @@ struct qRcvReportData
 
 	qRcvReportData(RCV_REPORT_STRUCTExV3* p)
 	{
-		tmTime = QDateTime::fromTime_t(p->m_time);
+		tmTime = p->m_time;
 		wMarket = p->m_wMarket;
 		qsCode = QString::fromLocal8Bit(p->m_szLabel);
 		qsName = QString::fromLocal8Bit(p->m_szName);
@@ -86,7 +92,7 @@ struct qRcvReportData
 
 	void resetItem(RCV_REPORT_STRUCTExV3* p)
 	{
-		tmTime = QDateTime::fromTime_t(p->m_time);
+		tmTime = p->m_time;
 		wMarket = p->m_wMarket;
 		qsCode = QString::fromLocal8Bit(p->m_szLabel);
 		qsName = QString::fromLocal8Bit(p->m_szName);
@@ -113,42 +119,31 @@ public:
 	}
 
 public:
-	//重新初始化所有股票数据
-	void initAllReport();
+	static time_t* getLast5DayTime();			//获取最近5天的开市日期
+	static bool isStockOpenDay(time_t tmDay);	//判断tmDay是否开市
+	static time_t getOpenSeconds();				//获取每天的开市时间（秒）；一般为4小时
+	static time_t getOpenSeconds(time_t tmTime);//获取当天相对于tmTime的开市时间（秒）
 
+public:
 	//获取基本行情数据
-	QList<qRcvReportData*> getBaseMarket()
-	{
-		return m_mapBaseMarket.values();
-	}
-	qRcvReportData* getBaseMarket(const QString& qsCode)
-	{
-		if(m_mapBaseMarket.contains(qsCode))
-		{
-			return m_mapBaseMarket[qsCode];
-		}
-		return NULL;
-	}
-	void setBaseMarket(qRcvReportData* p)
-	{
-		m_mapBaseMarket[p->qsCode] = p;
-	}
+	QList<qRcvReportData*> getBaseMarket();
+	qRcvReportData* getBaseMarket(const QString& qsCode);
+	void setBaseMarket(qRcvReportData* p);
 
 	//补充日线数据
 	bool appendHistory(const QString& code, const qRcvHistoryData& p);
-	void endHistory(const QString& code)
-	{
-		if(m_mapBaseMarket.contains(code))
-			emit historyChanged(code);
-	}
+	void updateBaseMarket(const QString& code);
 
 signals:
-	void historyChanged(const QString&);
+	void baseMarketChanged(const QString&);
 
 private:
 	QMap<QString,qRcvReportData*> m_mapBaseMarket;
 
 private:
 	static CDataEngine* m_pDataEngine;
+	static time_t m_tmCurrentDay;
+	static time_t* m_tmLast5Day;
+
 };
 

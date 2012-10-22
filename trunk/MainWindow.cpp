@@ -31,7 +31,9 @@ bool CMainWindow::setupStockDrv()
 	if(CSTKDRV::Stock_Init(this->winId(),RSTOCK_ANALYST_MAINMSG,RCV_WORK_MEMSHARE)>0)
 	{
 		if(CSTKDRV::SetupReceiver(TRUE)>0)
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -66,21 +68,21 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 			for(int i=0;i<pHeader->m_nPacketNum;++i)
 			{
 				pReport = (pHeader->m_pReportV3+i);
-				if(QString::fromLocal8Bit(pReport->m_szLabel).isEmpty())
-				{
-					int j = 0;
-					++j;
-				}
 
 				qRcvReportData* pItem = CDataEngine::getDataEngine()->getBaseMarket(QString::fromLocal8Bit(pReport->m_szLabel));
 				if(pItem==NULL)
+				{
 					pItem = new qRcvReportData(pReport);
+				}
 				else
+				{
+					if(pReport->m_time<=pItem->tmTime)
+						continue;
 					pItem->resetItem(pReport);
+				}
 
 				CDataEngine::getDataEngine()->setBaseMarket(pItem);
 			}
-			m_pBaseMarketWidget->updateBaseMarket();
 		}
 		break;
 
@@ -101,7 +103,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 						pHistory = (pHeader->m_pDay+i);
 						if(pHistory->m_time == EKE_HEAD_TAG)
 						{
-							CDataEngine::getDataEngine()->endHistory(qsCode);
+							CDataEngine::getDataEngine()->updateBaseMarket(qsCode);
 							qsCode = QString::fromLocal8Bit(pHistory->m_head.m_szLabel);
 						}
 						else
@@ -113,7 +115,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 							}
 						}
 					}
-					CDataEngine::getDataEngine()->endHistory(qsCode);
+					CDataEngine::getDataEngine()->updateBaseMarket(qsCode);
 
 					cout<<"Packet cout:"<<pHeader->m_nPacketNum<<endl;
 					cout<<"UseTime:"<<QTime::currentTime().msecsTo(timeBein)<<"m secs"<<endl;

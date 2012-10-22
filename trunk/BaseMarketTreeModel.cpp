@@ -8,8 +8,9 @@
 #include "BaseMarketTreeModel.h"
 #include "DataEngine.h"
 
-CBaseMarketTreeModel::CBaseMarketTreeModel(QObject *parent)
+CBaseMarketTreeModel::CBaseMarketTreeModel( WORD wMarket,QObject *parent /*= 0*/ )
     : QAbstractTableModel(parent)
+	, m_wMarket(wMarket)
 {
     QList<QVariant> rootData;
     m_listHeader << tr("索引") << tr("代码") << tr("名称")
@@ -76,23 +77,37 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 4:
 			{
 				/*量比计算：
-					量比＝现成交总手/（过去5日平均每分钟成交量×当日累计开市时间（分）） 
+					量比＝现成交总手/（过去5日平均每分钟成交量*当日累计开市时间（分）） 
 					当量比大于1时，说明当日每分钟的平均成交量要大于过去5日的平均数值，交易比过去5日火爆；
 					而当量比小于1时，说明现在的成交比不上过去5日的平均水平。
 				*/
-				if(itemData->mapHistorys.size()>4)
+				if(itemData->mapHistorys.size()<5)
+					return QVariant();
+
+				//判断最新的数据是否是今天开市后的数据
+				time_t tmSeconds = CDataEngine::getOpenSeconds(itemData->tmTime);
+				if(tmSeconds<1)
+					return QVariant();
+
+				time_t* pLast5Day = CDataEngine::getLast5DayTime();
+				float fVolume5 = 0.0;
+				for(int i=0;i<5;++i)
 				{
-					float fVolume5 = 0.0;
-					QMap<time_t,qRcvHistoryData>::iterator iter = itemData->mapHistorys.begin();
+					if(!itemData->mapHistorys.contains(pLast5Day[i]))
+						return QVariant();
+					fVolume5 = (fVolume5 + itemData->mapHistorys.value(pLast5Day[i]).fVolume);
 				}
 
-				return itemData->mapHistorys.size();
+				return (itemData->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
 			}
 			break;
 		case 5:
 			{
-				//换手率（仓差）
-				return QVariant();
+				/*换手率（仓差）
+					换手率=某一段时期内的成交量/发行总股数*100%
+					（在中国：成交量/流通总股数*100%）
+				*/
+				return QVariant()/*itemData->fVolume/*/;
 			}
 			break;
 		case 6:
@@ -251,8 +266,8 @@ int CBaseMarketTreeModel::rowCount(const QModelIndex &parent) const
 
 bool CBaseMarketTreeModel::appendReport( qRcvReportData* data )
 {
-	//判断是否为重复添加
-	if(m_mapTable.contains(data->qsCode))
+	//是否为该Model显示的市场 或者 判断是否为重复添加
+	if((data->wMarket != m_wMarket)||(m_mapTable.contains(data->qsCode)))
 		return false;
 
 	beginInsertRows (QModelIndex(),m_listItems.size(),m_listItems.size());
@@ -271,14 +286,30 @@ void CBaseMarketTreeModel::clearReports()
 	endRemoveRows();
 }
 
-void CBaseMarketTreeModel::historyChanged( const QString& qsCode )
+void CBaseMarketTreeModel::updateBaseMarket( const QString& qsCode )
 {
-	if(!m_mapTable.contains(qsCode))
+	qRcvReportData* pReport = CDataEngine::getDataEngine()->getBaseMarket(qsCode);
+	if((!pReport)||(pReport->wMarket!=m_wMarket))
 		return;
+
+	appendReport(pReport);
 
 	int iIndex = m_mapTable[qsCode];
 	emit dataChanged(createIndex(iIndex,0),createIndex(iIndex,m_listHeader.count()));
-//	beginInsertRows(QModelIndex(),m_mapTable[qsCode],m_mapTable[qsCode]);
-
-//	endInsertRows();
 }
+
+/*
+void CBaseMarketTreeModel::resetReports()
+{
+	QList<qRcvReportData*> listReports = CDataEngine::getDataEngine()->getBaseMarket();
+	foreach(qRcvReportData* pReport,listReports)
+	{
+		if(pReport->wMarket==m_wMarket)
+		{
+			appendReport(pReport);
+		}
+	}
+
+	reset();
+}
+*/
