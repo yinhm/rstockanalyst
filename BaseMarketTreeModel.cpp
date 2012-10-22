@@ -69,91 +69,53 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 3:
 			{
 				//涨幅
-				/*
-				if(itemData->fNewPrice<=0.0 || itemData->fLastClose<=0.0)
-					return QString();
-				return QString("%1%").arg((itemData->fNewPrice-itemData->fLastClose)*100.0/itemData->fLastClose,0,'f',2);
-				*/
-				return QString();
+				return itemData->getIncrease();
 			}
 			break;
 		case 4:
 			{
-				/*量比计算：
-					量比＝现成交总手/（过去5日平均每分钟成交量*当日累计开市时间（分）） 
-					当量比大于1时，说明当日每分钟的平均成交量要大于过去5日的平均数值，交易比过去5日火爆；
-					而当量比小于1时，说明现在的成交比不上过去5日的平均水平。
-				*/
-/*				if(itemData->mapHistorys.size()<5)
-					return QVariant();
-
-				//判断最新的数据是否是今天开市后的数据
-				time_t tmSeconds = CDataEngine::getOpenSeconds(itemData->tmTime);
-				if(tmSeconds<1)
-					return QVariant();
-
-				time_t* pLast5Day = CDataEngine::getLast5DayTime();
-				float fVolume5 = 0.0;
-				for(int i=0;i<5;++i)
-				{
-					if(!itemData->mapHistorys.contains(pLast5Day[i]))
-						return QVariant();
-					fVolume5 = (fVolume5 + itemData->mapHistorys.value(pLast5Day[i]).fVolume);
-				}
-
-				return (itemData->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));*/
-				return QString();
+				return itemData->getVolumeRatio();
 			}
 			break;
 		case 5:
 			{
-				/*换手率（仓差）
-					换手率=某一段时期内的成交量/发行总股数*100%
-					（在中国：成交量/流通总股数*100%）
-				*/
-				return QVariant()/*itemData->fVolume/*/;
+				return itemData->getTurnRatio();
 			}
 			break;
 		case 6:
 			{
 				//前收
-//				return QString("%1").arg(itemData->fLastClose,0,'f',2);
-				return QString();
+				return itemData->getLastClose();
 			}
 			break;
 		case 7:
 			{
 				//今开
-//				return QString("%1").arg(itemData->fOpen,0,'f',2);
-				return QString();
+				return itemData->getOpenPrice();
 			}
 			break;
 		case 8:
 			{
 				//最高
-//				return QString("%1").arg(itemData->fHigh,0,'f',2);
-				return QString();
+				return itemData->getHighPrice();
 			}
 			break;
 		case 9:
 			{
 				//最低
-//				return QString("%1").arg(itemData->fLow,0,'f',2);;
-				return QString();
+				return itemData->getLowPrice();
 			}
 			break;
 		case 10:
 			{
 				//最新
-//				return QString("%1").arg(itemData->fNewPrice,0,'f',2);;
-				return QString();
+				return itemData->getNewPrice();
 			}
 			break;
 		case 11:
 			{
 				//总手
-//				return QString("%1").arg(itemData->fVolume,0,'f',0);
-				return QString();
+				return itemData->getTotalVolume();
 			}
 			break;
 		case 12:

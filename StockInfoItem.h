@@ -103,7 +103,7 @@ struct qRcvReportData
 
 struct qRcvBaseInfoData
 {
-	QString qsCode;
+	char code[STKLABEL_LEN];
 	WORD wMarket;
 
 	float fZgb;                    //总股本(万股)			0
@@ -142,9 +142,7 @@ struct qRcvBaseInfoData
 
 	qRcvBaseInfoData()
 	{
-		qsCode = "";
-		wMarket = 0x0000;
-		memset(&fZgb,0,sizeof(float)*33);
+		memset(code,0,sizeof(qRcvBaseInfoData));
 	}
 
 	qRcvBaseInfoData( float* fVal )
@@ -198,21 +196,38 @@ class CStockInfoItem : public QObject
 	Q_OBJECT
 public:
 	CStockInfoItem(const QString& code, WORD market);
+	CStockInfoItem(const qRcvBaseInfoData& info);
 	~CStockInfoItem(void);
 
 public:
 	//补充Report数据
 	void appendReport(qRcvReportData* p);
+	qRcvReportData* getLastReport() const;
 
 	//补充日线数据
 	QList<qRcvHistoryData*> getHistoryList();
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
+
+	//设置F10数据
+	void setBaseInfo(const qRcvBaseInfoData& info);
 
 public:
 	/*属性类字段，只读*/
 	QString getCode() const;		//股票代码
 	WORD getMarket() const;			//股票市场
 	QString getName() const;		//股票名称
+	QString getIncrease() const;	//涨幅
+	QString getVolumeRatio() const;	//量比
+	QString getTurnRatio() const;	//换手率
+	QString getLastClose() const;	//上一天收盘价
+	QString getOpenPrice() const;	//今日开盘价
+	QString getHighPrice() const;	//今日最高价
+	QString getLowPrice() const;	//今日最低价
+	QString getNewPrice() const;	//最新价
+	QString getTotalVolume() const;	//获取总手
+
+
+private:
 
 private:
 	QString qsCode;
@@ -221,6 +236,7 @@ private:
 private:
 	QMap<time_t,qRcvReportData*> mapReports;
 	QMap<time_t,qRcvHistoryData*> mapHistorys;
+	qRcvBaseInfoData baseInfo;
 };
 
 #endif	//STOCK_INFO_ITEM_H
