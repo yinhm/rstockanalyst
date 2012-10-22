@@ -9,7 +9,7 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QtCore>
-#include "DataEngine.h"
+#include "StockInfoItem.h"
 
 class CBaseMarketTreeModel : public QAbstractTableModel
 {
@@ -27,14 +27,14 @@ public:
 
 public slots:
 	void clearReports();
-	bool appendReport(qRcvReportData* data);
-	void updateBaseMarket(const QString& qsCode);
+	int appendStockItem(CStockInfoItem* pItem);
+	void updateStockItem(const QString& qsCode);
 //	void resetReports();					//重新更新所有的数据
 
 private:
 	WORD m_wMarket;							//该Model表示的股票市场类型
 	QStringList m_listHeader;
-	QList<qRcvReportData*> m_listItems;
+	QList<CStockInfoItem*> m_listItems;
 	QMap<QString,int> m_mapTable;			//股票代码和index对照表，方便快速查找
 };
 

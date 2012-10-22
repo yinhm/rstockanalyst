@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BaseMarketWidget.h"
+#include "DataEngine.h"
 
 CBaseMarketWidget::CBaseMarketWidget()
 	: QWidget()
@@ -19,8 +20,8 @@ CBaseMarketWidget::CBaseMarketWidget()
 	m_pViewSZ->setModel(m_pModelSZ);
 
 	connect(m_pViewSHA,SIGNAL(clicked(const QModelIndex&)),this,SLOT(treeItemClicked(const QModelIndex&)));
-	connect(CDataEngine::getDataEngine(),SIGNAL(baseMarketChanged(const QString&)),m_pModelSHA,SLOT(updateBaseMarket(const QString&)));
-	connect(CDataEngine::getDataEngine(),SIGNAL(baseMarketChanged(const QString&)),m_pModelSZ,SLOT(updateBaseMarket(const QString&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoAdded(const QString&)),m_pModelSHA,SLOT(updateStockItem(const QString&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoAdded(const QString&)),m_pModelSZ,SLOT(updateStockItem(const QString&)));
 
 
 	QVBoxLayout* pLayout = new QVBoxLayout;
@@ -41,8 +42,8 @@ void CBaseMarketWidget::treeItemClicked( const QModelIndex& index )
 	QTreeView* pTreeView = reinterpret_cast<QTreeView*>(sender());
 	if(pTreeView == m_pViewSHA)
 	{
-		qRcvReportData* pReport = m_pModelSHA->data(index,Qt::UserRole).value<qRcvReportData*>();
-		if(pReport)
+		CStockInfoItem* pItem = reinterpret_cast<CStockInfoItem*>(m_pModelSHA->data(index,Qt::UserRole).toUInt());
+		if(pItem)
 		{
 			QDialog dlg;
 			QVBoxLayout layout;
@@ -52,14 +53,13 @@ void CBaseMarketWidget::treeItemClicked( const QModelIndex& index )
 			layout.addWidget(&treeWidget);
 			treeWidget.setHeaderLabels(QStringList()<<"Time"<<"High");
 
-			QMap<time_t,qRcvHistoryData>::iterator iter = pReport->mapHistorys.begin();
-			while(iter!=pReport->mapHistorys.end())
+			QList<qRcvHistoryData*> lsHistory = pItem->getHistoryList();
+			foreach(qRcvHistoryData* pHistory,lsHistory)
 			{
 				QTreeWidgetItem* pItem = new QTreeWidgetItem(&treeWidget);
-				pItem->setData(0,Qt::DisplayRole,iter->time);
-				pItem->setData(1,Qt::DisplayRole,iter->fHigh);
+				pItem->setData(0,Qt::DisplayRole,pHistory->time);
+				pItem->setData(1,Qt::DisplayRole,pHistory->fHigh);
 				treeWidget.addTopLevelItem(pItem);
-				++iter;
 			}
 
 			dlg.exec();

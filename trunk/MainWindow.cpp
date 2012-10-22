@@ -69,19 +69,17 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 			{
 				pReport = (pHeader->m_pReportV3+i);
 
-				qRcvReportData* pItem = CDataEngine::getDataEngine()->getBaseMarket(QString::fromLocal8Bit(pReport->m_szLabel));
+				QString qsCode = QString::fromLocal8Bit(pReport->m_szLabel);
+
+				CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
 				if(pItem==NULL)
 				{
-					pItem = new qRcvReportData(pReport);
-				}
-				else
-				{
-					if(pReport->m_time<=pItem->tmTime)
-						continue;
-					pItem->resetItem(pReport);
+					pItem = new CStockInfoItem(qsCode,pReport->m_wMarket);
+					CDataEngine::getDataEngine()->setStockInfoItem(pItem);
 				}
 
-				CDataEngine::getDataEngine()->setBaseMarket(pItem);
+				qRcvReportData* p = new qRcvReportData(pReport);
+				pItem->appendReport(p);
 			}
 		}
 		break;
@@ -95,30 +93,38 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					if(pHeader->m_nPacketNum<1)
 						break;
 
-					QTime timeBein = QTime::currentTime();
+					QTime timeBegin = QTime::currentTime();
 					RCV_HISTORY_STRUCTEx* pHistory = pHeader->m_pDay;
 					QString qsCode;
+
+					QList<qRcvHistoryData*> listHistory;
  					for(int i=0;i<pHeader->m_nPacketNum;++i)
 					{
 						pHistory = (pHeader->m_pDay+i);
 						if(pHistory->m_time == EKE_HEAD_TAG)
 						{
-							CDataEngine::getDataEngine()->updateBaseMarket(qsCode);
+							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+							if(pItem==NULL)
+							{
+								//É¾³ýÖ¸Õë£¬·ÀÖ¹ÄÚ´æÐ¹Â©
+								foreach(qRcvHistoryData* p,listHistory)
+									delete p;
+							}
+							else
+							{
+								pItem->appendHistorys(listHistory);
+							}
 							qsCode = QString::fromLocal8Bit(pHistory->m_head.m_szLabel);
+							listHistory.clear();
 						}
 						else
 						{
-							if(!CDataEngine::getDataEngine()->appendHistory(qsCode,
-								qRcvHistoryData(pHistory)))
-							{
-		//						cout<<"No Code:"<<qsCode.toLocal8Bit().data()<<endl;
-							}
+							listHistory.append(new qRcvHistoryData(pHistory));
 						}
 					}
-					CDataEngine::getDataEngine()->updateBaseMarket(qsCode);
 
 					cout<<"Packet cout:"<<pHeader->m_nPacketNum<<endl;
-					cout<<"UseTime:"<<QTime::currentTime().msecsTo(timeBein)<<"m secs"<<endl;
+					cout<<"UseTime:"<<QTime::currentTime().msecsTo(timeBegin)<<"m secs"<<endl;
 				}
 				break;
 

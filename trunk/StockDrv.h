@@ -48,6 +48,45 @@
 #define		STKLABEL_LEN			10			// 股号数据长度,国内市场股号编码兼容钱龙
 #define		STKNAME_LEN			32			// 股名长度
 
+//---------------------------------------------------------------------------------------
+// F10 数据
+typedef  struct tagRCV_BASEINFO_STRUCTEx
+{
+	char m_szLabel[STKLABEL_LEN];  //股票代码
+	float m_fZgb;                    //总股本(万股)
+	float m_fGjg;                    //国家股(万股)
+	float m_fFqrfrg;                  //发起人法人股(万股)
+	float m_fFrg;                    //法人股(万股)
+	float m_fZgg;                   //职工股(万股)
+	float m_fGzAg;                  //公众A股(万股)
+	float m_fLtAg;                  //流通A股(万股)
+	float m_fHg;                    //Ｈ股(万股)
+	float m_fBg;                    //B股(万股)
+	float m_fZpg;                   //转配股(万股)
+	float m_fZzc;                   //总资产(万元)
+	float m_fLdzc;                  //流动资产(万元)
+	float m_fCqtz;                  //长期投资(万元)
+	float m_fGdzc;                  //固定资产(万元)
+	float m_fWxzc;                 //无形资产(万元)
+	float m_fLdfz;                  //流动负债(万元)
+	float m_fCqfz;                 //长期负债(万元)
+	float m_fGgqy;                 //股东权益(万元)
+	float m_fZbgjj;                 //资本公积金(万元)
+	float m_fYygjj;                 //盈余公积金(万元)
+	float m_fMgjz;                 //每股净值(元)
+	float m_fGdqybl;               //股东权益比率(%)
+	float m_fMggjj;                //每股公积金(元)
+	float m_fZyywsr;               //主营业务收入(万元)
+	float m_fZyywlr;               //主营业务利润(万元)
+	float m_fQtywlr;               //其它业务利润(万元)
+	float m_fLrze;                 //利润总额(万元)
+	float m_fJlr;                  //净利润(万元)
+	float m_fWfplr;               //未分配利润(万元)
+	float m_fMgsy;                //每股收益(元)
+	float m_fJzcsyl;                //净资产收益率(%)
+	float m_fMgwfplr;              //每股未分配利润(元)
+	float m_fMgjzc;                //每股净资产(元)
+}RCV_BASEINFO_STRUCTEx;
 
 
 //////////////////////////////////////////////////////////////////////////////////

@@ -44,7 +44,7 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 
 	if(role == Qt::DisplayRole)
 	{
-		qRcvReportData* itemData = m_listItems.at(index.row());
+		CStockInfoItem* itemData = m_listItems.at(index.row());
 
 		switch(index.column())
 		{
@@ -57,21 +57,24 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 1:
 			{
 				//股票代码
-				return itemData->qsCode;
+				return itemData->getCode();
 			}
 			break;
 		case 2:
 			{
 				//股票名称
-				return itemData->qsName;
+				return itemData->getName();
 			}
 			break;
 		case 3:
 			{
 				//涨幅
+				/*
 				if(itemData->fNewPrice<=0.0 || itemData->fLastClose<=0.0)
 					return QString();
 				return QString("%1%").arg((itemData->fNewPrice-itemData->fLastClose)*100.0/itemData->fLastClose,0,'f',2);
+				*/
+				return QString();
 			}
 			break;
 		case 4:
@@ -81,7 +84,7 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 					当量比大于1时，说明当日每分钟的平均成交量要大于过去5日的平均数值，交易比过去5日火爆；
 					而当量比小于1时，说明现在的成交比不上过去5日的平均水平。
 				*/
-				if(itemData->mapHistorys.size()<5)
+/*				if(itemData->mapHistorys.size()<5)
 					return QVariant();
 
 				//判断最新的数据是否是今天开市后的数据
@@ -98,7 +101,8 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 					fVolume5 = (fVolume5 + itemData->mapHistorys.value(pLast5Day[i]).fVolume);
 				}
 
-				return (itemData->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
+				return (itemData->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));*/
+				return QString();
 			}
 			break;
 		case 5:
@@ -113,37 +117,43 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 6:
 			{
 				//前收
-				return QString("%1").arg(itemData->fLastClose,0,'f',2);
+//				return QString("%1").arg(itemData->fLastClose,0,'f',2);
+				return QString();
 			}
 			break;
 		case 7:
 			{
 				//今开
-				return QString("%1").arg(itemData->fOpen,0,'f',2);
+//				return QString("%1").arg(itemData->fOpen,0,'f',2);
+				return QString();
 			}
 			break;
 		case 8:
 			{
 				//最高
-				return QString("%1").arg(itemData->fHigh,0,'f',2);
+//				return QString("%1").arg(itemData->fHigh,0,'f',2);
+				return QString();
 			}
 			break;
 		case 9:
 			{
 				//最低
-				return QString("%1").arg(itemData->fLow,0,'f',2);;
+//				return QString("%1").arg(itemData->fLow,0,'f',2);;
+				return QString();
 			}
 			break;
 		case 10:
 			{
 				//最新
-				return QString("%1").arg(itemData->fNewPrice,0,'f',2);;
+//				return QString("%1").arg(itemData->fNewPrice,0,'f',2);;
+				return QString();
 			}
 			break;
 		case 11:
 			{
 				//总手
-				return QString("%1").arg(itemData->fVolume,0,'f',0);
+//				return QString("%1").arg(itemData->fVolume,0,'f',0);
+				return QString();
 			}
 			break;
 		case 12:
@@ -155,7 +165,8 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 13:
 			{
 				//现手
-				return QString("%1").arg(itemData->fSellPrice[0],0,'f',2);
+//				return QString("%1").arg(itemData->fSellPrice[0],0,'f',2);
+				return QString();
 			}
 			break;
 		case 14:
@@ -239,8 +250,8 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 	}
 	else if(role == Qt::UserRole)
 	{
-		qRcvReportData* itemData = m_listItems.at(index.row());
-		return QVariant::fromValue(itemData);
+		CStockInfoItem* itemData = m_listItems.at(index.row());
+		return QVariant(reinterpret_cast<unsigned int>(itemData));
 	}
 
 	return QVariant();
@@ -264,18 +275,15 @@ int CBaseMarketTreeModel::rowCount(const QModelIndex &parent) const
     return m_listItems.size();
 }
 
-bool CBaseMarketTreeModel::appendReport( qRcvReportData* data )
+int CBaseMarketTreeModel::appendStockItem( CStockInfoItem* pItem )
 {
 	//是否为该Model显示的市场 或者 判断是否为重复添加
-	if((data->wMarket != m_wMarket)||(m_mapTable.contains(data->qsCode)))
-		return false;
-
 	beginInsertRows (QModelIndex(),m_listItems.size(),m_listItems.size());
-	m_listItems.append(data);
-	m_mapTable[data->qsCode] = m_listItems.size()-1;
+	m_listItems.append(pItem);
+	m_mapTable[pItem->getCode()] = m_listItems.size()-1;
 	endInsertRows();
 
-	return true;
+	return m_listItems.size()-1;
 }
 
 void CBaseMarketTreeModel::clearReports()
@@ -286,15 +294,18 @@ void CBaseMarketTreeModel::clearReports()
 	endRemoveRows();
 }
 
-void CBaseMarketTreeModel::updateBaseMarket( const QString& qsCode )
+void CBaseMarketTreeModel::updateStockItem( const QString& qsCode )
 {
-	qRcvReportData* pReport = CDataEngine::getDataEngine()->getBaseMarket(qsCode);
-	if((!pReport)||(pReport->wMarket!=m_wMarket))
+	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+	if((!pItem)||(pItem->getMarket()!=m_wMarket))
 		return;
 
-	appendReport(pReport);
+	int iIndex = 0;
+	if(!m_mapTable.contains(pItem->getCode()))
+		iIndex = appendStockItem(pItem);
+	else
+		iIndex = m_mapTable[qsCode];
 
-	int iIndex = m_mapTable[qsCode];
 	emit dataChanged(createIndex(iIndex,0),createIndex(iIndex,m_listHeader.count()));
 }
 
