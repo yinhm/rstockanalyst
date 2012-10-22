@@ -28,8 +28,8 @@ int CDataEngine::importBaseInfoFromFile( const QString& qsFile )
 		if(file.read((char*)&wMarket,2)!=2) break;
 		if(!file.seek(file.pos()+2)) break;
 
-		char chCode[10];
-		if(file.read(chCode,10)!=10) break;
+		char chCode[STKLABEL_LEN];
+		if(file.read(chCode,STKLABEL_LEN)!=STKLABEL_LEN) break;
 
 
 		float fVal[38];
@@ -37,7 +37,20 @@ int CDataEngine::importBaseInfoFromFile( const QString& qsFile )
 
 		qRcvBaseInfoData d(fVal);
 		d.wMarket = wMarket;
-		d.qsCode = QString::fromLocal8Bit(chCode);
+		memcpy(d.code,chCode,STKLABEL_LEN);
+
+		QString qsCode = QString::fromLocal8Bit(chCode);
+
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+		if(pItem)
+		{
+			pItem->setBaseInfo(d);
+		}
+		else
+		{
+			CStockInfoItem* pItem = new CStockInfoItem(d);
+			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
+		}
 
 		++iCout;
 	}

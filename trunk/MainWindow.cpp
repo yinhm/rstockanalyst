@@ -19,6 +19,14 @@ CMainWindow::CMainWindow()
 	m_pBaseMarketWidget = new CBaseMarketWidget;
 
 	m_pMdiArea->addSubWindow(m_pBaseMarketWidget);
+
+	//Init F10 data( base info)
+	QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
+	QString qsF10File = settings.value("SSInfoPath").toString() + "\\财务数据.fin";
+	if(QFile::exists(qsF10File))
+	{
+		CDataEngine::importBaseInfoFromFile(qsF10File);
+	}
 }
 
 CMainWindow::~CMainWindow()
