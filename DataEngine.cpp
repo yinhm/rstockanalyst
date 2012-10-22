@@ -8,6 +8,43 @@ CDataEngine* CDataEngine::m_pDataEngine = NULL;
 time_t CDataEngine::m_tmCurrentDay = NULL;
 time_t* CDataEngine::m_tmLast5Day = new time_t[5];
 
+
+int CDataEngine::importBaseInfoFromFile( const QString& qsFile )
+{
+	QFile file(qsFile);
+	if(!file.open(QFile::ReadOnly))
+		return 0;
+
+	int iFlag;
+	file.read((char*)&iFlag,4);
+	int iTotal;
+	file.read((char*)&iTotal,4);
+
+	int iCout = 0;
+
+	while(true)
+	{
+		WORD wMarket;
+		if(file.read((char*)&wMarket,2)!=2) break;
+		if(!file.seek(file.pos()+2)) break;
+
+		char chCode[10];
+		if(file.read(chCode,10)!=10) break;
+
+
+		float fVal[38];
+		if(file.read((char*)fVal,sizeof(float)*38)!=(sizeof(float)*38)) break;
+
+		qRcvBaseInfoData d(fVal);
+		d.wMarket = wMarket;
+		d.qsCode = QString::fromLocal8Bit(chCode);
+
+		++iCout;
+	}
+
+	return iCout;
+}
+
 bool CDataEngine::isStockOpenDay( time_t tmDay )
 {
 	QDate tmDate = QDateTime::fromTime_t(tmDay).date();
@@ -82,38 +119,22 @@ CDataEngine::~CDataEngine(void)
 
 
 
-QList<qRcvReportData*> CDataEngine::getBaseMarket()
+QList<CStockInfoItem*> CDataEngine::getStockInfoList()
 {
-	return m_mapBaseMarket.values();
+	return m_mapStockInfos.values();
 }
 
-qRcvReportData* CDataEngine::getBaseMarket( const QString& qsCode )
+CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
 {
-	if(m_mapBaseMarket.contains(qsCode))
+	if(m_mapStockInfos.contains(qsCode))
 	{
-		return m_mapBaseMarket[qsCode];
+		return m_mapStockInfos[qsCode];
 	}
 	return NULL;
 }
 
-void CDataEngine::setBaseMarket( qRcvReportData* p )
+void CDataEngine::setStockInfoItem( CStockInfoItem* p )
 {
-	m_mapBaseMarket[p->qsCode] = p;
-	emit baseMarketChanged(p->qsCode);
-}
-
-
-bool CDataEngine::appendHistory( const QString& code, const qRcvHistoryData& p )
-{
-	if(!m_mapBaseMarket.contains(code))
-		return false;
-	qRcvReportData* pData = m_mapBaseMarket[code];
-	pData->mapHistorys.insert(p.time,p);
-	return true;
-}
-
-void CDataEngine::updateBaseMarket( const QString& code )
-{
-	if(m_mapBaseMarket.contains(code))
-		emit baseMarketChanged(code);
+	m_mapStockInfos[p->getCode()] = p;
+	emit stockInfoAdded(p->getCode());
 }
