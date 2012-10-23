@@ -8,6 +8,16 @@
 #include "BaseMarketTreeModel.h"
 #include "DataEngine.h"
 
+void CBaseMarketItemDelegate::paint( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+{
+	(const_cast<QStyleOptionViewItem&>(option)).palette.setColor(QPalette::HighlightedText, index.data(Qt::ForegroundRole).value<QColor>());
+//	(const_cast<QStyleOptionViewItem&>(option)).showDecorationSelected = false;
+//	(const_cast<QStyleOptionViewItem&>(option)).textElideMode = Qt::ElideNone;
+	//高亮显示与普通显示时的前景色一致（即选中行和为选中时候的文字颜色一样）
+	return QStyledItemDelegate::paint(painter, option, index);
+}
+
+
 CBaseMarketTreeModel::CBaseMarketTreeModel( WORD wMarket,QObject *parent /*= 0*/ )
     : QAbstractTableModel(parent)
 	, m_wMarket(wMarket)
@@ -69,25 +79,34 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 3:
 			{
 				//涨幅
-				return itemData->getIncrease();
+				if(_isnan(itemData->getIncrease()))
+					return QString();
+				return QString("%1%").arg(itemData->getIncrease(),0,'f',2);
 			}
 			break;
 		case 4:
 			{
 				//量比
-				return itemData->getVolumeRatio();
+				if(_isnan(itemData->getVolumeRatio()))
+					return QString();
+				return QString("%1").arg(itemData->getVolumeRatio(),0,'f',2);
 			}
 			break;
 		case 5:
 			{
 				//换手率
-				return itemData->getTurnRatio();
+				if(_isnan(itemData->getTurnRatio()))
+					return QString();
+				return QString("%1%").arg(itemData->getTurnRatio(),0,'f',2);
 			}
 			break;
 		case 6:
 			{
 				//前收
-				return itemData->getLastClose();
+				if(_isnan(itemData->getLastClose()))
+					return QString();
+
+				return QString("%1").arg(itemData->getLastClose(),0,'f',2);
 			}
 			break;
 		case 7:
@@ -225,7 +244,12 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 	}
 	else if(role == Qt::TextColorRole)
 	{
-		return QColor(255,255,0);
+		int iColumn = index.column();
+		if(iColumn == 1)
+			return QColor(127,255,191);
+		else if(iColumn == 2)
+			return QColor(255,255,0);
+		return QColor(191,191,191);
 	}
 
 	return QVariant();
@@ -306,3 +330,4 @@ void CBaseMarketTreeModel::resetReports()
 	reset();
 }
 */
+

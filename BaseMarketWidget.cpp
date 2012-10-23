@@ -14,14 +14,16 @@ CBaseMarketWidget::CBaseMarketWidget()
 	m_pViewSHA->setModel(m_pModelSHA);
 	m_pViewSHA->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_pViewSHA->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_pViewSHA->setItemDelegate(new CBaseMarketItemDelegate);
 
 	m_pModelSZ = new CBaseMarketTreeModel(SZ_MARKET_EX);
 	m_pViewSZ = new QTreeView;
 	m_pViewSZ->setModel(m_pModelSZ);
 	m_pViewSZ->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_pViewSZ->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_pViewSZ->setItemDelegate(new CBaseMarketItemDelegate);
 
-	connect(m_pViewSHA,SIGNAL(clicked(const QModelIndex&)),this,SLOT(treeItemClicked(const QModelIndex&)));
+	connect(m_pViewSHA,SIGNAL(doubleClicked(const QModelIndex&)),this,SLOT(treeItemClicked(const QModelIndex&)));
 	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoChanged(const QString&)),m_pModelSHA,SLOT(updateStockItem(const QString&)));
 	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoChanged(const QString&)),m_pModelSZ,SLOT(updateStockItem(const QString&)));
 
