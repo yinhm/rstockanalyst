@@ -8,6 +8,8 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fNowVolume(NULL)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(NULL)
+	, fBuyVolume(NULL)
+	, fSellVolume(NULL)
 {
 
 }
@@ -18,6 +20,8 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fNowVolume(NULL)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(NULL)
+	, fBuyVolume(NULL)
+	, fSellVolume(NULL)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 }
@@ -36,6 +40,24 @@ void CStockInfoItem::appendReport( qRcvReportData* p )
 	}
 	mapReports[p->tmTime] = p;
 	pLastReport = (mapReports.end()-1).value();
+
+	{
+		//委买量计算
+		fBuyVolume = 0.0;
+		fBuyVolume += pLastReport->fBuyVolume[0];
+		fBuyVolume += pLastReport->fBuyVolume[1];
+		fBuyVolume += pLastReport->fBuyVolume[2];
+		fBuyVolume += pLastReport->fBuyVolume4;
+		fBuyVolume += pLastReport->fBuyVolume5;
+
+		//委卖量计算
+		fSellVolume = 0.0;
+		fSellVolume += pLastReport->fSellVolume[0];
+		fSellVolume += pLastReport->fSellVolume[1];
+		fSellVolume += pLastReport->fSellVolume[2];
+		fSellVolume += pLastReport->fSellVolume4;
+		fSellVolume += pLastReport->fSellVolume5;
+	}
 
 	if(mapReports.size()>2)
 	{
@@ -284,20 +306,31 @@ QString CStockInfoItem::getBuyVOL() const
 QString CStockInfoItem::getBIDVOL() const
 {
 	//委买量
+	if(pLastReport)
+	{
+		return QString("%1").arg(fBuyVolume,0,'f',0);
+	}
 
-	return QString("UnKown");
+	return QString();
 }
 
 QString CStockInfoItem::getASKVOL() const
 {
 	//委卖量
+	if(pLastReport)
+	{
+		return QString("%1").arg(fSellVolume,0,'f',0);
+	}
 
-	return QString("UnKown");
+	return QString();
 }
 
 QString CStockInfoItem::getCommRatio() const
 {
 	//委比
+	//(委买手数－委卖手数)/(委买手数+委卖手数)*100
+	if(pLastReport)
+		return QString("%1%").arg(((fBuyVolume-fSellVolume)/(fBuyVolume+fSellVolume))*100,0,'f',2);
 
 	return QString("UnKown");
 }
@@ -305,6 +338,8 @@ QString CStockInfoItem::getCommRatio() const
 QString CStockInfoItem::getCommSent() const
 {
 	//委差
+	if(pLastReport)
+		return QString("%1").arg(fBuyVolume-fSellVolume,0,'f',0);
 
 	return QString("UnKown");
 }

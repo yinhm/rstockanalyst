@@ -252,6 +252,8 @@ private:
 	qRcvReportData* pLastReport;	//最近的Report
 	float fNowVolume;				//现手
 	float fIncreaseSpeed;			//增长速度  (NewPrice-OldPrice)/OldPrice
+	float fBuyVolume;				//委买量
+	float fSellVolume;				//委卖量
 
 private:
 	QMap<time_t,qRcvReportData*> mapReports;
