@@ -3,8 +3,7 @@
 #include "STKDRV.h"
 #include "BaseMarketWidget.h"
 #include "DataEngine.h"
-#include <iostream>
-using namespace std;
+
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
 
@@ -20,11 +19,12 @@ CMainWindow::CMainWindow()
 
 	m_pMdiArea->addSubWindow(m_pBaseMarketWidget);
 
-	//Init F10 data( base info)
+	//初始化读取F10数据
 	QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
-	QString qsF10File = settings.value("SSInfoPath").toString() + "\\财务数据.fin";
+	QString qsF10File = QFileInfo(settings.value("driver").toString()).absolutePath() + "/财务数据.fin";
 	if(QFile::exists(qsF10File))
 	{
+		qDebug()<<"Import F10 Data from "<<qsF10File;
 		CDataEngine::importBaseInfoFromFile(qsF10File);
 	}
 }
@@ -68,7 +68,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 	{
 	case RCV_REPORT:                        // 共享数据引用方式,股票行情
 		{
-			cout<< "####Comming reports####"<<endl;
+			qDebug()<< "####Comming reports####";
 			if(pHeader->m_nPacketNum<1)
 				break;
 
@@ -131,8 +131,8 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 						}
 					}
 
-					cout<<"Packet cout:"<<pHeader->m_nPacketNum<<endl;
-					cout<<"UseTime:"<<QTime::currentTime().msecsTo(timeBegin)<<"m secs"<<endl;
+					qDebug()<<"Packet cout:"<<pHeader->m_nPacketNum;
+					qDebug()<<"UseTime:"<<QTime::currentTime().msecsTo(timeBegin)<<"m secs";
 				}
 				break;
 

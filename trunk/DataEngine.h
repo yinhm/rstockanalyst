@@ -38,7 +38,7 @@ public:
 	void setStockInfoItem(CStockInfoItem* p);
 
 signals:
-	void stockInfoAdded(const QString&);
+	void stockInfoChanged(const QString&);
 
 private:
 	QMap<QString,CStockInfoItem*> m_mapStockInfos;

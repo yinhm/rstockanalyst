@@ -225,13 +225,33 @@ public:
 	QString getLowPrice() const;	//今日最低价
 	QString getNewPrice() const;	//最新价
 	QString getTotalVolume() const;	//获取总手
+	QString getTotalAmount() const;	//获取总量
+	QString getNowVolume() const;	//获取现手
+	QString getIncSpeed() const;	//涨速
+	QString getPriceFluctuate() const;	//涨跌，价格波动
+	QString getAmplitude() const;	//振幅
+	QString getAvePrice() const;	//均价
+	QString getPERatio() const;		//市盈率
+	QString getLTSZ() const;		//流通市值
+	QString getSellVOL() const;		//外盘量
+	QString getBuyVOL() const;		//内盘量
+	QString getBIDVOL() const;		//委买量
+	QString getASKVOL() const;		//委卖量
+	QString getCommRatio() const;	//委比
+	QString getCommSent() const;	//委差
 
 
-private:
+
+signals:
+	void stockInfoItemChanged(const QString&);
 
 private:
 	QString qsCode;
 	WORD wMarket;
+
+	qRcvReportData* pLastReport;	//最近的Report
+	float fNowVolume;				//现手
+	float fIncreaseSpeed;			//增长速度  (NewPrice-OldPrice)/OldPrice
 
 private:
 	QMap<time_t,qRcvReportData*> mapReports;

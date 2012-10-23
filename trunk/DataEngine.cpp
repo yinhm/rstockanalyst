@@ -149,5 +149,6 @@ CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
 void CDataEngine::setStockInfoItem( CStockInfoItem* p )
 {
 	m_mapStockInfos[p->getCode()] = p;
-	emit stockInfoAdded(p->getCode());
+	emit stockInfoChanged(p->getCode());
+	connect(p,SIGNAL(stockInfoItemChanged(const QString&)),this,SIGNAL(stockInfoChanged(const QString&)));
 }

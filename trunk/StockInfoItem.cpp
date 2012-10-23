@@ -5,6 +5,9 @@
 CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	: qsCode(code)
 	, wMarket(market)
+	, fNowVolume(NULL)
+	, pLastReport(NULL)
+	, fIncreaseSpeed(NULL)
 {
 
 }
@@ -12,6 +15,9 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	: qsCode(QString::fromLocal8Bit(info.code))
 	, wMarket(info.wMarket)
+	, fNowVolume(NULL)
+	, pLastReport(NULL)
+	, fIncreaseSpeed(NULL)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 }
@@ -29,14 +35,17 @@ void CStockInfoItem::appendReport( qRcvReportData* p )
 			delete pBefore;
 	}
 	mapReports[p->tmTime] = p;
-}
+	pLastReport = (mapReports.end()-1).value();
 
-qRcvReportData* CStockInfoItem::getLastReport() const
-{
-	if(mapReports.size()<1)
-		return NULL;
+	if(mapReports.size()>2)
+	{
+		//两个Report的对比计算
+		qRcvReportData* pReport2 = (mapReports.end()-2).value();
+		fNowVolume = (pLastReport->fVolume)-(pReport2->fVolume);
+		fIncreaseSpeed = (pLastReport->fNewPrice-pReport2->fNewPrice)/pReport2->fNewPrice;
+	}
 
-	return (mapReports.end()-1).value();
+	emit stockInfoItemChanged(qsCode);
 }
 
 QList<qRcvHistoryData*> CStockInfoItem::getHistoryList()
@@ -56,11 +65,15 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 		}
 		mapHistorys[p->time] = p;
 	}
+
+	emit stockInfoItemChanged(qsCode);
 }
 
 void CStockInfoItem::setBaseInfo( const qRcvBaseInfoData& info )
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
+
+	emit stockInfoItemChanged(qsCode);
 }
 
 
@@ -76,21 +89,20 @@ WORD CStockInfoItem::getMarket() const
 
 QString CStockInfoItem::getName() const
 {
-	if(mapReports.size()>0)
-		return (*mapReports.begin())->qsName;
+	if(pLastReport)
+		return pLastReport->qsName;
 
 	return QString();
 }
 
 QString CStockInfoItem::getIncrease() const
 {
-	qRcvReportData* pReport = this->getLastReport();
-	if(pReport)
+	if(pLastReport)
 	{
-		if(pReport->fNewPrice<=0.0 || pReport->fLastClose<=0.0)
+		if(pLastReport->fNewPrice<=0.0 || pLastReport->fLastClose<=0.0)
 			return QString();
 
-		return QString("%1%").arg((pReport->fNewPrice-pReport->fLastClose)*100.0/pReport->fLastClose,0,'f',2);
+		return QString("%1%").arg((pLastReport->fNewPrice-pLastReport->fLastClose)*100.0/pLastReport->fLastClose,0,'f',2);
 	}
 	else
 	{
@@ -109,11 +121,10 @@ QString CStockInfoItem::getVolumeRatio() const
 		return QString();
 
 	//判断最新的数据是否是今天开市后的数据
-	qRcvReportData* pReport = getLastReport();
-	if(!pReport)
+	if(!pLastReport)
 		return QString();
 
-	time_t tmSeconds = CDataEngine::getOpenSeconds(pReport->tmTime);
+	time_t tmSeconds = CDataEngine::getOpenSeconds(pLastReport->tmTime);
 	if(tmSeconds<1)
 		return QString();
 
@@ -126,7 +137,7 @@ QString CStockInfoItem::getVolumeRatio() const
 		fVolume5 = (fVolume5 + mapHistorys.value(pLast5Day[i])->fVolume);
 	}
 
-	return QString("%1").arg((pReport->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60)));
+	return QString("%1").arg((pLastReport->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60)),0,'f',2);
 }
 
 QString CStockInfoItem::getTurnRatio() const
@@ -135,59 +146,165 @@ QString CStockInfoItem::getTurnRatio() const
 		换手率=某一段时期内的成交量/发行总股数*100%
 		（在中国：成交量/流通总股数*100%）
 	*/
+	if(baseInfo.fZgb>0&&pLastReport)
+	{
+		return QString("%1%").arg(pLastReport->fVolume/baseInfo.fZgb*100,0,'f',2);
+	}
 	return QString();
 }
 
 QString CStockInfoItem::getLastClose() const
 {
-	qRcvReportData* pReport = getLastReport();
-	if(pReport)
-		return QString("%1").arg(pReport->fLastClose,0,'f',2);
+	if(pLastReport)
+		return QString("%1").arg(pLastReport->fLastClose,0,'f',2);
 
 	return QString();
 }
 
 QString CStockInfoItem::getOpenPrice() const
 {
-	qRcvReportData* pReport = getLastReport();
-	if(pReport)
-		return QString("%1").arg(pReport->fOpen,0,'f',2);
+	if(pLastReport)
+		return QString("%1").arg(pLastReport->fOpen,0,'f',2);
 
 	return QString();
 }
 
 QString CStockInfoItem::getHighPrice() const
 {
-	qRcvReportData* pReport = getLastReport();
-	if(pReport)
-		return QString("%1").arg(pReport->fHigh,0,'f',2);
+	if(pLastReport)
+		return QString("%1").arg(pLastReport->fHigh,0,'f',2);
 
 	return QString();
 }
 
 QString CStockInfoItem::getLowPrice() const
 {
-	qRcvReportData* pReport = getLastReport();
-	if(pReport)
-		return QString("%1").arg(pReport->fLow,0,'f',2);
+	if(pLastReport)
+		return QString("%1").arg(pLastReport->fLow,0,'f',2);
 
 	return QString();
 }
 
 QString CStockInfoItem::getNewPrice() const
 {
-	qRcvReportData* pReport = getLastReport();
-	if(pReport)
-		return QString("%1").arg(pReport->fNewPrice,0,'f',2);
+	if(pLastReport)
+		return QString("%1").arg(pLastReport->fNewPrice,0,'f',2);
 
 	return QString();
 }
 
 QString CStockInfoItem::getTotalVolume() const
 {
-	qRcvReportData* pReport = getLastReport();
-	if(pReport)
-		return QString("%1").arg(pReport->fVolume,0,'f',0);
+	if(pLastReport)
+		return QString("%1").arg(pLastReport->fVolume,0,'f',0);
 
 	return QString();
+}
+
+QString CStockInfoItem::getTotalAmount() const
+{
+	if(pLastReport)
+		return QString("%1").arg(pLastReport->fAmount/10000,0,'f',0);
+
+	return QString();
+}
+
+QString CStockInfoItem::getNowVolume() const
+{
+	return QString("%1").arg(fNowVolume,0,'f',0);
+}
+
+QString CStockInfoItem::getIncSpeed() const
+{
+	//例如，某个股票5分钟之前的股价是10元，而现在的价格是10.1元，则这个股票的5分钟涨速为：
+	if(pLastReport)
+		return QString("%1%").arg(fIncreaseSpeed*100,0,'f',2);
+
+	return QString();
+}
+
+QString CStockInfoItem::getPriceFluctuate() const
+{
+	//今日涨跌幅（%）=（当前价-前收盘价）/ 前收盘价 * 100
+	if(pLastReport)
+		return QString("%1%").arg((pLastReport->fNewPrice-pLastReport->fLastClose)/pLastReport->fLastClose*100,0,'f',2);
+
+	return QString();
+}
+
+QString CStockInfoItem::getAmplitude() const
+{
+	/*
+		一、股票振幅=当期最高价/当期最低价×100%-100%
+		二、股票振幅=（当期最高价－当期最低价)/上期收盘价×100%
+		依据飞狐，采用第二种计算方法。
+	*/
+	if(pLastReport)
+		return QString("%1%").arg((pLastReport->fHigh-pLastReport->fLow)/pLastReport->fLastClose*100,0,'f',2);
+
+	return QString();
+}
+
+QString CStockInfoItem::getAvePrice() const
+{
+	if(pLastReport)
+		return QString("%1").arg((pLastReport->fAmount/pLastReport->fVolume)/100,0,'f',2);
+	return QString();
+}
+
+QString CStockInfoItem::getPERatio() const
+{
+	//市盈率（静态市盈率）=普通股每股市场价格÷普通股每年每股盈利
+
+	return QString("UnKown");
+}
+
+QString CStockInfoItem::getLTSZ() const
+{
+	//流通市值 总市值就是以目前股票市价乘以总股本，流通值是以目前股票市价乘以流[1]通股本。
+	if(pLastReport&&(baseInfo.fLtAg>0))
+		return QString("%1").arg(baseInfo.fLtAg*pLastReport->fNewPrice,0,'f',0);
+	return QString();
+}
+
+QString CStockInfoItem::getSellVOL() const
+{
+	//外盘量
+
+	return QString("UnKown");
+}
+
+QString CStockInfoItem::getBuyVOL() const
+{
+	//内盘量
+
+	return QString("UnKown");
+}
+
+QString CStockInfoItem::getBIDVOL() const
+{
+	//委买量
+
+	return QString("UnKown");
+}
+
+QString CStockInfoItem::getASKVOL() const
+{
+	//委卖量
+
+	return QString("UnKown");
+}
+
+QString CStockInfoItem::getCommRatio() const
+{
+	//委比
+
+	return QString("UnKown");
+}
+
+QString CStockInfoItem::getCommSent() const
+{
+	//委差
+
+	return QString("UnKown");
 }
