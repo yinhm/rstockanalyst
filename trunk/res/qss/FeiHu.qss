@@ -1,0 +1,27 @@
+QHeaderView::section
+{
+	height: 18px;
+	background-color: rgba(0, 0, 0);
+	border: 1px solid #ffffff;
+	color:white;
+	font: bold 14px;
+}
+
+QTreeView{
+	background-color: rgba(0, 0, 0);
+	border:0px;
+}
+QTreeView::branch {
+	image:none;
+}
+QTreeView::item{
+	height:20px;
+	border: 1px solid #7f0000;
+	border-top-color: transparent;
+	border-left-color: transparent;
+}
+
+QTreeView::item:selected{
+	background-color:rgba(0,0,127);
+	color:rgb(255,0,0);
+}

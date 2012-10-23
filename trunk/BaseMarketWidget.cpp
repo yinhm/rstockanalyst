@@ -11,13 +11,15 @@ CBaseMarketWidget::CBaseMarketWidget()
 
 	m_pModelSHA = new CBaseMarketTreeModel(SH_MARKET_EX);
 	m_pViewSHA = new QTreeView;
-	m_pViewSHA->setStyleSheet("QTreeView::branch {image:none;}");
 	m_pViewSHA->setModel(m_pModelSHA);
+	m_pViewSHA->setSelectionMode(QAbstractItemView::SingleSelection);
+	m_pViewSHA->setSelectionBehavior(QAbstractItemView::SelectRows);
 
 	m_pModelSZ = new CBaseMarketTreeModel(SZ_MARKET_EX);
 	m_pViewSZ = new QTreeView;
-	m_pViewSZ->setStyleSheet("QTreeView::branch {image:none;}");
 	m_pViewSZ->setModel(m_pModelSZ);
+	m_pViewSZ->setSelectionMode(QAbstractItemView::SingleSelection);
+	m_pViewSZ->setSelectionBehavior(QAbstractItemView::SelectRows);
 
 	connect(m_pViewSHA,SIGNAL(clicked(const QModelIndex&)),this,SLOT(treeItemClicked(const QModelIndex&)));
 	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoChanged(const QString&)),m_pModelSHA,SLOT(updateStockItem(const QString&)));
