@@ -220,25 +220,25 @@ public:
 	float getVolumeRatio() const;	//量比
 	float getTurnRatio() const;	//换手率
 	float getLastClose() const;	//上一天收盘价
-	QString getOpenPrice() const;	//今日开盘价
-	QString getHighPrice() const;	//今日最高价
-	QString getLowPrice() const;	//今日最低价
-	QString getNewPrice() const;	//最新价
-	QString getTotalVolume() const;	//获取总手
-	QString getTotalAmount() const;	//获取总量
-	QString getNowVolume() const;	//获取现手
-	QString getIncSpeed() const;	//涨速
-	QString getPriceFluctuate() const;	//涨跌，价格波动
-	QString getAmplitude() const;	//振幅
-	QString getAvePrice() const;	//均价
+	float getOpenPrice() const;	//今日开盘价
+	float getHighPrice() const;	//今日最高价
+	float getLowPrice() const;	//今日最低价
+	float getNewPrice() const;	//最新价
+	float getTotalVolume() const;	//获取总手
+	float getTotalAmount() const;	//获取总量
+	float getNowVolume() const;	//获取现手
+	float getIncSpeed() const;	//涨速
+	float getPriceFluctuate() const;//涨跌，价格波动
+	float getAmplitude() const;	//振幅
+	float getAvePrice() const;	//均价
 	QString getPERatio() const;		//市盈率
 	QString getLTSZ() const;		//流通市值
 	QString getSellVOL() const;		//外盘量
 	QString getBuyVOL() const;		//内盘量
-	QString getBIDVOL() const;		//委买量
-	QString getASKVOL() const;		//委卖量
-	QString getCommRatio() const;	//委比
-	QString getCommSent() const;	//委差
+	float getBIDVOL() const;		//委买量
+	float getASKVOL() const;		//委卖量
+	float getCommRatio() const;	//委比
+	float getCommSent() const;	//委差
 
 
 
@@ -257,8 +257,15 @@ private:
 	qRcvReportData* pLastReport;	//最近的Report
 	float fNowVolume;				//现手
 	float fIncreaseSpeed;			//增长速度  (NewPrice-OldPrice)/OldPrice
+	float fPriceFluctuate;			//涨跌，价格波动
+	float fAmplitude;				//振幅
+	float fAvePrice;				//均价
+
+
 	float fBuyVolume;				//委买量
 	float fSellVolume;				//委卖量
+	float fCommRatio;				//委比
+	float fCommSent;				//委差
 
 private:
 	QMap<time_t,qRcvReportData*> mapReports;
