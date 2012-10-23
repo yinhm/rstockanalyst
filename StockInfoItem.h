@@ -231,10 +231,10 @@ public:
 	float getPriceFluctuate() const;//涨跌，价格波动
 	float getAmplitude() const;	//振幅
 	float getAvePrice() const;	//均价
-	QString getPERatio() const;		//市盈率
-	QString getLTSZ() const;		//流通市值
-	QString getSellVOL() const;		//外盘量
-	QString getBuyVOL() const;		//内盘量
+	float getPERatio() const;		//市盈率
+	float getLTSZ() const;			//流通市值
+	float getSellVOL() const;		//外盘量
+	float getBuyVOL() const;		//内盘量
 	float getBIDVOL() const;		//委买量
 	float getASKVOL() const;		//委卖量
 	float getCommRatio() const;	//委比
@@ -261,6 +261,10 @@ private:
 	float fAmplitude;				//振幅
 	float fAvePrice;				//均价
 
+	float fPERatio;					//市盈率
+	float fLTSZ;					//流通市值
+	float fSellVOL;					//外盘量
+	float fBuyVOL;					//内盘量
 
 	float fBuyVolume;				//委买量
 	float fSellVolume;				//委卖量
