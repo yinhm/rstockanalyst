@@ -19,6 +19,10 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fAvePrice(FLOAT_NAN)
 	, fCommRatio(FLOAT_NAN)
 	, fCommSent(FLOAT_NAN)
+	, fPERatio(FLOAT_NAN)
+	, fLTSZ(FLOAT_NAN)
+	, fSellVOL(0.0)
+	, fBuyVOL(0.0)
 {
 
 }
@@ -39,6 +43,10 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fAvePrice(FLOAT_NAN)
 	, fCommRatio(FLOAT_NAN)
 	, fCommSent(FLOAT_NAN)
+	, fPERatio(FLOAT_NAN)
+	, fLTSZ(FLOAT_NAN)
+	, fSellVOL(0.0)
+	, fBuyVOL(0.0)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 }
@@ -72,14 +80,22 @@ void CStockInfoItem::appendReport( qRcvReportData* p )
 	if(baseInfo.fZgb>0)
 		fTurnRatio = pLastReport->fVolume/baseInfo.fZgb*100;
 
+	//市盈率
+	if(baseInfo.fMgsy>0)
+		fPERatio = pLastReport->fNewPrice/baseInfo.fMgsy/2;	//不除以2则跟飞狐的数据不匹配
+	//流通市值
+	if(baseInfo.fLtAg>0)
+		fLTSZ = baseInfo.fLtAg*pLastReport->fNewPrice;
+
 	//涨跌，价格波动
-	fPriceFluctuate = (pLastReport->fNewPrice-pLastReport->fLastClose)/pLastReport->fLastClose;
+	fPriceFluctuate = (pLastReport->fNewPrice-pLastReport->fLastClose);
 
 	//振幅
 	fAmplitude = (pLastReport->fHigh-pLastReport->fLow)/pLastReport->fLastClose;
 
 	//均价
 	fAvePrice = (pLastReport->fAmount/pLastReport->fVolume)/100;
+
 	{
 		//委买量计算
 		fBuyVolume = 0.0;
@@ -110,12 +126,28 @@ void CStockInfoItem::appendReport( qRcvReportData* p )
 		}
 	}
 
-	if(mapReports.size()>2)
+
+	if(mapReports.size()<2)
 	{
-		//两个Report的对比计算
+
+		//外盘量/内盘量
+		if(pLastReport->fNewPrice>=pLastReport->fLastClose)
+			fSellVOL = pLastReport->fVolume;
+		else
+			fBuyVOL = pLastReport->fVolume;
+	}
+	if(mapReports.size()>1)
+	{
 		qRcvReportData* pReport2 = (mapReports.end()-2).value();
+		//两个Report的对比计算
 		fNowVolume = (pLastReport->fVolume)-(pReport2->fVolume);
 		fIncreaseSpeed = (pLastReport->fNewPrice-pReport2->fNewPrice)/pReport2->fNewPrice;
+
+		//内外盘计算
+		if(pLastReport->fNewPrice>=pReport2->fNewPrice)
+			fSellVOL += fNowVolume;
+		else
+			fBuyVOL += fNowVolume;
 	}
 
 	emit stockInfoItemChanged(qsCode);
@@ -172,6 +204,15 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 void CStockInfoItem::setBaseInfo( const qRcvBaseInfoData& info )
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
+
+
+	//市盈率
+	if(pLastReport&&baseInfo.fMgsy>0)
+		fPERatio = pLastReport->fNewPrice/baseInfo.fMgsy/2;	//不除以2则跟飞狐的数据不匹配
+
+	//流通市值
+	if(pLastReport&&baseInfo.fLtAg>0)
+		fLTSZ = baseInfo.fLtAg*pLastReport->fNewPrice;
 
 	emit stockInfoItemChanged(qsCode);
 }
@@ -295,33 +336,28 @@ float CStockInfoItem::getAvePrice() const
 	return fAvePrice;
 }
 
-QString CStockInfoItem::getPERatio() const
+float CStockInfoItem::getPERatio() const
 {
-	//市盈率（静态市盈率）=普通股每股市场价格÷普通股每年每股盈利
-
-	return QString("UnKown");
+	//市盈率（静态市盈率）=最新价／每股收益
+	return fPERatio;
 }
 
-QString CStockInfoItem::getLTSZ() const
+float CStockInfoItem::getLTSZ() const
 {
 	//流通市值 总市值就是以目前股票市价乘以总股本，流通值是以目前股票市价乘以流[1]通股本。
-	if(pLastReport&&(baseInfo.fLtAg>0))
-		return QString("%1").arg(baseInfo.fLtAg*pLastReport->fNewPrice,0,'f',0);
-	return QString();
+	return fLTSZ;
 }
 
-QString CStockInfoItem::getSellVOL() const
+float CStockInfoItem::getSellVOL() const
 {
 	//外盘量
-
-	return QString("UnKown");
+	return fSellVOL;
 }
 
-QString CStockInfoItem::getBuyVOL() const
+float CStockInfoItem::getBuyVOL() const
 {
 	//内盘量
-
-	return QString("UnKown");
+	return fBuyVOL;
 }
 
 float CStockInfoItem::getBIDVOL() const

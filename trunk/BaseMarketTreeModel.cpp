@@ -8,6 +8,8 @@
 #include "BaseMarketTreeModel.h"
 #include "DataEngine.h"
 
+#define	GetColorByFloat(x)	(((x)==0.0) ? QColor(191,191,191) : (((x)>0.0) ? QColor(255,80,80) : QColor(0,255,255)))
+
 void CBaseMarketItemDelegate::paint( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const
 {
 	(const_cast<QStyleOptionViewItem&>(option)).palette.setColor(QPalette::HighlightedText, index.data(Qt::ForegroundRole).value<QColor>());
@@ -187,7 +189,7 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 				if(_isnan(itemData->getPriceFluctuate()))
 					return QString();
 
-				return QString("%1%").arg(itemData->getPriceFluctuate()*100,0,'f',2);
+				return QString("%1%").arg(itemData->getPriceFluctuate(),0,'f',2);
 			}
 			break;
 		case 16:
@@ -211,25 +213,29 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 18:
 			{
 				//市盈率
-				return itemData->getPERatio();
+				if(_isnan(itemData->getPERatio()))
+					return QString();
+				return QString("%1").arg(itemData->getPERatio(),0,'f',2);
 			}
 			break;
 		case 19:
 			{
 				//流通市值
-				return itemData->getLTSZ();
+				if(_isnan(itemData->getLTSZ()))
+					return QString();
+				return QString("%1").arg(itemData->getLTSZ(),0,'f',0);
 			}
 			break;
 		case 20:
 			{
 				//外盘
-				return itemData->getSellVOL();
+				return static_cast<int>(itemData->getSellVOL());
 			}
 			break;
 		case 21:
 			{
 				//内盘
-				return itemData->getBuyVOL();
+				return static_cast<int>(itemData->getBuyVOL());
 			}
 			break;
 		case 22:
@@ -289,11 +295,61 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 	}
 	else if(role == Qt::TextColorRole)
 	{
+		CStockInfoItem* itemData = m_listItems.at(index.row());
+
 		int iColumn = index.column();
 		if(iColumn == 1)
 			return QColor(127,255,191);
 		else if(iColumn == 2)
 			return QColor(255,255,0);
+		else if(iColumn == 3 || iColumn == 15)
+		{
+			//涨幅
+			return GetColorByFloat(itemData->getIncrease());
+		}
+		else if(iColumn == 7)
+		{
+			//今开
+			float f = itemData->getOpenPrice()-itemData->getLastClose();
+			return GetColorByFloat(f);
+		}
+		else if(iColumn == 8)
+		{
+			//最高
+			float f = itemData->getHighPrice()-itemData->getLastClose();
+			return GetColorByFloat(f);
+		}
+		else if(iColumn == 9)
+		{
+			//最低
+			float f = itemData->getLowPrice()-itemData->getLastClose();
+			return GetColorByFloat(f);
+		}
+		else if(iColumn == 10)
+		{
+			float f = itemData->getNewPrice()-itemData->getLastClose();
+			return GetColorByFloat(f);
+		}
+		else if(iColumn == 17)
+		{
+			float f = itemData->getAvePrice()-itemData->getLastClose();
+			return GetColorByFloat(f);
+		}
+		else if(iColumn == 20 || iColumn == 22)
+			return QColor(255,80,80);
+		else if(iColumn == 21 || iColumn == 23)
+			return QColor(0,255,255);
+		else if(iColumn == 24)
+		{
+			float f = itemData->getCommRatio();
+			return GetColorByFloat(f);
+		}
+		else if(iColumn == 25)
+		{
+			float f = itemData->getCommSent();
+			return GetColorByFloat(f);
+		}
+
 		return QColor(191,191,191);
 	}
 
