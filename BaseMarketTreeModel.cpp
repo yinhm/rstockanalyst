@@ -112,67 +112,100 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 7:
 			{
 				//今开
-				return itemData->getOpenPrice();
+				if(_isnan(itemData->getOpenPrice()))
+					return QString();
+
+				return QString("%1").arg(itemData->getOpenPrice(),0,'f',2);
 			}
 			break;
 		case 8:
 			{
 				//最高
-				return itemData->getHighPrice();
+				if(_isnan(itemData->getHighPrice()))
+					return QString();
+
+				return QString("%1").arg(itemData->getHighPrice(),0,'f',2);
 			}
 			break;
 		case 9:
 			{
 				//最低
-				return itemData->getLowPrice();
+				if(_isnan(itemData->getLowPrice()))
+					return QString();
+
+				return QString("%1").arg(itemData->getLowPrice(),0,'f',2);
 			}
 			break;
 		case 10:
 			{
 				//最新
-				return itemData->getNewPrice();
+				if(_isnan(itemData->getNewPrice()))
+					return QString();
+
+				return QString("%1").arg(itemData->getNewPrice(),0,'f',2);
 			}
 			break;
 		case 11:
 			{
 				//总手
-				return itemData->getTotalVolume();
+				if(_isnan(itemData->getTotalVolume()))
+					return QString();
+				
+				return QString("%1").arg(itemData->getTotalVolume(),0,'f',0);
 			}
 			break;
 		case 12:
 			{
 				//总额（持仓）
-				return itemData->getTotalAmount();
+				if(_isnan(itemData->getTotalAmount()))
+					return QString();
+
+				return QString("%1").arg(itemData->getTotalAmount()/10000,0,'f',0);
 			}
 			break;
 		case 13:
 			{
 				//现手
-				return itemData->getNowVolume();
+				if(_isnan(itemData->getNowVolume()))
+					return QString();
+
+				return QString("%1").arg(itemData->getNowVolume(),0,'f',0);
 			}
 			break;
 		case 14:
 			{
 				//涨速
-				return itemData->getIncSpeed();
+				if(_isnan(itemData->getIncSpeed()))
+					return QString();
+
+				return QString("%1%").arg(itemData->getIncSpeed()*100,0,'f',2);
 			}
 			break;
 		case 15:
 			{
 				//涨跌
-				return itemData->getPriceFluctuate();
+				if(_isnan(itemData->getPriceFluctuate()))
+					return QString();
+
+				return QString("%1%").arg(itemData->getPriceFluctuate()*100,0,'f',2);
 			}
 			break;
 		case 16:
 			{
 				//振幅
-				return itemData->getAmplitude();
+				if(_isnan(itemData->getAmplitude()))
+					return QString();
+
+				return QString("%1%").arg(itemData->getAmplitude()*100,0,'f',2);
 			}
 			break;
 		case 17:
 			{
 				//均价
-				return itemData->getAvePrice();
+				if(_isnan(itemData->getAvePrice()))
+					return QString();
+
+				return QString("%1").arg(itemData->getAvePrice(),0,'f',2);
 			}
 			break;
 		case 18:
@@ -202,25 +235,37 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 22:
 			{
 				//委买量
-				return itemData->getBIDVOL();
+				if(_isnan(itemData->getBIDVOL()))
+					return QString();
+
+				return QString("%1").arg(itemData->getBIDVOL(),0,'f',0);
 			}
 			break;
 		case 23:
 			{
 				//委卖量
-				return itemData->getASKVOL();
+				if(_isnan(itemData->getASKVOL()))
+					return QString();
+
+				return QString("%1").arg(itemData->getASKVOL(),0,'f',0);
 			}
 			break;
 		case 24:
 			{
 				//委比
-				return itemData->getCommRatio();
+				if(_isnan(itemData->getCommRatio()))
+					return QString();
+
+				return QString("%1%").arg(itemData->getCommRatio(),0,'f',2);
 			}
 			break;
 		case 25:
 			{
 				//委差
-				return itemData->getCommSent();
+				if(_isnan(itemData->getCommSent()))
+					return QString();
+
+				return QString("%1").arg(itemData->getCommSent(),0,'f',0);
 			}
 			break;
 		default:
