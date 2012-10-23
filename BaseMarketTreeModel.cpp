@@ -74,11 +74,13 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 			break;
 		case 4:
 			{
+				//量比
 				return itemData->getVolumeRatio();
 			}
 			break;
 		case 5:
 			{
+				//换手率
 				return itemData->getTurnRatio();
 			}
 			break;
@@ -121,86 +123,85 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		case 12:
 			{
 				//总额（持仓）
-				return QVariant();
+				return itemData->getTotalAmount();
 			}
 			break;
 		case 13:
 			{
 				//现手
-//				return QString("%1").arg(itemData->fSellPrice[0],0,'f',2);
-				return QString();
+				return itemData->getNowVolume();
 			}
 			break;
 		case 14:
 			{
 				//涨速
-				return QVariant();
+				return itemData->getIncSpeed();
 			}
 			break;
 		case 15:
 			{
 				//涨跌
-				return QVariant();
+				return itemData->getPriceFluctuate();
 			}
 			break;
 		case 16:
 			{
 				//振幅
-				return QVariant();
+				return itemData->getAmplitude();
 			}
 			break;
 		case 17:
 			{
 				//均价
-				return QVariant();
+				return itemData->getAvePrice();
 			}
 			break;
 		case 18:
 			{
 				//市盈率
-				return QVariant();
+				return itemData->getPERatio();
 			}
 			break;
 		case 19:
 			{
 				//流通市值
-				return QVariant();
+				return itemData->getLTSZ();
 			}
 			break;
 		case 20:
 			{
 				//外盘
-				return QVariant();
+				return itemData->getSellVOL();
 			}
 			break;
 		case 21:
 			{
 				//内盘
-				return QVariant();
+				return itemData->getBuyVOL();
 			}
 			break;
 		case 22:
 			{
 				//委买量
-				return QVariant();
+				return itemData->getBIDVOL();
 			}
 			break;
 		case 23:
 			{
 				//委卖量
-				return QVariant();
+				return itemData->getASKVOL();
 			}
 			break;
 		case 24:
 			{
 				//委比
-				return QVariant();
+				return itemData->getCommRatio();
 			}
 			break;
 		case 25:
 			{
 				//委差
-				return QVariant();
+				return itemData->getCommSent();
 			}
 			break;
 		default:

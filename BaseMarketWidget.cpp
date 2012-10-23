@@ -20,8 +20,8 @@ CBaseMarketWidget::CBaseMarketWidget()
 	m_pViewSZ->setModel(m_pModelSZ);
 
 	connect(m_pViewSHA,SIGNAL(clicked(const QModelIndex&)),this,SLOT(treeItemClicked(const QModelIndex&)));
-	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoAdded(const QString&)),m_pModelSHA,SLOT(updateStockItem(const QString&)));
-	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoAdded(const QString&)),m_pModelSZ,SLOT(updateStockItem(const QString&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoChanged(const QString&)),m_pModelSHA,SLOT(updateStockItem(const QString&)));
+	connect(CDataEngine::getDataEngine(),SIGNAL(stockInfoChanged(const QString&)),m_pModelSZ,SLOT(updateStockItem(const QString&)));
 
 
 	QVBoxLayout* pLayout = new QVBoxLayout;
