@@ -12,6 +12,13 @@ int main(int argc, char *argv[])
 	QTextCodec::setCodecForTr(QTextCodec::codecForName("GB2312"));
 	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("GB2312"));
 
+	QFile file(":/res/qss/FeiHu.qss");
+	if(file.open(QFile::ReadOnly))
+	{
+		QString qsStyleSheet = file.readAll();
+		app.setStyleSheet(qsStyleSheet);
+	}
+
 	CSTKDRV::InitStockDrv();
 
 	CMainWindow mainWindow;

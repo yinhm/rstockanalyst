@@ -17,3 +17,6 @@ HEADERS += StdAfx.h StockDrv.h STKDRV.h MainWindow.h BaseMarketWidget.h \
 
 SOURCES += main.cpp STKDRV.cpp MainWindow.cpp BaseMarketWidget.cpp \
 			DataEngine.cpp BaseMarketTreeModel.cpp StockInfoItem.cpp
+
+
+RESOURCES += RStockAnalyst.qrc

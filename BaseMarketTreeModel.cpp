@@ -216,6 +216,17 @@ QVariant CBaseMarketTreeModel::data(const QModelIndex &index, int role) const
 		CStockInfoItem* itemData = m_listItems.at(index.row());
 		return QVariant(reinterpret_cast<unsigned int>(itemData));
 	}
+	else if(role == Qt::TextAlignmentRole)
+	{
+		int iColumn = index.column();
+		if(iColumn==1||iColumn==2)
+			return Qt::AlignCenter;
+		return static_cast<int>(Qt::AlignRight|Qt::AlignVCenter);
+	}
+	else if(role == Qt::TextColorRole)
+	{
+		return QColor(255,255,0);
+	}
 
 	return QVariant();
 }
@@ -226,7 +237,10 @@ QVariant CBaseMarketTreeModel::headerData(int section, Qt::Orientation orientati
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
 		return m_listHeader[section];
-
+	else if(role == Qt::TextAlignmentRole)
+	{
+		return Qt::AlignCenter;
+	}
     return QVariant();
 }
 
@@ -259,6 +273,11 @@ void CBaseMarketTreeModel::clearReports()
 
 void CBaseMarketTreeModel::updateStockItem( const QString& qsCode )
 {
+	if(m_wMarket == SZ_MARKET_EX && qsCode.at(0)!='3')
+		return;
+	if(m_wMarket == SH_MARKET_EX && qsCode.at(0)!='6')
+		return;
+
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
 	if((!pItem)||(pItem->getMarket()!=m_wMarket))
 		return;
