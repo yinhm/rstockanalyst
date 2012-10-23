@@ -306,7 +306,7 @@ QString CStockInfoItem::getBuyVOL() const
 QString CStockInfoItem::getBIDVOL() const
 {
 	//委买量
-	if(pLastReport)
+	if(pLastReport&&fBuyVolume>0)
 	{
 		return QString("%1").arg(fBuyVolume,0,'f',0);
 	}
@@ -317,7 +317,7 @@ QString CStockInfoItem::getBIDVOL() const
 QString CStockInfoItem::getASKVOL() const
 {
 	//委卖量
-	if(pLastReport)
+	if(pLastReport&&fSellVolume>0)
 	{
 		return QString("%1").arg(fSellVolume,0,'f',0);
 	}
@@ -329,17 +329,17 @@ QString CStockInfoItem::getCommRatio() const
 {
 	//委比
 	//(委买手数－委卖手数)/(委买手数+委卖手数)*100
-	if(pLastReport)
+	if(pLastReport&&(fBuyVolume>0||fSellVolume>0))
 		return QString("%1%").arg(((fBuyVolume-fSellVolume)/(fBuyVolume+fSellVolume))*100,0,'f',2);
 
-	return QString("UnKown");
+	return QString();
 }
 
 QString CStockInfoItem::getCommSent() const
 {
 	//委差
-	if(pLastReport)
+	if(pLastReport&&(fBuyVolume>0||fSellVolume>0))
 		return QString("%1").arg(fBuyVolume-fSellVolume,0,'f',0);
 
-	return QString("UnKown");
+	return QString();
 }
