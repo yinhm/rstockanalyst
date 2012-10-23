@@ -1,15 +1,19 @@
 #include "StdAfx.h"
 #include "StockInfoItem.h"
 #include "DataEngine.h"
+#define	FLOAT_NAN	(std::numeric_limits<float>::quiet_NaN())
 
 CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	: qsCode(code)
 	, wMarket(market)
-	, fNowVolume(NULL)
+	, fNowVolume(FLOAT_NAN)
 	, pLastReport(NULL)
-	, fIncreaseSpeed(NULL)
-	, fBuyVolume(NULL)
-	, fSellVolume(NULL)
+	, fIncreaseSpeed(FLOAT_NAN)
+	, fBuyVolume(FLOAT_NAN)
+	, fSellVolume(FLOAT_NAN)
+	, fIncrease(FLOAT_NAN)
+	, fVolumeRatio(FLOAT_NAN)
+	, fTurnRatio(FLOAT_NAN)
 {
 
 }
@@ -17,11 +21,14 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	: qsCode(QString::fromLocal8Bit(info.code))
 	, wMarket(info.wMarket)
-	, fNowVolume(NULL)
+	, fNowVolume(FLOAT_NAN)
 	, pLastReport(NULL)
-	, fIncreaseSpeed(NULL)
-	, fBuyVolume(NULL)
-	, fSellVolume(NULL)
+	, fIncreaseSpeed(FLOAT_NAN)
+	, fBuyVolume(FLOAT_NAN)
+	, fSellVolume(FLOAT_NAN)
+	, fIncrease(FLOAT_NAN)
+	, fVolumeRatio(FLOAT_NAN)
+	, fTurnRatio(FLOAT_NAN)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 }
@@ -40,6 +47,21 @@ void CStockInfoItem::appendReport( qRcvReportData* p )
 	}
 	mapReports[p->tmTime] = p;
 	pLastReport = (mapReports.end()-1).value();
+
+	
+	//设置股票名称
+	if(qsName.isEmpty())
+		qsName = p->qsName;
+	//涨幅
+	if(pLastReport->fNewPrice>0.0 && pLastReport->fLastClose>0.0)
+		fIncrease = (pLastReport->fNewPrice-pLastReport->fLastClose)*100.0/pLastReport->fLastClose;
+	/*换手率（仓差）
+		换手率=某一段时期内的成交量/发行总股数*100%
+		（在中国：成交量/流通总股数*100%）
+	*/
+	if(baseInfo.fZgb>0)
+		fTurnRatio = pLastReport->fVolume/baseInfo.fZgb*100;
+
 
 	{
 		//委买量计算
@@ -87,6 +109,33 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 		}
 		mapHistorys[p->time] = p;
 	}
+	{
+		/*量比计算：
+			量比＝现成交总手/（过去5日平均每分钟成交量*当日累计开市时间（分）） 
+			当量比大于1时，说明当日每分钟的平均成交量要大于过去5日的平均数值，交易比过去5日火爆；
+			而当量比小于1时，说明现在的成交比不上过去5日的平均水平。
+		*/
+		if(mapHistorys.size()>5)
+		{
+			//判断最新的数据是否是今天开市后的数据
+			if(pLastReport)
+			{
+				time_t tmSeconds = CDataEngine::getOpenSeconds(pLastReport->tmTime);
+				if(tmSeconds<1)
+					return;
+
+				time_t* pLast5Day = CDataEngine::getLast5DayTime();
+				float fVolume5 = 0.0;
+				for(int i=0;i<5;++i)
+				{
+					if(!mapHistorys.contains(pLast5Day[i]))
+						return;
+					fVolume5 = (fVolume5 + mapHistorys.value(pLast5Day[i])->fVolume);
+				}
+				fVolumeRatio = (pLastReport->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
+			}
+		}
+	}
 
 	emit stockInfoItemChanged(qsCode);
 }
@@ -111,76 +160,30 @@ WORD CStockInfoItem::getMarket() const
 
 QString CStockInfoItem::getName() const
 {
-	if(pLastReport)
-		return pLastReport->qsName;
 
-	return QString();
+	return qsName;
 }
 
-QString CStockInfoItem::getIncrease() const
+float CStockInfoItem::getIncrease() const
+{
+	return fIncrease;
+}
+
+float CStockInfoItem::getVolumeRatio() const
+{
+	return fVolumeRatio;
+}
+
+float CStockInfoItem::getTurnRatio() const
+{
+	return fTurnRatio;
+}
+
+float CStockInfoItem::getLastClose() const
 {
 	if(pLastReport)
-	{
-		if(pLastReport->fNewPrice<=0.0 || pLastReport->fLastClose<=0.0)
-			return QString();
-
-		return QString("%1%").arg((pLastReport->fNewPrice-pLastReport->fLastClose)*100.0/pLastReport->fLastClose,0,'f',2);
-	}
-	else
-	{
-		return QString();
-	}
-}
-
-QString CStockInfoItem::getVolumeRatio() const
-{
-	/*量比计算：
-		量比＝现成交总手/（过去5日平均每分钟成交量*当日累计开市时间（分）） 
-		当量比大于1时，说明当日每分钟的平均成交量要大于过去5日的平均数值，交易比过去5日火爆；
-		而当量比小于1时，说明现在的成交比不上过去5日的平均水平。
-	*/
-	if(mapHistorys.size()<5)
-		return QString();
-
-	//判断最新的数据是否是今天开市后的数据
-	if(!pLastReport)
-		return QString();
-
-	time_t tmSeconds = CDataEngine::getOpenSeconds(pLastReport->tmTime);
-	if(tmSeconds<1)
-		return QString();
-
-	time_t* pLast5Day = CDataEngine::getLast5DayTime();
-	float fVolume5 = 0.0;
-	for(int i=0;i<5;++i)
-	{
-		if(!mapHistorys.contains(pLast5Day[i]))
-			return QString();
-		fVolume5 = (fVolume5 + mapHistorys.value(pLast5Day[i])->fVolume);
-	}
-
-	return QString("%1").arg((pLastReport->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60)),0,'f',2);
-}
-
-QString CStockInfoItem::getTurnRatio() const
-{
-	/*换手率（仓差）
-		换手率=某一段时期内的成交量/发行总股数*100%
-		（在中国：成交量/流通总股数*100%）
-	*/
-	if(baseInfo.fZgb>0&&pLastReport)
-	{
-		return QString("%1%").arg(pLastReport->fVolume/baseInfo.fZgb*100,0,'f',2);
-	}
-	return QString();
-}
-
-QString CStockInfoItem::getLastClose() const
-{
-	if(pLastReport)
-		return QString("%1").arg(pLastReport->fLastClose,0,'f',2);
-
-	return QString();
+		return pLastReport->fLastClose;
+	return FLOAT_NAN;
 }
 
 QString CStockInfoItem::getOpenPrice() const

@@ -7,9 +7,21 @@
 #define BASE_MARKET_TREEMODEL_H
 
 #include <QAbstractItemModel>
+#include <QStyledItemDelegate>
 #include <QModelIndex>
 #include <QtCore>
 #include "StockInfoItem.h"
+
+class CBaseMarketItemDelegate : public QStyledItemDelegate 
+{
+	Q_OBJECT
+public:
+	CBaseMarketItemDelegate(){}
+	~CBaseMarketItemDelegate(){}
+protected:
+	virtual void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+};
+
 
 class CBaseMarketTreeModel : public QAbstractTableModel
 {

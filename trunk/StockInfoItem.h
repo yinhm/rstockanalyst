@@ -216,10 +216,10 @@ public:
 	QString getCode() const;		//股票代码
 	WORD getMarket() const;			//股票市场
 	QString getName() const;		//股票名称
-	QString getIncrease() const;	//涨幅
-	QString getVolumeRatio() const;	//量比
-	QString getTurnRatio() const;	//换手率
-	QString getLastClose() const;	//上一天收盘价
+	float getIncrease() const;	//涨幅
+	float getVolumeRatio() const;	//量比
+	float getTurnRatio() const;	//换手率
+	float getLastClose() const;	//上一天收盘价
 	QString getOpenPrice() const;	//今日开盘价
 	QString getHighPrice() const;	//今日最高价
 	QString getLowPrice() const;	//今日最低价
@@ -246,8 +246,13 @@ signals:
 	void stockInfoItemChanged(const QString&);
 
 private:
-	QString qsCode;
-	WORD wMarket;
+	QString qsCode;					//代码
+	WORD wMarket;					//市场类型
+	QString qsName;					//股票名称
+	float fIncrease;				//涨幅
+	float fVolumeRatio;				//量比
+	float fTurnRatio;				//换手率
+
 
 	qRcvReportData* pLastReport;	//最近的Report
 	float fNowVolume;				//现手

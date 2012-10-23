@@ -10,6 +10,7 @@
 
 #define _USE_32BIT_TIME_T			//ÉèÖÃ time_t Îª4×Ö½Ú
 
+#include <limits>
 #include <Windows.h>
 
 #include "StockDrv.h"
