@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	CSTKDRV::InitStockDrv();
 
 	CMainWindow mainWindow;
-	mainWindow.show();
+	mainWindow.showMaximized();
 
 	if(!mainWindow.setupStockDrv())
 	{
