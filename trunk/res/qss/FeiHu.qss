@@ -12,9 +12,6 @@ QTreeView{
 	border:0px;
 	font: 20px;
 }
-QTreeView::branch {
-	image:none;
-}
 QTreeView::item{
 	height:20px;
 	border: 1px solid #7f0000;
@@ -25,3 +22,5 @@ QTreeView::item{
 QTreeView::item:selected{
 	background-color:rgba(0,0,127);
 }
+
+QScrollBar:horizontal {min-height: 18px;}
