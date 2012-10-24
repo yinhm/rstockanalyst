@@ -19,14 +19,7 @@ CMainWindow::CMainWindow()
 
 	m_pMdiArea->addSubWindow(m_pBaseMarketWidget);
 
-	//初始化读取F10数据
-	QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
-	QString qsF10File = QFileInfo(settings.value("driver").toString()).absolutePath() + "/财务数据.fin";
-	if(QFile::exists(qsF10File))
-	{
-		qDebug()<<"Import F10 Data from "<<qsF10File;
-		CDataEngine::importBaseInfoFromFile(qsF10File);
-	}
+//	m_pBaseMarketWidget->showMaximized();
 }
 
 CMainWindow::~CMainWindow()

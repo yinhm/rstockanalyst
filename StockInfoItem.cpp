@@ -55,6 +55,16 @@ CStockInfoItem::~CStockInfoItem(void)
 {
 }
 
+qRcvReportData* CStockInfoItem::getLastReport() const
+{
+	return pLastReport;
+}
+
+QList<qRcvReportData*> CStockInfoItem::getReportList()
+{
+	return mapReports.values();
+}
+
 void CStockInfoItem::appendReport( qRcvReportData* p )
 {
 	if(mapReports.contains(p->tmTime))
@@ -70,6 +80,11 @@ void CStockInfoItem::appendReport( qRcvReportData* p )
 	//ÉèÖÃ¹ÉÆ±Ãû³Æ
 	if(qsName.isEmpty())
 		qsName = p->qsName;
+	if(baseInfo.code[0]==0)
+	{
+		strcpy_s(baseInfo.code,qsCode.toLocal8Bit().data());
+		baseInfo.wMarket = wMarket;
+	}
 	//ÕÇ·ù
 	if(pLastReport->fNewPrice>0.0 && pLastReport->fLastClose>0.0)
 		fIncrease = (pLastReport->fNewPrice-pLastReport->fLastClose)*100.0/pLastReport->fLastClose;

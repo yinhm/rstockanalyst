@@ -28,7 +28,7 @@ struct qRcvHistoryData
 struct qRcvReportData
 {
 	time_t	tmTime;			//成交时间
-	DWORD		wMarket;		//股票市场类型
+	WORD		wMarket;		//股票市场类型
 	QString		qsCode;			//股票代码
 	QString		qsName;			//股票名称
 
@@ -54,6 +54,12 @@ struct qRcvReportData
 	float	fSellPrice5;		//申卖价5
 	float	fSellVolume5;		//申卖量5
 
+	qRcvReportData()
+	{
+		tmTime = NULL;
+		wMarket = NULL;
+		memset(&fLastClose,0,sizeof(float)*27);
+	}
 	qRcvReportData(RCV_REPORT_STRUCTExV3* p)
 	{
 		tmTime = p->m_time;
@@ -203,6 +209,7 @@ public:
 	//补充Report数据
 	void appendReport(qRcvReportData* p);
 	qRcvReportData* getLastReport() const;
+	QList<qRcvReportData*> getReportList();
 
 	//补充日线数据
 	QList<qRcvHistoryData*> getHistoryList();
@@ -210,6 +217,7 @@ public:
 
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
+	qRcvBaseInfoData* getBaseInfo(){ return &baseInfo; }
 
 public:
 	/*属性类字段，只读*/

@@ -11,18 +11,29 @@ class CDataEngine : public QObject
 public:
 	CDataEngine(void);
 	~CDataEngine(void);
-	static CDataEngine* getDataEngine()
-	{
-		if(m_pDataEngine == NULL)
-			m_pDataEngine = new CDataEngine;
-		return m_pDataEngine;
-	}
+	static CDataEngine* getDataEngine();
 
 public:
-	/*数据导入函数*/
+	//程序启动时，数据的初始化
+	static void importData();
+	//程序退出时，数据的自动保存
+	static void exportData();
 
-	//F10数据导入,返回值为导入的数据总条数
-	static int importBaseInfoFromFile(const QString& qsFile);
+
+	/*数据导入函数*/
+	//F10数据导入,返回值为导入的数据总条数，从后缀名为.fin的文件导入。
+	static int importBaseInfoFromFinFile(const QString& qsFile);
+	//F10数据导入，从本应用支持的数据导入，后缀名为 .rsafin
+	static int importBaseInfo(const QString& qsFile);
+	/*导入Reports数据*/
+	static int importReportsInfo(const QString& qsFile);
+
+
+	/*数据导出函数*/
+	/*导出基本财务数据，F10数据*/
+	static int exportBaseInfo(const QString& qsFile);
+	/*导出Reports数据*/
+	static int exportReportsInfo(const QString& qsFile);
 
 
 public:
