@@ -43,7 +43,7 @@ void CDataEngine::importData()
 	{
 		//导入当天的Reports数据
 		QString qsReportFile = QString("%1/reports/%2").arg(qsDir).arg(QDate::currentDate().toJulianDay());
-		qDebug()<<"Import reports data to "<<qsReportFile;
+		qDebug()<<"Import reports data from "<<qsReportFile;
 		int iCount = importReportsInfo(qsReportFile);
 		if(iCount<1)
 		{

@@ -19,7 +19,7 @@ CMainWindow::CMainWindow()
 
 	m_pMdiArea->addSubWindow(m_pBaseMarketWidget);
 
-//	m_pBaseMarketWidget->showMaximized();
+	m_pBaseMarketWidget->showMaximized();
 }
 
 CMainWindow::~CMainWindow()
