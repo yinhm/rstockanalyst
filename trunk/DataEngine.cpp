@@ -2,6 +2,7 @@
 #include "DataEngine.h"
 #include "STKDRV.h"
 #include <time.h>
+#include <QApplication>
 
 CDataEngine* CDataEngine::m_pDataEngine = NULL;
 
@@ -9,7 +10,74 @@ time_t CDataEngine::m_tmCurrentDay = NULL;
 time_t* CDataEngine::m_tmLast5Day = new time_t[5];
 
 
-int CDataEngine::importBaseInfoFromFile( const QString& qsFile )
+void CDataEngine::importData()
+{
+	QString qsDir = qApp->applicationDirPath();
+	{
+		//导入F10 数据
+		QString qsBaseInfo = qsDir+"/baseinfo.rsqfin";
+		if(QFile::exists(qsBaseInfo))
+		{
+			qDebug()<<"Import F10 data...";
+			int iCount = importBaseInfo(qsBaseInfo);
+			if(iCount<1)
+			{
+				QFile::remove(qsBaseInfo);
+				qDebug()<<"Import F10 data from "<<qsBaseInfo<<" error!";
+			}
+			else
+				qDebug()<<iCount<<" F10 data had been imported.";
+		}
+		else
+		{
+			//如果本机的F10数据，则尝试导入银江的F10 数据。
+			QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
+			QString qsF10File = QFileInfo(settings.value("driver").toString()).absolutePath() + "/财务数据.fin";
+			if(QFile::exists(qsF10File))
+			{
+				qDebug()<<"Import F10 Data from "<<qsF10File;
+				CDataEngine::importBaseInfoFromFinFile(qsF10File);
+			}
+		}
+	}
+	{
+		//导入当天的Reports数据
+		QString qsReportFile = QString("%1/reports/%2").arg(qsDir).arg(QDate::currentDate().toJulianDay());
+		qDebug()<<"Import reports data to "<<qsReportFile;
+		int iCount = importReportsInfo(qsReportFile);
+		if(iCount<1)
+		{
+			QFile::remove(qsReportFile);
+			qDebug()<<"Import reports data from "<<qsReportFile<<" error!";
+		}
+		else
+			qDebug()<<iCount<<" reports data had been imported.";
+	}
+}
+
+void CDataEngine::exportData()
+{
+	QString qsDir = qApp->applicationDirPath();
+	QString qsBaseInfo = qsDir+"/baseinfo.rsqfin";
+	{
+		qDebug()<<"Export F10 data...";
+		int iCount = exportBaseInfo(qsBaseInfo);
+		qDebug()<<iCount<<" F10 data had been exported.";
+	}
+
+	{
+		//导出当天的Reports数据
+		QString qsReportDir = qsDir + "/reports";
+		if(!QDir().exists(qsReportDir))
+			QDir().mkpath(qsReportDir);
+		QString qsReportFile = QString("%1/%2").arg(qsReportDir).arg(QDate::currentDate().toJulianDay());
+		qDebug()<<"Export reports data to "<<qsReportFile;
+		int iCount = exportReportsInfo(qsReportFile);
+		qDebug()<<iCount<<" reports data had been exported.";
+	}
+}
+
+int CDataEngine::importBaseInfoFromFinFile( const QString& qsFile )
 {
 	QFile file(qsFile);
 	if(!file.open(QFile::ReadOnly))
@@ -57,6 +125,149 @@ int CDataEngine::importBaseInfoFromFile( const QString& qsFile )
 
 	return iCout;
 }
+
+int CDataEngine::importBaseInfo( const QString& qsFile )
+{
+	QFile file(qsFile);
+	if(!file.open(QFile::ReadOnly))
+		return -1;
+
+	QDataStream out(&file);
+
+	int iCount = 0;
+	while(true)
+	{
+		qRcvBaseInfoData baseInfo;
+		int iSize = out.readRawData((char*)&baseInfo,sizeof(qRcvBaseInfoData));
+		if(iSize!=sizeof(qRcvBaseInfoData))
+			break;
+
+		QString qsCode = QString::fromLocal8Bit(baseInfo.code);
+		if(qsCode.isEmpty())
+			return -1;
+
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+		if(pItem)
+		{
+			pItem->setBaseInfo(baseInfo);
+		}
+		else
+		{
+			CStockInfoItem* pItem = new CStockInfoItem(baseInfo);
+			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
+		}
+
+		++iCount;
+	}
+
+	file.close();
+	return iCount;
+}
+
+int CDataEngine::importReportsInfo( const QString& qsFile )
+{
+	QFile file(qsFile);
+	if(!file.open(QFile::ReadOnly))
+		return -1;
+
+	QDataStream out(&file);
+
+	int iCount = 0;
+	while(true)
+	{
+		qRcvReportData* pReport = new qRcvReportData;
+		quint32 _t;
+		out>>_t>>pReport->wMarket>>pReport->qsCode>>pReport->qsName;
+		pReport->tmTime = _t;
+
+		int iSize = out.readRawData((char*)&pReport->fLastClose,sizeof(float)*27);
+		if(iSize!=(sizeof(float)*27))
+			break;
+
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(pReport->qsCode);
+		if(pItem==NULL)
+		{
+			pItem = new CStockInfoItem(pReport->qsCode,pReport->wMarket);
+			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
+		}
+		pItem->appendReport(pReport);
+
+		++iCount;
+	}
+
+	file.close();
+	return iCount;
+}
+
+
+int CDataEngine::exportBaseInfo( const QString& qsFile )
+{
+	if(QFile::exists(qsFile))
+		QFile::remove(qsFile);
+	if(QFile::exists(qsFile))
+		return -1;
+
+	QFile file(qsFile);
+	if(!file.open(QFile::WriteOnly))
+		return -1;
+
+	QDataStream out(&file);
+
+	QList<CStockInfoItem*> listItem = CDataEngine::getDataEngine()->getStockInfoList();
+	int iCount = 0;
+
+	foreach( CStockInfoItem* pItem, listItem)
+	{
+		qRcvBaseInfoData* pBaseInfo = pItem->getBaseInfo();
+
+		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
+		if(iSize!=sizeof(qRcvBaseInfoData))
+			break;
+		++iCount;
+	}
+
+	file.close();
+	return iCount;
+}
+
+int CDataEngine::exportReportsInfo( const QString& qsFile )
+{
+	if(QFile::exists(qsFile))
+		QFile::remove(qsFile);
+	if(QFile::exists(qsFile))
+		return -1;
+
+	QFile file(qsFile);
+	if(!file.open(QFile::WriteOnly))
+		return -1;
+
+	QDataStream out(&file);
+
+	QList<CStockInfoItem*> listItem = CDataEngine::getDataEngine()->getStockInfoList();
+	int iCount = 0;
+
+	foreach( CStockInfoItem* pItem, listItem)
+	{
+		//只保存最近的report
+		qRcvReportData* pReport = pItem->getLastReport();
+		if(pReport)
+		{
+			out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
+			//直接拷贝剩余的所有float数据
+
+			if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
+				break;
+			//		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
+			//		if(iSize!=sizeof(qRcvBaseInfoData))
+			//			break;
+			++iCount;
+		}
+	}
+
+	file.close();
+	return iCount;
+}
+
 
 bool CDataEngine::isStockOpenDay( time_t tmDay )
 {
@@ -151,4 +362,11 @@ void CDataEngine::setStockInfoItem( CStockInfoItem* p )
 	m_mapStockInfos[p->getCode()] = p;
 	emit stockInfoChanged(p->getCode());
 	connect(p,SIGNAL(stockInfoItemChanged(const QString&)),this,SIGNAL(stockInfoChanged(const QString&)));
+}
+
+CDataEngine* CDataEngine::getDataEngine()
+{
+	if(m_pDataEngine == NULL)
+		m_pDataEngine = new CDataEngine;
+	return m_pDataEngine;
 }

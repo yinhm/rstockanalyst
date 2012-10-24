@@ -3,6 +3,7 @@
 #include <QtGui>
 #include "STKDRV.h"
 #include "MainWindow.h"
+#include "DataEngine.h"
 
 int main(int argc, char *argv[])
 {
@@ -29,5 +30,12 @@ int main(int argc, char *argv[])
 		return app.exit();
 	}
 
-	return app.exec();
+	CDataEngine::importData();
+
+	app.exec();
+
+	CDataEngine::exportData();
+
+
+	return 1;
 }
