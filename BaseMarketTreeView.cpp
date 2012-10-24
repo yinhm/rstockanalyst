@@ -33,6 +33,22 @@ CBaseMarketTreeView::~CBaseMarketTreeView(void)
 {
 }
 
+void CBaseMarketTreeView::keyPressEvent( QKeyEvent* event )
+{
+	if(event->key() == Qt::Key_Right)
+	{
+
+		return;
+	}
+	else if(event->key() == Qt::Key_Left)
+	{
+
+		return;
+	}
+	
+	return QTreeView::keyPressEvent(event);
+}
+
 void CBaseMarketTreeView::horizonScolled( int v )
 {
 	if(v>iHBarValue)
