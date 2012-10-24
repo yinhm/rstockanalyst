@@ -2,6 +2,7 @@
 #define BASE_MARKET_TREEVIEW_H
 #include "BaseMarketTreeModel.h"
 #include <QTreeView>
+#include <QKeyEvent>
 
 
 class CBaseMarketTreeView : public QTreeView
@@ -10,6 +11,9 @@ class CBaseMarketTreeView : public QTreeView
 public:
 	CBaseMarketTreeView(WORD wMarket,QWidget* parent = 0);
 	~CBaseMarketTreeView(void);
+
+protected:
+	virtual void keyPressEvent(QKeyEvent* event);
 
 public:
 	CBaseMarketTreeModel* getModel(){return m_pModel;}
