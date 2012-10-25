@@ -153,7 +153,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 				break;
 			default:
 				{
-					int j = 0;
+					int i = 0;
 				}
 				break;
 			}
