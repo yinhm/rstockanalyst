@@ -248,19 +248,21 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 
 	foreach( CStockInfoItem* pItem, listItem)
 	{
-		//只保存最近的report
-		qRcvReportData* pReport = pItem->getLastReport();
-		if(pReport)
+		//保存当天所有的Reports
+		QList<qRcvReportData*> listReports = pItem->getReportList();
+		foreach(qRcvReportData* pReport,listReports)
 		{
-			out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
-			//直接拷贝剩余的所有float数据
-
-			if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
-				break;
-			//		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
-			//		if(iSize!=sizeof(qRcvBaseInfoData))
-			//			break;
-			++iCount;
+			if(pReport->tmTime>m_tmCurrentDay)
+			{
+				out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
+				//直接拷贝剩余的所有float数据
+				if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
+					break;
+				//		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
+				//		if(iSize!=sizeof(qRcvBaseInfoData))
+				//			break;
+				++iCount;
+			}
 		}
 	}
 
