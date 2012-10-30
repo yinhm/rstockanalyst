@@ -6,7 +6,8 @@ TEMPLATE = app
 
 QT += core \
     gui \
-	xml
+	xml \
+	sql
 	
 
 PRECOMPILED_HEADER = StdAfx.h
