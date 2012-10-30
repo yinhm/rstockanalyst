@@ -3,6 +3,7 @@
 #include "STKDRV.h"
 #include <time.h>
 #include <QApplication>
+#include <QtSql>
 
 CDataEngine* CDataEngine::m_pDataEngine = NULL;
 
