@@ -1,31 +1,64 @@
-#pragma once
+/*
+============================================================================
+文件名称	:	MainWindow.h
+作者		:	李亚科
+创建时间	:	2011-12-29 16:56
+修改时间	:	2011-12-29 16:57
+说明		:	程序的主窗口。
+============================================================================
+*/
+
+#ifndef _MAIN_WINDOW_H
+#define _MAIN_WINDOW_H
 #include <QtGui>
-#include "BaseMarketWidget.h"
+#include <QtXml>
+#include "ListPanel.h"
+#include "PanelViewer.h"
+#include "PanelResource.h"
+#include "PanelProperty.h"
 
-class CMainWindow : public QMainWindow
+namespace eGingkoPanelManager
 {
-	Q_OBJECT
-public:
-	CMainWindow();
-	~CMainWindow();
+	class CMainWindow : public QMainWindow
+	{
+		Q_OBJECT
+	public:
+		CMainWindow(QWidget* parent = NULL);
+		~CMainWindow(void);
+		static CMainWindow* getMainWindow();
 
+	public:
+		void setPropertyWidget(QWidget* widget);
+		CPanelViewer* getCentralPanel(){ return m_pMainWidget; }
 
-public:
-	bool setupStockDrv();
+	protected:
+		virtual void showEvent(QShowEvent* event);
 
-protected slots:
-	void onAddTemplate();			//添加版面
+	protected slots:
+		void OnLoadPanelFile();							//响应加载Panel函数
+		void OnSavePanelFile();							//响应保存Panel函数
+		void OnClearPanels()							//响应清空Panel函数
+		{
+			m_pMainWidget->clearChildren();
+		}
 
-protected:
-	virtual bool winEvent( MSG* message, long* result );
+	private:
+		QWidget* m_pViewWidget;				//
 
+		CPanelViewer* m_pMainWidget;		//中央布局窗口
+		CListPanel* m_pListPanels;		//Panel管理窗口
+		CPanelResource* m_pPanelResource;		//窗口资源关系图
+		QMenuBar* m_pMenuBar;
 
-protected:
-	virtual long OnStockDrvMsg(WPARAM wParam,LPARAM lParam);
+		QDockWidget* m_pDockSettings;
+		QDockWidget* m_pDockResource;
+		QDockWidget* m_pDockListViewers;	//
+		QDockWidget* m_pDockProperty;		//属性管理Dock
 
-private:
-	QTabWidget* m_pMainWidget;
-	CBaseMarketWidget* m_pBaseMarketWidget;
-	QMenuBar* m_pMenuBar;
-};
+		QLineEdit* m_pEditName;
+		QComboBox* m_pComboClinic;
 
+		static CMainWindow* m_pMainWindow;
+	};
+}
+#endif	//_MAIN_WINDOW_H
