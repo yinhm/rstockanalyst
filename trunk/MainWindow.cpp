@@ -10,16 +10,19 @@
 CMainWindow::CMainWindow()
 	: QMainWindow()
 {
-	m_pMdiArea = new QMdiArea();
-	m_pMdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	m_pMdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	setCentralWidget(m_pMdiArea);
+	//初始化Menu
+	m_pMenuBar = new QMenuBar(this);
+	QMenu* pMenuTemplate = m_pMenuBar->addMenu(tr("版面管理"));
+	pMenuTemplate->addAction(tr("添加版面"),this,SLOT(onAddTemplate()));
+	setMenuBar(m_pMenuBar);
 
 	m_pBaseMarketWidget = new CBaseMarketWidget;
 
-	m_pMdiArea->addSubWindow(m_pBaseMarketWidget);
+	//初始化布局
+	m_pMainWidget = new QTabWidget(this);
+	m_pMainWidget->addTab(m_pBaseMarketWidget,tr("基本行情"));
 
-	m_pBaseMarketWidget->showMaximized();
+	setCentralWidget(m_pMainWidget);
 }
 
 CMainWindow::~CMainWindow()
@@ -61,7 +64,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 	{
 	case RCV_REPORT:                        // 共享数据引用方式,股票行情
 		{
-			qDebug()<< "####Comming reports####";
+			qDebug()<< "####Comming reports"<<QTime::currentTime().toString()<<"####";
 			if(pHeader->m_nPacketNum<1)
 				break;
 
@@ -79,21 +82,16 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					CDataEngine::getDataEngine()->setStockInfoItem(pItem);
 				}
 
-				qRcvReportData* p = new qRcvReportData(pReport);
-				pItem->appendReport(p);
+				pItem->setReport(pReport);
 			}
 		}
 		break;
-
 	case RCV_FILEDATA:                      // 共享数据引用方式,文件
 		{
 			switch(pHeader->m_wDataType)
 			{
 			case FILE_HISTORY_EX:               // 补日线数据
 				{
-					if(pHeader->m_nPacketNum<1)
-						break;
-
 					QTime timeBegin = QTime::currentTime();
 					RCV_HISTORY_STRUCTEx* pHistory = pHeader->m_pDay;
 					QString qsCode;
@@ -131,7 +129,37 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 			case FILE_MINUTE_EX:                // 补分钟线数据
 				{
-					int i = 0;
+					qDebug()<<"Minute Packet cout:"<<pHeader->m_nPacketNum;
+
+					RCV_MINUTE_STRUCTEx* pMinute = pHeader->m_pMinute;
+					QString qsCode;
+
+					QList<qRcvMinuteData*> listMinute;
+					for(int i=0;i<pHeader->m_nPacketNum;++i)
+					{
+						pMinute = (pHeader->m_pMinute+i);
+
+						if(pMinute->m_time == EKE_HEAD_TAG)
+						{
+							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+							if(pItem==NULL)
+							{
+								//删除指针，防止内存泄漏
+								foreach(qRcvMinuteData* p,listMinute)
+									delete p;
+							}
+							else
+							{
+								pItem->appendMinutes(listMinute);
+							}
+							qsCode = QString::fromLocal8Bit(pMinute->m_head.m_szLabel);
+							listMinute.clear();
+						}
+						else
+						{
+							listMinute.append(new qRcvMinuteData(pMinute));
+						}
+					}
 				}
 				break;
 
@@ -143,12 +171,51 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 			case FILE_NEWS_EX:                  // 新闻类,其类型由m_szFileName中子目录名来定
 				{
-					int i = 0;
+					QString qsNewsTitle = QString::fromLocal8Bit(pHeader->m_File.m_szFileName);
+					qDebug()<<"Comming News "<< qsNewsTitle;
+					QString qsNewsPath = qApp->applicationDirPath() + "\\news\\" + qsNewsTitle;
+
+					QDir().mkpath(QFileInfo(qsNewsPath).absolutePath());
+					QFile file(qsNewsPath);
+					if(!file.open(QFile::WriteOnly|QFile::Truncate))
+						break;
+					file.write((char*)pHeader->m_pData,pHeader->m_File.m_dwLen);
+					file.close();
 				}
 				break;
 			case FILE_POWER_EX:
 				{
-					int i = 0;
+					qDebug()<<"Power Packet cout:"<<pHeader->m_nPacketNum;
+
+					RCV_POWER_STRUCTEx* pPower = pHeader->m_pPower;
+					QString qsCode;
+
+					QList<qRcvPowerData*> listPower;
+					for(int i=0;i<pHeader->m_nPacketNum;++i)
+					{
+						pPower = (pHeader->m_pPower+i);
+
+						if(pPower->m_time == EKE_HEAD_TAG)
+						{
+							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+							if(pItem==NULL)
+							{
+								//删除指针，防止内存泄漏
+								foreach(qRcvPowerData* p,listPower)
+									delete p;
+							}
+							else
+							{
+								pItem->appendPowers(listPower);
+							}
+							qsCode = QString::fromLocal8Bit(pPower->m_head.m_szLabel);
+							listPower.clear();
+						}
+						else
+						{
+							listPower.append(new qRcvPowerData(pPower));
+						}
+					}
 				}
 				break;
 			default:
@@ -164,4 +231,9 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 		return 0;                           // unknown data
 	}
 	return 1;
+}
+
+void CMainWindow::onAddTemplate()
+{
+
 }

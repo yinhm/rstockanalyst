@@ -2,6 +2,7 @@
 #define STOCK_INFO_ITEM_H
 #include <QtCore>
 
+#pragma   pack(push,1)					//设置内存对齐方式为 1字节
 
 struct qRcvHistoryData
 {
@@ -69,29 +70,6 @@ struct qRcvReportData
 
 		//直接拷贝剩余的所有float数据
 		memcpy(&fLastClose,&p->m_fLastClose,sizeof(float)*27);
-/*		fLastClose = p->m_fLastClose;
-		fOpen = p->m_fOpen;				//今开
-		fHigh = p->m_fHigh;				//最高
-		fLow = p->m_fLow;				//最低
-		fNewPrice = p->m_fNewPrice;		//最新
-		fVolume = p->m_fVolume;			//成交量
-		fAmount = p->m_fAmount;			//成交额
-
-		memcpy(fBuyPrice,p->m_fBuyPrice,sizeof(float)*3);	//申买价1,2,3
-		memcpy(fBuyVolume,p->m_fBuyVolume,sizeof(float)*3);	//申买量1,2,3
-		memcpy(fSellPrice,p->m_fSellPrice,sizeof(float)*3);	//申卖价1,2,3
-		memcpy(fSellVolume,p->m_fSellVolume,sizeof(float)*3);	//申卖量1,2,3
-
-		fBuyPrice4;			//申买价4
-		fBuyVolume4;		//申买量4
-		fSellPrice4;		//申卖价4
-		fSellVolume4;		//申卖量4
-
-		fBuyPrice5;			//申买价5
-		fBuyVolume5;		//申买量5
-		fSellPrice5;		//申卖价5
-		fSellVolume5;		//申卖量5
-		*/
 	}
 
 	void resetItem(RCV_REPORT_STRUCTExV3* p)
@@ -103,6 +81,16 @@ struct qRcvReportData
 
 		//直接拷贝剩余的所有float数据
 		memcpy(&fLastClose,&p->m_fLastClose,sizeof(float)*27);
+	}
+	void resetItem(qRcvReportData* p)
+	{
+		tmTime = p->tmTime;
+		wMarket = p->wMarket;
+		qsCode = p->qsCode;
+		qsName = p->qsName;
+
+		//直接拷贝剩余的所有float数据
+		memcpy(&fLastClose,&p->fLastClose,sizeof(float)*27);
 	}
 };
 
@@ -196,6 +184,34 @@ struct qRcvBaseInfoData
 	}
 };
 
+struct qRcvMinuteData
+{
+	time_t tmTime;
+	float fPrice;
+	float fVolume;
+	float fAmount;
+
+	qRcvMinuteData(RCV_MINUTE_STRUCTEx* p)
+	{
+		memcpy(&tmTime,&p->m_time,sizeof(qRcvMinuteData));
+	}
+};
+
+struct qRcvPowerData
+{
+	time_t	tmTime;				// UCT
+	float	fGive;			// 每股送
+	float	fPei;				// 每股配
+	float	fPeiPrice;		// 配股价,仅当 m_fPei!=0.0f 时有效
+	float	fProfit;			// 每股红利
+
+	qRcvPowerData(RCV_POWER_STRUCTEx* p)
+	{
+		memcpy(&tmTime,&p->m_time,sizeof(qRcvPowerData));
+	}
+};
+
+#pragma   pack(pop)					//去除内存对齐方式设置
 
 class CStockInfoItem : public QObject
 {
@@ -207,13 +223,21 @@ public:
 
 public:
 	//补充Report数据
-	void appendReport(qRcvReportData* p);
-	qRcvReportData* getLastReport() const;
-	QList<qRcvReportData*> getReportList();
+	void setReport(qRcvReportData* p);
+	void setReport(RCV_REPORT_STRUCTExV3* p);
+	qRcvReportData* getCurrentReport() const;
 
 	//补充日线数据
 	QList<qRcvHistoryData*> getHistoryList();
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
+
+	//补充分钟数据
+	QList<qRcvMinuteData*> getMinuteList();
+	void appendMinutes(const QList<qRcvMinuteData*>& list);
+
+	//补充除权数据
+	QList<qRcvPowerData*> getPowerList();
+	void appendPowers(const QList<qRcvPowerData*>& list);
 
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
@@ -249,6 +273,8 @@ public:
 	float getCommSent() const;	//委差
 
 
+protected:
+	void updateItemInfo();
 
 signals:
 	void stockInfoItemChanged(const QString&);
@@ -263,6 +289,8 @@ private:
 
 
 	qRcvReportData* pLastReport;	//最近的Report
+	qRcvReportData* pCurrentReport;	//当前的Report
+
 	float fNowVolume;				//现手
 	float fIncreaseSpeed;			//增长速度  (NewPrice-OldPrice)/OldPrice
 	float fPriceFluctuate;			//涨跌，价格波动
@@ -280,8 +308,9 @@ private:
 	float fCommSent;				//委差
 
 private:
-	QMap<time_t,qRcvReportData*> mapReports;
-	QMap<time_t,qRcvHistoryData*> mapHistorys;
+	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
+	QMap<time_t,qRcvMinuteData*> mapMinutes;		//分钟数据
+	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
 	qRcvBaseInfoData baseInfo;
 };
 
