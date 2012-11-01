@@ -43,6 +43,7 @@ void CDataEngine::importData()
 	}
 	{
 		//导入当天的Reports数据
+		/*
 		QString qsReportFile = QString("%1/reports/%2").arg(qsDir).arg(QDate::currentDate().toJulianDay());
 		qDebug()<<"Import reports data from "<<qsReportFile;
 		int iCount = importReportsInfo(qsReportFile);
@@ -53,6 +54,7 @@ void CDataEngine::importData()
 		}
 		else
 			qDebug()<<iCount<<" reports data had been imported.";
+			*/
 	}
 }
 
@@ -68,6 +70,7 @@ void CDataEngine::exportData()
 
 	{
 		//导出当天的Reports数据
+		/*
 		QString qsReportDir = qsDir + "/reports";
 		if(!QDir().exists(qsReportDir))
 			QDir().mkpath(qsReportDir);
@@ -75,6 +78,7 @@ void CDataEngine::exportData()
 		qDebug()<<"Export reports data to "<<qsReportFile;
 		int iCount = exportReportsInfo(qsReportFile);
 		qDebug()<<iCount<<" reports data had been exported.";
+		*/
 	}
 }
 
@@ -191,7 +195,7 @@ int CDataEngine::importReportsInfo( const QString& qsFile )
 			pItem = new CStockInfoItem(pReport->qsCode,pReport->wMarket);
 			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
 		}
-		pItem->appendReport(pReport);
+		pItem->setReport(pReport);
 
 		++iCount;
 	}
@@ -250,20 +254,17 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 	foreach( CStockInfoItem* pItem, listItem)
 	{
 		//保存当天所有的Reports
-		QList<qRcvReportData*> listReports = pItem->getReportList();
-		foreach(qRcvReportData* pReport,listReports)
+		qRcvReportData* pReport = pItem->getCurrentReport();
+		if(pReport->tmTime>m_tmCurrentDay)
 		{
-			if(pReport->tmTime>m_tmCurrentDay)
-			{
-				out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
-				//直接拷贝剩余的所有float数据
-				if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
-					break;
-				//		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
-				//		if(iSize!=sizeof(qRcvBaseInfoData))
-				//			break;
-				++iCount;
-			}
+			out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
+			//直接拷贝剩余的所有float数据
+			if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
+				break;
+			//		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
+			//		if(iSize!=sizeof(qRcvBaseInfoData))
+			//			break;
+			++iCount;
 		}
 	}
 

@@ -13,14 +13,19 @@ public:
 public:
 	bool setupStockDrv();
 
+protected slots:
+	void onAddTemplate();			//ÃÌº”∞Ê√Ê
+
 protected:
 	virtual bool winEvent( MSG* message, long* result );
+
 
 protected:
 	virtual long OnStockDrvMsg(WPARAM wParam,LPARAM lParam);
 
 private:
-	QMdiArea* m_pMdiArea;
+	QTabWidget* m_pMainWidget;
 	CBaseMarketWidget* m_pBaseMarketWidget;
+	QMenuBar* m_pMenuBar;
 };
 
