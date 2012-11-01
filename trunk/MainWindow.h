@@ -14,6 +14,8 @@ public:
 	bool setupStockDrv();
 
 protected slots:
+	void onActiveBaseMarket();		//激活当前显示为基本行情窗口
+	void onActiveTemplate();		//激活当前显示为版面窗口。
 	void onAddTemplate();			//添加版面
 
 protected:
@@ -24,7 +26,8 @@ protected:
 	virtual long OnStockDrvMsg(WPARAM wParam,LPARAM lParam);
 
 private:
-	QTabWidget* m_pMainWidget;
+	QMdiArea* m_pMdiArea;
+	QTabWidget* m_pTemplateWidget;
 	CBaseMarketWidget* m_pBaseMarketWidget;
 	QMenuBar* m_pMenuBar;
 };
