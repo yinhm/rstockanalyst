@@ -15,34 +15,39 @@ CMainWindow::CMainWindow()
 		m_pMdiArea = new QMdiArea();
 		m_pMdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 		m_pMdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+		m_pMdiArea->setViewMode(QMdiArea::TabbedView);
 		setCentralWidget(m_pMdiArea);
 
 		//添加多版面窗口
 		m_pTemplateWidget = new QTabWidget(this);
 		m_pSubTemplate = new CRMdiSubWindow(m_pMdiArea);
+		m_pSubTemplate->setWindowTitle(tr("个性化版面"));
 		m_pSubTemplate->setWidget(m_pTemplateWidget);
 
 		//添加基本行情窗口
 		m_pBaseMarketWidget = new CBaseMarketWidget;
 		m_pSubBaseMarket = new CRMdiSubWindow(m_pMdiArea);
+		m_pSubBaseMarket->setWindowTitle(tr("基本行情"));
 		m_pSubBaseMarket->setWidget(m_pBaseMarketWidget);
 		m_pSubBaseMarket->showMaximized();
-		m_pMdiArea->setActiveSubWindow(m_pSubBaseMarket);
+	//	m_pMdiArea->setActiveSubWindow(m_pSubBaseMarket);
 	}
 
-	//初始化Menu
-	m_pMenuBar = new QMenuBar(this);
-	//基本行情
-	QMenu* pMenuBaseMarket = m_pMenuBar->addMenu(tr("基本行情"));
-	//版面管理
-	QMenu* pMenuTemplate = m_pMenuBar->addMenu(tr("版面管理"));
-	pMenuTemplate->addAction(tr("添加版面"),this,SLOT(onAddTemplate()));
-	setMenuBar(m_pMenuBar);
+	{
+		//初始化Menu
+		m_pMenuBar = new QMenuBar(this);
+		//基本行情
+		QMenu* pMenuBaseMarket = m_pMenuBar->addMenu(tr("基本行情"));
+		//版面管理
+		QMenu* pMenuTemplate = m_pMenuBar->addMenu(tr("版面管理"));
+		pMenuTemplate->addAction(tr("添加版面"),this,SLOT(onAddTemplate()));
+		setMenuBar(m_pMenuBar);
 
-	//视图菜单，包含各SubWindow的显示与否
-	QMenu* pMenuView = m_pMenuBar->addMenu(tr("视图"));
-	pMenuView->addAction(tr("基本行情"),this,SLOT(onActiveBaseMarket()));
-	pMenuView->addAction(tr("版面管理"),this,SLOT(onActiveTemplate()));
+		//视图菜单，包含各SubWindow的显示与否
+		QMenu* pMenuView = m_pMenuBar->addMenu(tr("视图"));
+		pMenuView->addAction(tr("基本行情"),this,SLOT(onActiveBaseMarket()));
+		pMenuView->addAction(tr("版面管理"),this,SLOT(onActiveTemplate()));
+	}
 
 }
 
