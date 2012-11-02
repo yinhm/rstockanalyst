@@ -10,21 +10,25 @@
 CMainWindow::CMainWindow()
 	: QMainWindow()
 {
-	//初始化布局
-	m_pMdiArea = new QMdiArea();
-	m_pMdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	m_pMdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	setCentralWidget(m_pMdiArea);
+	{
+		//初始化布局
+		m_pMdiArea = new QMdiArea();
+		m_pMdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+		m_pMdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+		setCentralWidget(m_pMdiArea);
 
-	//添加基本行情窗口
-	m_pBaseMarketWidget = new CBaseMarketWidget;
-	m_pMdiArea->addSubWindow(m_pBaseMarketWidget);
+		//添加多版面窗口
+		m_pTemplateWidget = new QTabWidget(this);
+		m_pSubTemplate = new CRMdiSubWindow(m_pMdiArea);
+		m_pSubTemplate->setWidget(m_pTemplateWidget);
 
-
-	//添加多版面窗口
-	m_pTemplateWidget = new QTabWidget(this);
-	m_pMdiArea->addSubWindow(m_pTemplateWidget);
-
+		//添加基本行情窗口
+		m_pBaseMarketWidget = new CBaseMarketWidget;
+		m_pSubBaseMarket = new CRMdiSubWindow(m_pMdiArea);
+		m_pSubBaseMarket->setWidget(m_pBaseMarketWidget);
+		m_pSubBaseMarket->showMaximized();
+		m_pMdiArea->setActiveSubWindow(m_pSubBaseMarket);
+	}
 
 	//初始化Menu
 	m_pMenuBar = new QMenuBar(this);
@@ -40,9 +44,6 @@ CMainWindow::CMainWindow()
 	pMenuView->addAction(tr("基本行情"),this,SLOT(onActiveBaseMarket()));
 	pMenuView->addAction(tr("版面管理"),this,SLOT(onActiveTemplate()));
 
-
-
-	m_pBaseMarketWidget->showMaximized();
 }
 
 CMainWindow::~CMainWindow()
@@ -255,12 +256,12 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 void CMainWindow::onActiveBaseMarket()
 {
-	m_pBaseMarketWidget->showMaximized();
+	m_pSubBaseMarket->showMaximized();
 }
 
 void CMainWindow::onActiveTemplate()
 {
-	m_pTemplateWidget->showMaximized();
+	m_pSubTemplate->showMaximized();
 }
 
 void CMainWindow::onAddTemplate()

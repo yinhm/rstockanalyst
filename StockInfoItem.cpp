@@ -7,6 +7,7 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	: qsCode(code)
 	, wMarket(market)
 	, fNowVolume(FLOAT_NAN)
+	, pCurrentReport(NULL)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)
@@ -24,13 +25,15 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 {
-
+	pCurrentReport = new qRcvReportData;
+	pLastReport = new qRcvReportData;
 }
 
 CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	: qsCode(QString::fromLocal8Bit(info.code))
 	, wMarket(info.wMarket)
 	, fNowVolume(FLOAT_NAN)
+	, pCurrentReport(NULL)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)

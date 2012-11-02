@@ -1,6 +1,7 @@
 #pragma once
 #include <QtGui>
 #include "BaseMarketWidget.h"
+#include "RMdiCtrl.h"
 
 class CMainWindow : public QMainWindow
 {
@@ -27,6 +28,9 @@ protected:
 
 private:
 	QMdiArea* m_pMdiArea;
+	CRMdiSubWindow* m_pSubBaseMarket;
+	CRMdiSubWindow* m_pSubTemplate;
+
 	QTabWidget* m_pTemplateWidget;
 	CBaseMarketWidget* m_pBaseMarketWidget;
 	QMenuBar* m_pMenuBar;
