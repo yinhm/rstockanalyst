@@ -19,6 +19,10 @@ public:
 
 public slots:
 	void setStockCode(const QString& code);
+	void updateKLine(const QString& code);
+
+protected:
+	void paintEvent(QPaintEvent* e);
 
 private:
 	CStockInfoItem* m_pStockItem;	//当前K线图的股票数据指针
