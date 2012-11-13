@@ -10,7 +10,6 @@ CDataEngine* CDataEngine::m_pDataEngine = NULL;
 time_t CDataEngine::m_tmCurrentDay = NULL;
 time_t* CDataEngine::m_tmLast5Day = new time_t[5];
 
-
 void CDataEngine::importData()
 {
 	QString qsDir = qApp->applicationDirPath();
@@ -339,6 +338,8 @@ time_t CDataEngine::getOpenSeconds( time_t tmTime )
 CDataEngine::CDataEngine(void)
 {
 	getLast5DayTime();
+	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
+	QDir().mkpath(m_qsHistroyDir);
 }
 
 CDataEngine::~CDataEngine(void)
@@ -373,4 +374,51 @@ CDataEngine* CDataEngine::getDataEngine()
 	if(m_pDataEngine == NULL)
 		m_pDataEngine = new CDataEngine;
 	return m_pDataEngine;
+}
+
+bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list )
+{
+	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(qsCode);
+
+	QFile file(qsDayData);
+	if(!file.open(QFile::WriteOnly|QFile::Truncate))
+		return false;
+
+	QDataStream out(&file);
+
+	foreach(qRcvHistoryData* pData, list)
+	{
+		int iSize = out.writeRawData((char*)pData,sizeof(qRcvHistoryData));
+		if(iSize!=sizeof(qRcvHistoryData))
+			return false;
+	}
+
+	file.close();
+	return true;
+}
+
+QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code )
+{
+	QList<qRcvHistoryData*> list;
+
+	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(code);
+	QFile file(qsDayData);
+	if(!file.open(QFile::ReadOnly))
+		return list;
+
+	QDataStream inStream(&file);
+	while(!inStream.atEnd())
+	{
+		qRcvHistoryData* pData = new qRcvHistoryData;
+		int iSize = inStream.readRawData(reinterpret_cast<char*>(pData),sizeof(qRcvHistoryData));
+		if(iSize!=sizeof(qRcvHistoryData))
+		{
+			delete pData;
+			break;
+		}
+		list.push_back(pData);
+	}
+
+	file.close();
+	return list;
 }

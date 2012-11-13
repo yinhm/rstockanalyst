@@ -10,7 +10,7 @@
 #include <QtGui>
 #include "StockInfoItem.h"
 
-class CKLineWidget : QWidget
+class CKLineWidget : public QWidget
 {
 	Q_OBJECT
 public:

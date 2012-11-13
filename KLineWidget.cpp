@@ -5,6 +5,7 @@
 
 CKLineWidget::CKLineWidget( QWidget* parent /*= 0*/ )
 	: QWidget(parent)
+	, m_pStockItem(0)
 {
 
 }
@@ -39,5 +40,15 @@ void CKLineWidget::updateKLine( const QString& code )
 void CKLineWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
+	p.fillRect(this->rect(),QColor(0,0,0));
+	if(!m_pStockItem)
+		return;
+
+	QList<qRcvHistoryData*> listHistory = m_pStockItem->getHistoryList();
+	foreach(qRcvHistoryData* pHistory, listHistory)
+	{
+
+	}
+
 	p.drawLine(0,0,100,100);
 }

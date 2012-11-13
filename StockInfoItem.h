@@ -308,7 +308,6 @@ private:
 	float fCommSent;				//委差
 
 private:
-	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
 	QMap<time_t,qRcvMinuteData*> mapMinutes;		//分钟数据
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
 	qRcvBaseInfoData baseInfo;

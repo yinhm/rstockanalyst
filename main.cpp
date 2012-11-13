@@ -25,10 +25,12 @@ int main(int argc, char *argv[])
 	CMainWindow mainWindow;
 	mainWindow.showMaximized();
 
+	
 	if(!mainWindow.setupStockDrv())
 	{
 		return app.exit();
 	}
+	
 
 	CDataEngine::importData();
 
