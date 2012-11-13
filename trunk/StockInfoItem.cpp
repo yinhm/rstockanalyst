@@ -89,11 +89,25 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 
 QList<qRcvHistoryData*> CStockInfoItem::getHistoryList()
 {
-	return mapHistorys.values();
+	return CDataEngine::getDataEngine()->getHistoryList(qsCode);
 }
 
 void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 {
+	/*计算量比*/
+	QList<qRcvHistoryData*> listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode);
+
+	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
+	foreach(qRcvHistoryData* p,listHistory)
+	{
+		if(mapHistorys.contains(p->time))
+		{
+			qRcvHistoryData* pBefore = mapHistorys[p->time];
+			if(pBefore!=p)
+				delete pBefore;
+		}
+		mapHistorys[p->time] = p;
+	}
 	foreach(qRcvHistoryData* p,list)
 	{
 		if(mapHistorys.contains(p->time))
@@ -116,21 +130,30 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 			if(pCurrentReport)
 			{
 				time_t tmSeconds = CDataEngine::getOpenSeconds(pCurrentReport->tmTime);
-				if(tmSeconds<1)
-					return;
-
-				time_t* pLast5Day = CDataEngine::getLast5DayTime();
-				float fVolume5 = 0.0;
-				for(int i=0;i<5;++i)
+				if(tmSeconds>0)
 				{
-					if(!mapHistorys.contains(pLast5Day[i]))
-						return;
-					fVolume5 = (fVolume5 + mapHistorys.value(pLast5Day[i])->fVolume);
+					time_t* pLast5Day = CDataEngine::getLast5DayTime();
+					float fVolume5 = 0.0;
+					for(int i=0;i<5;++i)
+					{
+						if(mapHistorys.contains(pLast5Day[i]))
+							fVolume5 = (fVolume5 + mapHistorys.value(pLast5Day[i])->fVolume);
+					}
+					fVolumeRatio = (pCurrentReport->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
 				}
-				fVolumeRatio = (pCurrentReport->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
 			}
 		}
 	}
+
+	CDataEngine::getDataEngine()->exportHistoryData(qsCode,mapHistorys.values());
+
+	QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
+	while(iter!=mapHistorys.end())
+	{
+		delete iter.value();
+		++iter;
+	}
+	mapHistorys.clear();
 
 	emit stockInfoItemChanged(qsCode);
 }

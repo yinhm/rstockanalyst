@@ -3,6 +3,7 @@
 #include "STKDRV.h"
 #include "BaseMarketWidget.h"
 #include "DataEngine.h"
+#include "KLineWidget.h"
 
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
@@ -31,6 +32,11 @@ CMainWindow::CMainWindow()
 		m_pSubBaseMarket->setWidget(m_pBaseMarketWidget);
 		m_pSubBaseMarket->showMaximized();
 	//	m_pMdiArea->setActiveSubWindow(m_pSubBaseMarket);
+
+		CKLineWidget* pWidget = new CKLineWidget(this);
+		CRMdiSubWindow* pSub = new CRMdiSubWindow(m_pMdiArea);
+		pSub->setWindowTitle(tr("adf"));
+		pSub->setWidget(pWidget);
 	}
 
 	{
@@ -126,7 +132,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
  					for(int i=0;i<pHeader->m_nPacketNum;++i)
 					{
 						pHistory = (pHeader->m_pDay+i);
-						if(pHistory->m_time == EKE_HEAD_TAG)
+						if(pHistory->m_head.m_dwHeadTag == EKE_HEAD_TAG)
 						{
 							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
 							if(pItem==NULL)
@@ -148,8 +154,20 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 						}
 					}
 
+					CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+					if(pItem==NULL)
+					{
+						//É¾³ýÖ¸Õë£¬·ÀÖ¹ÄÚ´æÐ¹Â©
+						foreach(qRcvHistoryData* p,listHistory)
+							delete p;
+					}
+					else
+					{
+						pItem->appendHistorys(listHistory);
+					}
+
 					qDebug()<<"Packet cout:"<<pHeader->m_nPacketNum;
-					qDebug()<<"UseTime:"<<QTime::currentTime().msecsTo(timeBegin)<<"m secs";
+					qDebug()<<"UseTime:"<<qAbs(QTime::currentTime().msecsTo(timeBegin))<<"m secs";
 				}
 				break;
 

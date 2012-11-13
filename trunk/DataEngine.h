@@ -35,7 +35,6 @@ public:
 	/*导出Reports数据*/
 	static int exportReportsInfo(const QString& qsFile);
 
-
 public:
 	static time_t* getLast5DayTime();			//获取最近5天的开市日期
 	static bool isStockOpenDay(time_t tmDay);	//判断tmDay是否开市
@@ -48,6 +47,11 @@ public:
 	CStockInfoItem* getStockInfoItem(const QString& qsCode);
 	void setStockInfoItem(CStockInfoItem* p);
 
+	/*导出日线数据*/
+	bool exportHistoryData(const QString& qsCode, const QList<qRcvHistoryData*>& list);
+	/*获取某只股票的日线数据*/
+	QList<qRcvHistoryData*> getHistoryList(const QString& code);
+
 signals:
 	void stockInfoChanged(const QString&);
 
@@ -58,6 +62,7 @@ private:
 	static CDataEngine* m_pDataEngine;
 	static time_t m_tmCurrentDay;
 	static time_t* m_tmLast5Day;
+	QString m_qsHistroyDir;						//日线数据存储的路径 Dir/code/day...
 };
 
 
