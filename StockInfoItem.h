@@ -229,6 +229,7 @@ public:
 
 	//补充日线数据
 	QList<qRcvHistoryData*> getHistoryList();
+	QList<qRcvHistoryData*> getLastHistory(int count);
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
 
 	//补充分钟数据

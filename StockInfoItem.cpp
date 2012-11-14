@@ -92,6 +92,11 @@ QList<qRcvHistoryData*> CStockInfoItem::getHistoryList()
 	return CDataEngine::getDataEngine()->getHistoryList(qsCode);
 }
 
+QList<qRcvHistoryData*> CStockInfoItem::getLastHistory( int count )
+{
+	return CDataEngine::getDataEngine()->getHistoryList(qsCode,count);
+}
+
 void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 {
 	/*º∆À„¡ø±»*/

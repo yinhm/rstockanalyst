@@ -338,6 +338,14 @@ time_t CDataEngine::getOpenSeconds( time_t tmTime )
 CDataEngine::CDataEngine(void)
 {
 	getLast5DayTime();
+
+	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE","HISTORY");
+	db.setDatabaseName(qApp->applicationDirPath()+"/RStockAnalyst.dat");
+	if(!db.open())
+	{
+		qDebug()<<"Open history database error!";
+	}
+
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);
 }
@@ -378,6 +386,25 @@ CDataEngine* CDataEngine::getDataEngine()
 
 bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list )
 {
+	/*Êý¾Ý¿â²Ù×÷
+	QSqlDatabase db = QSqlDatabase::database("HISTORY");
+	if(!db.isOpen())
+		return false;
+	db.transaction();
+	QSqlQuery q(db);
+
+	foreach(qRcvHistoryData* pData, list)
+	{
+		QString qsQuery = QString("replace into [History] ('code','time','open','high','low','close','volume','amount') \
+								  values ('%1',%2,%3,%4,%5,%6,%7,%8)")
+								  .arg(qsCode).arg(pData->time).arg(pData->fOpen).arg(pData->fHigh)
+								  .arg(pData->fLow).arg(pData->fClose).arg(pData->fVolume).arg(pData->fAmount);
+		q.exec(qsQuery);
+	}
+	db.commit();
+	return true;
+	*/
+
 	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(qsCode);
 
 	QFile file(qsDayData);
@@ -417,6 +444,37 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code )
 			break;
 		}
 		list.push_back(pData);
+	}
+
+	file.close();
+	return list;
+}
+
+QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code, int count )
+{
+	QList<qRcvHistoryData*> list;
+
+	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(code);
+	QFile file(qsDayData);
+	if(!file.open(QFile::ReadOnly))
+		return list;
+	int iDataSize = sizeof(qRcvHistoryData);
+
+	int iPos = file.size()-iDataSize;
+	int iCount = 0;
+	while(iPos>=0&&iCount<count)
+	{
+		++iCount;
+		file.seek(iPos);
+		qRcvHistoryData* pData = new qRcvHistoryData;
+		int iSize = file.read(reinterpret_cast<char*>(pData),iDataSize);
+		if(iSize!=iDataSize)
+		{
+			delete pData;
+			break;
+		}
+		list.push_front(pData);
+		iPos = iPos-iDataSize;
 	}
 
 	file.close();

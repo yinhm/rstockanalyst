@@ -32,11 +32,6 @@ CMainWindow::CMainWindow()
 		m_pSubBaseMarket->setWidget(m_pBaseMarketWidget);
 		m_pSubBaseMarket->showMaximized();
 	//	m_pMdiArea->setActiveSubWindow(m_pSubBaseMarket);
-
-		CKLineWidget* pWidget = new CKLineWidget(this);
-		CRMdiSubWindow* pSub = new CRMdiSubWindow(m_pMdiArea);
-		pSub->setWindowTitle(tr("adf"));
-		pSub->setWidget(pWidget);
 	}
 
 	{
