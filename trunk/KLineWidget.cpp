@@ -224,6 +224,8 @@ void CKLineWidget::resetTmpData()
 {
 	clearTmpData();
 	listHistory = m_pStockItem->getLastHistory(100);
+	if(listHistory.size()<1)
+		return;
 	//初始时间和结束时间
 	tmBegin = listHistory.first()->time;
 	tmEnd = listHistory.last()->time;
