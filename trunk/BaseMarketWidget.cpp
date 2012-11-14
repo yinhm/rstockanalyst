@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "BaseMarketWidget.h"
 #include "DataEngine.h"
+#include "KLineWidget.h"
 
 CTabButton::CTabButton( const QString& text,QWidget* parent /*= 0*/ )
 	: QLabel(text,parent)
@@ -134,19 +135,9 @@ void CBaseMarketWidget::treeItemClicked( const QModelIndex& index )
 		QVBoxLayout layout;
 		dlg.setLayout(&layout);
 
-		QTreeWidget treeWidget(&dlg);
-		layout.addWidget(&treeWidget);
-		treeWidget.setHeaderLabels(QStringList()<<"Time"<<"High");
-
-		QList<qRcvHistoryData*> lsHistory = pItem->getHistoryList();
-		foreach(qRcvHistoryData* pHistory,lsHistory)
-		{
-			QTreeWidgetItem* pItem = new QTreeWidgetItem(&treeWidget);
-			pItem->setData(0,Qt::DisplayRole,pHistory->time);
-			pItem->setData(1,Qt::DisplayRole,pHistory->fHigh);
-			treeWidget.addTopLevelItem(pItem);
-		}
-
+		CKLineWidget widget(&dlg);
+		layout.addWidget(&widget);
+		widget.setStockCode(pItem->getCode());
 		dlg.exec();
 	}
 }
