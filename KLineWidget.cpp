@@ -181,6 +181,7 @@ void CKLineWidget::drawKGrid( qRcvHistoryData* pHistory,QPainter& p,const QRectF
 
 	if(pHistory->fClose>pHistory->fOpen)
 	{
+		//增长，绘制红色色块
 		p.setPen(QColor(255,0,0));
 		if(int(rtClient.width())%2==0)
 		{
@@ -195,6 +196,7 @@ void CKLineWidget::drawKGrid( qRcvHistoryData* pHistory,QPainter& p,const QRectF
 	}
 	else
 	{
+		//降低，绘制蓝色色块
 		p.setPen(QColor(0,255,255));
 		if(int(rtClient.width())%2==0)
 		{
