@@ -43,7 +43,8 @@ public:
 	//用新的widget 替换之前索引index的窗口
 	void replaceWidget(int index, CBaseWidget* widget);
 
-
+	//虚函数，各个控件的自定义菜单。
+	virtual QMenu* getCustomMenu(){ return 0; }
 	//加载该Widget的配置信息
 	virtual bool loadPanelInfo(const QDomElement& elePanel);
 	//保存该Widget的配置信息

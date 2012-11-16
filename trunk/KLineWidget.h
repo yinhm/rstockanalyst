@@ -26,6 +26,9 @@ protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
 	virtual void mouseMoveEvent(QMouseEvent* e);			//鼠标移动事件
 
+	//虚函数，各个控件的自定义菜单。
+	virtual QMenu* getCustomMenu();
+
 private:
 	void drawCoordY(QPainter& p,const QRectF& rtClient);	//绘制Y坐标轴
 	void drawKGrids(QPainter& p,const QRectF& rtClient);	//绘制X坐标轴和数据
@@ -35,6 +38,7 @@ private:
 	void clearTmpData();					//清理本窗口中创建的内存。
 
 private:
+	QMenu* m_pMenuCustom;					//自定义菜单
 	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
 	QList<qRcvHistoryData*> listHistory;	//K线图所用到的历史数据。
 	/*纵坐标*/
