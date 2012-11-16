@@ -4,14 +4,14 @@
 
 #define	KLINE_BORDER	2
 
-CKLineWidget::CKLineWidget( QWidget* parent /*= 0*/ )
-	: QWidget(parent)
+CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
+	: CBaseWidget(parent,CBaseWidget::KLine)
 	, m_pStockItem(0)
 	, fKGridWidth(0)
 {
 	setMinimumSize(200,200);
-//	setToolTip("adsffff");
 	setMouseTracking(true);
+	setStockCode(QString("600000"));
 }
 
 CKLineWidget::~CKLineWidget(void)

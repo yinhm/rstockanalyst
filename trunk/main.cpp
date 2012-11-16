@@ -26,10 +26,10 @@ int main(int argc, char *argv[])
 	mainWindow.showMaximized();
 
 	
-	if(!mainWindow.setupStockDrv())
-	{
-		return app.exit();
-	}
+	//if(!mainWindow.setupStockDrv())
+	//{
+	//	return app.exit();
+	//}
 	
 
 	CDataEngine::importData();

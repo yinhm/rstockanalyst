@@ -1,5 +1,6 @@
 #pragma once
 #include <QtGui>
+#include "BaseWidget.h"
 #include "BaseMarketWidget.h"
 #include "RMdiCtrl.h"
 
@@ -31,7 +32,7 @@ private:
 	CRMdiSubWindow* m_pSubBaseMarket;
 	CRMdiSubWindow* m_pSubTemplate;
 
-	QTabWidget* m_pTemplateWidget;
+	CBaseWidget* m_pTemplateWidget;
 	CBaseMarketWidget* m_pBaseMarketWidget;
 	QMenuBar* m_pMenuBar;
 };

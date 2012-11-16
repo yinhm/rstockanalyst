@@ -8,13 +8,14 @@
 #ifndef K_LINE_WIDGET_H
 #define K_LINE_WIDGET_H
 #include <QtGui>
+#include "BaseWidget.h"
 #include "StockInfoItem.h"
 
-class CKLineWidget : public QWidget
+class CKLineWidget : public CBaseWidget
 {
 	Q_OBJECT
 public:
-	CKLineWidget(QWidget* parent = 0);
+	CKLineWidget(CBaseWidget* parent = 0);
 	~CKLineWidget(void);
 
 public slots:

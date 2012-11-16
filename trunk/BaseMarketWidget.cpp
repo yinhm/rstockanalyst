@@ -135,8 +135,10 @@ void CBaseMarketWidget::treeItemClicked( const QModelIndex& index )
 		QVBoxLayout layout;
 		dlg.setLayout(&layout);
 
-		CKLineWidget widget(&dlg);
-		layout.addWidget(&widget);
+		CBaseWidget base(0);
+		CKLineWidget widget(&base);
+		base.replaceWidget(0,&widget);
+		layout.addWidget(&base);
 		widget.setStockCode(pItem->getCode());
 		dlg.exec();
 	}

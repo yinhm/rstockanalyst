@@ -20,7 +20,7 @@ CMainWindow::CMainWindow()
 		setCentralWidget(m_pMdiArea);
 
 		//添加多版面窗口
-		m_pTemplateWidget = new QTabWidget(this);
+		m_pTemplateWidget = new CBaseWidget(0);
 		m_pSubTemplate = new CRMdiSubWindow(m_pMdiArea);
 		m_pSubTemplate->setWindowTitle(tr("个性化版面"));
 		m_pSubTemplate->setWidget(m_pTemplateWidget);
