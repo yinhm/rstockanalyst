@@ -46,6 +46,7 @@ void CBaseWidget::initMenu()
 		QMenu* pMenuType = m_pMenu->addMenu(tr("设置版面类型"));
 		pMenuType->addAction(tr("基础窗口"),this,SLOT(onSetNormalWidget()));
 		pMenuType->addAction(tr("K线图"),this,SLOT(onSetKLineWidget()));
+		m_pMenu->addSeparator();
 	}
 
 	{
@@ -54,6 +55,7 @@ void CBaseWidget::initMenu()
 		m_pMenu->addAction(tr("右插入"),this,SLOT(onRightInsert()));
 		m_pMenu->addAction(tr("上插入"),this,SLOT(onTopInsert()));
 		m_pMenu->addAction(tr("下插入"),this,SLOT(onBottomInsert()));
+		m_pMenu->addSeparator();
 	}
 }
 
@@ -105,7 +107,13 @@ void CBaseWidget::paintEvent( QPaintEvent* )
 void CBaseWidget::contextMenuEvent( QContextMenuEvent* e )
 {
 	if(m_pParent)
-		m_pMenu->exec(e->globalPos());
+	{
+		QMenu* pMenuCustom = getCustomMenu();
+		if(pMenuCustom)
+			pMenuCustom->exec(e->globalPos());
+		else
+			m_pMenu->exec(e->globalPos());
+	}
 	return e->accept();
 }
 

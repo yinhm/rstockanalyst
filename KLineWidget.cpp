@@ -12,6 +12,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
+	m_pMenuCustom = new QMenu("KÏßÍ¼²Ù×÷");
 }
 
 CKLineWidget::~CKLineWidget(void)
@@ -89,6 +90,15 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 	{
 		QToolTip::hideText();
 	}
+}
+
+QMenu* CKLineWidget::getCustomMenu()
+{
+	QAction* pAction = m_pMenu->menuAction();
+	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
+		m_pMenuCustom->addMenu(m_pMenu);
+
+	return m_pMenuCustom;
 }
 
 void CKLineWidget::drawCoordY( QPainter& p,const QRectF& rtClient )
