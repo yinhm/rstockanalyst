@@ -18,6 +18,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 CKLineWidget::~CKLineWidget(void)
 {
 	clearTmpData();
+	delete m_pMenuCustom;
 }
 
 void CKLineWidget::setStockCode( const QString& code )
