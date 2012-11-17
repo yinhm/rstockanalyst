@@ -24,7 +24,6 @@ CBaseMarketTreeModel::CBaseMarketTreeModel( WORD wMarket,QObject *parent /*= 0*/
     : QAbstractTableModel(parent)
 	, m_wMarket(wMarket)
 {
-    QList<QVariant> rootData;
     m_listHeader << tr("索引") << tr("代码") << tr("名称")
 		<< tr("涨幅") << tr("量比") << tr("换手率（仓差）") << tr("前收") << tr("今开")
 		<< tr("最高") << tr("最低") << tr("最新") << tr("总手") << tr("总额（持仓）")

@@ -15,8 +15,9 @@ class CBaseWidget : public QWidget
 public:
 	enum WidgetType
 	{
-		Basic = 0,
-		KLine,
+		Basic = 0,				//基础图
+		KLine,					//K线图
+		MarketTrend,			//市场行情图
 	};
 public:
 	CBaseWidget(CBaseWidget* parent = 0, WidgetType type = CBaseWidget::Basic);
@@ -60,6 +61,7 @@ protected slots:
 	/*右键菜单，设置不同的版面*/
 	void onSetNormalWidget();		//设置为原始的窗口，无实际意义
 	void onSetKLineWidget();		//设置为K线图
+	void onSetMarketTrendWidget();	//设置为市场行情图
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);

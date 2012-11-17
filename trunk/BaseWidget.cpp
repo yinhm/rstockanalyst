@@ -7,6 +7,7 @@
 #include "StdAfx.h"
 #include "BaseWidget.h"
 #include "KLineWidget.h"
+#include "MarketTrendWidget.h"
 
 CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic*/ )
 	: QWidget(parent)
@@ -46,6 +47,7 @@ void CBaseWidget::initMenu()
 		QMenu* pMenuType = m_pMenu->addMenu(tr("设置版面类型"));
 		pMenuType->addAction(tr("基础窗口"),this,SLOT(onSetNormalWidget()));
 		pMenuType->addAction(tr("K线图"),this,SLOT(onSetKLineWidget()));
+		pMenuType->addAction(tr("市场行情图"),this,SLOT(onSetMarketTrendWidget()));
 		m_pMenu->addSeparator();
 	}
 
@@ -248,5 +250,14 @@ void CBaseWidget::onSetKLineWidget()
 	if(iIndex>=0)
 	{
 		m_pParent->replaceWidget(iIndex,new CKLineWidget(m_pParent));
+	}
+}
+
+void CBaseWidget::onSetMarketTrendWidget()
+{
+	int iIndex = m_pParent->getWidgetIndex(this);
+	if(iIndex>=0)
+	{
+		m_pParent->replaceWidget(iIndex,new CMarketTrendWidget(m_pParent));
 	}
 }
