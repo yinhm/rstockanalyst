@@ -42,6 +42,13 @@ public:
 	static time_t getOpenSeconds(time_t tmTime);//获取当天相对于tmTime的开市时间（秒）
 
 public:
+	//获取板块数据
+	void initCommonBlocks();						//初始化常用板块分类
+	QList<QString> getStockBlocks();			//获取所有板块列表
+	bool isHadBlock(const QString& block);		//是否存在某板块
+	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表
+	QList<CStockInfoItem*> getStocksByBlock(const QString& block);	//根据板块获取股票列表
+
 	//获取基本行情数据
 	QList<CStockInfoItem*> getStockInfoList();
 	CStockInfoItem* getStockInfoItem(const QString& qsCode);
@@ -58,13 +65,21 @@ signals:
 	void stockInfoChanged(const QString&);
 
 private:
+	bool isBlockInCommon(const QString&  block);
+	QRegExp getRegexpByBlock(const QString& block);
+
+private:
 	QMap<QString,CStockInfoItem*> m_mapStockInfos;
 
 private:
 	static CDataEngine* m_pDataEngine;
 	static time_t m_tmCurrentDay;
 	static time_t* m_tmLast5Day;
-	QString m_qsHistroyDir;						//日线数据存储的路径 Dir/code/day...
+	QString m_qsHistroyDir;						//日线数据存储的路径 AppDir/data/history...
+	QString m_qsBlocksDir;						//板块数据的存储路径 AppDir/data/blocks...
+	QString m_qsCommonBlocks;					//常用板块列表配置文件的存储路径
+
+	QList<QPair<QString,QRegExp>> m_listCommonBlocks;	//常用的股票板块；（上证A股、深圳指数……）
 };
 
 

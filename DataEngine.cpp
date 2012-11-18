@@ -4,6 +4,7 @@
 #include <time.h>
 #include <QApplication>
 #include <QtSql>
+#include <QtXml>
 
 CDataEngine* CDataEngine::m_pDataEngine = NULL;
 
@@ -348,6 +349,12 @@ CDataEngine::CDataEngine(void)
 
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);
+
+	m_qsBlocksDir = qApp->applicationDirPath()+"/data/blocks/";
+	QDir().mkpath(m_qsBlocksDir);
+
+	m_qsCommonBlocks = qApp->applicationDirPath()+"/data/CommonBlocks.xml";
+	initCommonBlocks();
 }
 
 CDataEngine::~CDataEngine(void)
@@ -355,6 +362,124 @@ CDataEngine::~CDataEngine(void)
 }
 
 
+void CDataEngine::initCommonBlocks()
+{
+	m_listCommonBlocks.clear();
+
+	QDomDocument doc("CommonBlocks");
+	QFile file(m_qsCommonBlocks);
+	if (!file.open(QIODevice::ReadOnly))
+		return;
+	if (!doc.setContent(&file)) {
+		file.close();
+		return;
+	}
+	file.close();
+
+	QDomElement eleRoot = doc.documentElement();
+	if(eleRoot.isNull())
+		return;
+	QDomElement eleNode = eleRoot.firstChildElement("block");
+	while(!eleNode.isNull())
+	{
+		QString qsName = eleNode.attribute("name");
+		if(!(qsName.isEmpty()||isBlockInCommon(qsName)))
+		{
+			QString qsRegexp = eleNode.text();
+			if(!qsRegexp.isEmpty())
+			{
+				QRegExp r(qsRegexp);
+				if(eleNode.hasAttribute("RegType"))
+				{
+					r.setPatternSyntax(static_cast<QRegExp::PatternSyntax>(eleNode.attribute("RegType").toInt()));
+				}
+				m_listCommonBlocks.push_back(QPair<QString,QRegExp>(qsName,r));
+			}
+		}
+		eleNode = eleNode.nextSiblingElement("block");
+	}
+}
+
+QList<QString> CDataEngine::getStockBlocks()
+{
+	QList<QString> listBlocks;
+	QList<QPair<QString,QRegExp>>::iterator iter = m_listCommonBlocks.begin();
+	while(iter!=m_listCommonBlocks.end())
+	{
+		listBlocks.push_back(iter->first);
+		++iter;
+	}
+
+	QDir dir(m_qsBlocksDir);
+	QStringList listEntity = dir.entryList(QDir::Files);
+	foreach(const QString& e,listEntity)
+	{
+		if(!isBlockInCommon(e))
+		{
+			listBlocks.push_back(e);
+		}
+	}
+
+	return listBlocks;
+}
+
+bool CDataEngine::isHadBlock( const QString& block )
+{
+	if(isBlockInCommon(block))
+		return true;
+
+	return QFile::exists(m_qsBlocksDir+block);
+}
+
+QList<CStockInfoItem*> CDataEngine::getStocksByMarket( WORD wMarket )
+{
+	QList<CStockInfoItem*> listStocks;
+	QMap<QString,CStockInfoItem*>::iterator iter = m_mapStockInfos.begin();
+	while(iter!=m_mapStockInfos.end())
+	{
+		if((*iter)->getMarket() == wMarket)
+			listStocks.push_back(iter.value());
+		++iter;
+	}
+
+	return listStocks;
+}
+
+QList<CStockInfoItem*> CDataEngine::getStocksByBlock( const QString& block )
+{
+	QList<CStockInfoItem*> listStocks;
+	if(isBlockInCommon(block))
+	{
+		QRegExp r = getRegexpByBlock(block);
+		QMap<QString,CStockInfoItem*>::iterator iter = m_mapStockInfos.begin();
+		while(iter!=m_mapStockInfos.end())
+		{
+			if(r.exactMatch((*iter)->getCode()))
+			{
+				listStocks.push_back(*iter);
+			}
+			++iter;
+		}
+	}
+	else
+	{
+		QFile file(m_qsBlocksDir+block);
+		if(file.open(QFile::ReadOnly))
+		{
+			while(!file.atEnd())
+			{
+				QString code = file.readLine();
+				code = code.trimmed();
+				if((!code.isEmpty())&&(m_mapStockInfos.contains(code)))
+				{
+					listStocks.push_back(m_mapStockInfos[code]);
+				}
+			}
+		}
+	}
+
+	return listStocks;
+}
 
 QList<CStockInfoItem*> CDataEngine::getStockInfoList()
 {
@@ -479,4 +604,30 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code, int co
 
 	file.close();
 	return list;
+}
+
+bool CDataEngine::isBlockInCommon( const QString& block )
+{
+	QList<QPair<QString,QRegExp>>::iterator iter = m_listCommonBlocks.begin();
+	while(iter!=m_listCommonBlocks.end())
+	{
+		if(iter->first==block)
+			return true;
+		++iter;
+	}
+
+	return false;
+}
+
+QRegExp CDataEngine::getRegexpByBlock( const QString& block )
+{
+	QList<QPair<QString,QRegExp>>::iterator iter = m_listCommonBlocks.begin();
+	while(iter!=m_listCommonBlocks.end())
+	{
+		if(iter->first==block)
+			return iter->second;
+		++iter;
+	}
+
+	return QRegExp("*");
 }
