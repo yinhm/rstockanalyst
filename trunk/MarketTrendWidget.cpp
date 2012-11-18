@@ -9,12 +9,13 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::MarketTrend)
 	, m_iHeaderHeight(20)
 	, m_iStockHeight(16)
-	, m_iBottomHeight(20)
+	, m_iBottomHeight(18)
 	, m_rtHeader(0,0,0,0)
 	, m_rtClient(0,0,0,0)
 	, m_rtBottom(0,0,0,0)
 	, showHeaderIndex(0)
 	, showStockIndex(0)
+	, showBlockIndex(0)
 	, m_pSelectedStock(0)
 	, m_iSortColumn(0)
 	, m_sortOrder(Qt::AscendingOrder)
@@ -35,9 +36,22 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	m_listItemWidth[5] = 100;
 
 	m_pMenuCustom = new QMenu(tr("市场行情图菜单"));
+	QStringList listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	if(listBlocks.size()>0)
+	{
+		foreach(const QString& b,listBlocks)
+		{
+			m_listBlocks.push_back(QPair<QString,QRect>(b,QRect()));
+		}
+		clickedBlock(listBlocks.first());
+	}
+	else
+	{
+		setStocks(CDataEngine::getDataEngine()->getStockInfoList());
+	}
 
-	setStocks(CDataEngine::getDataEngine()->getStockInfoList());
-	m_pSelectedStock = m_listStocks.first();
+	setMinimumHeight(m_iHeaderHeight+m_iStockHeight+m_iBottomHeight);
+	setMinimumWidth(200);
 }
 
 CMarketTrendWidget::~CMarketTrendWidget(void)
@@ -50,6 +64,8 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 {
 	clearTmpData();
 	m_listStocks = list;
+	showHeaderIndex = 0;
+	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
 	{
 		m_mapStockIndex[m_listStocks[i]] = i;
@@ -58,6 +74,9 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 	{
 		connect(pItem,SIGNAL(stockInfoItemChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
 	}
+
+	if(m_listStocks.size()>0)
+		m_pSelectedStock = m_listStocks.first();
 }
 
 void CMarketTrendWidget::stockInfoChanged( const QString& code )
@@ -69,6 +88,7 @@ void CMarketTrendWidget::stockInfoChanged( const QString& code )
 void CMarketTrendWidget::clearTmpData()
 {
 	m_pSelectedStock = 0;
+
 	foreach(CStockInfoItem* pItem,m_listStocks)
 	{
 		disconnect(pItem,SIGNAL(stockInfoItemChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
@@ -147,14 +167,29 @@ void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )
 	update(rectOfStock(m_pSelectedStock));
 }
 
+void CMarketTrendWidget::offsetShowHeaderIndex( int offset )
+{
+	int iIndex = showHeaderIndex+offset;
+	if(iIndex>=0&&iIndex<m_listHeader.size()-3)
+	{
+		showHeaderIndex = iIndex;
+		update();
+	}
+}
+
+void CMarketTrendWidget::clickedBlock( const QString& block )
+{
+	setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
+	m_qsSelectedBlock = block;
+	update();
+}
+
 void CMarketTrendWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
 	drawHeaders(p);
 	drawStocks(p);
-	p.fillRect(m_rtBottom,QColor(0,255,0));
-	p.setPen(QColor(255,255,255));
-	p.drawRect(m_rtBottom);
+	drawBottom(p);
 }
 
 void CMarketTrendWidget::resizeEvent( QResizeEvent* e)
@@ -205,7 +240,39 @@ void CMarketTrendWidget::mousePressEvent( QMouseEvent* e )
 	}
 	else if(m_rtBottom.contains(ptCur))
 	{
+		if(m_rtPreIndex.contains(ptCur))
+		{
+			offsetShowHeaderIndex(-1);
+		}
+		else if(m_rtNextIndex.contains(ptCur))
+		{
+			offsetShowHeaderIndex(1);
+		}
+		else
+		{
+			QList<QPair<QString,QRect>>::iterator iter = m_listBlocks.begin();
+			while(iter!=m_listBlocks.end())
+			{
+				if(iter->second.contains(ptCur))
+				{
+					clickedBlock(iter->first);
+					break;
+				}
+				++iter;
+			}
+		}
+	}
+}
 
+void CMarketTrendWidget::wheelEvent( QWheelEvent* e )
+{
+	int numDegrees = e->delta() / 8;
+	int numSteps = numDegrees / 15;
+	int iIndex = showStockIndex-numSteps*5;
+	if(iIndex>=0&&iIndex<m_listStocks.size())
+	{
+		showStockIndex = iIndex;
+		update();
 	}
 }
 
@@ -224,6 +291,33 @@ void CMarketTrendWidget::updateDrawRect()
 	m_rtHeader = QRect(rtClient.topLeft(),QSize(rtClient.width(),m_iHeaderHeight));
 	m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
 	m_rtClient = QRect(m_rtHeader.left(),m_rtHeader.bottom()+2,rtClient.width(),rtClient.height()-m_iBottomHeight-m_iHeaderHeight-2);
+
+	//更新前后键位置
+	m_rtNextIndex = QRect(m_rtBottom.right()-m_iBottomHeight,m_rtBottom.top(),m_iBottomHeight,m_iBottomHeight);
+	m_rtPreIndex = QRect(m_rtBottom.right()-m_iBottomHeight*2,m_rtBottom.top(),m_iBottomHeight,m_iBottomHeight);
+	updateBlockRect();
+}
+
+void CMarketTrendWidget::updateBlockRect()
+{
+	//将隐藏项置空
+	for(int i=0;i<showBlockIndex;++i)
+	{
+		if(i<m_listBlocks.size())
+			m_listBlocks[i].second = QRect();
+	}
+	//计算各个区域的大小
+	QFont f;
+	QFontMetrics m(f);
+	int iCurX = m_rtBottom.left();
+	for (int i=showBlockIndex;i<m_listBlocks.size();++i)
+	{
+		int iWidth = m.width(m_listBlocks[i].first) + 16;
+		QRect rtEntity = QRect(iCurX,m_rtBottom.top(),iWidth,m_rtBottom.height());
+		m_listBlocks[i].second = rtEntity;
+
+		iCurX = iCurX+iWidth;
+	}
 }
 
 QString CMarketTrendWidget::dataOfDisplay( CStockInfoItem* itemData,int column )
@@ -596,6 +690,29 @@ void CMarketTrendWidget::drawStocks( QPainter& p )
 	}
 }
 
+void CMarketTrendWidget::drawBottom( QPainter& p )
+{
+	p.fillRect(m_rtBottom,QColor(0,0,0));
+
+	p.setPen(QColor(255,255,255));
+
+	QList<QPair<QString,QRect>>::iterator iter = m_listBlocks.begin();
+	while(iter!=m_listBlocks.end())
+	{
+		QRect rtBlock = iter->second;
+		if(rtBlock.isValid())
+		{
+			p.drawRect(rtBlock);
+			if(iter->first==m_qsSelectedBlock)
+				p.fillRect(rtBlock,QColor(127,127,127));
+			p.drawText(rtBlock,Qt::AlignCenter,iter->first);
+		}
+
+		++iter;
+	}
+	drawBottomBtn(p);
+}
+
 void CMarketTrendWidget::drawStock( QPainter& p,const QRect& rtStock,CStockInfoItem* pItem )
 {
 	int iCurX = rtStock.left();
@@ -620,5 +737,29 @@ void CMarketTrendWidget::drawStock( QPainter& p,const QRect& rtStock,CStockInfoI
 		p.drawText(rtItem,Qt::AlignCenter,dataOfDisplay(pItem,iCurIndex));
 		iCurX = iCurX+m_listItemWidth[iCurIndex];
 		++iCurIndex;
+	}
+}
+
+void CMarketTrendWidget::drawBottomBtn( QPainter& p )
+{
+	if(m_rtPreIndex.isValid())
+	{
+		QRect rtBtn = m_rtPreIndex.adjusted(1,1,0,-1);
+		p.fillRect(rtBtn,QColor(200,200,200));
+		QPainterPath path;
+		path.moveTo(rtBtn.center().x()-m_iBottomHeight/2+4,rtBtn.center().y());
+		path.lineTo(rtBtn.right()-4,rtBtn.top()+4);
+		path.lineTo(rtBtn.right()-4,rtBtn.bottom()-4);
+		p.fillPath(path,QColor(0,0,0));
+	}
+	if(m_rtNextIndex.isValid())
+	{
+		QRect rtBtn = m_rtNextIndex.adjusted(1,1,0,-1);
+		p.fillRect(rtBtn,QColor(200,200,200));
+		QPainterPath path;
+		path.moveTo(rtBtn.center().x()+m_iBottomHeight/2-4,rtBtn.center().y());
+		path.lineTo(rtBtn.left()+4,rtBtn.top()+4);
+		path.lineTo(rtBtn.left()+4,rtBtn.bottom()-4);
+		p.fillPath(path,QColor(0,0,0));
 	}
 }
