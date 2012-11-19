@@ -50,14 +50,26 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 		setStocks(CDataEngine::getDataEngine()->getStockInfoList());
 	}
 
-	setMinimumHeight(m_iHeaderHeight+m_iStockHeight+m_iBottomHeight);
-	setMinimumWidth(200);
+//	setMinimumHeight(m_iHeaderHeight+m_iStockHeight+m_iBottomHeight);
+//	setMinimumWidth(200);
 }
 
 CMarketTrendWidget::~CMarketTrendWidget(void)
 {
 	clearTmpData();
 	delete m_pMenuCustom;
+}
+
+bool CMarketTrendWidget::loadPanelInfo( const QDomElement& eleWidget )
+{
+	if(!CBaseWidget::loadPanelInfo(eleWidget))
+		return false;
+}
+
+bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
+{
+	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
+		return false;
 }
 
 void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )

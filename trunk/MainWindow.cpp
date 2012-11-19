@@ -11,29 +11,10 @@
 CMainWindow::CMainWindow()
 	: QMainWindow()
 {
-	{
-		//初始化布局
-		m_pMdiArea = new QMdiArea();
-		m_pMdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-		m_pMdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-		m_pMdiArea->setViewMode(QMdiArea::TabbedView);
-		setCentralWidget(m_pMdiArea);
-
-		//添加多版面窗口
-		m_pTemplateWidget = new CBaseWidget(0);
-		m_pSubTemplate = new CRMdiSubWindow(m_pMdiArea);
-		m_pSubTemplate->setWindowTitle(tr("个性化版面"));
-		m_pSubTemplate->setWidget(m_pTemplateWidget);
-
-		//添加基本行情窗口
-		m_pBaseMarketWidget = new CBaseMarketWidget;
-		m_pSubBaseMarket = new CRMdiSubWindow(m_pMdiArea);
-		m_pSubBaseMarket->setWindowTitle(tr("基本行情"));
-		m_pSubBaseMarket->setWidget(m_pBaseMarketWidget);
-		m_pSubBaseMarket->showMaximized();
-	//	m_pMdiArea->setActiveSubWindow(m_pSubBaseMarket);
-	}
-
+	m_pTabWidget = new QTabWidget();
+	setCentralWidget(m_pTabWidget);
+	m_qsTemplateDir = qApp->applicationDirPath()+"/data/template/";
+	QDir().mkpath(m_qsTemplateDir);
 	{
 		//初始化Menu
 		m_pMenuBar = new QMenuBar(this);
@@ -42,14 +23,14 @@ CMainWindow::CMainWindow()
 		//版面管理
 		QMenu* pMenuTemplate = m_pMenuBar->addMenu(tr("版面管理"));
 		pMenuTemplate->addAction(tr("添加版面"),this,SLOT(onAddTemplate()));
+		pMenuTemplate->addAction(tr("保存所有"),this,SLOT(onSaveTemplate()));
 		setMenuBar(m_pMenuBar);
 
 		//视图菜单，包含各SubWindow的显示与否
 		QMenu* pMenuView = m_pMenuBar->addMenu(tr("视图"));
-		pMenuView->addAction(tr("基本行情"),this,SLOT(onActiveBaseMarket()));
-		pMenuView->addAction(tr("版面管理"),this,SLOT(onActiveTemplate()));
+		//pMenuView->addAction(tr("基本行情"),this,SLOT(onActiveBaseMarket()));
+		//pMenuView->addAction(tr("版面管理"),this,SLOT(onActiveTemplate()));
 	}
-
 }
 
 CMainWindow::~CMainWindow()
@@ -68,6 +49,38 @@ bool CMainWindow::setupStockDrv()
 	}
 
 	return false;
+}
+
+void CMainWindow::initTemplates()
+{
+	QDir dir(m_qsTemplateDir);
+	QFileInfoList list = dir.entryInfoList(QDir::Files,QDir::Time);
+	foreach(const QFileInfo& info,list)
+	{
+		QFile file(info.absoluteFilePath());
+		if(!file.open(QFile::ReadOnly))
+			continue;
+		QDomDocument doc;
+		doc.setContent(file.readAll());
+		file.close();
+
+		QDomElement eleRoot = doc.firstChildElement("ROOT");
+		if(!eleRoot.isElement())
+			continue;
+
+		QString qsTitle = eleRoot.attribute("title");
+		if(!getSubWindows(qsTitle))
+		{
+			CBaseWidget* pWidget = new CBaseWidget(0);
+			QDomElement eleWidget = eleRoot.firstChildElement("widget");
+			if(eleWidget.isElement())
+			{
+				pWidget->clearChildren();
+				pWidget->loadPanelInfo(eleWidget);
+			}
+			m_pTabWidget->addTab(pWidget,qsTitle);
+		}
+	}
 }
 
 bool CMainWindow::winEvent( MSG* message, long* result )
@@ -272,17 +285,64 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 	return 1;
 }
 
-void CMainWindow::onActiveBaseMarket()
-{
-	m_pSubBaseMarket->showMaximized();
-}
-
-void CMainWindow::onActiveTemplate()
-{
-	m_pSubTemplate->showMaximized();
-}
-
 void CMainWindow::onAddTemplate()
 {
+	QDialog dlg(this);
+	QVBoxLayout layout;
+	dlg.setLayout(&layout);
+	QLineEdit edit;
+	layout.addWidget(&edit);
+	QPushButton btnOk(tr("确定"));
+	layout.addWidget(&btnOk);
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
 
+	if(QDialog::Accepted == dlg.exec())
+	{
+		QString qsName = edit.text().trimmed();
+		if(!getSubWindows(qsName))
+		{
+			m_pTabWidget->addTab(new CBaseWidget(0),qsName);
+//			m_pMdiArea->setActiveSubWindow(pSubWin);
+		}
+		else
+		{
+			QMessageBox::information(this,tr("提示"),tr("该模板名称已经存在！"));
+		}
+	}
+}
+
+void CMainWindow::onSaveTemplate()
+{
+	for(int i=0;i<m_pTabWidget->count();++i)
+	{
+		CBaseWidget* pWidget = reinterpret_cast<CBaseWidget*>(m_pTabWidget->widget(i));
+		QString qsTitle = m_pTabWidget->tabText(i);
+		QDomDocument doc("template");
+		QDomElement eleRoot = doc.createElement("ROOT");
+		eleRoot.setAttribute("title",qsTitle);
+		doc.appendChild(eleRoot);
+		QDomElement eleWidget = doc.createElement("widget");
+		eleRoot.appendChild(eleWidget);
+		pWidget->savePanelInfo(doc,eleWidget);
+
+		QFile file(m_qsTemplateDir+qsTitle+".xml");
+		if(!file.open(QFile::Truncate|QFile::WriteOnly))
+		{
+			QMessageBox::warning(this,tr("错误"),QString("保存模板'%1'失败！").arg(qsTitle));
+			continue;
+		}
+		file.write(doc.toByteArray());
+		file.close();
+	}
+}
+
+CBaseWidget* CMainWindow::getSubWindows( const QString& title )
+{
+	for(int i=0;i<m_pTabWidget->count();++i)
+	{
+		if(m_pTabWidget->tabText(i) == title)
+			return reinterpret_cast<CBaseWidget*>(m_pTabWidget->widget(i));
+	}
+
+	return 0;
 }

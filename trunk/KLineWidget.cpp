@@ -9,7 +9,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pStockItem(0)
 	, fKGridWidth(0)
 {
-	setMinimumSize(200,200);
+//	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
 	m_pMenuCustom = new QMenu("KÏßÍ¼²Ù×÷");
@@ -19,6 +19,28 @@ CKLineWidget::~CKLineWidget(void)
 {
 	clearTmpData();
 	delete m_pMenuCustom;
+}
+
+bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
+{
+	if(!CBaseWidget::loadPanelInfo(eleWidget))
+		return false;
+
+	QDomElement eleCode = eleWidget.firstChildElement("code");
+	if(eleCode.isElement())
+		setStockCode(eleCode.text());
+}
+
+bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
+{
+	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
+		return false;
+	if(m_pStockItem)
+	{
+		QDomElement eleCode = doc.createElement("code");
+		eleCode.appendChild(doc.createTextNode(m_pStockItem->getCode()));
+		eleWidget.appendChild(eleCode);
+	}
 }
 
 void CKLineWidget::setStockCode( const QString& code )
@@ -58,6 +80,8 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		return;
 
 	rtClient.adjust(KLINE_BORDER,KLINE_BORDER,-50,-15);
+	if(!rtClient.isValid())
+		return;
 
 	/*»­×ø±êÖá*/
 	drawCoordY(p,rtClient);

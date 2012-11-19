@@ -14,11 +14,11 @@ public:
 
 public:
 	bool setupStockDrv();
+	void initTemplates();			//初始化所有模板
 
 protected slots:
-	void onActiveBaseMarket();		//激活当前显示为基本行情窗口
-	void onActiveTemplate();		//激活当前显示为版面窗口。
 	void onAddTemplate();			//添加版面
+	void onSaveTemplate();			//保存所有版面
 
 protected:
 	virtual bool winEvent( MSG* message, long* result );
@@ -28,12 +28,11 @@ protected:
 	virtual long OnStockDrvMsg(WPARAM wParam,LPARAM lParam);
 
 private:
-	QMdiArea* m_pMdiArea;
-	CRMdiSubWindow* m_pSubBaseMarket;
-	CRMdiSubWindow* m_pSubTemplate;
+	CBaseWidget* getSubWindows(const QString& title);
 
-	CBaseWidget* m_pTemplateWidget;
-	CBaseMarketWidget* m_pBaseMarketWidget;
+private:
+	QTabWidget* m_pTabWidget;
 	QMenuBar* m_pMenuBar;
+	QString m_qsTemplateDir;		//板块配置文件所在的目录
 };
 
