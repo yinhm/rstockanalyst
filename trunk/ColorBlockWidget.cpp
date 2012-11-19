@@ -34,6 +34,9 @@ void CColorBlockWidget::paintEvent( QPaintEvent* e )
 	QPainter p(this);
 
 	p.fillRect(this->rect(),QColor(127,0,0));
+
+	p.setPen(QColor(255,255,255));
+	p.drawText(this->rect(),Qt::AlignCenter,QString("É«¿éÍ¼"));
 }
 
 QMenu* CColorBlockWidget::getCustomMenu()
