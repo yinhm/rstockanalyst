@@ -10,11 +10,15 @@ class CMainWindow : public QMainWindow
 public:
 	CMainWindow();
 	~CMainWindow();
+	static CMainWindow* getMainWindow();
 
 
 public:
 	bool setupStockDrv();
 	void initTemplates();			//初始化所有模板
+
+public:
+	void clickedStock(const QString& code);
 
 protected slots:
 	void onAddTemplate();			//添加版面
@@ -31,6 +35,7 @@ private:
 	CBaseWidget* getSubWindows(const QString& title);
 
 private:
+	static CMainWindow* m_pMainWindow;
 	QTabWidget* m_pTabWidget;
 	QMenuBar* m_pMenuBar;
 	QString m_qsTemplateDir;		//板块配置文件所在的目录

@@ -5,8 +5,18 @@
 #include "DataEngine.h"
 #include "KLineWidget.h"
 
-
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
+
+CMainWindow* CMainWindow::m_pMainWindow = 0;
+
+CMainWindow* CMainWindow::getMainWindow()
+{
+	if(m_pMainWindow == 0)
+		m_pMainWindow = new CMainWindow();
+
+	return m_pMainWindow;
+}
+
 
 CMainWindow::CMainWindow()
 	: QMainWindow()
@@ -18,18 +28,11 @@ CMainWindow::CMainWindow()
 	{
 		//初始化Menu
 		m_pMenuBar = new QMenuBar(this);
-		//基本行情
-		QMenu* pMenuBaseMarket = m_pMenuBar->addMenu(tr("基本行情"));
 		//版面管理
 		QMenu* pMenuTemplate = m_pMenuBar->addMenu(tr("版面管理"));
 		pMenuTemplate->addAction(tr("添加版面"),this,SLOT(onAddTemplate()));
 		pMenuTemplate->addAction(tr("保存所有"),this,SLOT(onSaveTemplate()));
 		setMenuBar(m_pMenuBar);
-
-		//视图菜单，包含各SubWindow的显示与否
-		QMenu* pMenuView = m_pMenuBar->addMenu(tr("视图"));
-		//pMenuView->addAction(tr("基本行情"),this,SLOT(onActiveBaseMarket()));
-		//pMenuView->addAction(tr("版面管理"),this,SLOT(onActiveTemplate()));
 	}
 }
 
@@ -80,6 +83,15 @@ void CMainWindow::initTemplates()
 			}
 			m_pTabWidget->addTab(pWidget,qsTitle);
 		}
+	}
+}
+
+void CMainWindow::clickedStock( const QString& code )
+{
+	CBaseWidget* pWidget = reinterpret_cast<CBaseWidget*>(m_pTabWidget->currentWidget());
+	if(pWidget)
+	{
+		pWidget->setStockCode(code);
 	}
 }
 
