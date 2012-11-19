@@ -22,11 +22,10 @@ int main(int argc, char *argv[])
 
 	CSTKDRV::InitStockDrv();
 
-	CMainWindow mainWindow;
-	mainWindow.showMaximized();
+	CMainWindow::getMainWindow()->showMaximized();
 
 	
-	//if(!mainWindow.setupStockDrv())
+	//if(!CMainWindow::getMainWindow()->setupStockDrv())
 	//{
 	//	return app.exit();
 	//}
@@ -34,7 +33,7 @@ int main(int argc, char *argv[])
 
 	CDataEngine::importData();
 
-	mainWindow.initTemplates();
+	CMainWindow::getMainWindow()->initTemplates();
 	app.exec();
 
 	CDataEngine::exportData();

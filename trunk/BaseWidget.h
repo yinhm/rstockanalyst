@@ -18,6 +18,7 @@ public:
 		Basic = 0,				//基础图
 		KLine,					//K线图
 		MarketTrend,			//市场行情图
+		ColorBlock,				//色块图
 	};
 public:
 	static CBaseWidget* createBaseWidget(CBaseWidget* parent=0, WidgetType type=Basic);
@@ -61,6 +62,12 @@ public:
 	//保存该Widget的配置信息
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
+public slots:
+	/*
+		虚函数，派生类中需重载此函数以进行相应操作
+	*/
+	virtual void setStockCode(const QString& code);
+
 protected slots:
 	/*右键菜单操作*/
 	void onLeftInsert();			//左插入
@@ -69,9 +76,7 @@ protected slots:
 	void onBottomInsert();			//下插入
 
 	/*右键菜单，设置不同的版面*/
-	void onSetNormalWidget();		//设置为原始的窗口，无实际意义
-	void onSetKLineWidget();		//设置为K线图
-	void onSetMarketTrendWidget();	//设置为市场行情图
+	void onResetWidget();			//重新设置窗口类型
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);

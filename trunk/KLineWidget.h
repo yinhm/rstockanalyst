@@ -25,7 +25,7 @@ public:
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
 public slots:
-	void setStockCode(const QString& code);
+	virtual void setStockCode(const QString& code);
 	void updateKLine(const QString& code);
 
 protected:

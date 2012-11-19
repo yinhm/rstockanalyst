@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "MarketTrendWidget.h"
 #include "DataEngine.h"
+#include "MainWindow.h"
 
 #define	GetColorByFloat(x)	(((x)==0.0) ? QColor(191,191,191) : (((x)>0.0) ? QColor(255,80,80) : QColor(0,255,255)))
 
@@ -29,7 +30,8 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 
 	/*初始化各个单元的宽度*/
 	m_listItemWidth.push_back(30);
-	for(int i=0;i<m_listHeader.size()-1;++i)
+	m_listItemWidth.push_back(50);
+	while(m_listItemWidth.size()<m_listHeader.size())
 	{
 		m_listItemWidth.push_back(80);
 	}
@@ -64,12 +66,16 @@ bool CMarketTrendWidget::loadPanelInfo( const QDomElement& eleWidget )
 {
 	if(!CBaseWidget::loadPanelInfo(eleWidget))
 		return false;
+
+	return true;
 }
 
 bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 {
 	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
 		return false;
+
+	return true;
 }
 
 void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
@@ -177,6 +183,7 @@ void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )
 	m_pSelectedStock = pItem;
 	update(rectOfStock(pPreSelectedStock));
 	update(rectOfStock(m_pSelectedStock));
+	CMainWindow::getMainWindow()->clickedStock(pItem->getCode());
 }
 
 void CMarketTrendWidget::offsetShowHeaderIndex( int offset )

@@ -29,6 +29,8 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 	QDomElement eleCode = eleWidget.firstChildElement("code");
 	if(eleCode.isElement())
 		setStockCode(eleCode.text());
+
+	return true;
 }
 
 bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
@@ -41,6 +43,8 @@ bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 		eleCode.appendChild(doc.createTextNode(m_pStockItem->getCode()));
 		eleWidget.appendChild(eleCode);
 	}
+
+	return true;
 }
 
 void CKLineWidget::setStockCode( const QString& code )
@@ -58,6 +62,8 @@ void CKLineWidget::setStockCode( const QString& code )
 		//¸üÐÂKÏßÍ¼
 		updateKLine(code);
 	}
+
+	return CBaseWidget::setStockCode(code);
 }
 
 void CKLineWidget::updateKLine( const QString& code )

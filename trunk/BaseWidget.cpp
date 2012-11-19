@@ -8,6 +8,7 @@
 #include "BaseWidget.h"
 #include "KLineWidget.h"
 #include "MarketTrendWidget.h"
+#include "ColorBlockWidget.h"
 
 CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, WidgetType type/*=Basic*/ )
 {
@@ -21,6 +22,9 @@ CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, WidgetTyp
 		break;
 	case MarketTrend:			//市场行情图
 		return new CMarketTrendWidget(parent);
+		break;
+	case ColorBlock:
+		return new CColorBlockWidget(parent);
 		break;
 	}
 
@@ -63,9 +67,12 @@ void CBaseWidget::initMenu()
 	{
 		//设置版面类型
 		QMenu* pMenuType = m_pMenu->addMenu(tr("设置版面类型"));
-		pMenuType->addAction(tr("基础窗口"),this,SLOT(onSetNormalWidget()));
-		pMenuType->addAction(tr("K线图"),this,SLOT(onSetKLineWidget()));
-		pMenuType->addAction(tr("市场行情图"),this,SLOT(onSetMarketTrendWidget()));
+		{
+			pMenuType->addAction(tr("基础窗口"),this,SLOT(onResetWidget()))->setData(CBaseWidget::Basic);
+			pMenuType->addAction(tr("K线图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::KLine);
+			pMenuType->addAction(tr("市场行情图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::MarketTrend);
+			pMenuType->addAction(tr("色块图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::ColorBlock);
+		}
 		m_pMenu->addSeparator();
 	}
 
@@ -124,6 +131,9 @@ int CBaseWidget::getSize()
 	int iTotal = 0;
 	int iSize = 0;
 	QList<int> sizes = pParentSplitter->sizes();
+	if(sizes.size()<2)
+		return 100;
+
 	for(int i=0;i<sizes.size();++i)
 	{
 		if(pParentSplitter->widget(i)==this)
@@ -181,8 +191,6 @@ bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
 
 		eleChild = eleChild.nextSiblingElement("widget");
 	}
-	int iCount = m_pSplitter->count();
-
 	m_pSplitter->setSizes(sizes);
 	return true;
 }
@@ -223,6 +231,15 @@ bool CBaseWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	}
 
 	return true;
+}
+
+void CBaseWidget::setStockCode( const QString& code )
+{
+	QList<CBaseWidget*> children = getChildren();
+	foreach(CBaseWidget* p,children)
+	{
+		p->setStockCode(code);
+	}
 }
 
 void CBaseWidget::paintEvent( QPaintEvent* )
@@ -362,29 +379,14 @@ void CBaseWidget::onBottomInsert()
 	}
 }
 
-void CBaseWidget::onSetNormalWidget()
+void CBaseWidget::onResetWidget()
 {
-	int iIndex = m_pParent->getWidgetIndex(this);
-	if(iIndex>=0)
-	{
-		m_pParent->replaceWidget(iIndex,new CBaseWidget(m_pParent));
-	}
-}
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
 
-void CBaseWidget::onSetKLineWidget()
-{
-	int iIndex = m_pParent->getWidgetIndex(this);
+	WidgetType type = static_cast<WidgetType>(pAct->data().toInt());	//获取窗口类型
+	int iIndex = m_pParent->getWidgetIndex(this);						//获取当前窗口所在的索引
 	if(iIndex>=0)
 	{
-		m_pParent->replaceWidget(iIndex,new CKLineWidget(m_pParent));
-	}
-}
-
-void CBaseWidget::onSetMarketTrendWidget()
-{
-	int iIndex = m_pParent->getWidgetIndex(this);
-	if(iIndex>=0)
-	{
-		m_pParent->replaceWidget(iIndex,new CMarketTrendWidget(m_pParent));
+		m_pParent->replaceWidget(iIndex,createBaseWidget(m_pParent,type));	//替换窗口
 	}
 }
