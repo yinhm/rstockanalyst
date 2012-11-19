@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 
 	CDataEngine::importData();
 
+	mainWindow.initTemplates();
 	app.exec();
 
 	CDataEngine::exportData();

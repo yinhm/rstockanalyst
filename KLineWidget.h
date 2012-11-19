@@ -18,6 +18,12 @@ public:
 	CKLineWidget(CBaseWidget* parent = 0);
 	~CKLineWidget(void);
 
+public:
+	//加载该K线图的配置信息
+	virtual bool loadPanelInfo(const QDomElement& eleWidget);
+	//保存该K线图的配置信息
+	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
+
 public slots:
 	void setStockCode(const QString& code);
 	void updateKLine(const QString& code);

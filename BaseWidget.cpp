@@ -9,6 +9,24 @@
 #include "KLineWidget.h"
 #include "MarketTrendWidget.h"
 
+CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, WidgetType type/*=Basic*/ )
+{
+	switch(type)
+	{
+	case Basic:				//基础图
+		return new CBaseWidget(parent);
+		break;
+	case KLine:					//K线图
+		return new CKLineWidget(parent);
+		break;
+	case MarketTrend:			//市场行情图
+		return new CMarketTrendWidget(parent);
+		break;
+	}
+
+	return new CBaseWidget(parent);
+}
+
 CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic*/ )
 	: QWidget(parent)
 	, m_pParent(parent)
@@ -74,6 +92,48 @@ void CBaseWidget::resetParent( CBaseWidget* parent )
 	QWidget::setParent(parent);
 }
 
+QList<CBaseWidget*> CBaseWidget::getChildren()
+{
+	QList<CBaseWidget*> list;
+	for(int i=0;i<m_pSplitter->count();++i)
+	{
+		list.push_back(reinterpret_cast<CBaseWidget*>(m_pSplitter->widget(i)));
+	}
+	return list;
+}
+
+void CBaseWidget::clearChildren()
+{
+	while(m_pSplitter->count()>0)
+	{
+		CBaseWidget* pPanel = static_cast<CBaseWidget*>(m_pSplitter->widget(0));
+		if(pPanel)
+			delete pPanel;
+	}
+}
+
+int CBaseWidget::getSize()
+{
+	CBaseWidget* pParent = getParent();
+	if(!pParent)
+		return 100;
+	QSplitter* pParentSplitter = pParent->getSplitter();
+	if(!pParentSplitter)
+		return 100;
+
+	int iTotal = 0;
+	int iSize = 0;
+	QList<int> sizes = pParentSplitter->sizes();
+	for(int i=0;i<sizes.size();++i)
+	{
+		if(pParentSplitter->widget(i)==this)
+			iSize = sizes[i];
+		iTotal = iTotal + sizes[i];
+	}
+
+	return (iSize*100)/iTotal;
+}
+
 int CBaseWidget::getWidgetIndex( CBaseWidget* widget ) const
 {
 	return m_pSplitter->indexOf(widget);
@@ -86,14 +146,81 @@ void CBaseWidget::replaceWidget( int index, CBaseWidget* widget )
 	m_pSplitter->insertWidget(index,widget);
 }
 
-bool CBaseWidget::loadPanelInfo( const QDomElement& elePanel )
+bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
 {
+	//读取Widget信息
+	if(!eleWidget.isElement())
+		return false;
 
+	//获取名称
+	QDomElement eleName = eleWidget.firstChildElement("name");
+	if(eleName.isElement())
+		setWidgetName(eleName.text());
+
+	//获取控件的排列方式
+	QDomElement eleAlign = eleWidget.firstChildElement("align");
+	if(eleAlign.isElement())
+		m_pSplitter->setOrientation(static_cast<Qt::Orientation>(eleAlign.text().toInt()));
+
+	QList<int> sizes;
+	QDomElement eleChild = eleWidget.firstChildElement("widget");
+	while(eleChild.isElement())
+	{
+		QDomElement eleChildSize = eleChild.firstChildElement("size");
+		if(eleChildSize.isElement())
+			sizes.push_back(eleChildSize.text().toInt());
+
+		QDomElement eleChildType = eleChild.firstChildElement("type");
+		WidgetType typeChild = Basic;
+		if(eleChildType.isElement())
+			typeChild = static_cast<WidgetType>(eleChildType.text().toInt());
+
+		CBaseWidget* pWidget = createBaseWidget(this,typeChild);
+		m_pSplitter->addWidget(pWidget);
+		pWidget->loadPanelInfo(eleChild);
+
+		eleChild = eleChild.nextSiblingElement("widget");
+	}
+	int iCount = m_pSplitter->count();
+
+	m_pSplitter->setSizes(sizes);
 	return true;
 }
 
-bool CBaseWidget::savePanelInfo( QDomDocument& doc,QDomElement& elePanel )
+bool CBaseWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 {
+	//保存Panel信息
+	if(!eleWidget.isElement())
+		return false;
+
+	//获取名称
+	QDomElement eleName = doc.createElement("name");
+	eleName.appendChild(doc.createTextNode(getWidgetName()));
+	eleWidget.appendChild(eleName);
+
+	//获取控件类型
+	QDomElement eleType = doc.createElement("type");
+	eleType.appendChild(doc.createTextNode(QString("%1").arg(m_type)));
+	eleWidget.appendChild(eleType);
+
+	//获取控件中Splitter的排列方式
+	QDomElement eleAlgin = doc.createElement("align");
+	eleAlgin.appendChild(doc.createTextNode(QString("%1").arg(m_pSplitter->orientation())));
+	eleWidget.appendChild(eleAlgin);
+
+	//获取控件在父窗口中的大小
+	QDomElement eleSize = doc.createElement("size");
+	eleSize.appendChild(doc.createTextNode(QString("%1").arg(getSize())));
+	eleWidget.appendChild(eleSize);
+
+	//加载子Panel
+	QList<CBaseWidget*> listChildren = getChildren();
+	foreach(CBaseWidget* pChild,listChildren)
+	{
+		QDomElement eleChild = doc.createElement("widget");
+		eleWidget.appendChild(eleChild);
+		pChild->savePanelInfo(doc,eleChild);
+	}
 
 	return true;
 }

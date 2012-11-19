@@ -20,6 +20,9 @@ public:
 		MarketTrend,			//市场行情图
 	};
 public:
+	static CBaseWidget* createBaseWidget(CBaseWidget* parent=0, WidgetType type=Basic);
+
+public:
 	CBaseWidget(CBaseWidget* parent = 0, WidgetType type = CBaseWidget::Basic);
 	~CBaseWidget(void);
 
@@ -38,6 +41,13 @@ public:
 	CBaseWidget* getParent(){return m_pParent;}
 	//重新设置父窗口
 	void resetParent(CBaseWidget* parent);
+	//获取所有的子窗口
+	QList<CBaseWidget*> getChildren();
+	//清空所有的子窗口
+	void clearChildren();
+
+	//获取本控件在父窗口中的大小（百分比）
+	int getSize();
 
 	//获取widget所在的索引
 	int getWidgetIndex(CBaseWidget* widget) const;
@@ -47,9 +57,9 @@ public:
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu(){ return 0; }
 	//加载该Widget的配置信息
-	virtual bool loadPanelInfo(const QDomElement& elePanel);
+	virtual bool loadPanelInfo(const QDomElement& eleWidget);
 	//保存该Widget的配置信息
-	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& elePanel);
+	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
 protected slots:
 	/*右键菜单操作*/

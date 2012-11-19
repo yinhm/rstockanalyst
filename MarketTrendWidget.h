@@ -23,6 +23,12 @@ public:
 	~CMarketTrendWidget(void);
 
 public:
+	//加载该K线图的配置信息
+	virtual bool loadPanelInfo(const QDomElement& eleWidget);
+	//保存该K线图的配置信息
+	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
+
+public:
 	void setStocks(const QList<CStockInfoItem*>& list);		//设置要显示的股票列表
 
 public slots:
