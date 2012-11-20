@@ -10,6 +10,7 @@
 #ifndef COLOR_BLOCK_WIDGET_H
 #define COLOR_BLOCK_WIDGET_H
 #include "BaseWidget.h"
+#include "StockInfoItem.h"
 
 class CColorBlockWidget : public CBaseWidget
 {
@@ -25,14 +26,32 @@ public:
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
 
+public slots:
+	virtual void setBlock(const QString& block);
+
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
 
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
+	/*相关绘图函数*/
+private:
+	void drawHeader(QPainter& p,const QRect& rtHeader);			//绘制头部信息
+	void drawClient(QPainter& p,const QRect& rtClient);			//绘制主区域
+	void drawBottom(QPainter& p,const QRect& rtBottom);			//绘制底部区域
+
+	void drawStock(QPainter& p,const QRect& rtCB,CStockInfoItem* pItem);	//绘制单只股票
+
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
+	QString m_qsBlock;						//当前的板块名称
+	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
+
+	/*用于绘制操作的成员变量*/
+private:
+	int m_iCBHeight;						//单个色块的高度
+	int showStockIndex;
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H

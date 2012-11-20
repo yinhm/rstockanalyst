@@ -67,6 +67,10 @@ public slots:
 		虚函数，派生类中需重载此函数以进行相应操作
 	*/
 	virtual void setStockCode(const QString& code);
+	/*
+		虚函数，派生类中需重载此函数以进行相应操作
+	*/
+	virtual void setBlock(const QString& block);
 
 protected slots:
 	/*右键菜单操作*/

@@ -19,6 +19,7 @@ public:
 
 public:
 	void clickedStock(const QString& code);
+	void clickedBlock(const QString& block);
 
 protected slots:
 	void onAddTemplate();			//ÃÌº”∞Ê√Ê

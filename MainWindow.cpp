@@ -95,6 +95,15 @@ void CMainWindow::clickedStock( const QString& code )
 	}
 }
 
+void CMainWindow::clickedBlock( const QString& block )
+{
+	CBaseWidget* pWidget = reinterpret_cast<CBaseWidget*>(m_pTabWidget->currentWidget());
+	if(pWidget)
+	{
+		pWidget->setBlock(block);
+	}
+}
+
 bool CMainWindow::winEvent( MSG* message, long* result )
 {
 	if(message->message == RSTOCK_ANALYST_MAINMSG)

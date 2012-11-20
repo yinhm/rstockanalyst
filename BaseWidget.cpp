@@ -242,6 +242,15 @@ void CBaseWidget::setStockCode( const QString& code )
 	}
 }
 
+void CBaseWidget::setBlock( const QString& block )
+{
+	QList<CBaseWidget*> children = getChildren();
+	foreach(CBaseWidget* p,children)
+	{
+		p->setBlock(block);
+	}
+}
+
 void CBaseWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
