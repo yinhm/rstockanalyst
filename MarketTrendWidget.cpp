@@ -38,20 +38,13 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	m_listItemWidth[5] = 100;
 
 	m_pMenuCustom = new QMenu(tr("市场行情图菜单"));
-	QStringList listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
-	if(listBlocks.size()>0)
-	{
-		foreach(const QString& b,listBlocks)
-		{
-			m_listBlocks.push_back(QPair<QString,QRect>(b,QRect()));
-		}
-		clickedBlock(listBlocks.first());
-	}
-	else
-	{
-		setStocks(CDataEngine::getDataEngine()->getStockInfoList());
-	}
+	m_pMenuCustom->addAction(tr("刷新"),this,SLOT(onRefresh()));
+	m_pMenuToBlock = new QMenu(tr("添加到板块"));
+	m_pMenuCustom->addMenu(m_pMenuToBlock);
+	m_pMenuCustom->addAction(tr("删除选中股"),this,SLOT(onRemoveStock()));
+	m_pMenuCustom->addSeparator();
 
+	onRefresh();
 //	setMinimumHeight(m_iHeaderHeight+m_iStockHeight+m_iBottomHeight);
 //	setMinimumWidth(200);
 }
@@ -101,6 +94,70 @@ void CMarketTrendWidget::stockInfoChanged( const QString& code )
 {
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 	update(rectOfStock(pItem));
+}
+
+void CMarketTrendWidget::onRefresh()
+{
+	m_listBlocks.clear();
+	QStringList listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	if(listBlocks.size()>0)
+	{
+		foreach(const QString& b,listBlocks)
+		{
+			m_listBlocks.push_back(QPair<QString,QRect>(b,QRect()));
+		}
+		updateBlockRect();
+		clickedBlock(m_qsSelectedBlock);
+	}
+	else
+	{
+		setStocks(CDataEngine::getDataEngine()->getStockInfoList());
+	}
+}
+
+void CMarketTrendWidget::onAddToBlock()
+{
+	if(!m_pSelectedStock)
+		return;
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	if(!pAct)
+		return;
+	QString block = pAct->data().toString();
+	if(block.isEmpty())
+		return;
+	CDataEngine::getDataEngine()->appendStocksToBlock(block,QStringList()<<m_pSelectedStock->getCode());
+}
+
+void CMarketTrendWidget::onAddToNewBlock()
+{
+	if(!m_pSelectedStock)
+		return;
+	QDialog dlg(this);
+	QVBoxLayout layout(this);
+	QLineEdit edit(this);
+	QPushButton btnOk(this);
+	dlg.setLayout(&layout);
+	layout.addWidget(&edit);
+	layout.addWidget(&btnOk);
+	btnOk.setText(tr("确定"));
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	QString block = edit.text();
+	if(CDataEngine::getDataEngine()->isHadBlock(block))
+		return;
+	CDataEngine::getDataEngine()->appendStocksToBlock(block,QStringList()<<m_pSelectedStock->getCode());
+}
+
+void CMarketTrendWidget::onRemoveStock()
+{
+	if(m_pSelectedStock)
+	{
+		if(CDataEngine::getDataEngine()->removeStocksFromBlock(m_qsSelectedBlock,QStringList()<<m_pSelectedStock->getCode()))
+			clickedBlock(m_qsSelectedBlock);
+	}
 }
 
 void CMarketTrendWidget::clearTmpData()
@@ -198,7 +255,14 @@ void CMarketTrendWidget::offsetShowHeaderIndex( int offset )
 
 void CMarketTrendWidget::clickedBlock( const QString& block )
 {
-	setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
+	if(!block.isEmpty())
+	{
+		setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
+	}
+	else
+	{
+		setStocks(CDataEngine::getDataEngine()->getStockInfoList());
+	}
 	m_qsSelectedBlock = block;
 	update();
 }
@@ -300,6 +364,18 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 	QAction* pAction = m_pMenu->menuAction();
 	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
 		m_pMenuCustom->addMenu(m_pMenu);
+
+	m_pMenuToBlock->clear();
+	QList<QString> list = CDataEngine::getDataEngine()->getStockBlocks();
+	foreach(const QString& block,list)
+	{
+		if(block == m_qsSelectedBlock)
+			continue;
+		QAction* pAct = m_pMenuToBlock->addAction(block,this,SLOT(onAddToBlock()));
+		pAct->setData(block);
+	}
+	m_pMenuToBlock->addSeparator();
+	m_pMenuToBlock->addAction(tr("新建板块"),this,SLOT(onAddToNewBlock()));
 
 	return m_pMenuCustom;
 }

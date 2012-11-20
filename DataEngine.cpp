@@ -475,11 +475,96 @@ QList<CStockInfoItem*> CDataEngine::getStocksByBlock( const QString& block )
 					listStocks.push_back(m_mapStockInfos[code]);
 				}
 			}
+			file.close();
 		}
 	}
 
 	return listStocks;
 }
+
+bool CDataEngine::appendStocksToBlock( const QString& block,QList<CStockInfoItem*> list )
+{
+	QStringList listCodes;
+	foreach(CStockInfoItem* pItem,list)
+		listCodes.push_back(pItem->getCode());
+
+	return appendStocksToBlock(block,listCodes);
+}
+
+bool CDataEngine::appendStocksToBlock( const QString& block,QList<QString> list )
+{
+	if(isBlockInCommon(block))
+		return false;
+	QFile file(m_qsBlocksDir+block);
+	if(!file.open(QFile::Append|QFile::WriteOnly))
+		return false;
+	foreach(const QString& e,list)
+	{
+		file.write(QString(e+"\r\n").toAscii());
+	}
+	file.close();
+
+	return true;
+}
+
+bool CDataEngine::removeStocksFromBlock( const QString& block,QList<CStockInfoItem*> list )
+{
+	QStringList listCodes;
+	foreach(CStockInfoItem* pItem,list)
+		listCodes.push_back(pItem->getCode());
+
+	return removeStocksFromBlock(block,listCodes);
+}
+
+bool CDataEngine::removeStocksFromBlock( const QString& block,QList<QString> list )
+{
+	if(isBlockInCommon(block))
+		return false;
+
+	QMap<QString,QString> mapStocks;
+	{
+		//读取文件中的股票代码
+		QFile file(m_qsBlocksDir+block);
+		if(!file.open(QFile::ReadOnly))
+			return false;
+
+		while(!file.atEnd())
+		{
+			QString code = file.readLine();
+			code = code.trimmed();
+			if((!code.isEmpty())&&(m_mapStockInfos.contains(code)))
+			{
+				mapStocks[code] = code;
+			}
+		}
+		file.close();
+	}
+	{
+		//删除对应的股票代码
+		foreach(const QString& e,list)
+		{
+			mapStocks.remove(e);
+		}
+	}
+	{
+		//重新写回去
+		QFile file(m_qsBlocksDir+block);
+		if(!file.open(QFile::Truncate|QFile::WriteOnly))
+			return false;
+
+		QMap<QString,QString>::iterator iter = mapStocks.begin();
+		while(iter!=mapStocks.end())
+		{
+			file.write(QString(iter.value()+"\r\n").toAscii());
+			++iter;
+		}
+		file.close();
+	}
+
+	return true;
+}
+
+
 
 QList<CStockInfoItem*> CDataEngine::getStockInfoList()
 {
