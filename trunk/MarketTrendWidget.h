@@ -33,6 +33,10 @@ public:
 
 public slots:
 	void stockInfoChanged(const QString& code);				//某只股票的信息发生改变
+	void onRefresh();										//刷新所有
+	void onAddToBlock();									//添加当前选中的股票到板块
+	void onAddToNewBlock();									//添加当前选中的股票到新加板块
+	void onRemoveStock();									//从当前板块中移除当前选中的股票
 
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
@@ -52,6 +56,7 @@ protected:
 
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
+	QMenu* m_pMenuToBlock;					//添加到板块的菜单
 	QStringList m_listHeader;				//头部数据
 	QList<CStockInfoItem*> m_listStocks;	//要显示的股票列表
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引

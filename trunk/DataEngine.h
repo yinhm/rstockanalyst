@@ -48,6 +48,10 @@ public:
 	bool isHadBlock(const QString& block);		//是否存在某板块
 	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表
 	QList<CStockInfoItem*> getStocksByBlock(const QString& block);	//根据板块获取股票列表
+	bool appendStocksToBlock(const QString& block,QList<CStockInfoItem*> list);		//向某一板块中添加股票
+	bool appendStocksToBlock(const QString& block,QList<QString> list);				//向某一板块中添加股票
+	bool removeStocksFromBlock(const QString& block,QList<CStockInfoItem*> list);	//从某一板块中删除股票
+	bool removeStocksFromBlock(const QString& block,QList<QString> list);			//从某一板块中删除股票
 
 	//获取基本行情数据
 	QList<CStockInfoItem*> getStockInfoList();
