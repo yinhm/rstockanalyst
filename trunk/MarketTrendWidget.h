@@ -28,9 +28,6 @@ public:
 	//保存该K线图的配置信息
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
-public:
-	void setStocks(const QList<CStockInfoItem*>& list);		//设置要显示的股票列表
-
 public slots:
 	void stockInfoChanged(const QString& code);				//某只股票的信息发生改变
 	void onRefresh();										//刷新所有
@@ -44,6 +41,8 @@ private:
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
 	void offsetShowHeaderIndex(int offset);		//改变当前头部显示的开始位置
 	void clickedBlock(const QString& block);	//点击板块时触发
+
+	void setStocks(const QList<CStockInfoItem*>& list);		//设置要显示的股票列表
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件

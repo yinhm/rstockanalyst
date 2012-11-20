@@ -87,7 +87,9 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 	}
 
 	if(m_listStocks.size()>0)
-		m_pSelectedStock = m_listStocks.first();
+	{
+		clickedStock(m_listStocks.first());
+	}
 }
 
 void CMarketTrendWidget::stockInfoChanged( const QString& code )
@@ -107,11 +109,10 @@ void CMarketTrendWidget::onRefresh()
 			m_listBlocks.push_back(QPair<QString,QRect>(b,QRect()));
 		}
 		updateBlockRect();
-		clickedBlock(m_qsSelectedBlock);
-	}
-	else
-	{
-		setStocks(CDataEngine::getDataEngine()->getStockInfoList());
+		if(m_qsSelectedBlock.isEmpty())
+			clickedBlock(listBlocks.first());
+		else
+			clickedBlock(m_qsSelectedBlock);
 	}
 }
 
@@ -236,6 +237,9 @@ void CMarketTrendWidget::clickedHeader( int column )
 
 void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )
 {
+	if(pItem == m_pSelectedStock)
+		return;
+
 	CStockInfoItem* pPreSelectedStock = m_pSelectedStock;
 	m_pSelectedStock = pItem;
 	update(rectOfStock(pPreSelectedStock));
@@ -255,9 +259,13 @@ void CMarketTrendWidget::offsetShowHeaderIndex( int offset )
 
 void CMarketTrendWidget::clickedBlock( const QString& block )
 {
+	if(m_qsSelectedBlock == block)
+		return;
+
 	if(!block.isEmpty())
 	{
 		setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
+		CMainWindow::getMainWindow()->clickedBlock(block);
 	}
 	else
 	{
