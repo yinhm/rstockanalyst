@@ -85,6 +85,8 @@ void CBaseWidget::initMenu()
 		m_pMenu->addAction(tr("上插入"),this,SLOT(onTopInsert()));
 		m_pMenu->addAction(tr("下插入"),this,SLOT(onBottomInsert()));
 		m_pMenu->addSeparator();
+		m_pMenu->addAction(tr("删除该窗口"),this,SLOT(deleteLater()));
+		m_pMenu->addSeparator();
 	}
 }
 
@@ -288,6 +290,7 @@ void CBaseWidget::onLeftInsert()
 		//水平方向的Splitter 或者 垂直方向，但只有一个子窗口
 		pSplitterParent->setOrientation(Qt::Horizontal);
 		pSplitterParent->insertWidget(iIndex,new CBaseWidget(m_pParent));
+		m_pParent->realignSplitter();
 	}
 	else														//垂直方向的，并已经进行了垂直布局
 	{
@@ -317,6 +320,7 @@ void CBaseWidget::onRightInsert()
 		//水平方向的Splitter 或者 垂直方向，但只有一个子窗口
 		pSplitterParent->setOrientation(Qt::Horizontal);
 		pSplitterParent->insertWidget(iIndex+1,new CBaseWidget(m_pParent));
+		m_pParent->realignSplitter();
 	}
 	else														//垂直方向的，并已经进行了垂直布局
 	{
@@ -346,6 +350,7 @@ void CBaseWidget::onTopInsert()
 		//水平方向的Splitter 或者 垂直方向，但只有一个子窗口
 		pSplitterParent->setOrientation(Qt::Vertical);
 		pSplitterParent->insertWidget(iIndex,new CBaseWidget(m_pParent));
+		m_pParent->realignSplitter();
 	}
 	else														//垂直方向的，并已经进行了垂直布局
 	{
@@ -375,6 +380,7 @@ void CBaseWidget::onBottomInsert()
 		//水平方向的Splitter 或者 垂直方向，但只有一个子窗口
 		pSplitterParent->setOrientation(Qt::Vertical);
 		pSplitterParent->insertWidget(iIndex+1,new CBaseWidget(m_pParent));
+		m_pParent->realignSplitter();
 	}
 	else														//垂直方向的，并已经进行了垂直布局
 	{

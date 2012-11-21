@@ -32,6 +32,7 @@ CMainWindow::CMainWindow()
 		QMenu* pMenuTemplate = m_pMenuBar->addMenu(tr("版面管理"));
 		pMenuTemplate->addAction(tr("添加版面"),this,SLOT(onAddTemplate()));
 		pMenuTemplate->addAction(tr("保存所有"),this,SLOT(onSaveTemplate()));
+		pMenuTemplate->addAction(tr("删除当前版面"),this,SLOT(onRemoveTemplate()));
 		setMenuBar(m_pMenuBar);
 	}
 }
@@ -349,6 +350,14 @@ void CMainWindow::onSaveTemplate()
 		file.write(doc.toByteArray());
 		file.close();
 	}
+}
+
+void CMainWindow::onRemoveTemplate()
+{
+	int iCurIndex = m_pTabWidget->currentIndex();
+	QString qsText = m_pTabWidget->tabText(iCurIndex);
+	if(QFile::remove(m_qsTemplateDir+qsText+".xml"))
+		m_pTabWidget->removeTab(iCurIndex);
 }
 
 CBaseWidget* CMainWindow::getSubWindows( const QString& title )
