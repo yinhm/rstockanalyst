@@ -239,6 +239,13 @@ void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )
 {
 	if(pItem == m_pSelectedStock)
 		return;
+	int iShowCount = m_rtClient.height()/m_iStockHeight;
+	int iRow = m_mapStockIndex[pItem];
+	if((iRow<showStockIndex)||(iRow>showStockIndex+iShowCount))
+	{
+		showStockIndex = iRow;
+		update(m_rtClient);
+	}
 
 	CStockInfoItem* pPreSelectedStock = m_pSelectedStock;
 	m_pSelectedStock = pItem;
@@ -362,9 +369,86 @@ void CMarketTrendWidget::wheelEvent( QWheelEvent* e )
 	int iIndex = showStockIndex-numSteps*5;
 	if(iIndex>=0&&iIndex<m_listStocks.size())
 	{
+		e->accept();
 		showStockIndex = iIndex;
 		update();
 	}
+	return CBaseWidget::wheelEvent(e);
+}
+
+void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
+{
+	if(Qt::Key_Left == e->key())
+	{
+		e->accept();
+		return offsetShowHeaderIndex(-1);
+	}
+	else if(Qt::Key_Right == e->key())
+	{
+		e->accept();
+		return offsetShowHeaderIndex(1);
+	}
+	else if(Qt::Key_Down == e->key())
+	{
+		int iCurIndex = m_mapStockIndex[m_pSelectedStock];
+		if(m_listStocks.size()>(iCurIndex+1))
+		{
+			CStockInfoItem* pItem = m_listStocks[iCurIndex+1];
+			int iRow = m_mapStockIndex[pItem];
+			int iShowCount = m_rtClient.height()/m_iStockHeight;
+			if(iShowCount<1)
+				return;
+			if((iRow-showStockIndex)>=iShowCount)
+			{
+				showStockIndex = iRow-iShowCount+1;
+				update(m_rtClient);
+			}
+			clickedStock(m_listStocks[iCurIndex+1]);
+		}
+		e->accept();
+	}
+	else if(Qt::Key_Up == e->key())
+	{
+		int iCurIndex = m_mapStockIndex[m_pSelectedStock];
+		if(iCurIndex>0)
+		{
+			CStockInfoItem* pItem = m_listStocks[iCurIndex-1];
+			int iRow = m_mapStockIndex[pItem];
+			if(iRow<showStockIndex)
+			{
+				showStockIndex = iRow;
+				update(m_rtClient);
+			}
+			clickedStock(pItem);
+		}
+		e->accept();
+	}
+	else if(Qt::Key_PageDown == e->key())
+	{
+		int iShowCount = m_rtClient.height()/m_iStockHeight;
+		if(iShowCount<1)
+			return;
+		if((showStockIndex+iShowCount)<m_listStocks.size())
+		{
+			showStockIndex = showStockIndex+iShowCount;
+			update(m_rtClient);
+		}
+		e->accept();
+	}
+	else if(Qt::Key_PageUp == e->key())
+	{
+		int iShowCount = m_rtClient.height()/m_iStockHeight;
+		if(iShowCount<1)
+			return;
+		if((showStockIndex-iShowCount)>=0)
+		{
+			showStockIndex = showStockIndex-iShowCount;
+			update(m_rtClient);
+		}
+		e->accept();
+	}
+
+	return CBaseWidget::keyPressEvent(e);
 }
 
 QMenu* CMarketTrendWidget::getCustomMenu()

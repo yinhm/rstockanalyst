@@ -53,6 +53,9 @@ public:
 	bool removeStocksFromBlock(const QString& block,QList<CStockInfoItem*> list);	//从某一板块中删除股票
 	bool removeStocksFromBlock(const QString& block,QList<QString> list);			//从某一板块中删除股票
 
+	//新闻数据
+	void appendNews(const QString& title, const QString& content);		//添加新闻
+
 	//获取基本行情数据
 	QList<CStockInfoItem*> getStockInfoList();
 	CStockInfoItem* getStockInfoItem(const QString& qsCode);
@@ -79,9 +82,10 @@ private:
 	static CDataEngine* m_pDataEngine;
 	static time_t m_tmCurrentDay;
 	static time_t* m_tmLast5Day;
-	QString m_qsHistroyDir;						//日线数据存储的路径 AppDir/data/history...
-	QString m_qsBlocksDir;						//板块数据的存储路径 AppDir/data/blocks...
-	QString m_qsCommonBlocks;					//常用板块列表配置文件的存储路径
+	QString m_qsHistroyDir;						//日线数据存储的路径 AppDir/data/history/...
+	QString m_qsBlocksDir;						//板块数据的存储路径 AppDir/data/blocks/...
+	QString m_qsCommonBlocks;					//常用板块列表配置文件的存储路径 AppDir/data/CommonBlocks.xml
+	QString m_qsNewsDir;						//新闻数据的存储路径 AppDir/data/news/...
 
 	QList<QPair<QString,QRegExp>> m_listCommonBlocks;	//常用的股票板块；（上证A股、深圳指数……）
 };

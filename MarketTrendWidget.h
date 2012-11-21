@@ -49,6 +49,7 @@ protected:
 	virtual void resizeEvent(QResizeEvent* e);				//大小改变的事件
 	virtual void mousePressEvent(QMouseEvent* e);			//鼠标点击事件
 	virtual void wheelEvent(QWheelEvent* e);				//鼠标中键滚动事件
+	virtual void keyPressEvent(QKeyEvent* e);				//键盘操作
 
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
