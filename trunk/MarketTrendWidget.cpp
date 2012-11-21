@@ -75,7 +75,7 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 {
 	clearTmpData();
 	m_listStocks = list;
-	showHeaderIndex = 0;
+	//showHeaderIndex = 0;
 	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
 	{
@@ -176,7 +176,10 @@ void CMarketTrendWidget::clearTmpData()
 void CMarketTrendWidget::clickedHeader( int column )
 {
 	if(column==0)
+	{
+		m_iSortColumn = 0;
 		return;
+	}
 	if(column == m_iSortColumn)
 	{
 		m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
@@ -273,13 +276,15 @@ void CMarketTrendWidget::clickedBlock( const QString& block )
 	{
 		setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
 		CMainWindow::getMainWindow()->clickedBlock(block);
+		m_qsSelectedBlock = block;
+		{
+			//ÉèÖÃÅÅÐò·½Ê½
+//			m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
+			clickedHeader(0);
+		}
+
+		update();
 	}
-	else
-	{
-		setStocks(CDataEngine::getDataEngine()->getStockInfoList());
-	}
-	m_qsSelectedBlock = block;
-	update();
 }
 
 void CMarketTrendWidget::paintEvent( QPaintEvent* )

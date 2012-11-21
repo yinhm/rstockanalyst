@@ -7,12 +7,14 @@
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::KLine)
 	, m_pStockItem(0)
+	, fTitleHeight(16.0)
 	, fKGridWidth(0)
 {
 //	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
 	m_pMenuCustom = new QMenu("K线图操作");
+	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
 }
 
 CKLineWidget::~CKLineWidget(void)
@@ -85,7 +87,10 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	if(!m_pStockItem)
 		return;
 
-	rtClient.adjust(KLINE_BORDER,KLINE_BORDER,-50,-15);
+	/*画头部*/
+	drawTitle(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),fTitleHeight));
+
+	rtClient.adjust(KLINE_BORDER,fTitleHeight+KLINE_BORDER,-50,-15);
 	if(!rtClient.isValid())
 		return;
 
@@ -130,6 +135,38 @@ QMenu* CKLineWidget::getCustomMenu()
 		m_pMenuCustom->addMenu(m_pMenu);
 
 	return m_pMenuCustom;
+}
+
+void CKLineWidget::onSetStockCode()
+{
+	QDialog dlg(this);
+	QVBoxLayout layout(this);
+	QLineEdit edit(this);
+	QPushButton btnOk(this);
+	dlg.setLayout(&layout);
+	layout.addWidget(&edit);
+	layout.addWidget(&btnOk);
+	btnOk.setText(tr("确定"));
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	QString code = edit.text();
+	setStockCode(code);
+}
+
+void CKLineWidget::drawTitle( QPainter& p,const QRectF& rtClient )
+{
+	QString qsName = m_pStockItem->getName();
+	if(qsName.isEmpty())
+		qsName = m_pStockItem->getCode();
+
+	p.setPen(QColor(127,0,0));
+	p.drawRect(rtClient);
+
+	p.setPen(QColor(255,255,255));
+	p.drawText(rtClient,Qt::AlignLeft|Qt::AlignVCenter,qsName);
 }
 
 void CKLineWidget::drawCoordY( QPainter& p,const QRectF& rtClient )

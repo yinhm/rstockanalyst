@@ -35,7 +35,11 @@ protected:
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
+protected slots:
+	void onSetStockCode();								//弹出对话框，让用户手动输入股票代码
+
 private:
+	void drawTitle(QPainter& p,const QRectF& rtClient);		//绘制头部
 	void drawCoordY(QPainter& p,const QRectF& rtClient);	//绘制Y坐标轴
 	void drawKGrids(QPainter& p,const QRectF& rtClient);	//绘制X坐标轴和数据
 	void drawKGrid(qRcvHistoryData* pHistory,QPainter& p,const QRectF& rtClient);		//单个日线数据的绘制
@@ -54,6 +58,7 @@ private:
 	time_t tmBegin;
 	time_t tmEnd;
 
+	float fTitleHeight;						//头部高度
 	float fKGridWidth;						//单个日线数据的宽度
 };
 
