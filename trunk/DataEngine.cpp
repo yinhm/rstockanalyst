@@ -355,6 +355,9 @@ CDataEngine::CDataEngine(void)
 
 	m_qsCommonBlocks = qApp->applicationDirPath()+"/data/CommonBlocks.xml";
 	initCommonBlocks();
+
+	m_qsNewsDir = qApp->applicationDirPath()+"/data/news/";
+	QDir().mkpath(m_qsNewsDir);
 }
 
 CDataEngine::~CDataEngine(void)
@@ -564,6 +567,18 @@ bool CDataEngine::removeStocksFromBlock( const QString& block,QList<QString> lis
 	return true;
 }
 
+
+void CDataEngine::appendNews( const QString& title, const QString& content )
+{
+	QString qsNewsPath = m_qsNewsDir + title;
+
+	QDir().mkpath(QFileInfo(qsNewsPath).absolutePath());
+	QFile file(qsNewsPath);
+	if(!file.open(QFile::WriteOnly|QFile::Truncate))
+		return;
+	file.write(content.toAscii());
+	file.close();
+}
 
 
 QList<CStockInfoItem*> CDataEngine::getStockInfoList()

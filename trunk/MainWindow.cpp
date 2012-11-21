@@ -23,7 +23,7 @@ CMainWindow::CMainWindow()
 {
 	m_pTabWidget = new QTabWidget();
 	setCentralWidget(m_pTabWidget);
-	m_qsTemplateDir = qApp->applicationDirPath()+"/data/template/";
+	m_qsTemplateDir = qApp->applicationDirPath()+"/config/template/";
 	QDir().mkpath(m_qsTemplateDir);
 	{
 		//初始化Menu
@@ -245,15 +245,9 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 			case FILE_NEWS_EX:                  // 新闻类,其类型由m_szFileName中子目录名来定
 				{
 					QString qsNewsTitle = QString::fromLocal8Bit(pHeader->m_File.m_szFileName);
+					QString qsContent = QString::fromLocal8Bit((char*)pHeader->m_pData,pHeader->m_File.m_dwLen);
 					qDebug()<<"Comming News "<< qsNewsTitle;
-					QString qsNewsPath = qApp->applicationDirPath() + "\\news\\" + qsNewsTitle;
-
-					QDir().mkpath(QFileInfo(qsNewsPath).absolutePath());
-					QFile file(qsNewsPath);
-					if(!file.open(QFile::WriteOnly|QFile::Truncate))
-						break;
-					file.write((char*)pHeader->m_pData,pHeader->m_File.m_dwLen);
-					file.close();
+					CDataEngine::getDataEngine()->appendNews(qsNewsTitle,qsContent);
 				}
 				break;
 			case FILE_POWER_EX:

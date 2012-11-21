@@ -52,6 +52,8 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic
 		//确保所有可操作到的窗口都是有父窗口的
 		m_pSplitter->addWidget(new CBaseWidget(this));
 	}
+
+	setFocusPolicy(Qt::WheelFocus);
 }
 
 
