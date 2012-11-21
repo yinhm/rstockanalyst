@@ -59,6 +59,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic
 
 CBaseWidget::~CBaseWidget(void)
 {
+	delete m_pActRelate;
 	delete m_pMenu;
 	delete m_pSplitter;
 }
@@ -87,6 +88,10 @@ void CBaseWidget::initMenu()
 		m_pMenu->addSeparator();
 		m_pMenu->addAction(tr("删除该窗口"),this,SLOT(deleteLater()));
 		m_pMenu->addSeparator();
+		m_pActRelate = new QAction(tr("和其它窗口关联"),m_pMenu);
+		m_pMenu->addAction(m_pActRelate);
+		m_pActRelate->setCheckable(true);
+		m_pActRelate->setChecked(true);
 	}
 }
 
@@ -176,6 +181,11 @@ bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(eleAlign.isElement())
 		m_pSplitter->setOrientation(static_cast<Qt::Orientation>(eleAlign.text().toInt()));
 
+	//获取关联方式
+	QDomElement eleRelate = eleWidget.firstChildElement("relate");
+	if(eleRelate.isElement())
+		m_pActRelate->setChecked(eleRelate.text().toInt());
+
 	QList<int> sizes;
 	QDomElement eleChild = eleWidget.firstChildElement("widget");
 	while(eleChild.isElement())
@@ -215,6 +225,11 @@ bool CBaseWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	eleType.appendChild(doc.createTextNode(QString("%1").arg(m_type)));
 	eleWidget.appendChild(eleType);
 
+	//获取关联方式
+	QDomElement eleRelate = doc.createElement("relate");
+	eleRelate.appendChild(doc.createTextNode(QString("%1").arg(isRelate())));
+	eleWidget.appendChild(eleRelate);
+
 	//获取控件中Splitter的排列方式
 	QDomElement eleAlgin = doc.createElement("align");
 	eleAlgin.appendChild(doc.createTextNode(QString("%1").arg(m_pSplitter->orientation())));
@@ -242,7 +257,8 @@ void CBaseWidget::setStockCode( const QString& code )
 	QList<CBaseWidget*> children = getChildren();
 	foreach(CBaseWidget* p,children)
 	{
-		p->setStockCode(code);
+		if(p->isRelate())
+			p->setStockCode(code);
 	}
 }
 
@@ -251,7 +267,8 @@ void CBaseWidget::setBlock( const QString& block )
 	QList<CBaseWidget*> children = getChildren();
 	foreach(CBaseWidget* p,children)
 	{
-		p->setBlock(block);
+		if(p->isRelate())
+			p->setBlock(block);
 	}
 }
 
