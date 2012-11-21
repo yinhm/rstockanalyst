@@ -440,11 +440,9 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 		int iShowCount = m_rtClient.height()/m_iStockHeight;
 		if(iShowCount<1)
 			return;
-		if((showStockIndex-iShowCount)>=0)
-		{
-			showStockIndex = showStockIndex-iShowCount;
-			update(m_rtClient);
-		}
+		showStockIndex = (showStockIndex-iShowCount)>0 ? (showStockIndex-iShowCount) : 0;
+		update(m_rtClient);
+
 		e->accept();
 	}
 

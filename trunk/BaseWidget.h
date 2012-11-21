@@ -55,6 +55,8 @@ public:
 	//用新的widget 替换之前索引index的窗口
 	void replaceWidget(int index, CBaseWidget* widget);
 
+	bool isRelate(){ return m_pActRelate->isChecked(); }
+
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu(){ return 0; }
 	//加载该Widget的配置信息
@@ -90,8 +92,9 @@ protected:
 	CBaseWidget* m_pParent;			//父窗口指针
 	QMenu* m_pMenu;					//右键菜单
 	QSplitter* m_pSplitter;			//分割器
-	QString m_qsName;
-	WidgetType m_type;
+	QString m_qsName;				//窗口名称
+	WidgetType m_type;				//窗口类型
+	QAction* m_pActRelate;			//是否和其它窗口关联
 };
 
 
