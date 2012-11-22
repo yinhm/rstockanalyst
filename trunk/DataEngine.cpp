@@ -3,7 +3,6 @@
 #include "STKDRV.h"
 #include <time.h>
 #include <QApplication>
-#include <QtSql>
 #include <QtXml>
 
 CDataEngine* CDataEngine::m_pDataEngine = NULL;
@@ -339,13 +338,6 @@ time_t CDataEngine::getOpenSeconds( time_t tmTime )
 CDataEngine::CDataEngine(void)
 {
 	getLast5DayTime();
-
-	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE","HISTORY");
-	db.setDatabaseName(qApp->applicationDirPath()+"/RStockAnalyst.dat");
-	if(!db.open())
-	{
-		qDebug()<<"Open history database error!";
-	}
 
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);

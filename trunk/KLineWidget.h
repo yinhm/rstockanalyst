@@ -11,6 +11,7 @@
 #include "BaseWidget.h"
 #include "StockInfoItem.h"
 
+
 class CKLineWidget : public CBaseWidget
 {
 	Q_OBJECT
