@@ -40,10 +40,14 @@ public:
 public:
 	void setLineColor(const QColor& clr){ m_clrLine = clr; }
 	void setDrawRect(const QRect& rtClient){ m_rtClient = rtClient; }
+	void setMinPrice(float f){ fMinPrice=f; }
+	void setMaxPrice(float f){ fMaxPrice=f; }
 
-private:
+protected:
 	QColor m_clrLine;		//线条颜色
 	QRect m_rtClient;		//绘制的区域
+	float fMaxPrice;
+	float fMinPrice;
 };
 
 //K线图的线条绘制
@@ -57,7 +61,7 @@ public:
 	virtual void Draw(QPainter& p,const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
 
 private:
-	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
+	void drawKGrid( stLinerItem* pHistory,QPainter& p,const QRectF& rtItem );
 };
 
 class CMultiLiner
@@ -75,6 +79,9 @@ public:
 public:
 	void Draw(QPainter& p, const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
 	void setExpression(const QString& exp);
+
+private:
+	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
 
 private:
 	QList<CBaseLiner*> m_listLiner;	//所拥有的绘制列表
