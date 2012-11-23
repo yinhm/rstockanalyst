@@ -10,11 +10,28 @@
 #include <QtGui>
 #include "BaseWidget.h"
 #include "StockInfoItem.h"
+#include "BaseLiner.h"
 
 
 class CKLineWidget : public CBaseWidget
 {
 	Q_OBJECT
+public:
+	enum KLineCircle			//K线周期
+	{
+		Min1 = 1,				//1分钟
+		Min5,					//5分钟
+		Min15,					//15分钟
+		Min30,					//30分钟
+		Min60,					//60分钟
+		MinN,					//N分钟
+		Day,					//日线
+		DayN,					//N日线
+		Week,					//周线
+		Month,					//月线
+		Month3,					//季线
+		Year,					//年线
+	};
 public:
 	CKLineWidget(CBaseWidget* parent = 0);
 	~CKLineWidget(void);
@@ -32,35 +49,43 @@ public slots:
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
 	virtual void mouseMoveEvent(QMouseEvent* e);			//鼠标移动事件
+	virtual void mousePressEvent(QMouseEvent* e);			//鼠标点击事件
 
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
 protected slots:
 	void onSetStockCode();								//弹出对话框，让用户手动输入股票代码
+	void onClickedAddShow();							//减少显示个数
+	void onClickedSubShow();							//增加显示个数
 
 private:
-	void drawTitle(QPainter& p,const QRectF& rtClient);		//绘制头部
-	void drawCoordY(QPainter& p,const QRectF& rtClient);	//绘制Y坐标轴
-	void drawKGrids(QPainter& p,const QRectF& rtClient);	//绘制X坐标轴和数据
-	void drawKGrid(qRcvHistoryData* pHistory,QPainter& p,const QRectF& rtClient);		//单个日线数据的绘制
+	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
+	void drawCoordX(QPainter& p,const QRect& rtCoordX);	//绘制底部的X坐标轴（时间轴）
+	void drawShowBtns(QPainter& p,const QRect& rtBtns);	//绘制右下角的两个按钮
 private:
 	void resetTmpData();					//重新计算数据。
 	void clearTmpData();					//清理本窗口中创建的内存。
 
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
+	KLineCircle m_typeCircle;				//本图的显示周期
 	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
-	QList<qRcvHistoryData*> listHistory;	//K线图所用到的历史数据。
-	/*纵坐标*/
-	float fMaxPrice;						//K线图中的最低价
-	float fMinPrice;						//K线图中的最高价
-	/*横坐标*/
-	time_t tmBegin;
-	time_t tmEnd;
+	QList<stLinerItem*> listItems;			//所有用于显示的数据
+	int m_iShowCount;						//需要显示的数据个数（长度，理论上应小于listItems的size）
+	CMultiLiner* m_pLinerMain;				//主图，K线主图
+	CMultiLiner* m_pLinerDeputy;			//当前最大化的副图，一般情况下应为NULL
+	QList<CMultiLiner*> m_listLiners;		//副图，包括 成交量/成交额，公式指标图等
 
-	float fTitleHeight;						//头部高度
-	float fKGridWidth;						//单个日线数据的宽度
+
+	int m_iTitleHeight;						//头部高度
+	int m_iCoorYWidth;						//Y坐标轴的宽度
+	int m_iCoorXHeight;						//X坐标轴的高度
+	float fItemWidth;						//单个Item的宽度
+	int m_iMainLinerHeight;					//主图的高度
+
+	QRect m_rtAddShow;						//增加显示个数的按钮区域
+	QRect m_rtSubShow;						//减少显示个数的按钮区域
 };
 
 

@@ -4,17 +4,103 @@
 
 #define	KLINE_BORDER	2
 
+bool getLinerItemByDays(stLinerItem* pItem,const QList<qRcvHistoryData*>& list)
+{
+
+	return true;
+}
+
+int getLinerDayItem(QList<stLinerItem*>& listItems,const QList<qRcvHistoryData*>& historys, int nDay)
+{
+	if(nDay==1)
+	{
+		foreach(qRcvHistoryData* p,historys)
+		{
+			stLinerItem* pItem = new stLinerItem;
+			pItem->time = p->time;
+			pItem->fOpen = p->fOpen;
+			pItem->fClose = p->fClose;
+			pItem->fHigh = p->fHigh;
+			pItem->fLow = p->fLow;
+			pItem->fAmount = p->fAmount;
+			pItem->fVolume = p->fVolume;
+			pItem->wAdvance = p->wAdvance;
+			pItem->wDecline = p->wDecline;
+			listItems.push_back(pItem);
+		}
+	}
+	else
+	{
+
+	}
+	return listItems.size();
+}
+
+int getLinerWeekItem(QList<stLinerItem*>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	int iCurWeek = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+		iCurWeek = tmDate.weekNumber();
+	}
+
+	QList<qRcvHistoryData*> weekHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			iCurWeek = tmDate.weekNumber();
+			if(tmDate.dayOfWeek()==1)
+			{
+				stLinerItem* pItem = new stLinerItem;
+				getLinerItemByDays(pItem,weekHis);
+				listItems.push_back(pItem);
+				weekHis.clear();
+			}
+		}
+		else if(tmDate.weekNumber()!=iCurWeek)
+		{
+			iCurWeek = tmDate.weekNumber();
+
+			stLinerItem* pItem = new stLinerItem;
+			getLinerItemByDays(pItem,weekHis);
+			listItems.push_back(pItem);
+			weekHis.clear();
+		}
+	}
+
+	return listItems.size();
+}
+
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::KLine)
+	, m_pMenuCustom(0)
+	, m_typeCircle(CKLineWidget::Day)
 	, m_pStockItem(0)
-	, fTitleHeight(16.0)
-	, fKGridWidth(0)
+	, m_iShowCount(100)
+	, m_pLinerMain(0)
+	, m_pLinerDeputy(0)
+	, m_iTitleHeight(16)
+	, m_iCoorYWidth(50)
+	, m_iCoorXHeight(16)
+	, m_iMainLinerHeight(200)
 {
 //	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
 	m_pMenuCustom = new QMenu("K线图操作");
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
+
+	m_pLinerMain = new CMultiLiner(CMultiLiner::Main);
+	m_pLinerMain->setExpression(QString(""));
 }
 
 CKLineWidget::~CKLineWidget(void)
@@ -74,29 +160,40 @@ void CKLineWidget::updateKLine( const QString& code )
 		return;
 
 	resetTmpData();
-
-	//更新K线图
-	update();
 }
 
 void CKLineWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
-	QRectF rtClient = this->rect();
+	QRect rtClient = this->rect();
 	p.fillRect(rtClient,QColor(0,0,0));
 	if(!m_pStockItem)
 		return;
 
 	/*画头部*/
-	drawTitle(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),fTitleHeight));
+	QRect rtTitle = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
+	drawTitle(p,rtTitle);
 
-	rtClient.adjust(KLINE_BORDER,fTitleHeight+KLINE_BORDER,-50,-15);
+	/*画X坐标轴*/
+	QRect rtCoordX = QRect(rtClient.left(),rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth,m_iCoorXHeight);
+	drawCoordX(p,rtCoordX);
+	/*画右下角的两个按钮*/
+	QRect rtShowBtns = QRect(rtClient.right()-m_iCoorYWidth,rtClient.bottom()-m_iCoorXHeight,m_iCoorYWidth,m_iCoorXHeight);
+	drawShowBtns(p,rtShowBtns);
+
+	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
+
+	/*绘制主图*/
+	int iMainHeight = rtClient.height();
+	if(m_listLiners.size()>0)
+		iMainHeight = iMainHeight/2;
+
+	m_pLinerMain->Draw(p,listItems,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),rtClient.height()),m_iShowCount);
+
+
+	rtClient.adjust(KLINE_BORDER,m_iTitleHeight+KLINE_BORDER,-50,-15);
 	if(!rtClient.isValid())
 		return;
-
-	/*画坐标轴*/
-	drawCoordY(p,rtClient);
-	drawKGrids(p,rtClient);
 }
 
 void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
@@ -110,21 +207,33 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 	rtClient.adjust(KLINE_BORDER,KLINE_BORDER,-50,-15);
 
 	float fBegin = rtClient.left();
+	//int iIndex = (e->posF().x() - fBegin)/fItemWidth;
+	//if(iIndex>=0&&iIndex<listHistory.size())
+	//{
+	//	qRcvHistoryData* pHistory = listHistory[iIndex];
+	//	QString qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n开盘价:%5\r\n收盘价:%6\r\n成交量:%7\r\n成交额:%8")
+	//		.arg(m_pStockItem->getCode()).arg(QDateTime::fromTime_t(pHistory->time).toString("yyyy/MM/dd"))
+	//		.arg(pHistory->fHigh).arg(pHistory->fLow).arg(pHistory->fOpen).arg(pHistory->fClose)
+	//		.arg(pHistory->fVolume).arg(pHistory->fAmount);
 
-	int iIndex = (e->posF().x() - fBegin)/fKGridWidth;
-	if(iIndex>=0&&iIndex<listHistory.size())
+	//	QToolTip::showText(e->globalPos(),qsTooltip,this);
+	//}
+	//else
+	//{
+	//	QToolTip::hideText();
+	//}
+}
+
+void CKLineWidget::mousePressEvent( QMouseEvent* e )
+{
+	QPoint ptCur = e->pos();
+	if(m_rtAddShow.contains(ptCur))
 	{
-		qRcvHistoryData* pHistory = listHistory[iIndex];
-		QString qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n开盘价:%5\r\n收盘价:%6\r\n成交量:%7\r\n成交额:%8")
-			.arg(m_pStockItem->getCode()).arg(QDateTime::fromTime_t(pHistory->time).toString("yyyy/MM/dd"))
-			.arg(pHistory->fHigh).arg(pHistory->fLow).arg(pHistory->fOpen).arg(pHistory->fClose)
-			.arg(pHistory->fVolume).arg(pHistory->fAmount);
-
-		QToolTip::showText(e->globalPos(),qsTooltip,this);
+		onClickedAddShow();
 	}
-	else
+	else if(m_rtSubShow.contains(ptCur))
 	{
-		QToolTip::hideText();
+		onClickedSubShow();
 	}
 }
 
@@ -156,8 +265,30 @@ void CKLineWidget::onSetStockCode()
 	setStockCode(code);
 }
 
-void CKLineWidget::drawTitle( QPainter& p,const QRectF& rtClient )
+void CKLineWidget::onClickedAddShow()
 {
+	if((m_iShowCount+10)<=listItems.size())
+	{
+		m_iShowCount += 10;
+		update();
+	}
+}
+
+void CKLineWidget::onClickedSubShow()
+{
+	if((m_iShowCount-10)>0)
+	{
+		m_iShowCount -= 10;
+		update();
+	}
+}
+
+void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )
+{
+	if(!rtTitle.isValid())
+		return;
+
+	QRect rtClient = rtTitle.adjusted(2,0,-2,0);
 	QString qsName = m_pStockItem->getName();
 	if(qsName.isEmpty())
 		qsName = m_pStockItem->getCode();
@@ -169,156 +300,112 @@ void CKLineWidget::drawTitle( QPainter& p,const QRectF& rtClient )
 	p.drawText(rtClient,Qt::AlignLeft|Qt::AlignVCenter,qsName);
 }
 
-void CKLineWidget::drawCoordY( QPainter& p,const QRectF& rtClient )
+void CKLineWidget::drawCoordX( QPainter& p,const QRect& rtCoordX )
 {
-	//设置画笔颜色
+	if(!rtCoordX.isValid())
+		return;
+
+	//绘制单线
+	float fTopLine = rtCoordX.top()+1;
 	p.setPen(QColor(255,0,0));
+	p.drawLine(rtCoordX.right(),fTopLine,rtCoordX.left(),fTopLine);
 
-	//Y坐标（价格）
-	p.drawLine(rtClient.topRight(),rtClient.bottomRight());			//主线
 
-	int iBeginPrice = fMinPrice*10;
-	int iEndPrice = fMaxPrice*10;
-	float fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
-	int iGridSize = 1;
-	while((fGridHeight*iGridSize)<10)
-		++iGridSize;
-	fGridHeight = fGridHeight*iGridSize;
-
-	float fY = rtClient.bottom();
-	float fX = rtClient.right();
-
-	int iGridCount = 0;
-	for (int i=(iBeginPrice+iGridSize); i<iEndPrice; i=i+iGridSize)
+	//左空余3Pix，右空余2Pix
+	fItemWidth = float(rtCoordX.width()-2-3)/float(m_iShowCount);
+	//从右向左绘制
+	float fCurX = rtCoordX.right()-2;
+	float fLastX = fCurX+100;
+	//绘制刻度
+	if(m_typeCircle<Day)
 	{
-		fY = fY-fGridHeight;
-		if(iGridCount%10 == 0)
-		{
-			p.drawLine(fX,fY,fX+4,fY);
-			p.setPen(QColor(0,255,255));
-			p.drawText(fX+7,fY+4,QString("%1").arg(float(float(i)/10),0,'f',2));
-			p.setPen(QColor(255,0,0));
-		}
-		else if(iGridCount%5 == 0)
-			p.drawLine(fX,fY,fX+4,fY);
-		else
-			p.drawLine(fX,fY,fX+2,fY);
-		++iGridCount;
-	}
-}
 
-void CKLineWidget::drawKGrids( QPainter& p,const QRectF& rtClient )
-{
-	p.setLayoutDirection(Qt::LeftToRight);
-	//设置画笔颜色
-	p.setPen(QColor(255,0,0));
-
-	/*X坐标（时间）*/
-	p.drawLine(rtClient.bottomLeft(),rtClient.bottomRight());		//线
-
-	int iCount = listHistory.size();				//总个数
-	fKGridWidth = rtClient.width()/iCount;			//单列宽度
-
-	int iIndex = 0;
-	int iMonth = 0;
-	int iYear = 0;
-	foreach(qRcvHistoryData* pHistory, listHistory)
-	{
-		p.setPen(QColor(255,0,0));
-		float fBeginX=rtClient.left() + fKGridWidth*iIndex;
-		QDateTime date = QDateTime::fromTime_t(pHistory->time);
-		if(date.date().month()!=iMonth)
-		{
-			float fX = fBeginX+(fKGridWidth/2);
-			p.drawLine(fX,rtClient.bottom(),fX,rtClient.bottom()+2);
-			if(date.date().year()!=iYear)
-			{
-				iYear = date.date().year();
-				iMonth = date.date().month();
-				p.drawText(fBeginX,rtClient.bottom()+2,40,50,Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(iYear));
-			}
-			else
-			{
-				iMonth = date.date().month();
-				p.drawText(fBeginX,rtClient.bottom()+2,40,50,Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(iMonth));
-			}
-		}
-
-		drawKGrid(pHistory,p,QRectF(fBeginX,rtClient.top(),fKGridWidth,rtClient.bottom()));
-		++iIndex;
-	}
-}
-
-void CKLineWidget::drawKGrid( qRcvHistoryData* pHistory,QPainter& p,const QRectF& rtClient )
-{
-	float fHighMax = fMaxPrice-fMinPrice;
-	float fHighY = ((pHistory->fHigh-fMinPrice)/fHighMax)*rtClient.height();
-	float fLowY = ((pHistory->fLow-fMinPrice)/fHighMax)*rtClient.height();
-	float fOpenY = ((pHistory->fOpen-fMinPrice)/fHighMax)*rtClient.height();
-	float fCloseY = ((pHistory->fClose-fMinPrice)/fHighMax)*rtClient.height();
-
-	if(pHistory->fClose>pHistory->fOpen)
-	{
-		//增长，绘制红色色块
-		p.setPen(QColor(255,0,0));
-		if(int(rtClient.width())%2==0)
-		{
-			QRectF rt = QRectF(rtClient.left()+0.5,rtClient.bottom()-fCloseY,rtClient.width()-1.0,fCloseY==fOpenY ? 1.0 : fCloseY-fOpenY);
-			p.fillRect(rt,QColor(255,0,0));
-		}
-		else
-		{
-			QRectF rt = QRectF(rtClient.left(),rtClient.bottom()-fCloseY,rtClient.width(),fCloseY==fOpenY ? 1.0 : fCloseY-fOpenY);
-			p.fillRect(rt,QColor(255,0,0));
-		}
 	}
 	else
 	{
-		//降低，绘制蓝色色块
-		p.setPen(QColor(0,255,255));
-		if(int(rtClient.width())%2==0)
+		int iCurMonth = 0;
+		int iCurIndex = listItems.size()-1;
+		int iCount = 0;
+		while(iCount<m_iShowCount)
 		{
-			QRectF rt = QRectF(rtClient.left()+0.5,rtClient.bottom()-fOpenY,rtClient.width()-1.0,fOpenY==fCloseY ? 1.0 : (fOpenY-fCloseY));
-			p.fillRect(rt,QColor(0,255,255));
-		}
-		else
-		{
-			QRectF rt = QRectF(rtClient.left(),rtClient.bottom()-fOpenY,rtClient.width(),fOpenY==fCloseY ? 1.0 : (fOpenY-fCloseY));
-			p.fillRect(rt,QColor(0,255,255));
+			stLinerItem* pItem = listItems[iCurIndex];
+			QDate tmDate = QDateTime::fromTime_t(pItem->time).date();
+			if(tmDate.month()!=iCurMonth)
+			{
+				iCurMonth = tmDate.month();
+				if((fLastX-fCurX)>16)
+				{
+					p.drawLine(fCurX,fTopLine,fCurX,rtCoordX.bottom()-1);
+					p.drawText(fCurX+2,rtCoordX.bottom()-3,QString("%1").arg(iCurMonth));
+					fLastX = fCurX;
+				}
+			}
+
+			fCurX -= fItemWidth;
+			++iCount;
+			--iCurIndex;
 		}
 	}
+}
 
-	p.drawLine(rtClient.center().x(),rtClient.bottom()-fHighY,rtClient.center().x(),rtClient.bottom()-fLowY);		//画最高价到最低价的线
+void CKLineWidget::drawShowBtns( QPainter& p,const QRect& rtBtns )
+{
+	p.setPen(QColor(255,0,0));
+	int iBtnWidth = 16;
+	int iBtnHeight = rtBtns.height()-1;
+	m_rtAddShow = QRect(rtBtns.right()-2*iBtnWidth,rtBtns.top()+1,iBtnWidth,iBtnHeight);
+	m_rtSubShow = QRect(rtBtns.right()-iBtnWidth,rtBtns.top()+1,iBtnWidth,iBtnHeight);
+	
+	p.drawRect(m_rtAddShow);
+	p.drawRect(m_rtSubShow);
+
+	p.drawText(m_rtAddShow,Qt::AlignCenter,QString("+"));
+	p.drawText(m_rtSubShow,Qt::AlignCenter,QString("-"));
 }
 
 void CKLineWidget::clearTmpData()
 {
-	foreach(qRcvHistoryData* p,listHistory)
+	foreach(stLinerItem* p,listItems)
 		delete p;
-	listHistory.clear();
+	listItems.clear();
 }
 
 void CKLineWidget::resetTmpData()
 {
 	clearTmpData();
-	listHistory = m_pStockItem->getLastHistory(100);
-	if(listHistory.size()<1)
-		return;
-	//初始时间和结束时间
-	tmBegin = listHistory.first()->time;
-	tmEnd = listHistory.last()->time;
-
-	//计算最高价和最低价
-	float fMin=FLT_MAX;
-	float fMax=0;
-	foreach(qRcvHistoryData* p,listHistory)
-	{ 
-		if(p->fLow<fMin&&p->fLow>0){fMin = p->fLow;}
-		if(p->fHigh>fMax){fMax = p->fHigh;}
-	}
-	if(fMin<fMax)
+	if(m_typeCircle<Day)
 	{
-		fMaxPrice = float(int(fMax*100)/10)/float(10) + 0.1;
-		fMinPrice = float(int(fMin*100)/10)/float(10);
+		//获取分钟数据，进行计算
+		QList<qRcvMinuteData*> minutes = m_pStockItem->getMinuteList();
+		if(m_typeCircle == Min1)
+		{
+
+		}
 	}
+	else
+	{
+		//获取日线数据
+		QList<qRcvHistoryData*> historys = m_pStockItem->getHistoryList();
+		if(m_typeCircle == Day)
+		{
+			getLinerDayItem(listItems,historys,1);
+		}
+		else if(m_typeCircle == DayN)
+		{
+			//目前未使用
+		//	getLinerItem(listItems,historys,3);
+		}
+
+		{
+			//清楚获取的日线数据
+			foreach(qRcvHistoryData* p,historys)
+				delete p;
+			historys.clear();
+		}
+	}
+	if(listItems.size()<m_iShowCount)
+		m_iShowCount = listItems.size();
+
+	//更新界面
+	update();
 }

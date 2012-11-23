@@ -11,7 +11,7 @@
 #include <QtGui>
 #include <QtScript>
 
-struct DrawData
+struct stLinerItem
 {
 	time_t	time;			//UCT
 	float	fOpen;			//开盘
@@ -22,6 +22,10 @@ struct DrawData
 	float	fAmount;		//额
 	WORD	wAdvance;		//涨数,仅大盘有效
 	WORD	wDecline;		//跌数,仅大盘有效
+	stLinerItem()
+	{
+		memset(&time,0,sizeof(stLinerItem));
+	}
 };
 
 
@@ -31,7 +35,7 @@ public:
 	CBaseLiner(void);
 	~CBaseLiner(void);
 
-	virtual void Draw(const QPainter& p,const QList<DrawData>& d);
+	virtual void Draw(QPainter& p,const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
 
 public:
 	void setLineColor(const QColor& clr){ m_clrLine = clr; }
@@ -40,6 +44,41 @@ public:
 private:
 	QColor m_clrLine;		//线条颜色
 	QRect m_rtClient;		//绘制的区域
+};
+
+//K线图的线条绘制
+class CKLineLiner : public CBaseLiner
+{
+public:
+	CKLineLiner(void);
+	~CKLineLiner(void);
+
+public:
+	virtual void Draw(QPainter& p,const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
+
+private:
+	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
+};
+
+class CMultiLiner
+{
+public:
+	enum MultiLinerType
+	{
+		Main = 1,		//主图
+		Deputy,			//副图
+	};
+public:
+	CMultiLiner(MultiLinerType type);
+	~CMultiLiner(void);
+
+public:
+	void Draw(QPainter& p, const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
+	void setExpression(const QString& exp);
+
+private:
+	QList<CBaseLiner*> m_listLiner;	//所拥有的绘制列表
+	MultiLinerType m_type;			//用于区分是主图还是副图
 };
 
 #endif	//BASE_LINER_H
