@@ -1,6 +1,49 @@
 #include "StdAfx.h"
 #include "BaseLiner.h"
 
+//static QScriptEngine g_se;
+
+
+QScriptValue toScriptValue(QScriptEngine *engine, const stLinerItem &s)
+{
+	QScriptValue obj = engine->newObject();
+	obj.setProperty("time", engine->newDate(QDateTime::fromTime_t(s.time)));
+	obj.setProperty("open", s.fOpen);
+	obj.setProperty("high", s.fHigh);
+	obj.setProperty("low", s.fLow);
+	obj.setProperty("close", s.fClose);
+	obj.setProperty("volume", s.fVolume);
+	obj.setProperty("amount", s.fAmount);
+	obj.setProperty("advance", s.wAdvance);
+	obj.setProperty("decline", s.wDecline);
+	return obj;
+}
+
+void fromScriptValue(const QScriptValue &obj, stLinerItem &s)
+{
+	s.time = obj.property("time").toDateTime().toTime_t();
+	s.fOpen = obj.property("open").toNumber();
+	s.fHigh = obj.property("high").toNumber();
+	s.fLow = obj.property("low").toNumber();
+	s.fClose = obj.property("close").toNumber();
+	s.fVolume = obj.property("volume").toNumber();
+	s.fAmount = obj.property("amount").toNumber();
+	s.wAdvance = obj.property("advance").toUInt16();
+	s.wDecline = obj.property("decline").toUInt16();
+}
+
+QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
+{
+	stLinerItem s;
+	return engine->toScriptValue(s);
+}
+
+QScriptValue getHighValue(QScriptContext *, QScriptEngine *engine)
+{
+//	engine->property("index");
+	return 10;
+}
+
 void getMinAndMax(float& fMin,float& fMax,const QList<stLinerItem*>& list,int iCount)
 {
 	fMin = 9999999.0;
@@ -19,16 +62,36 @@ void getMinAndMax(float& fMin,float& fMax,const QList<stLinerItem*>& list,int iC
 	}
 }
 
+
 CBaseLiner::CBaseLiner(void)
+	: m_pScriptEngine(0)
 {
+	m_qsExpression = "HIGH";
+	m_pScriptEngine = new QScriptEngine;
+	initScriptEnging();
 }
 
 CBaseLiner::~CBaseLiner(void)
 {
+	delete m_pScriptEngine;
+}
+
+void CBaseLiner::initScriptEnging()
+{
+//	qScriptRegisterMetaType<stLinerItem>(m_pScriptEngine, toScriptValue, fromScriptValue);
+//	QScriptValue ctor = m_pScriptEngine->newFunction(createLinerItem);
+//	m_pScriptEngine->globalObject().setProperty("stLinerItem", ctor);
+	QScriptValue ctorHigh = m_pScriptEngine->newFunction(getHighValue);
+	m_pScriptEngine->globalObject().setProperty("HIGH",ctorHigh);
 }
 
 void CBaseLiner::Draw( QPainter& p,const QList<stLinerItem*>& d,const QRectF& rtClient, int iShowCount  )
 {
+	QScriptProgram program("HIGH");
+	QScriptValue result = m_pScriptEngine->evaluate(program);
+	QString aa = result.toString();
+
+
 	p.setPen(QColor(127,0,0));
 	p.drawRect(rtClient);
 
@@ -39,11 +102,31 @@ void CBaseLiner::Draw( QPainter& p,const QList<stLinerItem*>& d,const QRectF& rt
 	float fItemWidth = rtClient.width()/iShowCount;			//单列宽度
 
 	int iIndex = d.size()-1;
-	float fBeginX = rtClient.right()-fItemWidth;
+	float fBeginX = rtClient.right()-(fItemWidth/2);
+	float fHighMax = fMaxPrice-fMinPrice;
+
 	int iCount = 0;
+	QPointF ptBegin(0.0,0.0);
+	QPointF ptEnd(0.0,0.0);
 	while(iCount<iShowCount&&iIndex>=0)
 	{
 		stLinerItem* pItem = d[iIndex];
+		float fHighY = rtClient.bottom() - (((pItem->fHigh-fMinPrice)/fHighMax)*rtClient.height());
+		if(ptBegin.isNull())
+		{
+			ptBegin = QPointF(fBeginX,fHighY);
+		}
+		else if(ptEnd.isNull())
+		{
+			ptEnd = ptBegin;
+			ptBegin = QPointF(fBeginX,fHighY);
+		}
+		else
+		{
+			ptEnd = ptBegin;
+			ptBegin = QPointF(fBeginX,fHighY);
+			p.drawLine(ptBegin,ptEnd);
+		}
 	//	drawKGrid(pItem,p,QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height()));
 
 		fBeginX-=fItemWidth;
@@ -167,11 +250,14 @@ void CMultiLiner::setExpression( const QString& exp )
 	if(m_type==Main)
 	{
 		m_listLiner.push_back(new CKLineLiner());
+		m_listLiner.push_back(new CBaseLiner());
 	}
 }
 
 void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice )
 {
+	if(!rtClient.isValid())
+		return;
 	//绘制Y坐标轴
 	//设置画笔颜色
 	p.setPen(QColor(255,0,0));

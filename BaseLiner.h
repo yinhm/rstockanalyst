@@ -28,13 +28,16 @@ struct stLinerItem
 	}
 };
 
+Q_DECLARE_METATYPE(stLinerItem)
+
 
 class CBaseLiner
 {
 public:
 	CBaseLiner(void);
 	~CBaseLiner(void);
-
+public:
+	void initScriptEnging();
 	virtual void Draw(QPainter& p,const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
 
 public:
@@ -48,6 +51,8 @@ protected:
 	QRect m_rtClient;		//绘制的区域
 	float fMaxPrice;
 	float fMinPrice;
+	QString m_qsExpression;		//
+	QScriptEngine* m_pScriptEngine;
 };
 
 //K线图的线条绘制
