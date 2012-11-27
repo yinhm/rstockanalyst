@@ -38,7 +38,7 @@ public:
 	~CBaseLiner(void);
 public:
 	void initScriptEnging();
-	virtual void Draw(QPainter& p,const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
+	virtual void Draw(QPainter& p,const QVector<stLinerItem>& d,const QRectF& rtClient,int iShowCount);
 
 public:
 	void setLineColor(const QColor& clr){ m_clrLine = clr; }
@@ -63,10 +63,10 @@ public:
 	~CKLineLiner(void);
 
 public:
-	virtual void Draw(QPainter& p,const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
+	virtual void Draw(QPainter& p,const QVector<stLinerItem>& d,const QRectF& rtClient,int iShowCount);
 
 private:
-	void drawKGrid( stLinerItem* pHistory,QPainter& p,const QRectF& rtItem );
+	void drawKGrid( const stLinerItem& pHistory,QPainter& p,const QRectF& rtItem );
 };
 
 class CMultiLiner
@@ -82,7 +82,7 @@ public:
 	~CMultiLiner(void);
 
 public:
-	void Draw(QPainter& p, const QList<stLinerItem*>& d,const QRectF& rtClient,int iShowCount);
+	void Draw(QPainter& p, const QVector<stLinerItem>& d,const QRectF& rtClient,int iShowCount);
 	void setExpression(const QString& exp);
 
 private:

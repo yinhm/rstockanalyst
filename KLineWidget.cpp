@@ -10,23 +10,23 @@ bool getLinerItemByDays(stLinerItem* pItem,const QList<qRcvHistoryData*>& list)
 	return true;
 }
 
-int getLinerDayItem(QList<stLinerItem*>& listItems,const QList<qRcvHistoryData*>& historys, int nDay)
+int getLinerDayItem(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys, int nDay)
 {
 	if(nDay==1)
 	{
 		foreach(qRcvHistoryData* p,historys)
 		{
-			stLinerItem* pItem = new stLinerItem;
-			pItem->time = p->time;
-			pItem->fOpen = p->fOpen;
-			pItem->fClose = p->fClose;
-			pItem->fHigh = p->fHigh;
-			pItem->fLow = p->fLow;
-			pItem->fAmount = p->fAmount;
-			pItem->fVolume = p->fVolume;
-			pItem->wAdvance = p->wAdvance;
-			pItem->wDecline = p->wDecline;
-			listItems.push_back(pItem);
+			stLinerItem item;
+			item.time = p->time;
+			item.fOpen = p->fOpen;
+			item.fClose = p->fClose;
+			item.fHigh = p->fHigh;
+			item.fLow = p->fLow;
+			item.fAmount = p->fAmount;
+			item.fVolume = p->fVolume;
+			item.wAdvance = p->wAdvance;
+			item.wDecline = p->wDecline;
+			listItems.push_back(item);
 		}
 	}
 	else
@@ -328,8 +328,7 @@ void CKLineWidget::drawCoordX( QPainter& p,const QRect& rtCoordX )
 		int iCount = 0;
 		while(iCount<m_iShowCount)
 		{
-			stLinerItem* pItem = listItems[iCurIndex];
-			QDate tmDate = QDateTime::fromTime_t(pItem->time).date();
+			QDate tmDate = QDateTime::fromTime_t(listItems[iCurIndex].time).date();
 			if(tmDate.month()!=iCurMonth)
 			{
 				iCurMonth = tmDate.month();
@@ -365,8 +364,8 @@ void CKLineWidget::drawShowBtns( QPainter& p,const QRect& rtBtns )
 
 void CKLineWidget::clearTmpData()
 {
-	foreach(stLinerItem* p,listItems)
-		delete p;
+	//foreach(stLinerItem* p,listItems)
+	//	delete p;
 	listItems.clear();
 }
 
