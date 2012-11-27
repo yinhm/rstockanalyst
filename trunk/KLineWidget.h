@@ -71,7 +71,7 @@ private:
 	QMenu* m_pMenuCustom;					//自定义菜单
 	KLineCircle m_typeCircle;				//本图的显示周期
 	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
-	QList<stLinerItem*> listItems;			//所有用于显示的数据
+	QVector<stLinerItem> listItems;			//所有用于显示的数据
 	int m_iShowCount;						//需要显示的数据个数（长度，理论上应小于listItems的size）
 	CMultiLiner* m_pLinerMain;				//主图，K线主图
 	CMultiLiner* m_pLinerDeputy;			//当前最大化的副图，一般情况下应为NULL
