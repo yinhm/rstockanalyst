@@ -3,42 +3,6 @@
 
 //static QScriptEngine g_se;
 
-Q_DECLARE_METATYPE(QVector<stLinerItem>)
-
-QScriptValue linerItem2ScriptValue(QScriptEngine *engine, const stLinerItem &s)
-{
-	QScriptValue obj = engine->newObject();
-	obj.setProperty("time", engine->newDate(QDateTime::fromTime_t(s.time)));
-	obj.setProperty("open", s.fOpen);
-	obj.setProperty("high", s.fHigh);
-	obj.setProperty("low", s.fLow);
-	obj.setProperty("close", s.fClose);
-	obj.setProperty("volume", s.fVolume);
-	obj.setProperty("amount", s.fAmount);
-	obj.setProperty("advance", s.wAdvance);
-	obj.setProperty("decline", s.wDecline);
-	return obj;
-}
-
-void scriptValue2LinerItem(const QScriptValue &obj, stLinerItem &s)
-{
-	s.time = obj.property("time").toDateTime().toTime_t();
-	s.fOpen = obj.property("open").toNumber();
-	s.fHigh = obj.property("high").toNumber();
-	s.fLow = obj.property("low").toNumber();
-	s.fClose = obj.property("close").toNumber();
-	s.fVolume = obj.property("volume").toNumber();
-	s.fAmount = obj.property("amount").toNumber();
-	s.wAdvance = obj.property("advance").toUInt16();
-	s.wDecline = obj.property("decline").toUInt16();
-}
-
-QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
-{
-	stLinerItem s;
-	return engine->toScriptValue(s);
-}
-
 QScriptValue getHighValue(QScriptContext *, QScriptEngine *engine)
 {
 //	engine->property("index");
@@ -64,26 +28,18 @@ void getMinAndMax(float& fMin,float& fMax,const QVector<stLinerItem>& list,int i
 
 
 CBaseLiner::CBaseLiner(void)
-	: m_pScriptEngine(0)
 {
 	m_qsExpression = "HIGH";
-	m_pScriptEngine = new QScriptEngine;
 	initScriptEnging();
 }
 
 CBaseLiner::~CBaseLiner(void)
 {
-	delete m_pScriptEngine;
+
 }
 
 void CBaseLiner::initScriptEnging()
 {
-	qScriptRegisterMetaType<stLinerItem>(m_pScriptEngine, linerItem2ScriptValue, scriptValue2LinerItem);
-	QScriptValue ctor = m_pScriptEngine->newFunction(createLinerItem);
-	m_pScriptEngine->globalObject().setProperty("stLinerItem", ctor);
-
-	qScriptRegisterSequenceMetaType<QVector<stLinerItem>>(m_pScriptEngine);
-
 
 	/*
 	QVector<stLinerItem> items(10);
@@ -99,13 +55,6 @@ void CBaseLiner::initScriptEnging()
 
 void CBaseLiner::Draw( QPainter& p,const QVector<stLinerItem>& d,const QRectF& rtClient, int iShowCount  )
 {
-	QTime tmNow = QTime::currentTime();
-	m_pScriptEngine->globalObject().setProperty("items",m_pScriptEngine->toScriptValue(d));
-//	QScriptProgram program("HIGH();");
-//	QScriptValue result = m_pScriptEngine->evaluate(program);
-	qDebug()<<QTime::currentTime().msecsTo(tmNow);
-
-
 	p.setPen(QColor(127,0,0));
 	p.drawRect(rtClient);
 
@@ -253,7 +202,7 @@ void CMultiLiner::Draw( QPainter& p, const QVector<stLinerItem>& d,const QRectF&
 	}
 }
 
-void CMultiLiner::setExpression( const QString& exp )
+void CMultiLiner::setExpression( QScriptEngine* pEngine, const QString& exp )
 {
 	foreach(CBaseLiner* p,m_listLiner)
 		delete p;

@@ -4,6 +4,41 @@
 
 #define	KLINE_BORDER	2
 
+
+QScriptValue linerItem2ScriptValue(QScriptEngine *engine, const stLinerItem &s)
+{
+	QScriptValue obj = engine->newObject();
+	obj.setProperty("time", engine->newDate(QDateTime::fromTime_t(s.time)));
+	obj.setProperty("open", s.fOpen);
+	obj.setProperty("high", s.fHigh);
+	obj.setProperty("low", s.fLow);
+	obj.setProperty("close", s.fClose);
+	obj.setProperty("volume", s.fVolume);
+	obj.setProperty("amount", s.fAmount);
+	obj.setProperty("advance", s.wAdvance);
+	obj.setProperty("decline", s.wDecline);
+	return obj;
+}
+
+void scriptValue2LinerItem(const QScriptValue &obj, stLinerItem &s)
+{
+	s.time = obj.property("time").toDateTime().toTime_t();
+	s.fOpen = obj.property("open").toNumber();
+	s.fHigh = obj.property("high").toNumber();
+	s.fLow = obj.property("low").toNumber();
+	s.fClose = obj.property("close").toNumber();
+	s.fVolume = obj.property("volume").toNumber();
+	s.fAmount = obj.property("amount").toNumber();
+	s.wAdvance = obj.property("advance").toUInt16();
+	s.wDecline = obj.property("decline").toUInt16();
+}
+
+QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
+{
+	stLinerItem s;
+	return engine->toScriptValue(s);
+}
+
 bool getLinerItemByDays(stLinerItem* pItem,const QList<qRcvHistoryData*>& list)
 {
 
@@ -92,7 +127,20 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iCoorYWidth(50)
 	, m_iCoorXHeight(16)
 	, m_iMainLinerHeight(200)
+	, m_pScriptEngine(0)
 {
+	{
+		//初始化脚本解释器
+		m_pScriptEngine = new QScriptEngine;
+		qScriptRegisterMetaType<stLinerItem>(m_pScriptEngine, linerItem2ScriptValue, scriptValue2LinerItem);
+		QScriptValue ctor = m_pScriptEngine->newFunction(createLinerItem);
+		m_pScriptEngine->globalObject().setProperty("stLinerItem", ctor);
+
+		qScriptRegisterSequenceMetaType<QVector<stLinerItem>>(m_pScriptEngine);
+		qScriptRegisterSequenceMetaType<QVector<float>>(m_pScriptEngine);
+	}
+
+
 //	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
@@ -100,11 +148,12 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
 
 	m_pLinerMain = new CMultiLiner(CMultiLiner::Main);
-	m_pLinerMain->setExpression(QString(""));
+	m_pLinerMain->setExpression(m_pScriptEngine,QString(""));
 }
 
 CKLineWidget::~CKLineWidget(void)
 {
+	delete m_pScriptEngine;
 	clearTmpData();
 	delete m_pMenuCustom;
 }
@@ -404,6 +453,19 @@ void CKLineWidget::resetTmpData()
 	}
 	if(listItems.size()<m_iShowCount)
 		m_iShowCount = listItems.size();
+
+	QTime tmNow = QTime::currentTime();
+	m_pScriptEngine->globalObject().setProperty("items",m_pScriptEngine->toScriptValue(listItems));
+	QScriptProgram program("HIGH();");
+//	qScriptRegisterSequenceMetaType<QVector<float>>(m_pScriptEngine);
+
+	QVector<float> vals = qscriptvalue_cast<QVector<float>>(m_pScriptEngine->evaluate(program));
+	foreach(float f,vals)
+	{
+		qDebug()<<f;
+	}
+
+	qDebug()<<QTime::currentTime().msecsTo(tmNow);
 
 	//更新界面
 	update();

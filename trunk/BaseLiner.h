@@ -29,7 +29,8 @@ struct stLinerItem
 };
 
 Q_DECLARE_METATYPE(stLinerItem)
-
+Q_DECLARE_METATYPE(QVector<float>)
+Q_DECLARE_METATYPE(QVector<stLinerItem>)
 
 class CBaseLiner
 {
@@ -45,6 +46,7 @@ public:
 	void setDrawRect(const QRect& rtClient){ m_rtClient = rtClient; }
 	void setMinPrice(float f){ fMinPrice=f; }
 	void setMaxPrice(float f){ fMaxPrice=f; }
+	void setValues(QVector<float>& v){ m_vals = v; }
 
 protected:
 	QColor m_clrLine;		//线条颜色
@@ -52,7 +54,7 @@ protected:
 	float fMaxPrice;
 	float fMinPrice;
 	QString m_qsExpression;		//
-	QScriptEngine* m_pScriptEngine;
+	QVector<float> m_vals;
 };
 
 //K线图的线条绘制
@@ -83,7 +85,7 @@ public:
 
 public:
 	void Draw(QPainter& p, const QVector<stLinerItem>& d,const QRectF& rtClient,int iShowCount);
-	void setExpression(const QString& exp);
+	void setExpression(QScriptEngine* pEngine, const QString& exp);
 
 private:
 	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
