@@ -44,3 +44,36 @@ function SUB(list, f)
 	}
 	return dest;
 }
+
+function ADD(list, f)
+{
+	var count = list.length;
+	var dest = new Array();
+	for(var i=0;i<count;++i)
+	{
+		dest[i] = list[i]+f;
+	}
+	return dest;
+}
+
+function DIV(list, f)
+{
+	var count = list.length;
+	var dest = new Array();
+	for(var i=0;i<count;++i)
+	{
+		dest[i] = list[i]/f;
+	}
+	return dest;
+}
+
+function MUL(list, f)
+{
+	var count = list.length;
+	var dest = new Array();
+	for(var i=0;i<count;++i)
+	{
+		dest[i] = list[i]*f;
+	}
+	return dest;
+}
