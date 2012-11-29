@@ -138,23 +138,37 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 
 		qScriptRegisterSequenceMetaType<QVector<stLinerItem>>(m_pScriptEngine);
 		qScriptRegisterSequenceMetaType<QVector<float>>(m_pScriptEngine);
+
+		{
+			//加载预置脚本
+			QFile file("C:\\Projects\\RStockAnalyst\\RStockLiners.js");
+			if(!file.open(QFile::ReadOnly))
+				qDebug()<<"load script error.";
+			QString qsScript = file.readAll();
+			QScriptValue v = m_pScriptEngine->evaluate(QScriptProgram(qsScript));
+			qDebug()<<"loaded script, info:"<<v.toString()<<"\r\n";
+		}
 	}
 
+	m_pLinerMain = new CMultiLiner(CMultiLiner::Main,m_pScriptEngine);
+	m_pLinerMain->setExpression(QString("SUB(HIGH"));
 
 //	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
 	m_pMenuCustom = new QMenu("K线图操作");
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
-
-	m_pLinerMain = new CMultiLiner(CMultiLiner::Main);
-	m_pLinerMain->setExpression(m_pScriptEngine,QString(""));
 }
 
 CKLineWidget::~CKLineWidget(void)
 {
-	delete m_pScriptEngine;
 	clearTmpData();
+	delete m_pLinerMain;
+	foreach(CMultiLiner* p,m_listLiners)
+		delete p;
+	m_listLiners.clear();
+	delete m_pScriptEngine;
+
 	delete m_pMenuCustom;
 }
 
@@ -237,7 +251,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	if(m_listLiners.size()>0)
 		iMainHeight = iMainHeight/2;
 
-	m_pLinerMain->Draw(p,listItems,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),rtClient.height()),m_iShowCount);
+	m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),rtClient.height()),m_iShowCount);
 
 
 	rtClient.adjust(KLINE_BORDER,m_iTitleHeight+KLINE_BORDER,-50,-15);
@@ -455,17 +469,14 @@ void CKLineWidget::resetTmpData()
 		m_iShowCount = listItems.size();
 
 	QTime tmNow = QTime::currentTime();
-	m_pScriptEngine->globalObject().setProperty("items",m_pScriptEngine->toScriptValue(listItems));
-	QScriptProgram program("HIGH();");
-//	qScriptRegisterSequenceMetaType<QVector<float>>(m_pScriptEngine);
+	m_pScriptEngine->globalObject().setProperty("ITEMS",m_pScriptEngine->toScriptValue(listItems));
+	qDebug()<<m_pScriptEngine->evaluate(QScriptProgram("CalcBaseData();")).toString();
+	qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
 
-	QVector<float> vals = qscriptvalue_cast<QVector<float>>(m_pScriptEngine->evaluate(program));
-	foreach(float f,vals)
-	{
-		qDebug()<<f;
-	}
-
-	qDebug()<<QTime::currentTime().msecsTo(tmNow);
+	//更新绘制中的数据
+	m_pLinerMain->updateData();
+	foreach(CMultiLiner* p,m_listLiners)
+		p->updateData();
 
 	//更新界面
 	update();

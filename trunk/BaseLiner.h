@@ -35,11 +35,12 @@ Q_DECLARE_METATYPE(QVector<stLinerItem>)
 class CBaseLiner
 {
 public:
-	CBaseLiner(void);
+	CBaseLiner(QScriptEngine* pEngine,const QString& exp);
 	~CBaseLiner(void);
 public:
-	void initScriptEnging();
-	virtual void Draw(QPainter& p,const QVector<stLinerItem>& d,const QRectF& rtClient,int iShowCount);
+	virtual void updateData();				//更新显示的数据
+	virtual void getMinAndMax(float& fMin,float& fMax,int iCount);
+	virtual void Draw(QPainter& p,const QRectF& rtClient,int iShowCount);
 
 public:
 	void setLineColor(const QColor& clr){ m_clrLine = clr; }
@@ -53,22 +54,28 @@ protected:
 	QRect m_rtClient;		//绘制的区域
 	float fMaxPrice;
 	float fMinPrice;
-	QString m_qsExpression;		//
 	QVector<float> m_vals;
+	QString m_qsExp;			//表达式
+	QScriptEngine* m_pEngine;	//脚本引擎
 };
 
 //K线图的线条绘制
 class CKLineLiner : public CBaseLiner
 {
 public:
-	CKLineLiner(void);
+	CKLineLiner(QScriptEngine* pEngine);
 	~CKLineLiner(void);
 
 public:
-	virtual void Draw(QPainter& p,const QVector<stLinerItem>& d,const QRectF& rtClient,int iShowCount);
+	virtual void updateData();				//更新显示的数据
+	virtual void getMinAndMax(float& fMin,float& fMax,int iCount);
+	virtual void Draw(QPainter& p,const QRectF& rtClient,int iShowCount);
 
 private:
 	void drawKGrid( const stLinerItem& pHistory,QPainter& p,const QRectF& rtItem );
+
+private:
+	QVector<stLinerItem> m_listItems;
 };
 
 class CMultiLiner
@@ -80,12 +87,13 @@ public:
 		Deputy,			//副图
 	};
 public:
-	CMultiLiner(MultiLinerType type);
+	CMultiLiner(MultiLinerType type,QScriptEngine* pEngine);
 	~CMultiLiner(void);
 
 public:
-	void Draw(QPainter& p, const QVector<stLinerItem>& d,const QRectF& rtClient,int iShowCount);
-	void setExpression(QScriptEngine* pEngine, const QString& exp);
+	void updateData();			//更新数据
+	void Draw(QPainter& p, const QRectF& rtClient,int iShowCount);
+	void setExpression(const QString& exp);
 
 private:
 	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
@@ -93,6 +101,7 @@ private:
 private:
 	QList<CBaseLiner*> m_listLiner;	//所拥有的绘制列表
 	MultiLinerType m_type;			//用于区分是主图还是副图
+	QScriptEngine* m_pEngine;		//数据引擎
 };
 
 #endif	//BASE_LINER_H
