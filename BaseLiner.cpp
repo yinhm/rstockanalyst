@@ -186,7 +186,10 @@ CMultiLiner::CMultiLiner( MultiLinerType type,QScriptEngine* pEngine )
 	: m_type(type)
 	, m_pEngine(pEngine)
 {
-
+	if(m_type==Main)
+	{
+		m_listLiner.push_back(new CKLineLiner(m_pEngine));
+	}
 }
 
 CMultiLiner::~CMultiLiner( void )
@@ -206,6 +209,9 @@ void CMultiLiner::updateData()
 
 void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 {
+	m_rtClient = rtClient;
+	if(!rtClient.isValid())
+		return;
 	float fMinPrice = 9999999.0;
 	float fMaxPrice = -9999999.0;
 
@@ -213,6 +219,8 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	{
 		pLiner->getMinAndMax(fMinPrice,fMaxPrice,iShowCount);
 	}
+	if(fMaxPrice<=fMinPrice)
+		return;
 
 	drawCoordY(p,QRectF(rtClient.right()+2,rtClient.top(),50,rtClient.height()),fMinPrice,fMaxPrice);
 
@@ -226,6 +234,7 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 
 void CMultiLiner::setExpression( const QString& exp )
 {
+	m_qsExp = exp;
 	foreach(CBaseLiner* p,m_listLiner)
 		delete p;
 	m_listLiner.clear();
@@ -235,7 +244,7 @@ void CMultiLiner::setExpression( const QString& exp )
 		m_listLiner.push_back(new CKLineLiner(m_pEngine));
 	}
 
-	QStringList listExp = exp.split("\r\n");
+	QStringList listExp = exp.split("\n");
 	foreach(const QString& str,listExp)
 	{
 		QString e = str.trimmed();

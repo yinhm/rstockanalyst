@@ -122,7 +122,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pStockItem(0)
 	, m_iShowCount(100)
 	, m_pLinerMain(0)
-	, m_pLinerDeputy(0)
+	, m_pCurrentLiner(0)
+	, m_bShowMax(false)
 	, m_iTitleHeight(16)
 	, m_iCoorYWidth(50)
 	, m_iCoorXHeight(16)
@@ -141,7 +142,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 
 		{
 			//加载预置脚本
-			QFile file("C:\\Projects\\RStockAnalyst\\RStockLiners.js");
+			QFile file("..\\RStockLiners.js");
 			if(!file.open(QFile::ReadOnly))
 				qDebug()<<"load script error.";
 			QString qsScript = file.readAll();
@@ -151,13 +152,15 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	}
 
 	m_pLinerMain = new CMultiLiner(CMultiLiner::Main,m_pScriptEngine);
-	m_pLinerMain->setExpression(QString("SUB(HIGH"));
+//	m_pLinerMain->setExpression(QString("SUB(LOW,1.0);\r\nADD(HIGH,1.0);"));
 
 //	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
 	m_pMenuCustom = new QMenu("K线图操作");
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
+	m_pMenuCustom->addAction(tr("增加副图"),this,SLOT(onAddDeputy()));
+	m_pMenuCustom->addAction(tr("设置表达式"),this,SLOT(onSetExpression()));
 }
 
 CKLineWidget::~CKLineWidget(void)
@@ -251,7 +254,31 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	if(m_listLiners.size()>0)
 		iMainHeight = iMainHeight/2;
 
-	m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),rtClient.height()),m_iShowCount);
+	m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),iMainHeight),m_iShowCount);
+
+	//绘制分割线
+	if(m_listLiners.size()>0)
+	{
+		p.setPen(QColor(255,255,255));
+		int iDeputyHeight = iMainHeight/m_listLiners.size();
+		int iCurY = rtClient.top()+iMainHeight;
+		if(m_listLiners.contains(m_pCurrentLiner)&&m_bShowMax)
+		{
+			p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
+			foreach(CMultiLiner* pLiner,m_listLiners)
+				pLiner->Draw(p,QRectF(),0);
+			m_pCurrentLiner->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),iMainHeight),m_iShowCount);
+		}
+		else
+		{
+			for(int i=0;i<m_listLiners.size();++i)
+			{
+				p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
+				m_listLiners[i]->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),iDeputyHeight),m_iShowCount);
+				iCurY += iDeputyHeight;
+			}
+		}
+	}
 
 
 	rtClient.adjust(KLINE_BORDER,m_iTitleHeight+KLINE_BORDER,-50,-15);
@@ -259,7 +286,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		return;
 }
 
-void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
+void CKLineWidget::mouseMoveEvent( QMouseEvent* )
 {
 	if(!m_pStockItem)
 	{
@@ -290,13 +317,40 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 void CKLineWidget::mousePressEvent( QMouseEvent* e )
 {
 	QPoint ptCur = e->pos();
-	if(m_rtAddShow.contains(ptCur))
+	if(m_pLinerMain->getRect().contains(ptCur))
 	{
-		onClickedAddShow();
+		m_pCurrentLiner = m_pLinerMain;
 	}
-	else if(m_rtSubShow.contains(ptCur))
+	else
 	{
-		onClickedSubShow();
+		foreach(CMultiLiner* p, m_listLiners)
+		{
+			if(p->getRect().contains(ptCur))
+			{
+				m_pCurrentLiner = p;
+				break;
+			}
+		}
+	}
+	if(e->button()==Qt::LeftButton)
+	{
+		if(m_rtAddShow.contains(ptCur))
+		{
+			onClickedAddShow();
+		}
+		else if(m_rtSubShow.contains(ptCur))
+		{
+			onClickedSubShow();
+		}
+	}
+}
+
+void CKLineWidget::mouseDoubleClickEvent( QMouseEvent *e )
+{
+	if(m_pCurrentLiner&&(m_pCurrentLiner!=m_pLinerMain))
+	{
+		m_bShowMax = !m_bShowMax;
+		update();
 	}
 }
 
@@ -328,6 +382,28 @@ void CKLineWidget::onSetStockCode()
 	setStockCode(code);
 }
 
+void CKLineWidget::onSetExpression()
+{
+	if(!m_pCurrentLiner)
+		return;
+
+	QDialog dlg(this);
+	QVBoxLayout layout(this);
+	QTextEdit edit(this);
+	QPushButton btnOk(this);
+	dlg.setLayout(&layout);
+	layout.addWidget(&edit);
+	layout.addWidget(&btnOk);
+	btnOk.setText(tr("确定"));
+	edit.setText(m_pCurrentLiner->getExpression());
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	m_pCurrentLiner->setExpression(edit.toPlainText());
+}
+
 void CKLineWidget::onClickedAddShow()
 {
 	if((m_iShowCount+10)<=listItems.size())
@@ -344,6 +420,15 @@ void CKLineWidget::onClickedSubShow()
 		m_iShowCount -= 10;
 		update();
 	}
+}
+
+void CKLineWidget::onAddDeputy()
+{
+	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pScriptEngine);
+	pMultiLiner->setExpression("HIGH");
+	pMultiLiner->updateData();
+	m_listLiners.push_back(pMultiLiner);
+	update();
 }
 
 void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )

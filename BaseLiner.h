@@ -94,6 +94,8 @@ public:
 	void updateData();			//更新数据
 	void Draw(QPainter& p, const QRectF& rtClient,int iShowCount);
 	void setExpression(const QString& exp);
+	QString getExpression() const { return m_qsExp; }
+	QRectF getRect() const { return m_rtClient; }
 
 private:
 	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
@@ -102,6 +104,8 @@ private:
 	QList<CBaseLiner*> m_listLiner;	//所拥有的绘制列表
 	MultiLinerType m_type;			//用于区分是主图还是副图
 	QScriptEngine* m_pEngine;		//数据引擎
+	QRectF m_rtClient;				//当前窗口的大小
+	QString m_qsExp;				//该窗口中的表达式
 };
 
 #endif	//BASE_LINER_H
