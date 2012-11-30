@@ -4,6 +4,7 @@
 #include "STKDRV.h"
 #include "MainWindow.h"
 #include "DataEngine.h"
+#include "ColorManager.h"
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +20,9 @@ int main(int argc, char *argv[])
 		QString qsStyleSheet = file.readAll();
 		app.setStyleSheet(qsStyleSheet);
 	}
+
+	//初始化颜色表
+	CColorManager::initAll();
 
 	CSTKDRV::InitStockDrv();
 

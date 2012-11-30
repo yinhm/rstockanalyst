@@ -44,10 +44,8 @@ public:
 
 public:
 	void setLineColor(const QColor& clr){ m_clrLine = clr; }
-	void setDrawRect(const QRect& rtClient){ m_rtClient = rtClient; }
 	void setMinPrice(float f){ fMinPrice=f; }
 	void setMaxPrice(float f){ fMaxPrice=f; }
-	void setValues(QVector<float>& v){ m_vals = v; }
 
 protected:
 	QColor m_clrLine;		//线条颜色
@@ -109,7 +107,7 @@ public:
 		Deputy,			//副图
 	};
 public:
-	CMultiLiner(MultiLinerType type,QScriptEngine* pEngine);
+	CMultiLiner(MultiLinerType type,QScriptEngine* pEngine,const QString& exp);
 	~CMultiLiner(void);
 
 public:
