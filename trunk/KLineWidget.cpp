@@ -154,8 +154,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 		}
 	}
 
-	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pScriptEngine);
-	m_listLiners.push_back(new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine));
+	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pScriptEngine,"");
+	m_listLiners.push_back(new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine,""));
 //	m_pLinerMain->setExpression(QString("SUB(LOW,1.0);\r\nADD(HIGH,1.0);"));
 
 //	setMinimumSize(200,200);
@@ -164,6 +164,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom = new QMenu("K线图操作");
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
 	m_pMenuCustom->addAction(tr("增加副图"),this,SLOT(onAddDeputy()));
+	m_pMenuCustom->addAction(tr("删除副图"),this,SLOT(onRemoveDeputy()));
 	m_pMenuCustom->addAction(tr("设置表达式"),this,SLOT(onSetExpression()));
 }
 
@@ -428,11 +429,24 @@ void CKLineWidget::onClickedSubShow()
 
 void CKLineWidget::onAddDeputy()
 {
-	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pScriptEngine);
-	pMultiLiner->setExpression("HIGH");
-	pMultiLiner->updateData();
+	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pScriptEngine,"CLOSE;");
 	m_listLiners.push_back(pMultiLiner);
 	update();
+}
+
+void CKLineWidget::onRemoveDeputy()
+{
+	//删除当前选中的副图
+	if(m_pCurrentLiner)
+	{
+		if(m_pCurrentLiner!=m_pLinerMain)
+		{
+			//如果不是副图的话再进行删除操作
+			if(m_listLiners.removeOne(m_pCurrentLiner))
+				delete m_pCurrentLiner;
+		}
+		m_pCurrentLiner = m_pLinerMain;
+	}
 }
 
 void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )

@@ -1,10 +1,12 @@
 #include "StdAfx.h"
 #include "BaseLiner.h"
+#include "ColorManager.h"
 
 
 CBaseLiner::CBaseLiner( QScriptEngine* pEngine,const QString& exp )
 	: m_pEngine(pEngine)
 	, m_qsExp(exp)
+	, m_clrLine(QColor(255,255,255))
 {
 	updateData();
 }
@@ -43,7 +45,7 @@ void CBaseLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount  )
 
 
 	//设置画笔颜色
-	p.setPen(QColor(255,0,0));
+	p.setPen(m_clrLine);
 
 	float fItemWidth = rtClient.width()/iShowCount;			//单列宽度
 
@@ -266,18 +268,11 @@ void CVolumeLiner::Draw( QPainter& p,const QRectF& rtClient,int iShowCount )
 }
 
 
-CMultiLiner::CMultiLiner( MultiLinerType type,QScriptEngine* pEngine )
+CMultiLiner::CMultiLiner( MultiLinerType type,QScriptEngine* pEngine,const QString& exp )
 	: m_type(type)
 	, m_pEngine(pEngine)
 {
-	if(m_type==MainKLine)
-	{
-		m_listLiner.push_back(new CKLineLiner(m_pEngine));
-	}
-	if(m_type == VolumeLine)
-	{
-		m_listLiner.push_back(new CVolumeLiner(m_pEngine));
-	}
+	setExpression(exp);
 }
 
 CMultiLiner::~CMultiLiner( void )
@@ -289,9 +284,10 @@ CMultiLiner::~CMultiLiner( void )
 
 void CMultiLiner::updateData()
 {
-	foreach(CBaseLiner* p,m_listLiner)
+	for(int i=0;i<m_listLiner.size();++i)
 	{
-		p->updateData();
+		m_listLiner[i]->setLineColor(CColorManager::CommonColor[(i%(CColorManager::CommonColor.size()))]);
+		m_listLiner[i]->updateData();
 	}
 }
 
@@ -331,6 +327,10 @@ void CMultiLiner::setExpression( const QString& exp )
 	{
 		m_listLiner.push_back(new CKLineLiner(m_pEngine));
 	}
+	else if(m_type == VolumeLine)
+	{
+		m_listLiner.push_back(new CVolumeLiner(m_pEngine));
+	}
 
 	QStringList listExp = exp.split("\n");
 	foreach(const QString& str,listExp)
@@ -339,10 +339,10 @@ void CMultiLiner::setExpression( const QString& exp )
 		if(!e.isEmpty())
 		{
 			CBaseLiner* pLiner = new CBaseLiner(m_pEngine,str);
-			pLiner->updateData();
 			m_listLiner.push_back(pLiner);
 		}
 	}
+	updateData();
 }
 
 void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice )

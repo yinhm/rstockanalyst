@@ -61,6 +61,7 @@ protected slots:
 	void onClickedAddShow();							//减少显示个数
 	void onClickedSubShow();							//增加显示个数
 	void onAddDeputy();									//增加副图
+	void onRemoveDeputy();								//删除副图
 
 private:
 	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
