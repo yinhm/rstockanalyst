@@ -156,9 +156,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	}
 
 	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pScriptEngine,"");
-	m_listLiners.push_back(new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine,""));
-//	m_pLinerMain->setExpression(QString("SUB(LOW,1.0);\r\nADD(HIGH,1.0);"));
-
+	m_vSizes.push_back(60);
 
 	//设置菜单
 	m_pMenuCustom = new QMenu("K线图操作");
@@ -177,6 +175,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 		m_pActShowMain->setChecked(true);
 		connect(m_pActShowMain,SIGNAL(toggled(bool)),this,SLOT(onShowMainChanged(bool)));
 	}
+	m_pMenuCustom->addAction(tr("设置所有图的显示比例"),this,SLOT(onSetSizes()));
 
 //	setMinimumSize(200,200);
 	setMouseTracking(true);
@@ -272,22 +271,25 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 
 	int iCurY = rtClient.top();		//当前绘制到的位置
+	int iSizeIndex = 0;
 	/*绘制主图*/
 	if(m_pActShowMain->isChecked())
 	{
-		int iMainHeight = rtClient.height();
-		if(m_listLiners.size()>0)
-			iMainHeight = iMainHeight/2;
+		int iTotal = 0;					//比例总和
+		for (int i=iSizeIndex;i<m_vSizes.size();++i)
+			iTotal += m_vSizes[i];
+		int iTotalHeight = rtClient.bottom()-iCurY;
 
+		int iMainHeight = (float)((float)m_vSizes[iSizeIndex]/float(iTotal))*iTotalHeight + 0.5;
 		m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),iMainHeight),m_iShowCount);
 		iCurY += iMainHeight;
+		++iSizeIndex;
 	}
 
 	//绘制分割线
 	if(m_listLiners.size()>0)
 	{
 		p.setPen(QColor(255,255,255));
-		int iDeputyHeight = (rtClient.bottom()-iCurY)/m_listLiners.size();
 		if(m_listLiners.contains(m_pCurrentLiner)&&m_bShowMax)
 		{
 			p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
@@ -299,17 +301,19 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		{
 			for(int i=0;i<m_listLiners.size();++i)
 			{
+				int iTotal = 0;					//比例总和
+				for (int j=iSizeIndex;j<m_vSizes.size();++j)
+					iTotal += m_vSizes[j];
+				int iTotalHeight = rtClient.bottom()-iCurY;
+				int iHeight = (float)((float)m_vSizes[iSizeIndex]/float(iTotal))*iTotalHeight + 0.5;
+
 				p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
-				m_listLiners[i]->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),iDeputyHeight),m_iShowCount);
-				iCurY += iDeputyHeight;
+				m_listLiners[i]->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight),m_iShowCount);
+				iCurY += iHeight;
+				++iSizeIndex;
 			}
 		}
 	}
-
-
-	rtClient.adjust(KLINE_BORDER,m_iTitleHeight+KLINE_BORDER,-50,-15);
-	if(!rtClient.isValid())
-		return;
 }
 
 void CKLineWidget::mouseMoveEvent( QMouseEvent* )
@@ -371,7 +375,7 @@ void CKLineWidget::mousePressEvent( QMouseEvent* e )
 	}
 }
 
-void CKLineWidget::mouseDoubleClickEvent( QMouseEvent *e )
+void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* )
 {
 	if(m_pCurrentLiner&&(m_pCurrentLiner!=m_pLinerMain))
 	{
@@ -452,6 +456,7 @@ void CKLineWidget::onAddDeputy()
 {
 	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pScriptEngine,"CLOSE;");
 	m_listLiners.push_back(pMultiLiner);
+	m_vSizes.push_back(20);
 	update();
 }
 
@@ -459,6 +464,7 @@ void CKLineWidget::onAddVolume()
 {
 	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine,"");
 	m_listLiners.push_back(pMultiLiner);
+	m_vSizes.push_back(20);
 	update();
 }
 
@@ -471,8 +477,16 @@ void CKLineWidget::onRemoveDeputy()
 		if(m_pCurrentLiner!=m_pLinerMain)
 		{
 			//如果不是副图的话再进行删除操作
-			if(m_listLiners.removeOne(m_pCurrentLiner))
+			int iIndex = m_listLiners.indexOf(m_pCurrentLiner);
+			if(iIndex>=0)
+			{
+				m_listLiners.removeOne(m_pCurrentLiner);
 				delete m_pCurrentLiner;
+				if(m_vSizes.size()>(iIndex+1))
+					m_vSizes.remove(iIndex+1);
+
+				update();
+			}
 		}
 		m_pCurrentLiner = m_pLinerMain;
 	}
@@ -483,6 +497,47 @@ void CKLineWidget::onShowMainChanged( bool bShow )
 	if(bShow)
 		m_pLinerMain->updateData();
 	update();
+}
+
+void CKLineWidget::onSetSizes()
+{
+	QDialog dlg(this);
+	QGridLayout layout(&dlg);
+	QPushButton btnOk(this);
+	dlg.setLayout(&layout);
+
+	int iCount = m_listLiners.size()+1;
+	QVector<QLabel*> vLabels;
+	QVector<QSpinBox*> vSpins;
+	for (int i=0;i<iCount;++i)
+	{
+		QLabel* pLabel = new QLabel(&dlg);
+		pLabel->setText(QString("%1").arg(i+1));
+		vLabels.push_back(pLabel);
+		QSpinBox* pSpin = new QSpinBox(&dlg);
+		pSpin->setMinimum(1);
+		pSpin->setMaximum(100);
+		pSpin->setValue(m_vSizes[i]);
+		vSpins.push_back(pSpin);
+
+		layout.addWidget(pLabel,i,0);
+		layout.addWidget(pSpin,i,1);
+	}
+	layout.addWidget(&btnOk,iCount,0,1,2);
+	btnOk.setText(tr("确定"));
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	m_vSizes.clear();
+
+	for (int i=0;i<iCount;++i)
+	{
+		m_vSizes.push_back(vSpins[i]->value());
+		delete vLabels[i];
+		delete vSpins[i];
+	}
 }
 
 void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )

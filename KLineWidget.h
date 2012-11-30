@@ -64,6 +64,7 @@ protected slots:
 	void onAddVolume();									//是否显示量视图
 	void onRemoveDeputy();								//删除副图
 	void onShowMainChanged(bool bShow);					//是否显示主图
+	void onSetSizes();									//设置所有图的显示比例
 
 private:
 	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
