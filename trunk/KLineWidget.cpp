@@ -4,7 +4,8 @@
 
 #define	KLINE_BORDER	2
 
-
+/*
+对stLinerItem进行转换的代码，由于效率问题，取消了该转换
 QScriptValue linerItem2ScriptValue(QScriptEngine *engine, const stLinerItem &s)
 {
 	QScriptValue obj = engine->newObject();
@@ -38,6 +39,7 @@ QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
 	stLinerItem s;
 	return engine->toScriptValue(s);
 }
+*/
 
 bool getLinerItemByDays(stLinerItem* pItem,const QList<qRcvHistoryData*>& list)
 {
@@ -133,11 +135,12 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	{
 		//初始化脚本解释器
 		m_pScriptEngine = new QScriptEngine;
+		/*
 		qScriptRegisterMetaType<stLinerItem>(m_pScriptEngine, linerItem2ScriptValue, scriptValue2LinerItem);
 		QScriptValue ctor = m_pScriptEngine->newFunction(createLinerItem);
 		m_pScriptEngine->globalObject().setProperty("stLinerItem", ctor);
-
 		qScriptRegisterSequenceMetaType<QVector<stLinerItem>>(m_pScriptEngine);
+		*/
 		qScriptRegisterSequenceMetaType<QVector<float>>(m_pScriptEngine);
 
 		{
@@ -151,7 +154,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 		}
 	}
 
-	m_pLinerMain = new CMultiLiner(CMultiLiner::Main,m_pScriptEngine);
+	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pScriptEngine);
+	m_listLiners.push_back(new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine));
 //	m_pLinerMain->setExpression(QString("SUB(LOW,1.0);\r\nADD(HIGH,1.0);"));
 
 //	setMinimumSize(200,200);
@@ -553,11 +557,42 @@ void CKLineWidget::resetTmpData()
 	if(listItems.size()<m_iShowCount)
 		m_iShowCount = listItems.size();
 
-	QTime tmNow = QTime::currentTime();
-	m_pScriptEngine->globalObject().setProperty("ITEMS",m_pScriptEngine->toScriptValue(listItems));
-	qDebug()<<m_pScriptEngine->evaluate(QScriptProgram("CalcBaseData();")).toString();
-	qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
 
+	{
+		/*将更新后的数据设置到脚本引擎中*/
+		QVector<float> vOpen;
+		QVector<float> vHigh;
+		QVector<float> vLow;
+		QVector<float> vClose;
+		QVector<float> vVolume;
+		QVector<float> vAmount;
+		QVector<float> vAdvance;
+		QVector<float> vDecline;
+		foreach(const stLinerItem& i,listItems)
+		{
+			vOpen.push_back(i.fOpen);
+			vHigh.push_back(i.fHigh);
+			vLow.push_back(i.fLow);
+			vClose.push_back(i.fClose);
+			vVolume.push_back(i.fVolume);
+			vAmount.push_back(i.fAmount);
+			vAdvance.push_back(i.wAdvance);
+			vDecline.push_back(i.wDecline);
+		}
+
+		QTime tmNow = QTime::currentTime();
+		//	m_pScriptEngine->globalObject().setProperty("ITEMS",m_pScriptEngine->toScriptValue(listItems));
+		//	qDebug()<<m_pScriptEngine->evaluate(QScriptProgram("CalcBaseData();")).toString();
+		m_pScriptEngine->globalObject().setProperty("OPEN",m_pScriptEngine->toScriptValue(vOpen));
+		m_pScriptEngine->globalObject().setProperty("HIGH",m_pScriptEngine->toScriptValue(vHigh));
+		m_pScriptEngine->globalObject().setProperty("LOW",m_pScriptEngine->toScriptValue(vLow));
+		m_pScriptEngine->globalObject().setProperty("CLOSE",m_pScriptEngine->toScriptValue(vClose));
+		m_pScriptEngine->globalObject().setProperty("VOLUME",m_pScriptEngine->toScriptValue(vVolume));
+		m_pScriptEngine->globalObject().setProperty("AMOUNT",m_pScriptEngine->toScriptValue(vAmount));
+		m_pScriptEngine->globalObject().setProperty("ADVANCE",m_pScriptEngine->toScriptValue(vAdvance));
+		m_pScriptEngine->globalObject().setProperty("DECLINE",m_pScriptEngine->toScriptValue(vDecline));
+		qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
+	}
 	//更新绘制中的数据
 	m_pLinerMain->updateData();
 	foreach(CMultiLiner* p,m_listLiners)
