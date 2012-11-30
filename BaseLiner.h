@@ -72,10 +72,31 @@ public:
 	virtual void Draw(QPainter& p,const QRectF& rtClient,int iShowCount);
 
 private:
-	void drawKGrid( const stLinerItem& pHistory,QPainter& p,const QRectF& rtItem );
+	void drawKGrid( const int& iIndex,QPainter& p,const QRectF& rtItem );
 
 private:
-	QVector<stLinerItem> m_listItems;
+	QVector<float> m_vOpen;
+	QVector<float> m_vHigh;
+	QVector<float> m_vLow;
+	QVector<float> m_vClose;
+};
+
+
+class CVolumeLiner : public CBaseLiner
+{
+public:
+	CVolumeLiner(QScriptEngine* pEngine);
+	~CVolumeLiner(void);
+
+public:
+	virtual void updateData();				//更新显示的数据
+	virtual void getMinAndMax(float& fMin,float& fMax,int iCount);
+	virtual void Draw(QPainter& p,const QRectF& rtClient,int iShowCount);
+
+private:
+	QVector<float> m_vOpen;
+	QVector<float> m_vClose;
+//	QVector<float> m_vVolume;
 };
 
 class CMultiLiner
@@ -83,7 +104,8 @@ class CMultiLiner
 public:
 	enum MultiLinerType
 	{
-		Main = 1,		//主图
+		MainKLine = 1,	//主图(主要指K线图)
+		VolumeLine,		//副图中的量数据
 		Deputy,			//副图
 	};
 public:

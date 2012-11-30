@@ -96,19 +96,22 @@ CKLineLiner::~CKLineLiner( void )
 
 void CKLineLiner::updateData()
 {
-	//没有数据可更新
-	m_listItems = qscriptvalue_cast<QVector<stLinerItem>>(m_pEngine->evaluate("ITEMS;"));
+	//更新K线所用到的数据
+	m_vOpen = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("OPEN;"));
+	m_vHigh = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("HIGH;"));
+	m_vLow = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("LOW;"));
+	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
 }
 
 void CKLineLiner::getMinAndMax( float& fMin,float& fMax,int iCount )
 {
 	int c = 0;
-	for(int i=(m_listItems.size()-1);(i>0&&c<=iCount);--i)
+	for(int i=(m_vOpen.size()-1);(i>0&&c<=iCount);--i)
 	{
-		if(m_listItems[i].fHigh>fMax)
-			fMax = m_listItems[i].fHigh;
-		if(m_listItems[i].fLow<fMin)
-			fMin = m_listItems[i].fLow;
+		if(m_vHigh[i]>fMax)
+			fMax = m_vHigh[i];
+		if(m_vLow[i]<fMin)
+			fMin = m_vLow[i];
 
 		++c;
 	}
@@ -125,12 +128,12 @@ void CKLineLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount )
 
 	float fItemWidth = rtClient.width()/iShowCount;			//单列宽度
 
-	int iIndex = m_listItems.size()-1;
+	int iIndex = m_vOpen.size()-1;
 	float fBeginX = rtClient.right()-fItemWidth;
 	int iCount = 0;
 	while(iCount<iShowCount&&iIndex>=0)
 	{
-		drawKGrid(m_listItems[iIndex],p,QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height()));
+		drawKGrid(iIndex,p,QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height()));
 
 		fBeginX-=fItemWidth;
 		--iIndex;
@@ -138,15 +141,15 @@ void CKLineLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount )
 	}
 }
 
-void CKLineLiner::drawKGrid( const stLinerItem& pHistory,QPainter& p,const QRectF& rtItem )
+void CKLineLiner::drawKGrid( const int& iIndex,QPainter& p,const QRectF& rtItem )
 {
 	float fHighMax = fMaxPrice-fMinPrice;
-	float fHighY = ((pHistory.fHigh-fMinPrice)/fHighMax)*rtItem.height();
-	float fLowY = ((pHistory.fLow-fMinPrice)/fHighMax)*rtItem.height();
-	float fOpenY = ((pHistory.fOpen-fMinPrice)/fHighMax)*rtItem.height();
-	float fCloseY = ((pHistory.fClose-fMinPrice)/fHighMax)*rtItem.height();
+	float fHighY = ((m_vHigh[iIndex]-fMinPrice)/fHighMax)*rtItem.height();
+	float fLowY = ((m_vLow[iIndex]-fMinPrice)/fHighMax)*rtItem.height();
+	float fOpenY = ((m_vOpen[iIndex]-fMinPrice)/fHighMax)*rtItem.height();
+	float fCloseY = ((m_vClose[iIndex]-fMinPrice)/fHighMax)*rtItem.height();
 
-	if(pHistory.fClose>pHistory.fOpen)
+	if(m_vClose[iIndex]>m_vOpen[iIndex])
 	{
 		//增长，绘制红色色块
 		p.setPen(QColor(255,0,0));
@@ -182,13 +185,98 @@ void CKLineLiner::drawKGrid( const stLinerItem& pHistory,QPainter& p,const QRect
 
 
 
+CVolumeLiner::CVolumeLiner( QScriptEngine* pEngine )
+	: CBaseLiner(pEngine,"")
+{
+
+}
+
+CVolumeLiner::~CVolumeLiner( void )
+{
+
+}
+
+void CVolumeLiner::updateData()
+{
+	m_vOpen = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("OPEN;"));
+	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
+	m_vals = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("VOLUME;"));
+//	m_vAmount = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
+}
+
+void CVolumeLiner::getMinAndMax( float& fMin,float& fMax,int iCount )
+{
+	return CBaseLiner::getMinAndMax(fMin,fMax,iCount);
+}
+
+void CVolumeLiner::Draw( QPainter& p,const QRectF& rtClient,int iShowCount )
+{
+	p.setPen(QColor(127,0,0));
+	p.drawRect(rtClient);
+
+	//设置画笔颜色
+	p.setPen(QColor(255,0,0));
+
+	float fItemWidth = rtClient.width()/iShowCount;			//单列宽度
+
+	int iIndex = m_vOpen.size()-1;
+	float fBeginX = rtClient.right()-fItemWidth;
+	int iCount = 0;
+	while(iCount<iShowCount&&iIndex>=0)
+	{
+		QRectF rtItem = QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height());
+		float fVal = ((m_vals[iIndex]-fMinPrice)/(fMaxPrice-fMinPrice))*rtItem.height();
+
+		if(m_vClose[iIndex]>m_vOpen[iIndex])
+		{
+			//增长，绘制红色色块
+			p.setPen(QColor(255,0,0));
+			if(int(rtItem.width())%2==0)
+			{
+				QRectF rt = QRectF(rtItem.left()+0.5,rtItem.bottom()-fVal,rtItem.width()-1.0,fVal);
+				p.fillRect(rt,QColor(255,0,0));
+			}
+			else
+			{
+				QRectF rt = QRectF(rtItem.left(),rtItem.bottom()-fVal,rtItem.width(),fVal);
+				p.fillRect(rt,QColor(255,0,0));
+			}
+		}
+		else
+		{
+			//降低，绘制蓝色色块
+			p.setPen(QColor(0,255,255));
+			if(int(rtItem.width())%2==0)
+			{
+				QRectF rt = QRectF(rtItem.left()+0.5,rtItem.bottom()-fVal,rtItem.width()-1.0,fVal);
+				p.fillRect(rt,QColor(0,255,255));
+			}
+			else
+			{
+				QRectF rt = QRectF(rtItem.left(),rtItem.bottom()-fVal,rtItem.width(),fVal);
+				p.fillRect(rt,QColor(0,255,255));
+			}
+		}
+
+
+		fBeginX-=fItemWidth;
+		--iIndex;
+		++iCount;
+	}
+}
+
+
 CMultiLiner::CMultiLiner( MultiLinerType type,QScriptEngine* pEngine )
 	: m_type(type)
 	, m_pEngine(pEngine)
 {
-	if(m_type==Main)
+	if(m_type==MainKLine)
 	{
 		m_listLiner.push_back(new CKLineLiner(m_pEngine));
+	}
+	if(m_type == VolumeLine)
+	{
+		m_listLiner.push_back(new CVolumeLiner(m_pEngine));
 	}
 }
 
@@ -239,7 +327,7 @@ void CMultiLiner::setExpression( const QString& exp )
 		delete p;
 	m_listLiner.clear();
 
-	if(m_type==Main)
+	if(m_type==MainKLine)
 	{
 		m_listLiner.push_back(new CKLineLiner(m_pEngine));
 	}
