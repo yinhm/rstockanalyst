@@ -61,7 +61,9 @@ protected slots:
 	void onClickedAddShow();							//减少显示个数
 	void onClickedSubShow();							//增加显示个数
 	void onAddDeputy();									//增加副图
+	void onAddVolume();									//是否显示量视图
 	void onRemoveDeputy();								//删除副图
+	void onShowMainChanged(bool bShow);					//是否显示主图
 
 private:
 	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
@@ -73,6 +75,8 @@ private:
 
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
+	QAction* m_pActShowMain;				//是否显示主图
+
 	KLineCircle m_typeCircle;				//本图的显示周期
 	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
 	QVector<stLinerItem> listItems;			//所有用于显示的数据
@@ -89,6 +93,8 @@ private:
 	int m_iCoorXHeight;						//X坐标轴的高度
 	float fItemWidth;						//单个Item的宽度
 	int m_iMainLinerHeight;					//主图的高度
+
+	QVector<int> m_vSizes;					//显示比例(总和为100)
 
 	QRect m_rtAddShow;						//增加显示个数的按钮区域
 	QRect m_rtSubShow;						//减少显示个数的按钮区域
