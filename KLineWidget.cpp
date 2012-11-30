@@ -120,6 +120,7 @@ int getLinerWeekItem(QList<stLinerItem*>& listItems,const QList<qRcvHistoryData*
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::KLine)
 	, m_pMenuCustom(0)
+	, m_pActShowMain(0)
 	, m_typeCircle(CKLineWidget::Day)
 	, m_pStockItem(0)
 	, m_iShowCount(100)
@@ -158,14 +159,29 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_listLiners.push_back(new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine,""));
 //	m_pLinerMain->setExpression(QString("SUB(LOW,1.0);\r\nADD(HIGH,1.0);"));
 
+
+	//设置菜单
+	m_pMenuCustom = new QMenu("K线图操作");
+	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
+	{
+		QMenu* pMenuDeputy = m_pMenuCustom->addMenu(tr("添加副图"));
+		pMenuDeputy->addAction(tr("普通副图"),this,SLOT(onAddDeputy()));
+		pMenuDeputy->addAction(tr("量副图"),this,SLOT(onAddVolume()));
+
+	}
+	m_pMenuCustom->addAction(tr("删除副图"),this,SLOT(onRemoveDeputy()));
+	m_pMenuCustom->addAction(tr("设置表达式"),this,SLOT(onSetExpression()));
+	{
+		m_pActShowMain = m_pMenuCustom->addAction(tr("显示主图"));
+		m_pActShowMain->setCheckable(true);
+		m_pActShowMain->setChecked(true);
+		connect(m_pActShowMain,SIGNAL(toggled(bool)),this,SLOT(onShowMainChanged(bool)));
+	}
+
 //	setMinimumSize(200,200);
 	setMouseTracking(true);
 	setStockCode(QString("600000"));
-	m_pMenuCustom = new QMenu("K线图操作");
-	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
-	m_pMenuCustom->addAction(tr("增加副图"),this,SLOT(onAddDeputy()));
-	m_pMenuCustom->addAction(tr("删除副图"),this,SLOT(onRemoveDeputy()));
-	m_pMenuCustom->addAction(tr("设置表达式"),this,SLOT(onSetExpression()));
+
 }
 
 CKLineWidget::~CKLineWidget(void)
@@ -254,25 +270,30 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
-	/*绘制主图*/
-	int iMainHeight = rtClient.height();
-	if(m_listLiners.size()>0)
-		iMainHeight = iMainHeight/2;
 
-	m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),iMainHeight),m_iShowCount);
+	int iCurY = rtClient.top();		//当前绘制到的位置
+	/*绘制主图*/
+	if(m_pActShowMain->isChecked())
+	{
+		int iMainHeight = rtClient.height();
+		if(m_listLiners.size()>0)
+			iMainHeight = iMainHeight/2;
+
+		m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),iMainHeight),m_iShowCount);
+		iCurY += iMainHeight;
+	}
 
 	//绘制分割线
 	if(m_listLiners.size()>0)
 	{
 		p.setPen(QColor(255,255,255));
-		int iDeputyHeight = iMainHeight/m_listLiners.size();
-		int iCurY = rtClient.top()+iMainHeight;
+		int iDeputyHeight = (rtClient.bottom()-iCurY)/m_listLiners.size();
 		if(m_listLiners.contains(m_pCurrentLiner)&&m_bShowMax)
 		{
 			p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
 			foreach(CMultiLiner* pLiner,m_listLiners)
 				pLiner->Draw(p,QRectF(),0);
-			m_pCurrentLiner->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),iMainHeight),m_iShowCount);
+			m_pCurrentLiner->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),rtClient.bottom()-iCurY),m_iShowCount);
 		}
 		else
 		{
@@ -434,6 +455,14 @@ void CKLineWidget::onAddDeputy()
 	update();
 }
 
+void CKLineWidget::onAddVolume()
+{
+	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine,"");
+	m_listLiners.push_back(pMultiLiner);
+	update();
+}
+
+
 void CKLineWidget::onRemoveDeputy()
 {
 	//删除当前选中的副图
@@ -447,6 +476,13 @@ void CKLineWidget::onRemoveDeputy()
 		}
 		m_pCurrentLiner = m_pLinerMain;
 	}
+}
+
+void CKLineWidget::onShowMainChanged( bool bShow )
+{
+	if(bShow)
+		m_pLinerMain->updateData();
+	update();
 }
 
 void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )
@@ -608,7 +644,8 @@ void CKLineWidget::resetTmpData()
 		qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
 	}
 	//更新绘制中的数据
-	m_pLinerMain->updateData();
+	if(m_pActShowMain->isChecked())
+		m_pLinerMain->updateData();
 	foreach(CMultiLiner* p,m_listLiners)
 		p->updateData();
 
