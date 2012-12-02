@@ -3,12 +3,15 @@
 #include "ColorManager.h"
 
 
-CBaseLiner::CBaseLiner( QScriptEngine* pEngine,const QString& exp )
+CBaseLiner::CBaseLiner( QScriptEngine* pEngine,const QString& exp,const QString& title /*= "" */ )
 	: m_pEngine(pEngine)
 	, m_qsExp(exp)
+	, m_qsTitle(title)
 	, m_clrLine(QColor(255,255,255))
 {
 	updateData();
+	if(m_qsTitle.isEmpty())
+		m_qsTitle = m_qsExp;
 }
 
 CBaseLiner::~CBaseLiner(void)
@@ -86,7 +89,7 @@ void CBaseLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount  )
 
 
 CKLineLiner::CKLineLiner( QScriptEngine* pEngine )
-	: CBaseLiner(pEngine,"")
+	: CBaseLiner(pEngine,"", "K线图")
 {
 
 }
@@ -188,7 +191,7 @@ void CKLineLiner::drawKGrid( const int& iIndex,QPainter& p,const QRectF& rtItem 
 
 
 CVolumeLiner::CVolumeLiner( QScriptEngine* pEngine )
-	: CBaseLiner(pEngine,"")
+	: CBaseLiner(pEngine,"", "量视图")
 {
 
 }
@@ -299,6 +302,7 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	float fMinPrice = 9999999.0;
 	float fMaxPrice = -9999999.0;
 
+	//获取最大值/最小值
 	foreach(CBaseLiner* pLiner,m_listLiner)
 	{
 		pLiner->getMinAndMax(fMinPrice,fMaxPrice,iShowCount);
@@ -306,13 +310,28 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	if(fMaxPrice<=fMinPrice)
 		return;
 
+	//绘制区域内Y坐标轴
 	drawCoordY(p,QRectF(rtClient.right()+2,rtClient.top(),50,rtClient.height()),fMinPrice,fMaxPrice);
 
+	//绘制各个子Liner
 	foreach(CBaseLiner* pLiner,m_listLiner)
 	{
 		pLiner->setMaxPrice(fMaxPrice);
 		pLiner->setMinPrice(fMinPrice);
 		pLiner->Draw(p,rtClient,iShowCount);
+	}
+
+	//绘制各Liner颜色的title
+	int iTextHeight = p.fontMetrics().height();
+	int iIndex = 0;
+	foreach(CBaseLiner* pLiner,m_listLiner)
+	{
+		if(typeid(*pLiner)!=typeid(CBaseLiner))
+			continue;
+		p.setPen(pLiner->getLineColor());
+		QRect rtText(rtClient.left(),rtClient.top()+iTextHeight*iIndex,rtClient.width(),iTextHeight);
+		p.drawText(rtText,Qt::AlignLeft|Qt::AlignTop,pLiner->getTitle());
+		++iIndex;
 	}
 }
 

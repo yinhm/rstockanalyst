@@ -501,6 +501,7 @@ void CKLineWidget::onShowMainChanged( bool bShow )
 
 void CKLineWidget::onSetSizes()
 {
+	//弹出让用户编辑各自窗口比例的对话框
 	QDialog dlg(this);
 	QGridLayout layout(&dlg);
 	QPushButton btnOk(this);
@@ -511,6 +512,7 @@ void CKLineWidget::onSetSizes()
 	QVector<QSpinBox*> vSpins;
 	for (int i=0;i<iCount;++i)
 	{
+		//设置初始的比例
 		QLabel* pLabel = new QLabel(&dlg);
 		pLabel->setText(QString("%1").arg(i+1));
 		vLabels.push_back(pLabel);
@@ -530,7 +532,7 @@ void CKLineWidget::onSetSizes()
 	if(QDialog::Accepted != dlg.exec())
 		return;
 
-	m_vSizes.clear();
+	m_vSizes.clear();			//清空之前的比例数据
 
 	for (int i=0;i<iCount;++i)
 	{
