@@ -162,6 +162,22 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom = new QMenu("K线图操作");
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
 	{
+		//设置当前K线图的显示周期
+		QMenu* pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
+		pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
+		pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
+		pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
+		pMenuCircle->addAction(tr("30分钟分时图"),this,SLOT(onSetCircle()))->setData(Min30);
+		pMenuCircle->addAction(tr("60分钟分时图"),this,SLOT(onSetCircle()))->setData(Min60);
+
+		pMenuCircle->addAction(tr("日线图"),this,SLOT(onSetCircle()))->setData(Day);
+		pMenuCircle->addAction(tr("周线图"),this,SLOT(onSetCircle()))->setData(Week);
+		pMenuCircle->addAction(tr("月线图"),this,SLOT(onSetCircle()))->setData(Month);
+		pMenuCircle->addAction(tr("季线图"),this,SLOT(onSetCircle()))->setData(Month3);
+		pMenuCircle->addAction(tr("年线图"),this,SLOT(onSetCircle()))->setData(Year);
+	}
+	{
+		m_pMenuCustom->addSeparator();
 		QMenu* pMenuDeputy = m_pMenuCustom->addMenu(tr("添加副图"));
 		pMenuDeputy->addAction(tr("普通副图"),this,SLOT(onAddDeputy()));
 		pMenuDeputy->addAction(tr("量副图"),this,SLOT(onAddVolume()));
@@ -452,6 +468,14 @@ void CKLineWidget::onClickedSubShow()
 	}
 }
 
+void CKLineWidget::onSetCircle()
+{
+	//设置当前的显示周期
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	m_typeCircle = static_cast<KLineCircle>(pAct->data().toInt());
+	resetTmpData();
+}
+
 void CKLineWidget::onAddDeputy()
 {
 	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pScriptEngine,"CLOSE;");
@@ -655,7 +679,7 @@ void CKLineWidget::resetTmpData()
 		}
 
 		{
-			//清楚获取的日线数据
+			//清除获取的日线数据
 			foreach(qRcvHistoryData* p,historys)
 				delete p;
 			historys.clear();
