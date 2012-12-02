@@ -60,6 +60,7 @@ protected slots:
 	void onSetExpression();								//弹出对话框，让用户手动输入表达式
 	void onClickedAddShow();							//减少显示个数
 	void onClickedSubShow();							//增加显示个数
+	void onSetCircle();									//设置当前的显示周期
 	void onAddDeputy();									//增加副图
 	void onAddVolume();									//是否显示量视图
 	void onRemoveDeputy();								//删除副图
