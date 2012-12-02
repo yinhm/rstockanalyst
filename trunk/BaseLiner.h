@@ -35,7 +35,7 @@ Q_DECLARE_METATYPE(QVector<stLinerItem>)
 class CBaseLiner
 {
 public:
-	CBaseLiner(QScriptEngine* pEngine,const QString& exp);
+	CBaseLiner(QScriptEngine* pEngine,const QString& exp,const QString& title = "" );
 	~CBaseLiner(void);
 public:
 	virtual void updateData();				//更新显示的数据
@@ -44,8 +44,12 @@ public:
 
 public:
 	void setLineColor(const QColor& clr){ m_clrLine = clr; }
+	QColor getLineColor() const{ return m_clrLine; }
 	void setMinPrice(float f){ fMinPrice=f; }
 	void setMaxPrice(float f){ fMaxPrice=f; }
+	QString getExpression() const{ return m_qsExp; }
+	void setTitle(const QString& title){ m_qsTitle = title; }
+	QString getTitle() const{ return m_qsTitle; }
 
 protected:
 	QColor m_clrLine;		//线条颜色
@@ -53,6 +57,7 @@ protected:
 	float fMaxPrice;
 	float fMinPrice;
 	QVector<float> m_vals;
+	QString m_qsTitle;			//标题
 	QString m_qsExp;			//表达式
 	QScriptEngine* m_pEngine;	//脚本引擎
 };
