@@ -41,9 +41,48 @@ QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
 }
 */
 
-bool getLinerItemByDays(stLinerItem* pItem,const QList<qRcvHistoryData*>& list)
+bool getLinerItemByDay(stLinerItem& item,const qRcvHistoryData* pHistory)
 {
+	if(!pHistory)
+		return false;
+	item.time = pHistory->time;
+	item.fOpen = pHistory->fOpen;
+	item.fClose = pHistory->fClose;
+	item.fHigh = pHistory->fHigh;
+	item.fLow = pHistory->fLow;
+	item.fAmount = pHistory->fAmount;
+	item.fVolume = pHistory->fVolume;
+	item.wAdvance = pHistory->wAdvance;
+	item.wDecline = pHistory->wDecline;
+	return true;
+}
+/*通过多天数据获取一个周期内的数据*/
+bool getLinerItemByDays(stLinerItem& item,const QList<qRcvHistoryData*>& list)
+{
+	if(list.size()<1)
+		return false;
 
+	qRcvHistoryData* pBegin = list.first();
+	qRcvHistoryData* pLast = list.last();
+	item.time = pBegin->time;
+	item.fOpen = pBegin->fOpen;
+	item.fClose = pLast->fClose;
+
+	item.fLow = pBegin->fLow;
+	item.fHigh = pBegin->fHigh;
+	item.fAmount = 0;
+	item.fVolume = 0;
+	foreach(qRcvHistoryData*p,list)
+	{
+		if(item.fLow>p->fLow)
+			item.fLow = p->fLow;
+		if(item.fHigh<p->fHigh)
+			item.fHigh = p->fHigh;
+		item.fAmount+=p->fAmount;
+		item.fVolume+=p->fVolume;
+	}
+//	item.wAdvance = pHistory->wAdvance;
+//	item.wDecline = pHistory->wDecline;
 	return true;
 }
 
@@ -54,16 +93,8 @@ int getLinerDayItem(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*
 		foreach(qRcvHistoryData* p,historys)
 		{
 			stLinerItem item;
-			item.time = p->time;
-			item.fOpen = p->fOpen;
-			item.fClose = p->fClose;
-			item.fHigh = p->fHigh;
-			item.fLow = p->fLow;
-			item.fAmount = p->fAmount;
-			item.fVolume = p->fVolume;
-			item.wAdvance = p->wAdvance;
-			item.wDecline = p->wDecline;
-			listItems.push_back(item);
+			if(getLinerItemByDay(item,p))
+				listItems.push_back(item);
 		}
 	}
 	else
@@ -73,7 +104,7 @@ int getLinerDayItem(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*
 	return listItems.size();
 }
 
-int getLinerWeekItem(QList<stLinerItem*>& listItems,const QList<qRcvHistoryData*>& historys)
+int getLinerWeekItem(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -97,9 +128,9 @@ int getLinerWeekItem(QList<stLinerItem*>& listItems,const QList<qRcvHistoryData*
 			iCurWeek = tmDate.weekNumber();
 			if(tmDate.dayOfWeek()==1)
 			{
-				stLinerItem* pItem = new stLinerItem;
-				getLinerItemByDays(pItem,weekHis);
-				listItems.push_back(pItem);
+				stLinerItem item;
+				getLinerItemByDays(item,weekHis);
+				listItems.push_back(item);
 				weekHis.clear();
 			}
 		}
@@ -107,11 +138,12 @@ int getLinerWeekItem(QList<stLinerItem*>& listItems,const QList<qRcvHistoryData*
 		{
 			iCurWeek = tmDate.weekNumber();
 
-			stLinerItem* pItem = new stLinerItem;
-			getLinerItemByDays(pItem,weekHis);
-			listItems.push_back(pItem);
+			stLinerItem item;
+			getLinerItemByDays(item,weekHis);
+			listItems.push_back(item);
 			weekHis.clear();
 		}
+		weekHis.push_back(pHistory);
 	}
 
 	return listItems.size();
@@ -654,6 +686,7 @@ void CKLineWidget::clearTmpData()
 
 void CKLineWidget::resetTmpData()
 {
+	m_iShowCount = 100;
 	clearTmpData();
 	if(m_typeCircle<Day)
 	{
@@ -661,7 +694,6 @@ void CKLineWidget::resetTmpData()
 		QList<qRcvMinuteData*> minutes = m_pStockItem->getMinuteList();
 		if(m_typeCircle == Min1)
 		{
-
 		}
 	}
 	else
@@ -676,6 +708,10 @@ void CKLineWidget::resetTmpData()
 		{
 			//目前未使用
 		//	getLinerItem(listItems,historys,3);
+		}
+		else if(m_typeCircle == Week)
+		{
+			getLinerWeekItem(listItems,historys);
 		}
 
 		{
