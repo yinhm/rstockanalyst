@@ -550,32 +550,41 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	}
 }
 
-void CKLineWidget::mouseMoveEvent( QMouseEvent* )
+void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 {
 	if(!m_pStockItem)
 	{
-		QToolTip::hideText();
-		return;
+		return QToolTip::hideText();
 	}
 	QRectF rtClient = this->rect();
-	rtClient.adjust(KLINE_BORDER,KLINE_BORDER,-50,-15);
+	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
-	float fBegin = rtClient.left();
-	//int iIndex = (e->posF().x() - fBegin)/fItemWidth;
-	//if(iIndex>=0&&iIndex<listHistory.size())
-	//{
-	//	qRcvHistoryData* pHistory = listHistory[iIndex];
-	//	QString qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n开盘价:%5\r\n收盘价:%6\r\n成交量:%7\r\n成交额:%8")
-	//		.arg(m_pStockItem->getCode()).arg(QDateTime::fromTime_t(pHistory->time).toString("yyyy/MM/dd"))
-	//		.arg(pHistory->fHigh).arg(pHistory->fLow).arg(pHistory->fOpen).arg(pHistory->fClose)
-	//		.arg(pHistory->fVolume).arg(pHistory->fAmount);
+	float fEnd = rtClient.right();
+	int iLastN = (fEnd - e->posF().x())/fItemWidth;
+	if(iLastN<0||iLastN>=m_iShowCount)
+		return QToolTip::hideText();
 
-	//	QToolTip::showText(e->globalPos(),qsTooltip,this);
-	//}
-	//else
-	//{
-	//	QToolTip::hideText();
-	//}
+	int iIndex = listItems.size()-iLastN-1;
+	if(iIndex<0)
+		return QToolTip::hideText();
+
+	QString qsTooltip;		//Tips
+	stLinerItem item = listItems[iIndex];
+	if(m_typeCircle<Day)
+	{
+		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n成交量:%5\r\n成交额:%6")
+			.arg(m_pStockItem->getCode()).arg(QDateTime::fromTime_t(item.time).toString("HH:mm:ss"))
+			.arg(item.fHigh).arg(item.fLow).arg(item.fVolume).arg(item.fAmount);
+	}
+	else
+	{
+		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n开盘价:%5\r\n收盘价:%6\r\n成交量:%7\r\n成交额:%8")
+			.arg(m_pStockItem->getCode()).arg(QDateTime::fromTime_t(item.time).toString("yyyy/MM/dd"))
+			.arg(item.fHigh).arg(item.fLow).arg(item.fOpen).arg(item.fClose)
+			.arg(item.fVolume).arg(item.fAmount);
+	}
+
+	QToolTip::showText(e->globalPos(),qsTooltip,this);
 }
 
 void CKLineWidget::mousePressEvent( QMouseEvent* e )
