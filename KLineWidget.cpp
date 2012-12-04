@@ -41,6 +41,74 @@ QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
 }
 */
 
+/* 对某分钟的数据进行转换 (qRcvMinuteData*) -> (stLinerItem) */
+bool getLinerItemByMin(stLinerItem& item, qRcvMinuteData* pMin)
+{
+	if(!pMin)
+		return false;
+
+	item.time = pMin->tmTime;
+	item.fOpen = pMin->fPrice;
+	item.fClose = pMin->fPrice;
+	item.fLow = pMin->fPrice;
+	item.fHigh = pMin->fPrice;
+	item.fAmount = pMin->fAmount;
+	item.fVolume = pMin->fVolume;
+	return true;
+}
+
+/*通过分钟数据获取指定周期内的数据*/
+bool getLinerItemByMins(stLinerItem& item, const QList<qRcvMinuteData*>& list)
+{
+	if(list.size()<1)
+		return false;
+
+	qRcvMinuteData* pBegin = list.first();
+	qRcvMinuteData* pLast = list.last();
+	item.time = pBegin->tmTime;
+	item.fOpen = pBegin->fPrice;
+	item.fClose = pLast->fPrice;
+
+	item.fLow = pBegin->fPrice;
+	item.fHigh = pBegin->fPrice;
+	item.fAmount = 0;
+	item.fVolume = 0;
+	foreach(qRcvMinuteData* p,list)
+	{
+		if(item.fLow>p->fPrice)
+			item.fLow = p->fPrice;
+		if(item.fHigh<p->fPrice)
+			item.fHigh = p->fPrice;
+		item.fAmount+=p->fAmount;
+		item.fVolume+=p->fVolume;
+	}
+	return true;
+}
+
+int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvMinuteData*>& minutes, int iSize = 1)
+{
+	QList<qRcvMinuteData*> listMins;
+	int iCount = 0;
+	for(int i=minutes.size()-1;i>=0;--i)
+	{
+		qRcvMinuteData* p = minutes[i];
+		if(iCount>=iSize)
+		{
+			stLinerItem item;
+			if(getLinerItemByMins(item,listMins))
+				listItems.push_front(item);
+			listMins.clear();
+			iCount = 0;
+		}
+
+		++iCount;
+		listMins.push_front(p);
+	}
+
+	return listItems.size();
+}
+
+/* 对某天的数据进行转换 (qRcvHistoryData*) -> (stLinerItem) */
 bool getLinerItemByDay(stLinerItem& item,const qRcvHistoryData* pHistory)
 {
 	if(!pHistory)
@@ -72,7 +140,7 @@ bool getLinerItemByDays(stLinerItem& item,const QList<qRcvHistoryData*>& list)
 	item.fHigh = pBegin->fHigh;
 	item.fAmount = 0;
 	item.fVolume = 0;
-	foreach(qRcvHistoryData*p,list)
+	foreach(qRcvHistoryData* p,list)
 	{
 		if(item.fLow>p->fLow)
 			item.fLow = p->fLow;
@@ -86,25 +154,19 @@ bool getLinerItemByDays(stLinerItem& item,const QList<qRcvHistoryData*>& list)
 	return true;
 }
 
-int getLinerDayItem(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys, int nDay)
+int getLinerDayItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
 {
-	if(nDay==1)
+	foreach(qRcvHistoryData* p,historys)
 	{
-		foreach(qRcvHistoryData* p,historys)
-		{
-			stLinerItem item;
-			if(getLinerItemByDay(item,p))
-				listItems.push_back(item);
-		}
+		stLinerItem item;
+		if(getLinerItemByDay(item,p))
+			listItems.push_back(item);
 	}
-	else
-	{
 
-	}
 	return listItems.size();
 }
 
-int getLinerWeekItem(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -144,6 +206,126 @@ int getLinerWeekItem(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData
 			weekHis.clear();
 		}
 		weekHis.push_back(pHistory);
+	}
+
+	return listItems.size();
+}
+
+int getLinerMonthItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	int iCurMonth = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+		iCurMonth = tmDate.month();
+	}
+
+	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			iCurMonth = tmDate.month();
+			{
+				stLinerItem item;
+				getLinerItemByDays(item,monthHis);
+				listItems.push_back(item);
+				monthHis.clear();
+			}
+		}
+		else if(tmDate.month()!=iCurMonth)
+		{
+			iCurMonth = tmDate.month();
+
+			stLinerItem item;
+			getLinerItemByDays(item,monthHis);
+			listItems.push_back(item);
+			monthHis.clear();
+		}
+		monthHis.push_back(pHistory);
+	}
+
+	return listItems.size();
+}
+
+int getLinerMonth3Items(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	int iCurMonth = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+		iCurMonth = tmDate.month();
+	}
+
+	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			iCurMonth = tmDate.month();
+			{
+				stLinerItem item;
+				getLinerItemByDays(item,monthHis);
+				listItems.push_back(item);
+				monthHis.clear();
+			}
+		}
+		else if(((tmDate.month()-1)/3)!=((iCurMonth-1)/3))
+		{
+			iCurMonth = tmDate.month();
+
+			stLinerItem item;
+			getLinerItemByDays(item,monthHis);
+			listItems.push_back(item);
+			monthHis.clear();
+		}
+		monthHis.push_back(pHistory);
+	}
+
+	return listItems.size();
+}
+
+int getLinerYearItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+	}
+
+	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			{
+				stLinerItem item;
+				getLinerItemByDays(item,monthHis);
+				listItems.push_back(item);
+				monthHis.clear();
+			}
+		}
+		monthHis.push_back(pHistory);
 	}
 
 	return listItems.size();
@@ -331,8 +513,12 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		int iMainHeight = (float)((float)m_vSizes[iSizeIndex]/float(iTotal))*iTotalHeight + 0.5;
 		m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),iMainHeight),m_iShowCount);
 		iCurY += iMainHeight;
-		++iSizeIndex;
 	}
+	else
+	{
+		m_pLinerMain->Draw(p,QRectF(),0);
+	}
+	++iSizeIndex;
 
 	//绘制分割线
 	if(m_listLiners.size()>0)
@@ -423,12 +609,16 @@ void CKLineWidget::mousePressEvent( QMouseEvent* e )
 	}
 }
 
-void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* )
+void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* e )
 {
-	if(m_pCurrentLiner&&(m_pCurrentLiner!=m_pLinerMain))
+	foreach(CMultiLiner* pLiner,m_listLiners)
 	{
-		m_bShowMax = !m_bShowMax;
-		update();
+		if(pLiner->getRect().contains(e->pos()))
+		{
+			m_pCurrentLiner = pLiner;
+			m_bShowMax = !m_bShowMax;
+			update();
+		}
 	}
 }
 
@@ -629,15 +819,38 @@ void CKLineWidget::drawCoordX( QPainter& p,const QRect& rtCoordX )
 	//左空余3Pix，右空余2Pix
 	fItemWidth = float(rtCoordX.width()-2-3)/float(m_iShowCount);
 	//从右向左绘制
-	float fCurX = rtCoordX.right()-2;
-	float fLastX = fCurX+100;
+	float fCurX = rtCoordX.right();
+	float fLastX = fCurX;
 	//绘制刻度
 	if(m_typeCircle<Day)
 	{
+		//分时数据的横轴绘制（需绘制精度为小时）
+		int iCurHour = 0;
+		int iCurIndex = listItems.size()-1;
+		int iCount = 0;
+		while(iCount<m_iShowCount)
+		{
+			QTime tmTime = QDateTime::fromTime_t(listItems[iCurIndex].time).time();
+			if(tmTime.hour()!=iCurHour)
+			{
+				if((fLastX-fCurX)>16)
+				{
+					p.drawLine(fCurX,fTopLine,fCurX,rtCoordX.bottom()-1);
+					p.drawText(fCurX+2,rtCoordX.bottom()-3,QString("%1时").arg(iCurHour));
+					fLastX = fCurX;
+				}
 
+				iCurHour = tmTime.hour();
+			}
+
+			fCurX -= fItemWidth;
+			++iCount;
+			--iCurIndex;
+		}
 	}
 	else
 	{
+		//日线数据的横轴绘制（只需绘制精度为月份即可）
 		int iCurMonth = 0;
 		int iCurIndex = listItems.size()-1;
 		int iCount = 0;
@@ -645,14 +858,15 @@ void CKLineWidget::drawCoordX( QPainter& p,const QRect& rtCoordX )
 		{
 			QDate tmDate = QDateTime::fromTime_t(listItems[iCurIndex].time).date();
 			if(tmDate.month()!=iCurMonth)
-			{
-				iCurMonth = tmDate.month();
+			{				
 				if((fLastX-fCurX)>16)
 				{
 					p.drawLine(fCurX,fTopLine,fCurX,rtCoordX.bottom()-1);
 					p.drawText(fCurX+2,rtCoordX.bottom()-3,QString("%1").arg(iCurMonth));
 					fLastX = fCurX;
 				}
+
+				iCurMonth = tmDate.month();
 			}
 
 			fCurX -= fItemWidth;
@@ -686,7 +900,8 @@ void CKLineWidget::clearTmpData()
 
 void CKLineWidget::resetTmpData()
 {
-	m_iShowCount = 100;
+	if(m_iShowCount<1)
+		m_iShowCount = 100;
 	clearTmpData();
 	if(m_typeCircle<Day)
 	{
@@ -694,6 +909,23 @@ void CKLineWidget::resetTmpData()
 		QList<qRcvMinuteData*> minutes = m_pStockItem->getMinuteList();
 		if(m_typeCircle == Min1)
 		{
+			getLinerMinItems(listItems,minutes);
+		}
+		else if(m_typeCircle == Min5)
+		{
+			getLinerMinItems(listItems,minutes,5);
+		}
+		else if(m_typeCircle == Min15)
+		{
+			getLinerMinItems(listItems,minutes,15);
+		}
+		else if(m_typeCircle == Min30)
+		{
+			getLinerMinItems(listItems,minutes,30);
+		}
+		else if(m_typeCircle == Min60)
+		{
+			getLinerMinItems(listItems,minutes,60);
 		}
 	}
 	else
@@ -702,7 +934,7 @@ void CKLineWidget::resetTmpData()
 		QList<qRcvHistoryData*> historys = m_pStockItem->getHistoryList();
 		if(m_typeCircle == Day)
 		{
-			getLinerDayItem(listItems,historys,1);
+			getLinerDayItems(listItems,historys);
 		}
 		else if(m_typeCircle == DayN)
 		{
@@ -711,7 +943,19 @@ void CKLineWidget::resetTmpData()
 		}
 		else if(m_typeCircle == Week)
 		{
-			getLinerWeekItem(listItems,historys);
+			getLinerWeekItems(listItems,historys);
+		}
+		else if(m_typeCircle == Month)
+		{
+			getLinerMonthItems(listItems,historys);
+		}
+		else if(m_typeCircle == Month3)
+		{
+			getLinerMonth3Items(listItems,historys);
+		}
+		else if(m_typeCircle == Year)
+		{
+			getLinerYearItems(listItems,historys);
 		}
 
 		{
