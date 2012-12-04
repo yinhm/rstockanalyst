@@ -313,6 +313,9 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	if(fMaxPrice<fMinPrice)
 		return;
 
+	fMinPrice = (int(fMinPrice*10))/10.0;
+	fMaxPrice = (int(fMaxPrice*10 + 1.0))/10.0;
+
 	//绘制区域内Y坐标轴
 	drawCoordY(p,QRectF(rtClient.right()+2,rtClient.top(),50,rtClient.height()),fMinPrice,fMaxPrice);
 
@@ -377,10 +380,18 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 
 	//Y坐标（价格）
 	p.drawLine(rtClient.topLeft(),rtClient.bottomLeft());			//主线
+	int iPower = 1;		//放大比例
 
 	int iBeginPrice = fMinPrice*10;
 	int iEndPrice = fMaxPrice*10;
 	float fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
+	if(fGridHeight>50)
+	{
+		iPower = 2;
+		iBeginPrice = iBeginPrice*10;
+		iEndPrice = iEndPrice*10;
+		fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
+	}
 	int iGridSize = 1;
 	while((fGridHeight*iGridSize)<10)
 		++iGridSize;
@@ -388,22 +399,38 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 
 	float fY = rtClient.bottom();
 	float fX = rtClient.left();
+	float fLast = fY+31;
 
 	int iGridCount = 0;
 	for (int i=(iBeginPrice+iGridSize); i<iEndPrice; i=i+iGridSize)
 	{
 		fY = fY-fGridHeight;
-		if(iGridCount%10 == 0)
+		if((fLast-fY)>30)
 		{
 			p.drawLine(fX,fY,fX+4,fY);
 			p.setPen(QColor(0,255,255));
-			p.drawText(fX+7,fY+4,QString("%1").arg(float(float(i)/10),0,'f',2));
+			if(iPower == 2)
+				p.drawText(fX+7,fY+4,QString("%1").arg(float(float(i)/100.0),0,'f',2));
+			else
+				p.drawText(fX+7,fY+4,QString("%1").arg(float(float(i)/10),0,'f',2));
 			p.setPen(QColor(255,0,0));
+			fLast = fY;
 		}
-		else if(iGridCount%5 == 0)
-			p.drawLine(fX,fY,fX+4,fY);
 		else
+		{
 			p.drawLine(fX,fY,fX+2,fY);
+		}
+		//if(iGridCount%10 == 0)
+		//{
+		//	p.drawLine(fX,fY,fX+4,fY);
+		//	p.setPen(QColor(0,255,255));
+		//	p.drawText(fX+7,fY+4,QString("%1").arg(float(float(i)/10),0,'f',2));
+		//	p.setPen(QColor(255,0,0));
+		//}
+		//else if(iGridCount%5 == 0)
+		//	p.drawLine(fX,fY,fX+4,fY);
+		//else
+		//	p.drawLine(fX,fY,fX+2,fY);
 		++iGridCount;
 	}
 }
