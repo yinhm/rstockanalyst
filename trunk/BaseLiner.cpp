@@ -30,7 +30,7 @@ void CBaseLiner::updateData()
 void CBaseLiner::getMinAndMax( float& fMin,float& fMax,int iCount )
 {
 	int c = 0;
-	for(int i=(m_vals.size()-1);(i>0&&c<=iCount);--i)
+	for(int i=(m_vals.size()-1);(i>=0&&c<=iCount);--i)
 	{
 		if(m_vals[i]>fMax)
 			fMax = m_vals[i];
@@ -61,7 +61,9 @@ void CBaseLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount  )
 	QPointF ptEnd(0.0,0.0);
 	while(iCount<iShowCount&&iIndex>=0)
 	{
-		float fHighY = rtClient.bottom() - (((m_vals[iIndex]-fMinPrice)/fHighMax)*rtClient.height());
+		float fHighY = rtClient.center().y();
+		if(fHighMax > 0)
+			fHighY = rtClient.bottom() - (((m_vals[iIndex]-fMinPrice)/fHighMax)*rtClient.height());
 		if(ptBegin.isNull())
 		{
 			ptBegin = QPointF(fBeginX,fHighY);
@@ -70,6 +72,7 @@ void CBaseLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount  )
 		{
 			ptEnd = ptBegin;
 			ptBegin = QPointF(fBeginX,fHighY);
+			p.drawLine(ptBegin,ptEnd);
 		}
 		else
 		{
@@ -154,7 +157,7 @@ void CKLineLiner::drawKGrid( const int& iIndex,QPainter& p,const QRectF& rtItem 
 	float fOpenY = ((m_vOpen[iIndex]-fMinPrice)/fHighMax)*rtItem.height();
 	float fCloseY = ((m_vClose[iIndex]-fMinPrice)/fHighMax)*rtItem.height();
 
-	if(m_vClose[iIndex]>m_vOpen[iIndex])
+	if(m_vClose[iIndex]>=m_vOpen[iIndex])
 	{
 		//增长，绘制红色色块
 		p.setPen(QColor(255,0,0));
@@ -232,7 +235,7 @@ void CVolumeLiner::Draw( QPainter& p,const QRectF& rtClient,int iShowCount )
 		QRectF rtItem = QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height());
 		float fVal = ((m_vals[iIndex]-fMinPrice)/(fMaxPrice-fMinPrice))*rtItem.height();
 
-		if(m_vClose[iIndex]>m_vOpen[iIndex])
+		if(m_vClose[iIndex]>=m_vOpen[iIndex])
 		{
 			//增长，绘制红色色块
 			p.setPen(QColor(255,0,0));
@@ -307,7 +310,7 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	{
 		pLiner->getMinAndMax(fMinPrice,fMaxPrice,iShowCount);
 	}
-	if(fMaxPrice<=fMinPrice)
+	if(fMaxPrice<fMinPrice)
 		return;
 
 	//绘制区域内Y坐标轴
