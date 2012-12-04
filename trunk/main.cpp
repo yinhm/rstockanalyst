@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
 	CMainWindow::getMainWindow()->showMaximized();
 
 	
-	if(!CMainWindow::getMainWindow()->setupStockDrv())
-	{
-		return app.exit();
-	}
+	//if(!CMainWindow::getMainWindow()->setupStockDrv())
+	//{
+	//	return app.exit();
+	//}
 	
 
 	CDataEngine::importData();

@@ -313,8 +313,8 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	if(fMaxPrice<fMinPrice)
 		return;
 
-	fMinPrice = (int(fMinPrice*10))/10.0;
-	fMaxPrice = (int(fMaxPrice*10 + 1.0))/10.0;
+	fMinPrice = ((int)((float)(fMinPrice*10.0)))/10.0;
+	fMaxPrice = ((int)((float)(fMaxPrice*10.0 + 1.0)))/10.0;
 
 	//绘制区域内Y坐标轴
 	drawCoordY(p,QRectF(rtClient.right()+2,rtClient.top(),50,rtClient.height()),fMinPrice,fMaxPrice);
@@ -382,8 +382,8 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 	p.drawLine(rtClient.topLeft(),rtClient.bottomLeft());			//主线
 	int iPower = 1;		//放大比例
 
-	int iBeginPrice = fMinPrice*10;
-	int iEndPrice = fMaxPrice*10;
+	int iBeginPrice = ((float)(fMinPrice*10.0));
+	int iEndPrice = ((float)(fMaxPrice*10.0));
 	float fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
 	if(fGridHeight>50)
 	{
