@@ -121,6 +121,7 @@ public:
 	void setExpression(const QString& exp);
 	QString getExpression() const { return m_qsExp; }
 	QRectF getRect() const { return m_rtClient; }
+	float getValueByY(int y);			//通过Y坐标获取Y位置所表示的值
 
 private:
 	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
@@ -131,6 +132,9 @@ private:
 	QScriptEngine* m_pEngine;		//数据引擎
 	QRectF m_rtClient;				//当前窗口的大小
 	QString m_qsExp;				//该窗口中的表达式
+
+	float fMaxPrice;				//当前区域的最大值
+	float fMinPrice;				//当前区域的最小值
 };
 
 #endif	//BASE_LINER_H

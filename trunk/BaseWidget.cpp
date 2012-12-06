@@ -36,6 +36,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic
 	, m_pParent(parent)
 	, m_type(type)
 {
+	setMouseTracking(true);
 	initMenu();
 	//将Splitter放入到Layout中，这样使其充满整个窗口
 	QVBoxLayout* pLayout = new QVBoxLayout();
@@ -44,6 +45,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic
 	m_pSplitter->setHandleWidth(1);
 	m_pSplitter->setFrameShadow(QFrame::Sunken);
 	m_pSplitter->setOrientation(Qt::Horizontal);
+	m_pSplitter->setMouseTracking(true);
 	pLayout->addWidget(m_pSplitter);
 	setLayout(pLayout);
 

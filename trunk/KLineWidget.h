@@ -49,6 +49,7 @@ public slots:
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
 	virtual void mouseMoveEvent(QMouseEvent* e);			//鼠标移动事件
+	virtual void leaveEvent(QEvent* e);						//鼠标移出事件
 	virtual void mousePressEvent(QMouseEvent* e);			//鼠标点击事件
 	virtual void mouseDoubleClickEvent(QMouseEvent *e);		//鼠标双击事件
 

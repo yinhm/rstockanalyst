@@ -302,8 +302,8 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	m_rtClient = rtClient;
 	if(!rtClient.isValid())
 		return;
-	float fMinPrice = 9999999.0;
-	float fMaxPrice = -9999999.0;
+	fMinPrice = 9999999.0;
+	fMaxPrice = -9999999.0;
 
 	//获取最大值/最小值
 	foreach(CBaseLiner* pLiner,m_listLiner)
@@ -368,6 +368,14 @@ void CMultiLiner::setExpression( const QString& exp )
 		}
 	}
 	updateData();
+}
+
+float CMultiLiner::getValueByY( int y )
+{
+	if(m_rtClient.top()>=y||m_rtClient.bottom()<=y)
+		return float();
+	float fPersent = float(m_rtClient.bottom()-y)/float(m_rtClient.height());
+	return (fMaxPrice-fMinPrice)*fPersent+fMinPrice;
 }
 
 void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice )
