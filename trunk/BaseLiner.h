@@ -121,6 +121,7 @@ public:
 	void setExpression(const QString& exp);
 	QString getExpression() const { return m_qsExp; }
 	QRectF getRect() const { return m_rtClient; }
+	MultiLinerType getType() const { return m_type; }
 	float getValueByY(int y);			//通过Y坐标获取Y位置所表示的值
 
 private:

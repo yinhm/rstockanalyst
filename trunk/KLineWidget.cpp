@@ -429,6 +429,66 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(!CBaseWidget::loadPanelInfo(eleWidget))
 		return false;
 
+	m_vSizes.clear();
+
+	//是否显示主图
+	if(eleWidget.hasAttribute("mainliner"))
+	{
+		m_pActShowMain->setChecked(eleWidget.attribute("mainliner").toInt());
+	}
+
+	//当前显示的周期
+	if(eleWidget.hasAttribute("circle"))
+	{
+		m_typeCircle = static_cast<KLineCircle>(eleWidget.attribute("circle").toInt());
+	}
+
+	QDomElement eleLiners = eleWidget.firstChildElement("liners");
+	if(eleLiners.isElement())
+	{
+		//加载所有的Liner
+		{
+			//加载主图的信息
+			QDomElement eleMainLiner = eleLiners.firstChildElement("MainLiner");
+			if(eleMainLiner.isElement())
+			{
+				m_vSizes.push_back(eleMainLiner.attribute("size").toInt());
+
+				QDomElement eleExp = eleMainLiner.firstChildElement("exp");
+				if(eleExp.isElement())
+				{
+					m_pLinerMain->setExpression(eleExp.text());
+				}
+			}
+		}
+		{
+			//加载所有的副图信息
+			QDomElement eleLiner = eleLiners.firstChildElement("Liner");
+			while(eleLiner.isElement())
+			{
+				CMultiLiner::MultiLinerType t = CMultiLiner::Deputy;
+				{
+					//获取该副图的类型
+					bool bOk = false;
+					int iType = eleLiner.attribute("type").toInt(&bOk);
+					if(bOk)
+						t = static_cast<CMultiLiner::MultiLinerType>(iType);
+				}
+				CMultiLiner* pLiner = new CMultiLiner(t,m_pScriptEngine,"");
+
+				m_vSizes.push_back(eleLiner.attribute("size").toInt());
+				QDomElement eleExp = eleLiner.firstChildElement("exp");
+				if(eleExp.isElement())
+				{
+					pLiner->setExpression(eleExp.text());
+				}
+				m_listLiners.push_back(pLiner);
+
+				eleLiner = eleLiner.nextSiblingElement("Liner");
+			}
+		}
+	}
+
 	QDomElement eleCode = eleWidget.firstChildElement("code");
 	if(eleCode.isElement())
 		setStockCode(eleCode.text());
@@ -442,9 +502,53 @@ bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 		return false;
 	if(m_pStockItem)
 	{
+		//当前的股票值
 		QDomElement eleCode = doc.createElement("code");
 		eleCode.appendChild(doc.createTextNode(m_pStockItem->getCode()));
 		eleWidget.appendChild(eleCode);
+
+		//是否显示主图
+		eleWidget.setAttribute("mainliner",m_pActShowMain->isChecked());
+
+		//显示的周期
+		eleWidget.setAttribute("circle",m_typeCircle);
+
+		QDomElement eleLiners = doc.createElement("liners");
+		eleWidget.appendChild(eleLiners);
+		{
+			//创建所有的Liner
+			{
+				//保存主图的信息
+				QDomElement eleMainLiner = doc.createElement("MainLiner");
+				eleLiners.appendChild(eleMainLiner);
+				int iSize = 1;
+				if(m_vSizes.size()>0)
+					iSize = m_vSizes[0];
+				eleMainLiner.setAttribute("size",iSize);
+
+				QDomElement eleExp = doc.createElement("exp");
+				eleExp.appendChild(doc.createTextNode(m_pLinerMain->getExpression()));
+				eleMainLiner.appendChild(eleExp);
+			}
+			{
+				//保存所有的副图信息
+				for(int i=0;i<m_listLiners.size();++i)
+				{
+					CMultiLiner* pLiner = m_listLiners[i];
+					QDomElement eleLiner = doc.createElement("Liner");
+					eleLiners.appendChild(eleLiner);
+					int iSize = 1;
+					if(m_vSizes.size()>(i+1))
+						iSize = m_vSizes[i+1];
+					eleLiner.setAttribute("size",iSize);
+					eleLiner.setAttribute("type",pLiner->getType());
+
+					QDomElement eleExp = doc.createElement("exp");
+					eleExp.appendChild(doc.createTextNode(pLiner->getExpression()));
+					eleLiner.appendChild(eleExp);
+				}
+			}
+		}
 	}
 
 	return true;
@@ -507,6 +611,8 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	/*绘制主图*/
 	if(m_pActShowMain->isChecked())
 	{
+		if(m_vSizes.size()<1)
+			m_vSizes.push_back(60);
 		int iTotal = 0;					//比例总和
 		for (int i=iSizeIndex;i<m_vSizes.size();++i)
 			iTotal += m_vSizes[i];
