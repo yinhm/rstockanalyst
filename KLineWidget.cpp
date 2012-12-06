@@ -408,7 +408,6 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom->addAction(tr("设置所有图的显示比例"),this,SLOT(onSetSizes()));
 
 //	setMinimumSize(200,200);
-	setMouseTracking(true);
 	setStockCode(QString("600000"));
 
 }
@@ -500,6 +499,9 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
 
+	QPoint ptCurMouse = this->mapFromGlobal(QCursor::pos());
+	CMultiLiner* pCurLiner = 0;		//当前鼠标所在位置的MultiLiner
+
 	int iCurY = rtClient.top();		//当前绘制到的位置
 	int iSizeIndex = 0;
 	/*绘制主图*/
@@ -512,6 +514,8 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 		int iMainHeight = (float)((float)m_vSizes[iSizeIndex]/float(iTotal))*iTotalHeight + 0.5;
 		m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),iMainHeight),m_iShowCount);
+		if(m_pLinerMain->getRect().contains(ptCurMouse))
+			pCurLiner = m_pLinerMain;
 		iCurY += iMainHeight;
 	}
 	else
@@ -530,6 +534,8 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 			foreach(CMultiLiner* pLiner,m_listLiners)
 				pLiner->Draw(p,QRectF(),0);
 			m_pCurrentLiner->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),rtClient.bottom()-iCurY),m_iShowCount);
+			if(m_pCurrentLiner->getRect().contains(ptCurMouse))
+				pCurLiner = m_pCurrentLiner;
 		}
 		else
 		{
@@ -543,8 +549,43 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 				p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
 				m_listLiners[i]->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight),m_iShowCount);
+				if(m_listLiners[i]->getRect().contains(ptCurMouse))
+					pCurLiner = m_listLiners[i];
 				iCurY += iHeight;
 				++iSizeIndex;
+			}
+		}
+	}
+
+	if(pCurLiner)
+	{
+		//绘制辅助线
+		QPen pen(QColor(255,0,0));
+		pen.setStyle(Qt::DotLine);
+		p.setPen(pen);
+		p.drawLine(ptCurMouse,QPoint(rtClient.right(),ptCurMouse.y()));
+		p.drawLine(ptCurMouse,QPoint(ptCurMouse.x(),rtClient.bottom()));
+
+		/*绘制y轴的值*/
+		float fV = pCurLiner->getValueByY(ptCurMouse.y());
+		p.drawText(QRect(rtClient.right()+10,ptCurMouse.y()-5,50,20),Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(fV,0,'f',2));
+
+		/*绘制x轴的值*/
+		QRectF rtCurLiner = pCurLiner->getRect();
+		int iAbsIndex = (rtCurLiner.right() - ptCurMouse.x())/fItemWidth;
+		int iIndex = listItems.size()-iAbsIndex-1;
+		if(iIndex>=0&&iIndex<listItems.size())
+		{
+			p.setPen(QColor(0,255,255));
+			if(m_typeCircle<Day)
+			{
+				QTime tmTime = QDateTime::fromTime_t(listItems[iIndex].time).time();
+				p.drawText(QRect(ptCurMouse.x(),rtClient.bottom(),100,20),Qt::AlignCenter,tmTime.toString("HH:mm:ss"));
+			}
+			else
+			{
+				QDate tmDate = QDateTime::fromTime_t(listItems[iIndex].time).date();
+				p.drawText(QRect(ptCurMouse.x()-50,rtClient.bottom(),100,20),Qt::AlignCenter,tmDate.toString("yyyy/MM/dd"));
 			}
 		}
 	}
@@ -552,6 +593,12 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 {
+	if(!((qApp->mouseButtons())&Qt::LeftButton))
+	{
+		update();
+		QToolTip::hideText();
+		return CBaseWidget::mouseMoveEvent(e);
+	}
 	if(!m_pStockItem)
 	{
 		return QToolTip::hideText();
@@ -585,6 +632,13 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 	}
 
 	QToolTip::showText(e->globalPos(),qsTooltip,this);
+	return CBaseWidget::mouseMoveEvent(e);
+}
+
+void CKLineWidget::leaveEvent( QEvent* e )
+{
+	update();
+	return CBaseWidget::leaveEvent(e);
 }
 
 void CKLineWidget::mousePressEvent( QMouseEvent* e )
