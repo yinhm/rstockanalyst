@@ -59,6 +59,22 @@ bool CMarketTrendWidget::loadPanelInfo( const QDomElement& eleWidget )
 {
 	if(!CBaseWidget::loadPanelInfo(eleWidget))
 		return false;
+	
+	//当前的板块名称
+	QDomElement eleBlock = eleWidget.firstChildElement("block");
+	if(eleBlock.isElement())
+	{
+		clickedBlock(eleBlock.text());
+	}
+
+	//设置当前选中的股票
+	QDomElement eleStock = eleWidget.firstChildElement("stock");
+	if(eleStock.isElement())
+	{
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(eleStock.text());
+		if(pItem)
+			clickedStock(pItem);
+	}
 
 	return true;
 }
@@ -68,6 +84,19 @@ bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
 		return false;
 
+	//当前的板块名称
+	QDomElement eleBlock = doc.createElement("block");
+	eleBlock.appendChild(doc.createTextNode(m_qsSelectedBlock));
+	eleWidget.appendChild(eleBlock);
+
+	//当前股票代码
+	if(m_pSelectedStock)
+	{
+		QDomElement eleStock = doc.createElement("stock");
+		eleStock.appendChild(doc.createTextNode(m_pSelectedStock->getCode()));
+		eleWidget.appendChild(eleStock);
+	}
+	
 	return true;
 }
 
@@ -166,11 +195,12 @@ void CMarketTrendWidget::clearTmpData()
 {
 	m_pSelectedStock = 0;
 
-	foreach(CStockInfoItem* pItem,m_listStocks)
-	{
-		disconnect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
-		disconnect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
-	}
+	disconnect(this,SLOT(stockInfoChanged(const QString&)));
+	//foreach(CStockInfoItem* pItem,m_listStocks)
+	//{
+	//	disconnect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+	//	disconnect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+	//}
 	m_listStocks.clear();
 	m_mapStockIndex.clear();
 }
