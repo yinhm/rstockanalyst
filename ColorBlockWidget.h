@@ -30,8 +30,15 @@ public slots:
 	virtual void setBlock(const QString& block);
 	virtual void updateStock(const QString& code);			//更新某只股票的显示
 
+private:
+	void clearTmpData();						//清理本窗口中创建的内存。
+	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
+
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
+	virtual void mousePressEvent(QMouseEvent* e);			//鼠标点击事件
+	virtual void wheelEvent(QWheelEvent* e);				//鼠标中键滚动事件
+	virtual void keyPressEvent(QKeyEvent* e);				//键盘操作
 
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
@@ -44,15 +51,25 @@ private:
 
 	void drawStock(QPainter& p,const QRect& rtCB,CStockInfoItem* pItem);	//绘制单只股票
 
+	QRect rectOfStock(CStockInfoItem* pItem);			//获取某只股票显示的位置
+
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
 	QString m_qsBlock;						//当前的板块名称
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
+	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
+	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
+
 	/*用于绘制操作的成员变量*/
 private:
 	int m_iCBHeight;						//单个色块的高度
 	int showStockIndex;
+
+
+	QRect m_rtHeader;						//头部Header区域
+	QRect m_rtClient;						//实际色块绘制区域
+	QRect m_rtBottom;						//底部区域，用于鼠标操作等信息
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H
