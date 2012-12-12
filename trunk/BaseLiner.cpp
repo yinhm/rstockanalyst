@@ -400,6 +400,9 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 		iEndPrice = iEndPrice*10;
 		fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
 	}
+	if(fGridHeight<=0.0)
+		return;
+
 	int iGridSize = 1;
 	while((fGridHeight*iGridSize)<10)
 		++iGridSize;

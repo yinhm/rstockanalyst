@@ -29,18 +29,20 @@ int main(int argc, char *argv[])
 	CMainWindow::getMainWindow()->showMaximized();
 
 	
-	//if(!CMainWindow::getMainWindow()->setupStockDrv())
-	//{
-	//	return app.exit();
-	//}
+	//设置银江数据接口
+	if(!CMainWindow::getMainWindow()->setupStockDrv())
+	{
+		return app.exit();
+	}
 	
 
-	CDataEngine::importData();
+	CDataEngine::importData();				//初始化数据
 
-	CMainWindow::getMainWindow()->initTemplates();
+	CMainWindow::getMainWindow()->initTemplates();	//初始化模板
 	app.exec();
+	CMainWindow::getMainWindow()->saveTemplates();	//保存所有模板
 
-	CDataEngine::exportData();
+	CDataEngine::exportData();				//导出数据
 
 
 	return 1;

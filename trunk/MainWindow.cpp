@@ -87,6 +87,31 @@ void CMainWindow::initTemplates()
 	}
 }
 
+void CMainWindow::saveTemplates()
+{
+	for(int i=0;i<m_pTabWidget->count();++i)
+	{
+		CBaseWidget* pWidget = reinterpret_cast<CBaseWidget*>(m_pTabWidget->widget(i));
+		QString qsTitle = m_pTabWidget->tabText(i);
+		QDomDocument doc("template");
+		QDomElement eleRoot = doc.createElement("ROOT");
+		eleRoot.setAttribute("title",qsTitle);
+		doc.appendChild(eleRoot);
+		QDomElement eleWidget = doc.createElement("widget");
+		eleRoot.appendChild(eleWidget);
+		pWidget->savePanelInfo(doc,eleWidget);
+
+		QFile file(m_qsTemplateDir+qsTitle+".xml");
+		if(!file.open(QFile::Truncate|QFile::WriteOnly))
+		{
+			QMessageBox::warning(this,tr("´íÎó"),QString("±£´æÄ£°å'%1'Ê§°Ü£¡").arg(qsTitle));
+			continue;
+		}
+		file.write(doc.toByteArray());
+		file.close();
+	}
+}
+
 void CMainWindow::clickedStock( const QString& code )
 {
 	CBaseWidget* pWidget = reinterpret_cast<CBaseWidget*>(m_pTabWidget->currentWidget());
@@ -329,27 +354,7 @@ void CMainWindow::onAddTemplate()
 
 void CMainWindow::onSaveTemplate()
 {
-	for(int i=0;i<m_pTabWidget->count();++i)
-	{
-		CBaseWidget* pWidget = reinterpret_cast<CBaseWidget*>(m_pTabWidget->widget(i));
-		QString qsTitle = m_pTabWidget->tabText(i);
-		QDomDocument doc("template");
-		QDomElement eleRoot = doc.createElement("ROOT");
-		eleRoot.setAttribute("title",qsTitle);
-		doc.appendChild(eleRoot);
-		QDomElement eleWidget = doc.createElement("widget");
-		eleRoot.appendChild(eleWidget);
-		pWidget->savePanelInfo(doc,eleWidget);
-
-		QFile file(m_qsTemplateDir+qsTitle+".xml");
-		if(!file.open(QFile::Truncate|QFile::WriteOnly))
-		{
-			QMessageBox::warning(this,tr("´íÎó"),QString("±£´æÄ£°å'%1'Ê§°Ü£¡").arg(qsTitle));
-			continue;
-		}
-		file.write(doc.toByteArray());
-		file.close();
-	}
+	saveTemplates();
 }
 
 void CMainWindow::onRemoveTemplate()

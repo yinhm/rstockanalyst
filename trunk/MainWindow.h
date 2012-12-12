@@ -16,6 +16,7 @@ public:
 public:
 	bool setupStockDrv();
 	void initTemplates();			//初始化所有模板
+	void saveTemplates();			//保存所有模板
 
 public:
 	void clickedStock(const QString& code);

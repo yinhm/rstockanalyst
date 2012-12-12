@@ -191,6 +191,10 @@ struct qRcvMinuteData
 	float fVolume;
 	float fAmount;
 
+	qRcvMinuteData()
+	{
+		memset(&tmTime,0,sizeof(qRcvMinuteData));
+	}
 	qRcvMinuteData(RCV_MINUTE_STRUCTEx* p)
 	{
 		memcpy(&tmTime,&p->m_time,sizeof(qRcvMinuteData));
