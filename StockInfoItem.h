@@ -282,7 +282,9 @@ protected:
 	void updateItemInfo();
 
 signals:
-	void stockInfoItemChanged(const QString&);
+	void stockItemReportChanged(const QString&);
+	void stockItemHistoryChanged(const QString&);
+	void stockItemMinuteChanged(const QString&);
 
 private:
 	QString qsCode;					//ДњТы

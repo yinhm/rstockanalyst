@@ -564,7 +564,8 @@ void CKLineWidget::setStockCode( const QString& code )
 		m_pStockItem = pItem;
 
 		//建立更新机制
-		connect(pItem,SIGNAL(stockInfoItemChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+		connect(pItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 
 		//更新K线图
 		updateKLine(code);
