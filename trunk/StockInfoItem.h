@@ -248,6 +248,9 @@ public:
 	void setBaseInfo(const qRcvBaseInfoData& info);
 	qRcvBaseInfoData* getBaseInfo(){ return &baseInfo; }
 
+	//设置最后5日的总成交量
+	void setLast5Volume(float fValue){ fLast5Volume = fValue; }
+
 public:
 	/*属性类字段，只读*/
 	QString getCode() const;		//股票代码
@@ -276,6 +279,8 @@ public:
 	float getASKVOL() const;		//委卖量
 	float getCommRatio() const;	//委比
 	float getCommSent() const;	//委差
+
+	float getLast5Volume(); //获取过去5日的成交量（用于计算量比）
 
 
 protected:
@@ -313,6 +318,8 @@ private:
 	float fSellVolume;				//委卖量
 	float fCommRatio;				//委比
 	float fCommSent;				//委差
+
+	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
 
 private:
 	QMap<time_t,qRcvMinuteData*> mapMinutes;		//分钟数据
