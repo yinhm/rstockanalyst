@@ -75,6 +75,8 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 	pCurrentReport->resetItem(p);
 	
 	updateItemInfo();
+
+	emit stockItemReportChanged(qsCode);
 }
 
 void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
@@ -85,6 +87,8 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 	pCurrentReport->resetItem(p);
 
 	updateItemInfo();
+
+	emit stockItemReportChanged(qsCode);
 }
 
 QList<qRcvHistoryData*> CStockInfoItem::getHistoryList()
@@ -160,7 +164,7 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	}
 	mapHistorys.clear();
 
-	emit stockInfoItemChanged(qsCode);
+	emit stockItemHistoryChanged(qsCode);
 }
 
 QList<qRcvMinuteData*> CStockInfoItem::getMinuteList()
@@ -180,6 +184,8 @@ void CStockInfoItem::appendMinutes( const QList<qRcvMinuteData*>& list )
 		}
 		mapMinutes[p->tmTime] = p;
 	}
+
+	emit stockItemMinuteChanged(qsCode);
 }
 
 QList<qRcvPowerData*> CStockInfoItem::getPowerList()
@@ -214,7 +220,7 @@ void CStockInfoItem::setBaseInfo( const qRcvBaseInfoData& info )
 	if(pCurrentReport&&baseInfo.fLtAg>0)
 		fLTSZ = baseInfo.fLtAg*pCurrentReport->fNewPrice;
 
-	emit stockInfoItemChanged(qsCode);
+	emit stockItemReportChanged(qsCode);
 }
 
 
@@ -387,7 +393,7 @@ float CStockInfoItem::getCommSent() const
 
 void CStockInfoItem::updateItemInfo()
 {
-//设置股票名称
+	//设置股票名称
 	if(qsName.isEmpty())
 		qsName = pCurrentReport->qsName;
 	if(baseInfo.code[0]==0)
@@ -472,6 +478,4 @@ void CStockInfoItem::updateItemInfo()
 		else
 			fBuyVOL += fNowVolume;
 	}
-
-	emit stockInfoItemChanged(qsCode);
 }

@@ -73,9 +73,6 @@ public:
 	/*获取某只股票最近count条的日线数据*/
 	QList<qRcvHistoryData*> getHistoryList(const QString& code, int count);
 
-signals:
-	void stockInfoChanged(const QString&);
-
 private:
 	bool isBlockInCommon(const QString&  block);
 	QRegExp getRegexpByBlock(const QString& block);

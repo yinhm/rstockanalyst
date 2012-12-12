@@ -83,7 +83,8 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 	}
 	foreach(CStockInfoItem* pItem,m_listStocks)
 	{
-		connect(pItem,SIGNAL(stockInfoItemChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
 	}
 
 	if(m_listStocks.size()>0)
@@ -167,7 +168,8 @@ void CMarketTrendWidget::clearTmpData()
 
 	foreach(CStockInfoItem* pItem,m_listStocks)
 	{
-		disconnect(pItem,SIGNAL(stockInfoItemChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+		disconnect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+		disconnect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
 	}
 	m_listStocks.clear();
 	m_mapStockIndex.clear();
