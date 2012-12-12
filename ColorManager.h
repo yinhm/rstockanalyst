@@ -17,9 +17,15 @@ public:
 	static void initAll();
 private:
 	static void initCommonColor();
+	static void initBlockColors();
+
+public:
+	/*通过值fVal来获取种类iType中所对应的值*/
+	static QColor getBlockColor(int iType,float fVal);
 
 public:
 	static QVector<QColor> CommonColor;		//常用的颜色表
+	static QMap<QString,QVector<QColor>> BlockColors;	//色块颜色种类。（通过百分比来所获取颜色的种类数）
 };
 
 
