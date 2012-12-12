@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "MainWindow.h"
 #include "STKDRV.h"
-#include "BaseMarketWidget.h"
 #include "DataEngine.h"
 #include "KLineWidget.h"
 

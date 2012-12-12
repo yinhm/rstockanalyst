@@ -477,7 +477,7 @@ CDataEngine::CDataEngine(void)
 	m_qsBlocksDir = qApp->applicationDirPath()+"/data/blocks/";
 	QDir().mkpath(m_qsBlocksDir);
 
-	m_qsCommonBlocks = qApp->applicationDirPath()+"/data/CommonBlocks.xml";
+	m_qsCommonBlocks = qApp->applicationDirPath()+"/config/CommonBlocks.xml";
 	initCommonBlocks();
 
 	m_qsNewsDir = qApp->applicationDirPath()+"/data/news/";

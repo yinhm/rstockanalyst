@@ -1,8 +1,6 @@
 #pragma once
 #include <QtGui>
 #include "BaseWidget.h"
-#include "BaseMarketWidget.h"
-#include "RMdiCtrl.h"
 
 class CMainWindow : public QMainWindow
 {

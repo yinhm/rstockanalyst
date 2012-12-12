@@ -1,4 +1,5 @@
 <root>
 	<block name="上海A股" RegType="1">60*</block>
 	<block name="深圳A股" RegType="1">00*</block>
+	<block name="所有股票" RegType="1">*</block>
 </root>

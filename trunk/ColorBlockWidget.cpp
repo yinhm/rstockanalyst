@@ -6,11 +6,33 @@
 CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::ColorBlock)
 	, m_pMenuCustom(0)
+	, m_pMenuColorMode(0)
+	, m_iTitleHeight(16)
+	, m_iBottomHeight(16)
 	, m_iCBHeight(16)
 	, showStockIndex(0)
 	, m_pSelectedStock(0)
 {
+	//初始化基本的颜色表
+	for (int i=0;i<21;++i)
+	{
+		m_vColors.push_back(QColor::fromRgb((255.0/20.0)*i,(255.0/20.0)*i,(255.0/20.0)*i));
+	}
+
+	//初始化菜单
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
+
+	{
+		//颜色显示模式菜单
+		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色显示模式");
+		QStringList listColors = CColorManager::BlockColors.keys();
+		foreach(const QString& clr,listColors)
+		{
+			QAction* pAct = m_pMenuColorMode->addAction(clr,this,SLOT(onSetColorMode()));
+			pAct->setData(clr);
+			pAct->setCheckable(true);
+		}
+	}
 }
 
 CColorBlockWidget::~CColorBlockWidget(void)
@@ -81,6 +103,27 @@ void CColorBlockWidget::updateStock( const QString& code )
 	
 }
 
+void CColorBlockWidget::setColorMode( const QString& mode )
+{
+	QList<QAction*> listActs = m_pMenuColorMode->actions();
+	foreach(QAction* pAct,listActs)
+	{
+		pAct->setChecked((pAct->data().toString() == mode) ? true : false);
+	}
+
+	if(CColorManager::BlockColors.contains(mode))
+	{
+		m_vColors = CColorManager::BlockColors[mode];
+		update();
+	}
+}
+
+void CColorBlockWidget::onSetColorMode()
+{
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	setColorMode(pAct->data().toString());
+}
+
 void CColorBlockWidget::clearTmpData()
 {
 	m_pSelectedStock = 0;
@@ -112,9 +155,9 @@ void CColorBlockWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
 	QRect rtClient = this->rect();
-	m_rtHeader = QRect(rtClient.left(),rtClient.top(),rtClient.width(),20);
-	m_rtClient = QRect(rtClient.left(),rtClient.top()+21,rtClient.width(),rtClient.height()-40);
-	m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-20,rtClient.width(),20);
+	m_rtHeader = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
+	m_rtClient = QRect(rtClient.left(),rtClient.top()+m_iTitleHeight,rtClient.width(),rtClient.height()-m_iTitleHeight-m_iBottomHeight);
+	m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
 
 	drawHeader(p,m_rtHeader);
 	drawClient(p,m_rtClient);
@@ -243,7 +286,8 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 {
 	p.fillRect(rtHeader,QColor(0,0,0));
 	p.setPen(QColor(255,0,0));
-	p.drawRect(rtHeader);
+	QRect rtCoord = rtHeader.adjusted(0,0,-1,-1);
+	p.drawRect(rtCoord);
 
 	p.setPen(QColor(255,255,255));
 	p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,m_qsBlock);
@@ -267,7 +311,17 @@ void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 
 void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 {
-	p.fillRect(rtBottom,QColor(0,0,127));
+	p.fillRect(rtBottom,QColor(0,0,0));
+
+	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),rtBottom.width()-32,rtBottom.height());
+	float fColorsWidth = rtBottom.width()-2*m_iBottomHeight;
+	if(fColorsWidth<0.1)
+		return;
+	float fColorWidth = fColorsWidth/m_vColors.size();
+	for(int i=0;i<m_vColors.size();++i)
+	{
+		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),m_vColors[i]);
+	}
 }
 
 void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem* pItem )
@@ -288,15 +342,22 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		QRect rtB = QRect(iCurX,rtCB.top(),m_iCBHeight,m_iCBHeight);
 		rtB.adjust(2,2,-2,-2);
 		float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
-		int c = f*10*255;
-		if(c>0)
-		{
-			p.fillRect(rtB,QColor((c>255 ? 255:c),0,0));
-		}
-		else
-		{
-			p.fillRect(rtB,QColor(0,(c<-255 ? 255:(-c)),0));
-		}
+		int iColor = f*100+10;
+		if(iColor>20)
+			iColor = 20;
+		if(iColor<0)
+			iColor = 0;
+
+		p.fillRect(rtB,m_vColors[iColor]);
+		//int c = f*10*255;
+		//if(c>0)
+		//{
+		//	p.fillRect(rtB,QColor((c>255 ? 255:c),0,0));
+		//}
+		//else
+		//{
+		//	p.fillRect(rtB,QColor(0,(c<-255 ? 255:(-c)),0));
+		//}
 
 		iCurX = iCurX+m_iCBHeight;
 	}
