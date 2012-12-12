@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "ColorBlockWidget.h"
 #include "DataEngine.h"
+#include "ColorManager.h"
 
 CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::ColorBlock)
