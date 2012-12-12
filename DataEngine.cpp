@@ -16,7 +16,16 @@ void CDataEngine::importData()
 	{
 		//导入F10 数据
 		QString qsBaseInfo = qsDir+"/baseinfo.rsqfin";
-		if(QFile::exists(qsBaseInfo))
+
+		//如果有银江的F10数据，则尝试导入银江的F10 数据。
+		QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
+		QString qsF10File = QFileInfo(settings.value("driver").toString()).absolutePath() + "/财务数据.fin";
+		if(QFile::exists(qsF10File))
+		{
+			qDebug()<<"Import F10 Data from "<<qsF10File;
+			CDataEngine::importBaseInfoFromFinFile(qsF10File);	
+		}
+		else if(QFile::exists(qsBaseInfo))
 		{
 			qDebug()<<"Import F10 data...";
 			int iCount = importBaseInfo(qsBaseInfo);
@@ -28,22 +37,10 @@ void CDataEngine::importData()
 			else
 				qDebug()<<iCount<<" F10 data had been imported.";
 		}
-		else
-		{
-			//如果本机的F10数据，则尝试导入银江的F10 数据。
-			QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
-			QString qsF10File = QFileInfo(settings.value("driver").toString()).absolutePath() + "/财务数据.fin";
-			if(QFile::exists(qsF10File))
-			{
-				qDebug()<<"Import F10 Data from "<<qsF10File;
-				CDataEngine::importBaseInfoFromFinFile(qsF10File);
-			}
-		}
 	}
 	{
-		//导入当天的Reports数据
-		/*
-		QString qsReportFile = QString("%1/reports/%2").arg(qsDir).arg(QDate::currentDate().toJulianDay());
+		//导入最后一组的Reports数据
+		QString qsReportFile = QString("%1/data/reports").arg(qsDir);
 		qDebug()<<"Import reports data from "<<qsReportFile;
 		int iCount = importReportsInfo(qsReportFile);
 		if(iCount<1)
@@ -53,7 +50,19 @@ void CDataEngine::importData()
 		}
 		else
 			qDebug()<<iCount<<" reports data had been imported.";
-			*/
+	}
+	{
+		//导入当天的分钟数据
+		QString qsMinFile = QString("%1/data/minutes/%2").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
+		qDebug()<<"Import minutes data from "<<qsMinFile;
+		int iCount = importMinutesData(qsMinFile);
+		if(iCount<1)
+		{
+			QFile::remove(qsMinFile);
+			qDebug()<<"Import minutes data from "<<qsMinFile<<" error!";
+		}
+		else
+			qDebug()<<iCount<<" minutes data had been imported.";
 	}
 }
 
@@ -68,16 +77,24 @@ void CDataEngine::exportData()
 	}
 
 	{
-		//导出当天的Reports数据
-		/*
-		QString qsReportDir = qsDir + "/reports";
+		//导出最后一组的Reports数据
+		QString qsReportDir = qsDir + "/data";
 		if(!QDir().exists(qsReportDir))
 			QDir().mkpath(qsReportDir);
-		QString qsReportFile = QString("%1/%2").arg(qsReportDir).arg(QDate::currentDate().toJulianDay());
+		QString qsReportFile = QString("%1/reports").arg(qsReportDir);
 		qDebug()<<"Export reports data to "<<qsReportFile;
 		int iCount = exportReportsInfo(qsReportFile);
 		qDebug()<<iCount<<" reports data had been exported.";
-		*/
+	}
+
+	{
+		//导出当天的分时数据
+		QString qsMinDir = QString("%1/data/minutes")
+			.arg(qsDir);
+		QDir().mkpath(qsMinDir);
+		qDebug()<<"Export minutes data to "<<qsMinDir;
+		int iCount = exportMinutesData(QString("%1/%2").arg(qsMinDir).arg(QDate::currentDate().toString("yyyyMMdd")));
+		qDebug()<<iCount<<" minutes data had been exported.";
 	}
 }
 
@@ -174,17 +191,17 @@ int CDataEngine::importReportsInfo( const QString& qsFile )
 	if(!file.open(QFile::ReadOnly))
 		return -1;
 
-	QDataStream out(&file);
+	QDataStream in(&file);
 
 	int iCount = 0;
 	while(true)
 	{
 		qRcvReportData* pReport = new qRcvReportData;
 		quint32 _t;
-		out>>_t>>pReport->wMarket>>pReport->qsCode>>pReport->qsName;
+		in>>_t>>pReport->wMarket>>pReport->qsCode>>pReport->qsName;
 		pReport->tmTime = _t;
 
-		int iSize = out.readRawData((char*)&pReport->fLastClose,sizeof(float)*27);
+		int iSize = in.readRawData((char*)&pReport->fLastClose,sizeof(float)*27);
 		if(iSize!=(sizeof(float)*27))
 			break;
 
@@ -195,6 +212,56 @@ int CDataEngine::importReportsInfo( const QString& qsFile )
 			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
 		}
 		pItem->setReport(pReport);
+
+		++iCount;
+	}
+
+	file.close();
+	return iCount;
+}
+
+int CDataEngine::importMinutesData( const QString& qsFile )
+{
+	QFile file(qsFile);
+	if(!file.open(QFile::ReadOnly))
+		return -1;
+
+	int iCount = 0;
+	while(true)
+	{
+		char chCode[STKLABEL_LEN];
+		int iSize;
+		if(file.read(chCode,STKLABEL_LEN)!=STKLABEL_LEN)
+			break;
+		if(file.read((char*)&iSize,sizeof(iSize))!=sizeof(iSize))
+			break;
+
+		char* pMinData = new char[iSize];
+		if(file.read(pMinData,iSize)!=iSize)
+		{
+			delete pMinData;
+			break;
+		}
+
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(QString::fromLocal8Bit(chCode));
+		if(!pItem)
+		{
+			delete pMinData;
+			continue;
+		}
+
+		int iIndex = 0;
+		QList<qRcvMinuteData*> listMins;
+		while(iIndex<iSize)
+		{
+			qRcvMinuteData* pData = new qRcvMinuteData();
+			memcpy(pData,&pMinData[iIndex],sizeof(qRcvMinuteData));
+			listMins.push_back(pData);
+
+			iIndex += sizeof(qRcvMinuteData);
+		}
+		pItem->appendMinutes(listMins);
+		delete pMinData;
 
 		++iCount;
 	}
@@ -254,7 +321,7 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 	{
 		//保存当天所有的Reports
 		qRcvReportData* pReport = pItem->getCurrentReport();
-		if(pReport->tmTime>m_tmCurrentDay)
+		if(pReport)
 		{
 			out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
 			//直接拷贝剩余的所有float数据
@@ -265,6 +332,59 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 			//			break;
 			++iCount;
 		}
+	}
+
+	file.close();
+	return iCount;
+}
+
+int CDataEngine::exportMinutesData( const QString& qsFile )
+{
+	QList<CStockInfoItem*> listItem = CDataEngine::getDataEngine()->getStockInfoList();
+	int iCount = 0;
+
+	if(QFile::exists(qsFile))
+		QFile::remove(qsFile);
+	if(QFile::exists(qsFile))
+		return -1;
+
+	QFile file(qsFile);
+	if(!file.open(QFile::WriteOnly))
+		return -1;
+
+	foreach(CStockInfoItem* pItem,listItem)
+	{
+		//保存当天所有的分钟数据
+		QList<qRcvMinuteData*> listMins= pItem->getMinuteList();
+		int iSize = listMins.size()*sizeof(qRcvMinuteData);
+		char* pMinData = new char[iSize];
+		for(int i = 0; i<listMins.size(); ++i)
+		{
+			qRcvMinuteData* pData = listMins[i];
+			memcpy(pMinData+i*sizeof(qRcvMinuteData),pData,sizeof(qRcvMinuteData));
+		}
+		//foreach(qRcvMinuteData* pData,listMins)
+		//{
+		//	minData.append(pData->tmTime);
+		//	minData.append(pData->fPrice);
+		//	minData.append(pData->fVolume);
+		//	minData.append(pData->fAmount);
+		//	minData<<pData->tmTime<<pData->fPrice<<pData->fVolume<<pData->fAmount;
+		//	out<<pData->tmTime<<pData->fPrice<<pData->fVolume<<pData->fAmount;
+		//}
+		char chCode[STKLABEL_LEN];
+		memset(chCode,0,STKLABEL_LEN);
+		QByteArray arrCode = pItem->getCode().toLocal8Bit();
+		memcpy(chCode,arrCode.data(),arrCode.size());
+		file.write(chCode,STKLABEL_LEN);
+		file.write((char*)&iSize,sizeof(int));
+
+		file.write(pMinData,iSize);
+		file.flush();
+
+		delete pMinData;
+
+		++iCount;
 	}
 
 	file.close();

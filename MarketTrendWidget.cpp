@@ -685,13 +685,17 @@ QString CMarketTrendWidget::dataOfDisplay( CStockInfoItem* itemData,int column )
 	case 20:
 		{
 			//мБел
-			return static_cast<int>(itemData->getSellVOL());
+			if(_isnan(itemData->getSellVOL()))
+				return QString();
+			return QString("%1").arg(itemData->getSellVOL(),0,'f',0);
 		}
 		break;
 	case 21:
 		{
 			//дзел
-			return static_cast<int>(itemData->getBuyVOL());
+			if(_isnan(itemData->getBuyVOL()))
+				return QString();
+			return QString("%1").arg(itemData->getBuyVOL(),0,'f',0);
 		}
 		break;
 	case 22:

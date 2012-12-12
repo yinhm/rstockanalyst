@@ -27,6 +27,9 @@ public:
 	static int importBaseInfo(const QString& qsFile);
 	/*导入Reports数据*/
 	static int importReportsInfo(const QString& qsFile);
+	/*导入minutes数据*/
+	static int importMinutesData(const QString& qsFile);
+
 
 
 	/*数据导出函数*/
@@ -34,6 +37,8 @@ public:
 	static int exportBaseInfo(const QString& qsFile);
 	/*导出Reports数据*/
 	static int exportReportsInfo(const QString& qsFile);
+	/*导出Minutes数据*/
+	static int exportMinutesData(const QString& qsFile);
 
 public:
 	static time_t* getLast5DayTime();			//获取最近5天的开市日期
