@@ -21,6 +21,13 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(!CBaseWidget::loadPanelInfo(eleWidget))
 		return false;
 
+	//当前的板块名称
+	QDomElement eleBlock = eleWidget.firstChildElement("block");
+	if(eleBlock.isElement())
+	{
+		setBlock(eleBlock.text());
+	}
+
 	return true;
 }
 
@@ -29,17 +36,40 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
 		return false;
 
+
+	//当前的板块名称
+	QDomElement eleBlock = doc.createElement("block");
+	eleBlock.appendChild(doc.createTextNode(m_qsBlock));
+	eleWidget.appendChild(eleBlock);
+
+
 	return true;
 }
 
 void CColorBlockWidget::setBlock( const QString& block )
 {
 	m_listStocks.clear();
+	
+	disconnect(this,SLOT(updateStock(const QString&)));
+
 	m_listStocks = CDataEngine::getDataEngine()->getStocksByBlock(block);
+
+	foreach(CStockInfoItem* pItem,m_listStocks)
+	{
+		//建立更新机制
+		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+		connect(pItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+	}
+
 	m_qsBlock = block;
 
 	update();
 	return CBaseWidget::setBlock(block);
+}
+
+void CColorBlockWidget::updateStock( const QString& code )
+{
+	
 }
 
 void CColorBlockWidget::paintEvent( QPaintEvent* )

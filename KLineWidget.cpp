@@ -408,8 +408,6 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom->addAction(tr("设置所有图的显示比例"),this,SLOT(onSetSizes()));
 
 //	setMinimumSize(200,200);
-	setStockCode(QString("600000"));
-
 }
 
 CKLineWidget::~CKLineWidget(void)
