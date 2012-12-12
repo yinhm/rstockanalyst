@@ -24,6 +24,7 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fLTSZ(FLOAT_NAN)
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
+	, fLast5Volume(0.0)
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
@@ -50,10 +51,18 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fLTSZ(FLOAT_NAN)
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
+	, fLast5Volume(0.0)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
+
+	//fLast5Volume = 0.0;
+	//QList<qRcvHistoryData*> list = getLastHistory(5);
+	//foreach(qRcvHistoryData* pHis,list)
+	//{
+	//	fLast5Volume = fLast5Volume+pHis->fVolume;
+	//}
 }
 
 CStockInfoItem::~CStockInfoItem(void)
@@ -75,8 +84,6 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 	pCurrentReport->resetItem(p);
 	
 	updateItemInfo();
-
-	emit stockItemReportChanged(qsCode);
 }
 
 void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
@@ -87,8 +94,6 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 	pCurrentReport->resetItem(p);
 
 	updateItemInfo();
-
-	emit stockItemReportChanged(qsCode);
 }
 
 QList<qRcvHistoryData*> CStockInfoItem::getHistoryList()
@@ -127,34 +132,24 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 		}
 		mapHistorys[p->time] = p;
 	}
+
+
+	listHistory.clear();
+	listHistory = mapHistorys.values();
 	{
-		/*量比计算：
-			量比＝现成交总手/（过去5日平均每分钟成交量*当日累计开市时间（分）） 
-			当量比大于1时，说明当日每分钟的平均成交量要大于过去5日的平均数值，交易比过去5日火爆；
-			而当量比小于1时，说明现在的成交比不上过去5日的平均水平。
-		*/
-		if(mapHistorys.size()>5)
+		//最近5日的全部成交量（用于量比的计算）
+		fLast5Volume = 0.0;
+		for (int i=1;i<=5;++i)
 		{
-			//判断最新的数据是否是今天开市后的数据
-			if(pCurrentReport)
-			{
-				time_t tmSeconds = CDataEngine::getOpenSeconds(pCurrentReport->tmTime);
-				if(tmSeconds>0)
-				{
-					time_t* pLast5Day = CDataEngine::getLast5DayTime();
-					float fVolume5 = 0.0;
-					for(int i=0;i<5;++i)
-					{
-						if(mapHistorys.contains(pLast5Day[i]))
-							fVolume5 = (fVolume5 + mapHistorys.value(pLast5Day[i])->fVolume);
-					}
-					fVolumeRatio = (pCurrentReport->fVolume)/((fVolume5/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
-				}
-			}
+			int iIndex = listHistory.size()-i;
+			if(iIndex<0)
+				break;
+			fLast5Volume = fLast5Volume + listHistory[iIndex]->fVolume;
 		}
+		updateItemInfo();
 	}
 
-	CDataEngine::getDataEngine()->exportHistoryData(qsCode,mapHistorys.values());
+	CDataEngine::getDataEngine()->exportHistoryData(qsCode,listHistory);
 
 	QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
 	while(iter!=mapHistorys.end())
@@ -391,6 +386,12 @@ float CStockInfoItem::getCommSent() const
 	return fCommSent;
 }
 
+
+float CStockInfoItem::getLast5Volume()
+{
+	//过去5日的成交总量
+	return fLast5Volume;
+}
 void CStockInfoItem::updateItemInfo()
 {
 	//设置股票名称
@@ -478,4 +479,20 @@ void CStockInfoItem::updateItemInfo()
 		else
 			fBuyVOL += fNowVolume;
 	}
+
+	{
+		/*量比计算：
+			量比＝现成交总手/（过去5日平均每分钟成交量*当日累计开市时间（分）） 
+			当量比大于1时，说明当日每分钟的平均成交量要大于过去5日的平均数值，交易比过去5日火爆；
+			而当量比小于1时，说明现在的成交比不上过去5日的平均水平。
+		*/
+		if(fLast5Volume>0.0)
+		{
+			time_t tmSeconds = CDataEngine::getOpenSeconds(pCurrentReport->tmTime);
+			fVolumeRatio = (pCurrentReport->fVolume)/((fLast5Volume/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
+		}
+	}
+
+	emit stockItemReportChanged(qsCode);
 }
+

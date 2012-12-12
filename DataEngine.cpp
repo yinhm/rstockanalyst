@@ -15,17 +15,9 @@ void CDataEngine::importData()
 	QString qsDir = qApp->applicationDirPath();
 	{
 		//导入F10 数据
-		QString qsBaseInfo = qsDir+"/baseinfo.rsqfin";
-
-		//如果有银江的F10数据，则尝试导入银江的F10 数据。
-		QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
-		QString qsF10File = QFileInfo(settings.value("driver").toString()).absolutePath() + "/财务数据.fin";
-		if(QFile::exists(qsF10File))
-		{
-			qDebug()<<"Import F10 Data from "<<qsF10File;
-			CDataEngine::importBaseInfoFromFinFile(qsF10File);	
-		}
-		else if(QFile::exists(qsBaseInfo))
+		/*如果有本地数据，先导入本地数据*/
+		QString qsBaseInfo = qsDir+"/data/baseinfo.rsqfin";
+		if(QFile::exists(qsBaseInfo))
 		{
 			qDebug()<<"Import F10 data...";
 			int iCount = importBaseInfo(qsBaseInfo);
@@ -36,6 +28,15 @@ void CDataEngine::importData()
 			}
 			else
 				qDebug()<<iCount<<" F10 data had been imported.";
+		}
+
+		//如果有银江的F10数据，则尝试再次导入银江的F10 数据。
+		QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\StockDrv",QSettings::NativeFormat);
+		QString qsF10File = QFileInfo(settings.value("driver").toString()).absolutePath() + "/财务数据.fin";
+		if(QFile::exists(qsF10File))
+		{
+			qDebug()<<"Import F10 Data from "<<qsF10File;
+			CDataEngine::importBaseInfoFromFinFile(qsF10File);	
 		}
 	}
 	{
@@ -69,8 +70,9 @@ void CDataEngine::importData()
 void CDataEngine::exportData()
 {
 	QString qsDir = qApp->applicationDirPath();
-	QString qsBaseInfo = qsDir+"/baseinfo.rsqfin";
+	QString qsBaseInfo = qsDir+"/data/baseinfo.rsqfin";
 	{
+		QDir().mkpath(qsDir+"/data");
 		qDebug()<<"Export F10 data...";
 		int iCount = exportBaseInfo(qsBaseInfo);
 		qDebug()<<iCount<<" F10 data had been exported.";
@@ -163,6 +165,11 @@ int CDataEngine::importBaseInfo( const QString& qsFile )
 		if(iSize!=sizeof(qRcvBaseInfoData))
 			break;
 
+
+		float fLast5Volume = 0.0;
+		if(out.readRawData((char*)&fLast5Volume,sizeof(float))!=sizeof(float))
+			break;
+
 		QString qsCode = QString::fromLocal8Bit(baseInfo.code);
 		if(qsCode.isEmpty())
 			return -1;
@@ -171,10 +178,12 @@ int CDataEngine::importBaseInfo( const QString& qsFile )
 		if(pItem)
 		{
 			pItem->setBaseInfo(baseInfo);
+			pItem->setLast5Volume(fLast5Volume);
 		}
 		else
 		{
 			CStockInfoItem* pItem = new CStockInfoItem(baseInfo);
+			pItem->setLast5Volume(fLast5Volume);
 			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
 		}
 
@@ -294,6 +303,9 @@ int CDataEngine::exportBaseInfo( const QString& qsFile )
 		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
 		if(iSize!=sizeof(qRcvBaseInfoData))
 			break;
+		float fLast5Volume = pItem->getLast5Volume();
+		if(out.writeRawData((char*)&fLast5Volume,sizeof(float))!=sizeof(float))
+			break;
 		++iCount;
 	}
 
@@ -321,7 +333,7 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 	{
 		//保存当天所有的Reports
 		qRcvReportData* pReport = pItem->getCurrentReport();
-		if(pReport)
+		if(pReport&&(!pReport->qsCode.isEmpty()))
 		{
 			out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
 			//直接拷贝剩余的所有float数据
