@@ -30,10 +30,10 @@ int main(int argc, char *argv[])
 
 	
 	//设置银江数据接口
-	if(!CMainWindow::getMainWindow()->setupStockDrv())
-	{
-		return app.exit();
-	}
+	//if(!CMainWindow::getMainWindow()->setupStockDrv())
+	//{
+	//	return app.exit();
+	//}
 	
 
 	CDataEngine::importData();				//初始化数据

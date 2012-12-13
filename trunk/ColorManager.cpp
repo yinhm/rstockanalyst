@@ -35,7 +35,7 @@ void CColorManager::reloadBlockColors()
 
 		foreach(const QString& clr,listColors)
 		{
-			QStringList RGBs = clr.split(",");
+			QStringList RGBs = clr.trimmed().split(",");
 			if(RGBs.size()<3)
 				continue;
 
@@ -48,6 +48,8 @@ void CColorManager::reloadBlockColors()
 
 		if(colors.size()>20)
 			BlockColors[info.completeBaseName()] = colors;
+
+		file.close();
 	}
 }
 

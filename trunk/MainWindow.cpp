@@ -37,7 +37,7 @@ CMainWindow::CMainWindow()
 
 		//设置
 		QMenu* pMenuSettings = m_pMenuBar->addMenu(tr("设置"));
-		pMenuSettings->addAction(tr("设置色块颜色"),this,SLOT(onSetBlockColor()));
+		pMenuSettings->addAction(tr("设置色块颜色"),CBlockColorSettingDlg::getDialog(),SLOT(exec()));
 	}
 }
 
@@ -367,13 +367,6 @@ void CMainWindow::onRemoveTemplate()
 	QString qsText = m_pTabWidget->tabText(iCurIndex);
 	if(QFile::remove(m_qsTemplateDir+qsText+".xml"))
 		m_pTabWidget->removeTab(iCurIndex);
-}
-
-
-void CMainWindow::onSetBlockColor()
-{
-	CBlockColorSettingDlg widget;
-	widget.exec();
 }
 
 
