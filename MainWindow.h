@@ -25,8 +25,6 @@ protected slots:
 	void onSaveTemplate();			//保存所有版面
 	void onRemoveTemplate();		//删除版面
 
-	void onSetBlockColor();			//设置色块的颜色模式
-
 protected:
 	virtual bool winEvent( MSG* message, long* result );
 
