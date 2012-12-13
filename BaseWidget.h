@@ -19,6 +19,7 @@ public:
 		KLine,					//K线图
 		MarketTrend,			//市场行情图
 		ColorBlock,				//色块图
+		StockInfo,				//单只股票的行情信息
 	};
 public:
 	static CBaseWidget* createBaseWidget(CBaseWidget* parent=0, WidgetType type=Basic);
