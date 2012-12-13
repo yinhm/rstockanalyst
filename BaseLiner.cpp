@@ -210,6 +210,7 @@ void CVolumeLiner::updateData()
 	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
 	m_vals = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("VOLUME;"));
 //	m_vAmount = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
+//	return CBaseLiner::updateData();
 }
 
 void CVolumeLiner::getMinAndMax( float& fMin,float& fMax,int iCount )
@@ -230,10 +231,11 @@ void CVolumeLiner::Draw( QPainter& p,const QRectF& rtClient,int iShowCount )
 	int iIndex = m_vOpen.size()-1;
 	float fBeginX = rtClient.right()-fItemWidth;
 	int iCount = 0;
+	float fAbsValue = (fMaxPrice - fMinPrice);
 	while(iCount<iShowCount&&iIndex>=0)
 	{
 		QRectF rtItem = QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height());
-		float fVal = ((m_vals[iIndex]-fMinPrice)/(fMaxPrice-fMinPrice))*rtItem.height();
+		float fVal = ((m_vals[iIndex]-fMinPrice)/fAbsValue)*rtItem.height();
 
 		if(m_vClose[iIndex]>=m_vOpen[iIndex])
 		{
@@ -299,6 +301,7 @@ void CMultiLiner::updateData()
 
 void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 {
+
 	m_rtClient = rtClient;
 	if(!rtClient.isValid())
 		return;
@@ -375,6 +378,7 @@ float CMultiLiner::getValueByY( int y )
 	if(m_rtClient.top()>=y||m_rtClient.bottom()<=y)
 		return float();
 	float fPersent = float(m_rtClient.bottom()-y)/float(m_rtClient.height());
+	qDebug()<<"Y Coord"<<fPersent;
 	return (fMaxPrice-fMinPrice)*fPersent+fMinPrice;
 }
 
@@ -388,17 +392,29 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 
 	//Y坐标（价格）
 	p.drawLine(rtClient.topLeft(),rtClient.bottomLeft());			//主线
-	int iPower = 1;		//放大比例
+	float iPower = 1.0;		//放大比例
 
-	int iBeginPrice = ((float)(fMinPrice*10.0));
-	int iEndPrice = ((float)(fMaxPrice*10.0));
-	float fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
+	float iBeginPrice = ((float)(fMinPrice*10.0));
+	float iEndPrice = ((float)(fMaxPrice*10.0));
+
+	float fGridHeight = rtClient.height()/((iEndPrice-iBeginPrice)/iPower);
 	if(fGridHeight>50)
 	{
-		iPower = 2;
+		iPower = iPower/10.0;
 		iBeginPrice = iBeginPrice*10;
 		iEndPrice = iEndPrice*10;
 		fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
+	}
+	else
+	{
+		while(fGridHeight<1)
+		{
+
+			iPower = iPower*10.0;
+			iBeginPrice = iBeginPrice/10;
+			iEndPrice = iEndPrice/10;
+			fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
+		}
 	}
 	if(fGridHeight<=0.0)
 		return;
@@ -420,10 +436,11 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 		{
 			p.drawLine(fX,fY,fX+4,fY);
 			p.setPen(QColor(0,255,255));
-			if(iPower == 2)
-				p.drawText(fX+7,fY+4,QString("%1").arg(float(float(i)/100.0),0,'f',2));
+			float fVal = float(float(i)/10*iPower);
+			if(fVal>10000.0)
+				p.drawText(fX+7,fY+4,QString("%1").arg(fVal,0,'g',2));
 			else
-				p.drawText(fX+7,fY+4,QString("%1").arg(float(float(i)/10),0,'f',2));
+				p.drawText(fX+7,fY+4,QString("%1").arg(fVal,0,'f',2));
 			p.setPen(QColor(255,0,0));
 			fLast = fY;
 		}
