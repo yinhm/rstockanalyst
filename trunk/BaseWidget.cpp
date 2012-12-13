@@ -9,6 +9,7 @@
 #include "KLineWidget.h"
 #include "MarketTrendWidget.h"
 #include "ColorBlockWidget.h"
+#include "StockInfoWidget.h"
 
 CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, WidgetType type/*=Basic*/ )
 {
@@ -25,6 +26,9 @@ CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, WidgetTyp
 		break;
 	case ColorBlock:
 		return new CColorBlockWidget(parent);
+		break;
+	case StockInfo:
+		return new CStockInfoWidget(parent);
 		break;
 	}
 
@@ -77,6 +81,7 @@ void CBaseWidget::initMenu()
 			pMenuType->addAction(tr("K线图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::KLine);
 			pMenuType->addAction(tr("市场行情图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::MarketTrend);
 			pMenuType->addAction(tr("色块图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::ColorBlock);
+			pMenuType->addAction(tr("行情信息"),this,SLOT(onResetWidget()))->setData(CBaseWidget::StockInfo);
 		}
 		m_pMenu->addSeparator();
 	}

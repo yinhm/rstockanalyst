@@ -342,7 +342,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 {
 	if(pItem == m_pSelectedStock)
 	{
-		p.fillRect(rtCB,QColor(20,20,20));
+		p.fillRect(rtCB,QColor(50,50,50));
 	}
 	int iCBCount = rtCB.width()/m_iCBHeight;
 	QList<qRcvHistoryData*> list = pItem->getLastHistory(iCBCount+1);
@@ -358,15 +358,6 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
 
 		p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
-		//int c = f*10*255;
-		//if(c>0)
-		//{
-		//	p.fillRect(rtB,QColor((c>255 ? 255:c),0,0));
-		//}
-		//else
-		//{
-		//	p.fillRect(rtB,QColor(0,(c<-255 ? 255:(-c)),0));
-		//}
 
 		iCurX = iCurX+m_iCBHeight;
 	}
