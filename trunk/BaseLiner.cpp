@@ -378,7 +378,7 @@ float CMultiLiner::getValueByY( int y )
 	if(m_rtClient.top()>=y||m_rtClient.bottom()<=y)
 		return float();
 	float fPersent = float(m_rtClient.bottom()-y)/float(m_rtClient.height());
-	qDebug()<<"Y Coord"<<fPersent;
+
 	return (fMaxPrice-fMinPrice)*fPersent+fMinPrice;
 }
 
@@ -409,10 +409,9 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 	{
 		while(fGridHeight<1)
 		{
-
 			iPower = iPower*10.0;
-			iBeginPrice = iBeginPrice/10;
-			iEndPrice = iEndPrice/10;
+			iBeginPrice = iBeginPrice/10.0;
+			iEndPrice = iEndPrice/10.0;
 			fGridHeight = rtClient.height()/(iEndPrice-iBeginPrice);
 		}
 	}
