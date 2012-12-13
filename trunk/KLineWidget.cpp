@@ -673,7 +673,12 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 		/*绘制y轴的值*/
 		float fV = pCurLiner->getValueByY(ptCurMouse.y());
-		p.drawText(QRect(rtClient.right()+10,ptCurMouse.y()-5,50,20),Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(fV,0,'f',2));
+		{
+			if(fV>10000.0)
+				p.drawText(QRect(rtClient.right()+10,ptCurMouse.y()-5,50,20),Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(fV,0,'g',2));
+			else
+				p.drawText(QRect(rtClient.right()+10,ptCurMouse.y()-5,50,20),Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(fV,0,'f',2));				
+		}
 
 		/*绘制x轴的值*/
 		QRectF rtCurLiner = pCurLiner->getRect();

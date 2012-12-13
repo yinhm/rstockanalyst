@@ -50,16 +50,19 @@ public:
 	QString getExpression() const{ return m_qsExp; }
 	void setTitle(const QString& title){ m_qsTitle = title; }
 	QString getTitle() const{ return m_qsTitle; }
+	int getPower() const{ return m_iPower; }
 
 protected:
 	QColor m_clrLine;		//线条颜色
 	QRect m_rtClient;		//绘制的区域
 	float fMaxPrice;
 	float fMinPrice;
-	QVector<float> m_vals;
 	QString m_qsTitle;			//标题
 	QString m_qsExp;			//表达式
 	QScriptEngine* m_pEngine;	//脚本引擎
+
+	QVector<float> m_vals;
+	int m_iPower;					//倍数
 };
 
 //K线图的线条绘制
