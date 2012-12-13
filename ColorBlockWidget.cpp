@@ -12,26 +12,14 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iCBHeight(16)
 	, showStockIndex(0)
 	, m_pSelectedStock(0)
+	, m_qsColorMode("")
 {
-	//初始化基本的颜色表
-	for (int i=0;i<21;++i)
-	{
-		m_vColors.push_back(QColor::fromRgb((255.0/20.0)*i,(255.0/20.0)*i,(255.0/20.0)*i));
-	}
-
 	//初始化菜单
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
 
 	{
 		//颜色显示模式菜单
 		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色显示模式");
-		QStringList listColors = CColorManager::BlockColors.keys();
-		foreach(const QString& clr,listColors)
-		{
-			QAction* pAct = m_pMenuColorMode->addAction(clr,this,SLOT(onSetColorMode()));
-			pAct->setData(clr);
-			pAct->setCheckable(true);
-		}
 	}
 }
 
@@ -53,6 +41,13 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 		setBlock(eleBlock.text());
 	}
 
+	//当前的颜色模式
+	QDomElement eleColorMode = eleWidget.firstChildElement("color");
+	if(eleColorMode.isElement())
+	{
+		m_qsColorMode = eleColorMode.text();
+	}
+
 	return true;
 }
 
@@ -66,6 +61,11 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	QDomElement eleBlock = doc.createElement("block");
 	eleBlock.appendChild(doc.createTextNode(m_qsBlock));
 	eleWidget.appendChild(eleBlock);
+
+	//当前的颜色模式
+	QDomElement eleColorMode = doc.createElement("color");
+	eleColorMode.appendChild(doc.createTextNode(m_qsColorMode));
+	eleWidget.appendChild(eleColorMode);
 
 
 	return true;
@@ -105,17 +105,14 @@ void CColorBlockWidget::updateStock( const QString& code )
 
 void CColorBlockWidget::setColorMode( const QString& mode )
 {
+	m_qsColorMode = mode;
 	QList<QAction*> listActs = m_pMenuColorMode->actions();
-	foreach(QAction* pAct,listActs)
-	{
-		pAct->setChecked((pAct->data().toString() == mode) ? true : false);
-	}
+	//foreach(QAction* pAct,listActs)
+	//{
+	//	pAct->setChecked((pAct->data().toString() == mode) ? true : false);
+	//}
 
-	if(CColorManager::BlockColors.contains(mode))
-	{
-		m_vColors = CColorManager::BlockColors[mode];
-		update();
-	}
+	update();
 }
 
 void CColorBlockWidget::onSetColorMode()
@@ -279,6 +276,22 @@ QMenu* CColorBlockWidget::getCustomMenu()
 	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
 		m_pMenuCustom->addMenu(m_pMenu);
 
+
+	{
+		//添加当前所有的支持的颜色模式菜单
+		m_pMenuColorMode->clear();
+
+		QStringList listColors = CColorManager::getBlockColorList();
+		foreach(const QString& clr,listColors)
+		{
+			QAction* pAct = m_pMenuColorMode->addAction(clr,this,SLOT(onSetColorMode()));
+			pAct->setData(clr);
+			pAct->setCheckable(true);
+			if(clr == m_qsColorMode)
+				pAct->setChecked(true);
+		}
+	}
+
 	return m_pMenuCustom;
 }
 
@@ -317,10 +330,11 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	float fColorsWidth = rtBottom.width()-2*m_iBottomHeight;
 	if(fColorsWidth<0.1)
 		return;
-	float fColorWidth = fColorsWidth/m_vColors.size();
-	for(int i=0;i<m_vColors.size();++i)
+	float fColorWidth = fColorsWidth/COLOR_BLOCK_SIZE;
+	for(int i=0;i<COLOR_BLOCK_SIZE;++i)
 	{
-		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),m_vColors[i]);
+		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
+			CColorManager::getBlockColor(m_qsColorMode,i));
 	}
 }
 
@@ -342,13 +356,8 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		QRect rtB = QRect(iCurX,rtCB.top(),m_iCBHeight,m_iCBHeight);
 		rtB.adjust(2,2,-2,-2);
 		float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
-		int iColor = f*100+10;
-		if(iColor>20)
-			iColor = 20;
-		if(iColor<0)
-			iColor = 0;
 
-		p.fillRect(rtB,m_vColors[iColor]);
+		p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
 		//int c = f*10*255;
 		//if(c>0)
 		//{

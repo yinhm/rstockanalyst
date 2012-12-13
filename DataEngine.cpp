@@ -459,8 +459,9 @@ time_t CDataEngine::getOpenSeconds( time_t tmTime )
 		return 3600*2;
 
 	time_t tmBegin1 = m_tmCurrentDay + 1800*19;
-	if(tmTime>tmBegin2)
+	if(tmTime>tmBegin1)
 		return tmTime-tmBegin1;
+
 
 	return 0;
 }
