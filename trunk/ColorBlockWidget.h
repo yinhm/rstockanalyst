@@ -66,7 +66,7 @@ private:
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
-	QVector<QColor> m_vColors;					//当前的颜色映射表
+	QString m_qsColorMode;						//当前颜色模式
 
 	/*用于绘制操作的成员变量*/
 private:

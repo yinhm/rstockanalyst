@@ -3,6 +3,7 @@
 #include "STKDRV.h"
 #include "DataEngine.h"
 #include "KLineWidget.h"
+#include "BlockColorSettingDlg.h"
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
 
@@ -33,6 +34,10 @@ CMainWindow::CMainWindow()
 		pMenuTemplate->addAction(tr("保存所有"),this,SLOT(onSaveTemplate()));
 		pMenuTemplate->addAction(tr("删除当前版面"),this,SLOT(onRemoveTemplate()));
 		setMenuBar(m_pMenuBar);
+
+		//设置
+		QMenu* pMenuSettings = m_pMenuBar->addMenu(tr("设置"));
+		pMenuSettings->addAction(tr("设置色块颜色"),this,SLOT(onSetBlockColor()));
 	}
 }
 
@@ -363,6 +368,14 @@ void CMainWindow::onRemoveTemplate()
 	if(QFile::remove(m_qsTemplateDir+qsText+".xml"))
 		m_pTabWidget->removeTab(iCurIndex);
 }
+
+
+void CMainWindow::onSetBlockColor()
+{
+	CBlockColorSettingDlg widget;
+	widget.exec();
+}
+
 
 CBaseWidget* CMainWindow::getSubWindows( const QString& title )
 {
