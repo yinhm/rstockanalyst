@@ -167,9 +167,13 @@ int CBaseWidget::getWidgetIndex( CBaseWidget* widget ) const
 
 void CBaseWidget::replaceWidget( int index, CBaseWidget* widget )
 {
+	QList<int> sizes = m_pSplitter->sizes();
 	CBaseWidget* pWidgetPre = reinterpret_cast<CBaseWidget*>(m_pSplitter->widget(index));
+	pWidgetPre->setParent(NULL);
 	pWidgetPre->deleteLater();
 	m_pSplitter->insertWidget(index,widget);
+	QApplication::flush();
+	m_pSplitter->setSizes(sizes);
 }
 
 bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
