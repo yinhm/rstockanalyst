@@ -345,8 +345,14 @@ float CStockInfoItem::getPERatio() const
 
 float CStockInfoItem::getLTSZ() const
 {
-	//流通市值 总市值就是以目前股票市价乘以总股本，流通值是以目前股票市价乘以流[1]通股本。
+	//流通市值 总市值就是以目前股票市价乘以流通股，流通值是以目前股票市价乘以流[1]通股本。
 	return fLTSZ;
+}
+
+float CStockInfoItem::getZGB() const
+{
+	//总股本 总市值就是以目前股票市价乘以总股本，流通值是以目前股票市价乘以流[1]通股本。
+	return fZGB;
 }
 
 float CStockInfoItem::getSellVOL() const
@@ -392,6 +398,20 @@ float CStockInfoItem::getLast5Volume()
 	//过去5日的成交总量
 	return fLast5Volume;
 }
+
+float CStockInfoItem::getMgjzc()
+{
+	//获取每股净资产
+	return baseInfo.fMgjz;
+}
+
+float CStockInfoItem::getMgsy()
+{
+	//获取每股收益
+	return baseInfo.fMgsy;
+}
+
+
 void CStockInfoItem::updateItemInfo()
 {
 	//设置股票名称
@@ -419,6 +439,8 @@ void CStockInfoItem::updateItemInfo()
 	//流通市值
 	if(baseInfo.fLtAg>0)
 		fLTSZ = baseInfo.fLtAg*pCurrentReport->fNewPrice;
+	if(baseInfo.fZgb>0)
+		fZGB = baseInfo.fZgb*pCurrentReport->fNewPrice;
 
 	//涨跌，价格波动
 	fPriceFluctuate = (pCurrentReport->fNewPrice-pCurrentReport->fLastClose);
@@ -495,4 +517,6 @@ void CStockInfoItem::updateItemInfo()
 
 	emit stockItemReportChanged(qsCode);
 }
+
+
 
