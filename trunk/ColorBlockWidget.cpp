@@ -119,7 +119,8 @@ void CColorBlockWidget::setBlock( const QString& block )
 
 void CColorBlockWidget::updateStock( const QString& code )
 {
-	
+	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
+	update(rectOfStock(pItem));
 }
 
 void CColorBlockWidget::setColorMode( const QString& mode )
