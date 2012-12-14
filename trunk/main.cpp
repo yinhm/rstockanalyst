@@ -5,6 +5,7 @@
 #include "MainWindow.h"
 #include "DataEngine.h"
 #include "ColorManager.h"
+#include "KLineWidget.h"
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +24,8 @@ int main(int argc, char *argv[])
 
 	//初始化颜色表
 	CColorManager::initAll();
+	//初始化js脚本
+	CKLineWidget::initJSScript();
 
 	CSTKDRV::InitStockDrv();
 

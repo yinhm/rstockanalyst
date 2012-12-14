@@ -331,6 +331,21 @@ int getLinerYearItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 	return listItems.size();
 }
 
+QString CKLineWidget::g_qsScript;
+bool CKLineWidget::initJSScript()
+{
+	QFile file(qApp->applicationDirPath()+"/RStockLiners.js");
+	if(!file.open(QFile::ReadOnly))
+	{
+		qDebug()<<"load script error.";
+		return false;
+	}
+	g_qsScript = file.readAll();
+	qDebug()<<"loaded script from:"<<file.fileName();
+	file.close();
+	return true;
+}
+
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::KLine)
 	, m_pMenuCustom(0)
@@ -358,15 +373,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 		*/
 		qScriptRegisterSequenceMetaType<QVector<float>>(m_pScriptEngine);
 
-		{
-			//º”‘ÿ‘§÷√Ω≈±æ
-			QFile file("..\\RStockLiners.js");
-			if(!file.open(QFile::ReadOnly))
-				qDebug()<<"load script error.";
-			QString qsScript = file.readAll();
-			QScriptValue v = m_pScriptEngine->evaluate(QScriptProgram(qsScript));
-			qDebug()<<"loaded script, info:"<<v.toString()<<"\r\n";
-		}
+		//º”‘ÿ‘§÷√Ω≈±æ
+		m_pScriptEngine->evaluate(QScriptProgram(g_qsScript));
 	}
 
 	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pScriptEngine,"");

@@ -36,6 +36,8 @@ public:
 	CKLineWidget(CBaseWidget* parent = 0);
 	~CKLineWidget(void);
 
+	static bool initJSScript();
+
 public:
 	//加载该K线图的配置信息
 	virtual bool loadPanelInfo(const QDomElement& eleWidget);
@@ -103,6 +105,8 @@ private:
 	QRect m_rtSubShow;						//减少显示个数的按钮区域
 
 	QScriptEngine* m_pScriptEngine;			//脚本解释器
+
+	static QString g_qsScript;				//js脚本
 };
 
 
