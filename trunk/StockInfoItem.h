@@ -273,6 +273,7 @@ public:
 	float getAvePrice() const;	//均价
 	float getPERatio() const;		//市盈率
 	float getLTSZ() const;			//流通市值
+	float getZGB() const;			//总股本
 	float getSellVOL() const;		//外盘量
 	float getBuyVOL() const;		//内盘量
 	float getBIDVOL() const;		//委买量
@@ -281,6 +282,9 @@ public:
 	float getCommSent() const;	//委差
 
 	float getLast5Volume(); //获取过去5日的成交量（用于计算量比）
+
+	float getMgjzc();		//每股净资产
+	float getMgsy();		//获取每股收益
 
 
 protected:
@@ -311,6 +315,7 @@ private:
 
 	float fPERatio;					//市盈率
 	float fLTSZ;					//流通市值
+	float fZGB;						//总股本
 	float fSellVOL;					//外盘量
 	float fBuyVOL;					//内盘量
 
