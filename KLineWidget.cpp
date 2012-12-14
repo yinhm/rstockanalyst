@@ -349,6 +349,7 @@ bool CKLineWidget::initJSScript()
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::KLine)
 	, m_pMenuCustom(0)
+	, m_pMenuCircle(0)
 	, m_pActShowMain(0)
 	, m_typeCircle(CKLineWidget::Day)
 	, m_pStockItem(0)
@@ -385,18 +386,18 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
 	{
 		//设置当前K线图的显示周期
-		QMenu* pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
-		pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
-		pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
-		pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
-		pMenuCircle->addAction(tr("30分钟分时图"),this,SLOT(onSetCircle()))->setData(Min30);
-		pMenuCircle->addAction(tr("60分钟分时图"),this,SLOT(onSetCircle()))->setData(Min60);
+		m_pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
+		m_pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
+		m_pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
+		m_pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
+		m_pMenuCircle->addAction(tr("30分钟分时图"),this,SLOT(onSetCircle()))->setData(Min30);
+		m_pMenuCircle->addAction(tr("60分钟分时图"),this,SLOT(onSetCircle()))->setData(Min60);
 
-		pMenuCircle->addAction(tr("日线图"),this,SLOT(onSetCircle()))->setData(Day);
-		pMenuCircle->addAction(tr("周线图"),this,SLOT(onSetCircle()))->setData(Week);
-		pMenuCircle->addAction(tr("月线图"),this,SLOT(onSetCircle()))->setData(Month);
-		pMenuCircle->addAction(tr("季线图"),this,SLOT(onSetCircle()))->setData(Month3);
-		pMenuCircle->addAction(tr("年线图"),this,SLOT(onSetCircle()))->setData(Year);
+		m_pMenuCircle->addAction(tr("日线图"),this,SLOT(onSetCircle()))->setData(Day);
+		m_pMenuCircle->addAction(tr("周线图"),this,SLOT(onSetCircle()))->setData(Week);
+		m_pMenuCircle->addAction(tr("月线图"),this,SLOT(onSetCircle()))->setData(Month);
+		m_pMenuCircle->addAction(tr("季线图"),this,SLOT(onSetCircle()))->setData(Month3);
+		m_pMenuCircle->addAction(tr("年线图"),this,SLOT(onSetCircle()))->setData(Year);
 	}
 	{
 		m_pMenuCustom->addSeparator();
@@ -809,6 +810,15 @@ QMenu* CKLineWidget::getCustomMenu()
 	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
 		m_pMenuCustom->addMenu(m_pMenu);
 
+	{
+		QList<QAction*> listAct = m_pMenuCircle->actions();
+		foreach(QAction* pAct,listAct)
+		{
+			pAct->setCheckable(true);
+			pAct->setChecked(pAct->data().toInt() == m_typeCircle);
+		}
+	}
+
 	return m_pMenuCustom;
 }
 
@@ -1077,6 +1087,7 @@ void CKLineWidget::clearTmpData()
 	//foreach(stLinerItem* p,listItems)
 	//	delete p;
 	listItems.clear();
+	disconnect(this,SLOT(updateKLine(const QString&)));
 }
 
 void CKLineWidget::resetTmpData()

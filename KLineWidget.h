@@ -80,6 +80,7 @@ private:
 
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
+	QMenu* m_pMenuCircle;					//周期设置菜单
 	QAction* m_pActShowMain;				//是否显示主图
 
 	KLineCircle m_typeCircle;				//本图的显示周期

@@ -16,6 +16,12 @@ class CColorBlockWidget : public CBaseWidget
 {
 	Q_OBJECT
 public:
+	enum BlockMode
+	{
+		BlockCircle = 1,		//圆形
+		BlockRect,				//方块
+	};
+public:
 	CColorBlockWidget(CBaseWidget* parent = 0);
 	~CColorBlockWidget(void);
 
@@ -33,6 +39,7 @@ public slots:
 
 protected slots:
 	void onSetColorMode();									//点击设置颜色模式
+	void onSetBlockMode();									//设置当前的显示模式
 
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
@@ -60,6 +67,8 @@ private:
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
 	QMenu* m_pMenuColorMode;				//颜色模式菜单
+	QMenu* m_pMenuBlockMode;					//显示模式菜单
+
 	QString m_qsBlock;						//当前的板块名称
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
@@ -74,6 +83,7 @@ private:
 	int m_iCBHeight;						//单个色块的高度
 	int m_iBottomHeight;					//底部的高度
 	int showStockIndex;
+	BlockMode m_typeBlock;					//block显示形状
 
 
 	QRect m_rtHeader;						//头部Header区域

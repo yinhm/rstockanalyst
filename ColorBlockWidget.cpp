@@ -7,19 +7,25 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::ColorBlock)
 	, m_pMenuCustom(0)
 	, m_pMenuColorMode(0)
+	, m_pMenuBlockMode(0)
 	, m_iTitleHeight(16)
 	, m_iBottomHeight(16)
 	, m_iCBHeight(16)
 	, showStockIndex(0)
 	, m_pSelectedStock(0)
 	, m_qsColorMode("")
+	, m_typeBlock(BlockCircle)
 {
 	//初始化菜单
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
 
 	{
 		//颜色显示模式菜单
-		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色显示模式");
+		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色模式");
+		//设置显示方式（圆形/方块）
+		m_pMenuBlockMode = m_pMenuCustom->addMenu("设置显示形状");
+		m_pMenuBlockMode->addAction("圆形",this,SLOT(onSetBlockMode()))->setData(BlockCircle);
+		m_pMenuBlockMode->addAction("方形",this,SLOT(onSetBlockMode()))->setData(BlockRect);
 	}
 }
 
@@ -48,6 +54,14 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 		m_qsColorMode = eleColorMode.text();
 	}
 
+
+	//当前的显示形状模式
+	QDomElement eleBlockMode = eleWidget.firstChildElement("mode");
+	if(eleBlockMode.isElement())
+	{
+		m_typeBlock = static_cast<CColorBlockWidget::BlockMode>(eleBlockMode.text().toInt());
+	}
+
 	return true;
 }
 
@@ -66,6 +80,11 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	QDomElement eleColorMode = doc.createElement("color");
 	eleColorMode.appendChild(doc.createTextNode(m_qsColorMode));
 	eleWidget.appendChild(eleColorMode);
+
+	//当前的显示形状模式
+	QDomElement eleBlockMode = doc.createElement("mode");
+	eleBlockMode.appendChild(doc.createTextNode(QString("%1").arg(m_typeBlock)));
+	eleWidget.appendChild(eleBlockMode);
 
 
 	return true;
@@ -119,6 +138,14 @@ void CColorBlockWidget::onSetColorMode()
 {
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 	setColorMode(pAct->data().toString());
+}
+
+void CColorBlockWidget::onSetBlockMode()
+{
+	//设置当前的显示周期
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	m_typeBlock = static_cast<BlockMode>(pAct->data().toInt());
+	update();
 }
 
 void CColorBlockWidget::clearTmpData()
@@ -291,6 +318,14 @@ QMenu* CColorBlockWidget::getCustomMenu()
 				pAct->setChecked(true);
 		}
 	}
+	{
+		QList<QAction*> listAct = m_pMenuBlockMode->actions();
+		foreach(QAction* pAct,listAct)
+		{
+			pAct->setCheckable(true);
+			pAct->setChecked(pAct->data().toInt() == m_typeBlock);
+		}
+	}
 
 	return m_pMenuCustom;
 }
@@ -354,10 +389,27 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	for(int i=1;i<list.size();++i)
 	{
 		QRect rtB = QRect(iCurX,rtCB.top(),m_iCBHeight,m_iCBHeight);
-		rtB.adjust(2,2,-2,-2);
-		float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
+		switch(m_typeBlock)
+		{
+		case BlockRect:
+			{
+				rtB.adjust(2,2,-2,-2);
+				float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
 
-		p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
+				p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
+			}
+			break;
+		case BlockCircle:
+			{
+			//	rtB.adjust(2,2,-2,-2);
+				QPainterPath path;
+				path.addEllipse(rtB);
+				float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
+
+				p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
+			}
+			break;
+		}
 
 		iCurX = iCurX+m_iCBHeight;
 	}
