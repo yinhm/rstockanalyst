@@ -29,6 +29,7 @@ CStockInfoWidget::CStockInfoWidget( CBaseWidget* parent /*= 0*/ )
 CStockInfoWidget::~CStockInfoWidget(void)
 {
 	delete m_pMenuCustom;
+	disconnect(this,SLOT(updateStockInfo(const QString&)));
 }
 
 bool CStockInfoWidget::loadPanelInfo( const QDomElement& eleWidget )
