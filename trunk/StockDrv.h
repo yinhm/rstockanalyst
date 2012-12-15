@@ -259,7 +259,7 @@ typedef struct tagYJFenbi
 	float	m_fSellVolume[5];		// 申卖量1,2,3,4,5
 } RCV_FENBI_STRUCTEx;
 
-struct YJ_Fenbi
+typedef struct YJ_Fenbi
 {
 	WORD	m_wMarket;			// 股票市场类型　　　　　　　　　　 同通视规范定义
 	char	m_szLabel[STKLABEL_LEN];	// 股票代码,以'\0'结尾

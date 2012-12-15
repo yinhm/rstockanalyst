@@ -151,6 +151,10 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 	//  对于处理速度慢的数据类型,最好将 pHeader->m_pData 指向的数据备份,再作处理
 
+	/*
+		补分笔和补分时其实补的都是分笔数据，只是补分时补的每分钟的最后一笔，而补分笔补的每分钟的所有分笔数据。
+	*/
+
 	switch( wParam )
 	{
 	case RCV_REPORT:                        // 共享数据引用方式,股票行情
@@ -320,6 +324,23 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					int i = 0;
 				}
 				break;
+			}
+		}
+		break;
+	case RCV_FENBIDATA:
+		{
+			qDebug()<< "####Comming FenBi Data"<<QTime::currentTime().toString()<<"####";
+
+			RCV_FENBI* pFb = reinterpret_cast<RCV_FENBI*>(lParam);
+			int iCount = 0;
+			RCV_FENBI_STRUCTEx* p = pFb->m_Data;
+
+			while(iCount<pFb->m_nCount)
+			{
+				//数据处理
+
+				++p;
+				++iCount;
 			}
 		}
 		break;
