@@ -573,6 +573,7 @@ void CKLineWidget::setStockCode( const QString& code )
 		//建立更新机制
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		connect(pItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 
 		//更新K线图
 		updateKLine(code);
@@ -1124,6 +1125,20 @@ void CKLineWidget::resetTmpData()
 	{
 		//获取日线数据
 		QList<qRcvHistoryData*> historys = m_pStockItem->getHistoryList();
+		qRcvReportData* pLastReport = m_pStockItem->getCurrentReport();
+		if(pLastReport)
+		{
+			qRcvHistoryData* pLastHistory = new qRcvHistoryData();
+			pLastHistory->time = pLastReport->tmTime;
+			pLastHistory->fAmount = pLastReport->fAmount;
+			pLastHistory->fClose = pLastReport->fNewPrice;
+			pLastHistory->fHigh = pLastReport->fHigh;
+			pLastHistory->fLow = pLastReport->fLow;
+			pLastHistory->fOpen = pLastReport->fOpen;
+			pLastHistory->fVolume = pLastReport->fVolume;
+
+			historys.push_back(pLastHistory);
+		}
 		if(m_typeCircle == Day)
 		{
 			getLinerDayItems(listItems,historys);
@@ -1157,6 +1172,7 @@ void CKLineWidget::resetTmpData()
 			historys.clear();
 		}
 	}
+
 	if(listItems.size()<m_iShowCount)
 		m_iShowCount = listItems.size();
 
