@@ -272,7 +272,10 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 			case FILE_BASE_EX:                  // 钱龙兼容基本资料文件,m_szFileName仅包含文件名
 				{
-					int i = 0;
+//					RCV_BASEINFO_STRUCTEx* pBaseInfo = reinterpret_cast<RCV_BASEINFO_STRUCTEx*>(pHeader->m_pData);
+					qDebug()<<"BaseInfo Comming\r\n"<<QString::fromLocal8Bit((char*)pHeader->m_pData);
+					//FileName pHeader->m_File.m_szFileName;
+					//FileData (char*)pHeader->m_pData
 				}
 				break;
 
