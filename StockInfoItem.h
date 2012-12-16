@@ -215,6 +215,31 @@ struct qRcvPowerData
 	}
 };
 
+//RCV_FENBI_STRUCTEx
+struct qRcvFenBiData
+{
+	long	lTime;				// hhmmss 例：93056 表明9:30:56的盘口数据
+	float	fHigh;				// 最高
+	float	fLow;				// 最低
+	float	fNewPrice;			// 最新
+	float	fVolume;			// 成交量
+	float	fAmount;			// 成交额
+
+	long	lStroke;			// 保留
+	float	fBuyPrice[5];		// 申买价1,2,3,4,5
+	float	fBuyVolume[5];		// 申买量1,2,3,4,5
+	float	fSellPrice[5];		// 申卖价1,2,3,4,5
+	float	fSellVolume[5];		// 申卖量1,2,3,4,5
+	qRcvFenBiData()
+	{
+		memset(&lTime,0,sizeof(qRcvFenBiData));
+	}
+	qRcvFenBiData(RCV_FENBI_STRUCTEx* p)
+	{
+		memcpy(&lTime,&p->m_lTime,sizeof(qRcvFenBiData));
+	}
+};
+
 #pragma   pack(pop)					//去除内存对齐方式设置
 
 class CStockInfoItem : public QObject
@@ -243,6 +268,10 @@ public:
 	//补充除权数据
 	QList<qRcvPowerData*> getPowerList();
 	void appendPowers(const QList<qRcvPowerData*>& list);
+
+	//补充分笔数据
+	QList<qRcvFenBiData*> getFenBiList(const long& lDate);
+	void setFenBis(const long& lDate, const QList<qRcvFenBiData*>& list);
 
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
@@ -329,6 +358,8 @@ private:
 private:
 	QMap<time_t,qRcvMinuteData*> mapMinutes;		//分钟数据
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
+	QMultiMap<long,qRcvFenBiData*> mapFenBis;		//分笔数据
+	long m_lFenBiDate;								//当前分笔数据的日期
 	qRcvBaseInfoData baseInfo;
 };
 

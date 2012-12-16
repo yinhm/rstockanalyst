@@ -60,6 +60,8 @@ public:
 
 	//新闻数据
 	void appendNews(const QString& title, const QString& content);		//添加新闻
+	//F10数据
+	void appendF10(const QString& title, const QString& content);		//添加F10数据
 
 	//获取基本行情数据
 	QList<CStockInfoItem*> getStockInfoList();
@@ -72,6 +74,9 @@ public:
 	QList<qRcvHistoryData*> getHistoryList(const QString& code);
 	/*获取某只股票最近count条的日线数据*/
 	QList<qRcvHistoryData*> getHistoryList(const QString& code, int count);
+
+	/*导出分笔数据*/
+	bool exportFenBiData(const QString& qsCode, const long& lDate, const QList<qRcvFenBiData*>& list);
 
 private:
 	bool isBlockInCommon(const QString&  block);
@@ -88,6 +93,8 @@ private:
 	QString m_qsBlocksDir;						//板块数据的存储路径 AppDir/data/blocks/...
 	QString m_qsCommonBlocks;					//常用板块列表配置文件的存储路径 AppDir/data/CommonBlocks.xml
 	QString m_qsNewsDir;						//新闻数据的存储路径 AppDir/data/news/...
+	QString m_qsF10Dir;							//F10数据的存储路径 AppDir/data/F10/...
+	QString m_qsFenBiDir;						//分笔数据的存储路径 AppDir/data/FenBi/Date/...
 
 	QList<QPair<QString,QRegExp>> m_listCommonBlocks;	//常用的股票板块；（上证A股、深圳指数……）
 };

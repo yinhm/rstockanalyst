@@ -272,10 +272,10 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 			case FILE_BASE_EX:                  // 钱龙兼容基本资料文件,m_szFileName仅包含文件名
 				{
-//					RCV_BASEINFO_STRUCTEx* pBaseInfo = reinterpret_cast<RCV_BASEINFO_STRUCTEx*>(pHeader->m_pData);
-					qDebug()<<"BaseInfo Comming\r\n"<<QString::fromLocal8Bit((char*)pHeader->m_pData);
-					//FileName pHeader->m_File.m_szFileName;
-					//FileData (char*)pHeader->m_pData
+					QString qsF10Title = QString::fromLocal8Bit(pHeader->m_File.m_szFileName);
+					QString qsContent = QString::fromLocal8Bit((char*)pHeader->m_pData,pHeader->m_File.m_dwLen);
+					qDebug()<<"Comming F10 "<<qsF10Title;
+					CDataEngine::getDataEngine()->appendF10(qsF10Title,qsContent);
 				}
 				break;
 
@@ -332,19 +332,28 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 		break;
 	case RCV_FENBIDATA:
 		{
-			qDebug()<< "####Comming FenBi Data"<<QTime::currentTime().toString()<<"####";
-
 			RCV_FENBI* pFb = reinterpret_cast<RCV_FENBI*>(lParam);
+
+			qDebug()<< "FenBi Packet count:"<<pFb->m_nCount;
+			QDateTime tmNow = QDateTime::currentDateTime();
+			QString qsCode = QString::fromLocal8Bit(pFb->m_szLabel);
 			int iCount = 0;
 			RCV_FENBI_STRUCTEx* p = pFb->m_Data;
-
-			while(iCount<pFb->m_nCount)
+			QList<qRcvFenBiData*> listFenBis;
+			CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+			if(pItem)
 			{
-				//数据处理
+				while(iCount<pFb->m_nCount)
+				{
+					//数据处理
+					listFenBis.append(new qRcvFenBiData(p));
 
-				++p;
-				++iCount;
+					++p;
+					++iCount;
+				}
+				pItem->setFenBis(pFb->m_lDate,listFenBis);
 			}
+			qDebug()<<"Using Time: "<<tmNow.msecsTo(QDateTime::currentDateTime());
 		}
 		break;
 
