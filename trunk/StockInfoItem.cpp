@@ -25,6 +25,7 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
+	, m_lFenBiDate(0)
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
@@ -52,6 +53,7 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
+	, m_lFenBiDate(0)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
@@ -201,6 +203,34 @@ void CStockInfoItem::appendPowers( const QList<qRcvPowerData*>& list )
 		mapPowers[p->tmTime] = p;
 	}
 }
+
+
+
+QList<qRcvFenBiData*> CStockInfoItem::getFenBiList( const long& lDate )
+{
+	//获取分笔数据，未完工
+	if(m_lFenBiDate == lDate)
+		return mapFenBis.values();
+
+	return QList<qRcvFenBiData*>();
+}
+
+void CStockInfoItem::setFenBis( const long& lDate, const QList<qRcvFenBiData*>& list )
+{
+	//追加分笔数据，未完工
+	foreach(qRcvFenBiData* p,mapFenBis.values())
+		delete p;
+	m_lFenBiDate = lDate;
+	mapFenBis.clear();
+	foreach(qRcvFenBiData* p,list)
+	{
+		mapFenBis.insert(p->lTime,p);
+//		mapFenBis[p->lTime] = p;
+	}
+
+	CDataEngine::getDataEngine()->exportFenBiData(qsCode,lDate,mapFenBis.values());
+}
+
 
 void CStockInfoItem::setBaseInfo( const qRcvBaseInfoData& info )
 {
@@ -481,25 +511,19 @@ void CStockInfoItem::updateItemInfo()
 		}
 	}
 
-	if(pLastReport->fNewPrice <= 0.0)
 	{
 		//内外盘计算
-		if(pCurrentReport->fNewPrice>=pCurrentReport->fLastClose)
-			fSellVOL = pCurrentReport->fVolume;
-		else
-			fBuyVOL = pCurrentReport->fVolume;
-	}
-	else
-	{
-		//两个Report的对比计算
 		fNowVolume = (pCurrentReport->fVolume)-(pLastReport->fVolume);
-		fIncreaseSpeed = (pCurrentReport->fNewPrice-pLastReport->fNewPrice)/pLastReport->fNewPrice;
-
-		//内外盘计算
-		if(pCurrentReport->fNewPrice>=pLastReport->fNewPrice)
+		if(pCurrentReport->fNewPrice>pCurrentReport->fBuyPrice[0])
 			fSellVOL += fNowVolume;
 		else
 			fBuyVOL += fNowVolume;
+	}
+
+	if(pLastReport->fNewPrice > 0.0)
+	{
+		//两个Report的对比计算
+		fIncreaseSpeed = (pCurrentReport->fNewPrice-pLastReport->fNewPrice)/pLastReport->fNewPrice;
 	}
 
 	{

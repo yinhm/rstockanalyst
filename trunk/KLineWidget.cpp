@@ -1126,7 +1126,14 @@ void CKLineWidget::resetTmpData()
 		//获取日线数据
 		QList<qRcvHistoryData*> historys = m_pStockItem->getHistoryList();
 		qRcvReportData* pLastReport = m_pStockItem->getCurrentReport();
-		if(pLastReport)
+		bool bAppendLast = true;
+		if(historys.size()>0 && pLastReport)
+		{
+			qRcvHistoryData* pLastHistory = historys.last();
+			if(QDateTime::fromTime_t(pLastHistory->time).date() == QDateTime::fromTime_t(pLastReport->tmTime).date())
+				bAppendLast = false;
+		}
+		if(pLastReport&&bAppendLast)
 		{
 			qRcvHistoryData* pLastHistory = new qRcvHistoryData();
 			pLastHistory->time = pLastReport->tmTime;

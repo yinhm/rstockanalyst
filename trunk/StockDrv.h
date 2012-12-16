@@ -243,7 +243,7 @@ typedef union tagRCV_POWER_STRUCTEx
 
 //分笔数据///////////////////////////////////
 typedef struct tagYJFenbi 
-{				
+{
 	long	m_lTime;			// hhmmss 例：93056 表明9:30:56的盘口数据
 
 	float	m_fHigh;			// 最高

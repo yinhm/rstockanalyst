@@ -483,6 +483,12 @@ CDataEngine::CDataEngine(void)
 
 	m_qsNewsDir = qApp->applicationDirPath()+"/data/news/";
 	QDir().mkpath(m_qsNewsDir);
+
+	m_qsF10Dir = qApp->applicationDirPath()+"/data/F10/";
+	QDir().mkpath(m_qsF10Dir);
+
+	m_qsFenBiDir = qApp->applicationDirPath()+"/data/FenBi/";
+	QDir().mkpath(m_qsFenBiDir);
 }
 
 CDataEngine::~CDataEngine(void)
@@ -705,6 +711,18 @@ void CDataEngine::appendNews( const QString& title, const QString& content )
 	file.close();
 }
 
+void CDataEngine::appendF10( const QString& title, const QString& content )
+{
+	QString qsF10Path = m_qsF10Dir + title;
+
+	QDir().mkpath(QFileInfo(qsF10Path).absolutePath());
+	QFile file(qsF10Path);
+	if(!file.open(QFile::WriteOnly|QFile::Truncate))
+		return;
+	file.write(content.toAscii());
+	file.close();
+}
+
 
 QList<CStockInfoItem*> CDataEngine::getStockInfoList()
 {
@@ -765,7 +783,10 @@ bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHist
 	{
 		int iSize = out.writeRawData((char*)pData,sizeof(qRcvHistoryData));
 		if(iSize!=sizeof(qRcvHistoryData))
+		{
+			file.close();
 			return false;
+		}
 	}
 
 	file.close();
@@ -828,6 +849,37 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code, int co
 	file.close();
 	return list;
 }
+
+bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, const QList<qRcvFenBiData*>& list )
+{
+	QString qsPath = QString("%1%2/").arg(m_qsFenBiDir).arg(lDate);
+	QDir().mkpath(qsPath);
+	QString qsFenBiData = QString("%1%2").arg(qsPath).arg(qsCode);
+
+	QFile file(qsFenBiData);
+	if(!file.open(QFile::WriteOnly|QFile::Truncate))
+		return false;
+
+//	QDataStream out(&file);
+
+	foreach(qRcvFenBiData* pData, list)
+	{
+		int iSize = file.write((char*)pData,sizeof(qRcvFenBiData));
+		if(iSize!=sizeof(qRcvFenBiData))
+		{
+			file.close();
+			return false;
+		}
+//		QString qsLine = QString("time:%1	Price:%2	Volume:%3	Amout:%4	Buy1:%5	Buy2:%6\r\n")
+//			.arg(pData->lTime).arg(pData->fNewPrice).arg(pData->fVolume).arg(pData->fAmount)
+//			.arg(pData->fBuyPrice[0]).arg(pData->fBuyPrice[1]);
+//		file.write(qsLine.toLocal8Bit());
+	}
+
+	file.close();
+	return true;
+}
+
 
 bool CDataEngine::isBlockInCommon( const QString& block )
 {
