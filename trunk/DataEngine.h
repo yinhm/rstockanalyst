@@ -29,6 +29,8 @@ public:
 	static int importReportsInfo(const QString& qsFile);
 	/*导入minutes数据*/
 	static int importMinutesData(const QString& qsFile);
+	/*导入分笔数据*/
+	static int importFenBisData(const QString& qsPath);
 
 
 
@@ -39,6 +41,7 @@ public:
 	static int exportReportsInfo(const QString& qsFile);
 	/*导出Minutes数据*/
 	static int exportMinutesData(const QString& qsFile);
+	/**/
 
 public:
 	static time_t* getLast5DayTime();			//获取最近5天的开市日期

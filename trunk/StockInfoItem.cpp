@@ -182,6 +182,7 @@ void CStockInfoItem::appendMinutes( const QList<qRcvMinuteData*>& list )
 		mapMinutes[p->tmTime] = p;
 	}
 
+	resetBuySellVOL();			//重新计算内外盘
 	emit stockItemMinuteChanged(qsCode);
 }
 
@@ -215,19 +216,39 @@ QList<qRcvFenBiData*> CStockInfoItem::getFenBiList( const long& lDate )
 	return QList<qRcvFenBiData*>();
 }
 
-void CStockInfoItem::setFenBis( const long& lDate, const QList<qRcvFenBiData*>& list )
+void CStockInfoItem::appendFenBis( const long& lDate, const QList<qRcvFenBiData*>& list )
 {
 	//追加分笔数据，未完工
-	foreach(qRcvFenBiData* p,mapFenBis.values())
-		delete p;
-	m_lFenBiDate = lDate;
-	mapFenBis.clear();
-	foreach(qRcvFenBiData* p,list)
+	if(lDate<m_lFenBiDate)
+		return;
+	if(lDate>m_lFenBiDate)
 	{
-		mapFenBis.insert(p->lTime,p);
-//		mapFenBis[p->lTime] = p;
+		foreach(qRcvFenBiData* p,mapFenBis.values())
+			delete p;
+
+		m_lFenBiDate = lDate;
+		mapFenBis.clear();
 	}
 
+	foreach(qRcvFenBiData* p,list)
+	{
+		if(mapFenBis.contains(p->tmTime))
+		{
+			QList<qRcvFenBiData*> listV = mapFenBis.values(p->tmTime);
+			foreach(qRcvFenBiData* p1,listV)
+			{
+				if(p1->fVolume == p->fVolume)
+				{
+					//删除之前存储的相同数据
+					delete p1;
+					mapFenBis.remove(p->tmTime,p1);
+				}
+			}
+		}
+		mapFenBis.insert(p->tmTime,p);
+	}
+
+	resetBuySellVOL();
 	CDataEngine::getDataEngine()->exportFenBiData(qsCode,lDate,mapFenBis.values());
 }
 
@@ -513,11 +534,21 @@ void CStockInfoItem::updateItemInfo()
 
 	{
 		//内外盘计算
-		fNowVolume = (pCurrentReport->fVolume)-(pLastReport->fVolume);
-		if(pCurrentReport->fNewPrice>pCurrentReport->fBuyPrice[0])
-			fSellVOL += fNowVolume;
-		else
-			fBuyVOL += fNowVolume;
+		if(pCurrentReport->fNewPrice>0&&pLastReport->fNewPrice>0)
+		{
+			if(QDateTime::fromTime_t(pCurrentReport->tmTime).date()>QDateTime::fromTime_t(pLastReport->tmTime).date())
+			{
+				fSellVOL = fBuyVOL = 0;
+			}
+		}
+		fNowVolume = (pCurrentReport->fVolume)-(fBuyVOL+fSellVOL);
+		if(fNowVolume>0)
+		{
+			if(pCurrentReport->fNewPrice>pCurrentReport->fBuyPrice[0])
+				fSellVOL += fNowVolume;
+			else
+				fBuyVOL += fNowVolume;
+		}
 	}
 
 	if(pLastReport->fNewPrice > 0.0)
@@ -542,5 +573,54 @@ void CStockInfoItem::updateItemInfo()
 	emit stockItemReportChanged(qsCode);
 }
 
+void CStockInfoItem::resetBuySellVOL()
+{
+	//重新计算内外盘
+	if(mapFenBis.size()>0)
+	{
+		//以分笔数据来计算内外盘
+		fBuyVOL = 0;		//内外盘清零
+		fSellVOL = 0;
+		qRcvFenBiData* pLastFenBi = 0;
+		QList<qRcvFenBiData*> list = mapFenBis.values();
+		foreach(qRcvFenBiData* p,list)
+		{
+			float fVOL = p->fVolume;
+			if(pLastFenBi)
+				fVOL = (p->fVolume)-(pLastFenBi->fVolume);
 
+			if(p->fNewPrice>p->fBuyPrice[0])
+				fSellVOL += fVOL;
+			else
+				fBuyVOL += fVOL;
+
+			pLastFenBi = p;
+		}
+	}
+	else if(mapMinutes.size()>0)
+	{
+		//以分时数据来计算内外盘
+		fBuyVOL = 0;		//内外盘清零
+		fSellVOL = 0;
+		qRcvMinuteData* pLastMin = 0;
+		QList<qRcvMinuteData*> list = mapMinutes.values();
+		foreach(qRcvMinuteData* p,list)
+		{
+			float fVOL = p->fVolume;
+			if(pLastMin)
+				fVOL = p->fVolume - pLastMin->fVolume;
+
+			float fLastPrice = pCurrentReport->fLastClose;
+			if(pLastMin)
+				fLastPrice = pLastMin->fPrice;
+			if(p->fPrice>=fLastPrice)
+				fBuyVOL += fVOL;
+			else
+				fSellVOL += fVOL;
+
+			pLastMin = p;
+		}
+	}
+
+}
 

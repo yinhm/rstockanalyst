@@ -126,7 +126,7 @@ void CColorBlockWidget::updateStock( const QString& code )
 void CColorBlockWidget::setColorMode( const QString& mode )
 {
 	m_qsColorMode = mode;
-	QList<QAction*> listActs = m_pMenuColorMode->actions();
+	//QList<QAction*> listActs = m_pMenuColorMode->actions();
 	//foreach(QAction* pAct,listActs)
 	//{
 	//	pAct->setChecked((pAct->data().toString() == mode) ? true : false);
@@ -216,6 +216,7 @@ void CColorBlockWidget::wheelEvent( QWheelEvent* e )
 	int numDegrees = e->delta() / 8;
 	int numSteps = numDegrees / 15;
 	int iIndex = showStockIndex-numSteps*5;
+	if(iIndex<0) {iIndex = 0;}
 	if(iIndex>=0&&iIndex<m_listStocks.size())
 	{
 		e->accept();

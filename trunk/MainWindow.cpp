@@ -48,8 +48,21 @@ CMainWindow::~CMainWindow()
 
 bool CMainWindow::setupStockDrv()
 {
-	if(CSTKDRV::Stock_Init(this->winId(),RSTOCK_ANALYST_MAINMSG,RCV_WORK_MEMSHARE)>0)
+	int iMode = RCV_WORK_MEMSHARE;
+	if(CSTKDRV::GetStockDrvInfo(RI_V2SUPPORT,NULL))
+		iMode = RCV_WORK_SENDMSG;
+	if(CSTKDRV::Stock_Init(this->winId(),RSTOCK_ANALYST_MAINMSG,iMode)>0)
 	{
+		char szBuf[MAX_PATH];
+
+		CSTKDRV::GetStockDrvInfo(RI_IDSTRING,szBuf);
+		QString qsDrvInfo = QString::fromLocal8Bit(szBuf);
+
+		CSTKDRV::GetStockDrvInfo(RI_VERSION,szBuf);
+		qsDrvInfo += QString::fromLocal8Bit(szBuf);
+
+		qDebug()<<"驱动程序信息——"<<qsDrvInfo;
+
 		if(CSTKDRV::SetupReceiver(TRUE)>0)
 		{
 			return true;
@@ -351,7 +364,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					++p;
 					++iCount;
 				}
-				pItem->setFenBis(pFb->m_lDate,listFenBis);
+				pItem->appendFenBis(pFb->m_lDate,listFenBis);
 			}
 			qDebug()<<"Using Time: "<<tmNow.msecsTo(QDateTime::currentDateTime());
 		}
