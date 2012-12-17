@@ -218,25 +218,36 @@ struct qRcvPowerData
 //RCV_FENBI_STRUCTEx
 struct qRcvFenBiData
 {
-	long	lTime;				// hhmmss 例：93056 表明9:30:56的盘口数据
-	float	fHigh;				// 最高
-	float	fLow;				// 最低
+	time_t	tmTime;				// hhmmss 例：93056 表明9:30:56的盘口数据
 	float	fNewPrice;			// 最新
 	float	fVolume;			// 成交量
 	float	fAmount;			// 成交额
 
-	long	lStroke;			// 保留
 	float	fBuyPrice[5];		// 申买价1,2,3,4,5
 	float	fBuyVolume[5];		// 申买量1,2,3,4,5
 	float	fSellPrice[5];		// 申卖价1,2,3,4,5
 	float	fSellVolume[5];		// 申卖量1,2,3,4,5
 	qRcvFenBiData()
 	{
-		memset(&lTime,0,sizeof(qRcvFenBiData));
+		memset(&tmTime,0,sizeof(qRcvFenBiData));
 	}
 	qRcvFenBiData(RCV_FENBI_STRUCTEx* p)
 	{
-		memcpy(&lTime,&p->m_lTime,sizeof(qRcvFenBiData));
+		tmTime = p->m_lTime;
+		fNewPrice = p->m_fNewPrice;
+		fVolume = p->m_fVolume;
+		fAmount = p->m_fAmount;
+
+		memcpy(&fBuyPrice[0],&p->m_fBuyPrice[0],sizeof(float)*20);
+	}
+	qRcvFenBiData(RCV_MINUTE_STRUCTEx* p)
+	{
+		memset(&tmTime,0,sizeof(qRcvFenBiData));
+		//通过分钟数据构建 分笔数据
+		tmTime = p->m_time;
+		fNewPrice = p->m_fPrice;
+		fVolume = p->m_fVolume;
+		fAmount = p->m_fAmount;
 	}
 };
 
@@ -271,7 +282,7 @@ public:
 
 	//补充分笔数据
 	QList<qRcvFenBiData*> getFenBiList(const long& lDate);
-	void setFenBis(const long& lDate, const QList<qRcvFenBiData*>& list);
+	void appendFenBis(const long& lDate, const QList<qRcvFenBiData*>& list);
 
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
@@ -318,11 +329,13 @@ public:
 
 protected:
 	void updateItemInfo();
+	void resetBuySellVOL();		//重新计算内外盘数据
 
 signals:
-	void stockItemReportChanged(const QString&);
-	void stockItemHistoryChanged(const QString&);
-	void stockItemMinuteChanged(const QString&);
+	void stockItemReportChanged(const QString&);	//行情数据更新
+	void stockItemHistoryChanged(const QString&);	//历史数据更新
+	void stockItemMinuteChanged(const QString&);	//分时数据更新
+	void stockItemFenBiChanged(const QString&);		//分笔数据更新
 
 private:
 	QString qsCode;					//代码

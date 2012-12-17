@@ -11,10 +11,24 @@
 #pragma   pack(push,1)					//设置内存对齐方式为 1字节
 
 // 工作方式类型定义
-#define RCV_WORK_MEMSHARE	2					// 内存共享直接引用
-#define RCV_WORK_SENDMSG	4
+#define RCV_WORK_DEMAND		0					// 查询接口,方式一
+#define RCV_WORK_MEMSHARE	2					// 内存共享直接引用,方式二
+#define RCV_WORK_SENDMSG	4					// 版本 2 建议使用的方式,对于六位代码的深圳市场必须使用这种模式	
 
 /////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+指数代号-名称
+1A0001  上证综合指数		1A0002  上证Ａ股指数		1A0003  上证Ｂ股指数
+1B0001  上证工业指数		1B0002  上证商业指数		1B0004  上证地产指数
+1B0005  上证公用事业		1B0006  上证综合			1B0007  上证30指数
+
+2A01	深证成分指数		2A02	深证成分Ａ			2A03	深证成分Ｂ
+2B01	深证工业		    2B02	深证商业			2B03	深证金融
+2B04	深证地产			2B05	深证公共事业		2B06	深证综合
+2B07	深证基金			2C01	深证指数			2C02	深证Ａ股
+2C03	深证Ｂ股
+*/
 
 // 证券市场
 #define		SH_MARKET_EX			'HS'		// 上海
@@ -31,6 +45,9 @@
 
 #define		FILE_BASE_EX			0x1000		// 钱龙兼容基本资料文件,m_szFileName仅包含文件名
 #define		FILE_NEWS_EX			0x1002		// 新闻类,其类型由m_szFileName中子目录名来定
+#define		FILE_HTML_EX			0x1004		// HTML文件,m_szFileName为URL
+
+#define		FILE_SOFTWARE_EX		0x2000		// 升级软件
 
 // 消息子类型
 #define		News_Sha_Ex			2		// 上证消息
@@ -42,6 +59,7 @@
 #define		RI_IDSTRING			1			// 厂商名称,返回(LPCSTR)厂商名
 #define		RI_IDCODE			2			// 卡号
 #define		RI_VERSION			3			// 驱动程序版本
+#define		RI_V2SUPPORT		6			// 支持深圳SJS库结构
 
 #define		RI_NETPCID			1000			//  - 返回电脑硬件编号
 
@@ -440,6 +458,7 @@ int	WINAPI  SetupReceiver(BOOL bSetup);
 //			另：当接口上的自动补充分时数据选项开启时，接口会根据分析软件的标题上的股票代码自动补充该股分时数据
 DWORD WINAPI  GetStockDrvInfo(int nInfo,void * pBuf);
 
+void WINAPI  ReInitStockInfo();
 
 #ifdef __cplusplus
 }

@@ -25,6 +25,7 @@ public:
 	static int GetStockByCodeEx(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTExV3* pBuf);
 	static int SetupReceiver(BOOL bSetup);
 	static DWORD GetStockDrvInfo(int nInfo,void* pBuf);
+	static void ReInitStockInfo();
 
 
 
@@ -36,6 +37,7 @@ private:
 	static int (WINAPI* m_pfnGetStockByCodeEx)(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTExV3* pBuf);
 	static int	(WINAPI* m_pfnSetupReceiver)(BOOL bSetup);
 	static DWORD (WINAPI* m_pfnGetStockDrvInfo)(int nInfo,void * pBuf);
+	static void (WINAPI* m_pfnReInitStockInfo)();
 
 	static HINSTANCE	m_hSTKDrv;
 };

@@ -404,6 +404,7 @@ void CMarketTrendWidget::wheelEvent( QWheelEvent* e )
 	int numDegrees = e->delta() / 8;
 	int numSteps = numDegrees / 15;
 	int iIndex = showStockIndex-numSteps*5;
+	if(iIndex<0) {iIndex = 0;}
 	if(iIndex>=0&&iIndex<m_listStocks.size())
 	{
 		e->accept();

@@ -65,6 +65,19 @@ void CDataEngine::importData()
 		else
 			qDebug()<<iCount<<" minutes data had been imported.";
 	}
+	{
+		//导入当天的分笔数据
+		QString qsFenBiPath = QString("%1/data/FenBi/%2/").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
+
+		qDebug()<<"Import FenBi data from "<<qsFenBiPath;
+		int iCount = importFenBisData(qsFenBiPath);
+		if(iCount<1)
+		{
+			qDebug()<<"Import FenBi data from "<<qsFenBiPath<<" error!";
+		}
+		else
+			qDebug()<<iCount<<" FenBi data had been imported.";
+	}
 }
 
 void CDataEngine::exportData()
@@ -261,11 +274,13 @@ int CDataEngine::importMinutesData( const QString& qsFile )
 
 		int iIndex = 0;
 		QList<qRcvMinuteData*> listMins;
+	//	QString qsMin;
 		while(iIndex<iSize)
 		{
 			qRcvMinuteData* pData = new qRcvMinuteData();
 			memcpy(pData,&pMinData[iIndex],sizeof(qRcvMinuteData));
 			listMins.push_back(pData);
+		//	qsMin+= QString("%1\r\n").arg(QDateTime::fromTime_t(pData->tmTime).toString("hh:mm:ss"));
 
 			iIndex += sizeof(qRcvMinuteData);
 		}
@@ -277,6 +292,12 @@ int CDataEngine::importMinutesData( const QString& qsFile )
 
 	file.close();
 	return iCount;
+}
+
+int CDataEngine::importFenBisData( const QString& qsPath )
+{
+
+	return 0;
 }
 
 
@@ -860,20 +881,20 @@ bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, con
 	if(!file.open(QFile::WriteOnly|QFile::Truncate))
 		return false;
 
-//	QDataStream out(&file);
+	QDataStream out(&file);
 
 	foreach(qRcvFenBiData* pData, list)
 	{
-		int iSize = file.write((char*)pData,sizeof(qRcvFenBiData));
-		if(iSize!=sizeof(qRcvFenBiData))
-		{
-			file.close();
-			return false;
-		}
-//		QString qsLine = QString("time:%1	Price:%2	Volume:%3	Amout:%4	Buy1:%5	Buy2:%6\r\n")
-//			.arg(pData->lTime).arg(pData->fNewPrice).arg(pData->fVolume).arg(pData->fAmount)
-//			.arg(pData->fBuyPrice[0]).arg(pData->fBuyPrice[1]);
-//		file.write(qsLine.toLocal8Bit());
+		//int iSize = file.write((char*)pData,sizeof(qRcvFenBiData));
+		//if(iSize!=sizeof(qRcvFenBiData))
+		//{
+		//	file.close();
+		//	return false;
+		//}
+		QString qsLine = QString("time:%1	Price:%2	Buy1:%3	Sell1:%4\r\n")
+			.arg(pData->tmTime).arg(pData->fNewPrice)
+			.arg(pData->fBuyPrice[0]).arg(pData->fSellPrice[1]);
+		file.write(qsLine.toLocal8Bit());
 	}
 
 	file.close();

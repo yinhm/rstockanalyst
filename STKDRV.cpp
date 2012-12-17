@@ -13,6 +13,8 @@ int (WINAPI* CSTKDRV::m_pfnGetStockByNoEx)(int nNo,RCV_REPORT_STRUCTExV3* pBuf)=
 int (WINAPI* CSTKDRV::m_pfnGetStockByCodeEx)(char* pszStockCode,int nMarket,RCV_REPORT_STRUCTExV3* pBuf)= NULL;
 int	(WINAPI* CSTKDRV::m_pfnSetupReceiver)(BOOL bSetup)= NULL;
 DWORD (WINAPI* CSTKDRV::m_pfnGetStockDrvInfo)(int nInfo,void * pBuf)= NULL;
+void (WINAPI* CSTKDRV::m_pfnReInitStockInfo)() = NULL;
+
 
 HINSTANCE CSTKDRV::m_hSTKDrv = NULL;
 
@@ -68,6 +70,8 @@ void CSTKDRV::InitStockDrv()
 		(int	(WINAPI *)(BOOL))GetProcAddress(m_hSTKDrv,"SetupReceiver");
 	m_pfnGetStockDrvInfo = \
 		(DWORD (WINAPI *)(int,void * ))GetProcAddress(m_hSTKDrv,"GetStockDrvInfo");
+	m_pfnReInitStockInfo = \
+		(void (WINAPI *)())GetProcAddress(m_hSTKDrv,"ReInitStockInfo");
 }
 
 int CSTKDRV::Stock_Init(HWND hWnd, UINT uMsg, int nWorkMode)
@@ -114,8 +118,14 @@ int CSTKDRV::SetupReceiver(BOOL bSetup)
 
 DWORD CSTKDRV::GetStockDrvInfo(int nInfo, void* pBuf)
 {
-	if(!m_pfnGetStockDrvInfo) 
+	if(!m_pfnGetStockDrvInfo)
 		return -1;
 	return ((*m_pfnGetStockDrvInfo)(nInfo,pBuf));
 }
 
+void CSTKDRV::ReInitStockInfo()
+{
+	if(!m_pfnReInitStockInfo)
+		return;
+	return ((*m_pfnReInitStockInfo)());
+}
