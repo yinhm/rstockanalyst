@@ -184,23 +184,6 @@ struct qRcvBaseInfoData
 	}
 };
 
-struct qRcvMinuteData
-{
-	time_t tmTime;
-	float fPrice;
-	float fVolume;
-	float fAmount;
-
-	qRcvMinuteData()
-	{
-		memset(&tmTime,0,sizeof(qRcvMinuteData));
-	}
-	qRcvMinuteData(RCV_MINUTE_STRUCTEx* p)
-	{
-		memcpy(&tmTime,&p->m_time,sizeof(qRcvMinuteData));
-	}
-};
-
 struct qRcvPowerData
 {
 	time_t	tmTime;				// UCT
@@ -304,10 +287,6 @@ public:
 	QList<qRcvHistoryData*> getLastHistory(int count);
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
 
-	//补充分钟数据
-	QList<qRcvMinuteData*> getMinuteList();
-	void appendMinutes(const QList<qRcvMinuteData*>& list);
-
 	//补充除权数据
 	QList<qRcvPowerData*> getPowerList();
 	void appendPowers(const QList<qRcvPowerData*>& list);
@@ -401,7 +380,6 @@ private:
 	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
 
 private:
-	QMap<time_t,qRcvMinuteData*> mapMinutes;		//分钟数据
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
 	QMultiMap<long,qRcvFenBiData*> mapFenBis;		//分笔数据
 	qRcvBaseInfoData baseInfo;

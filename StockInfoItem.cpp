@@ -170,27 +170,6 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	emit stockItemHistoryChanged(qsCode);
 }
 
-QList<qRcvMinuteData*> CStockInfoItem::getMinuteList()
-{
-	return mapMinutes.values();
-}
-
-void CStockInfoItem::appendMinutes( const QList<qRcvMinuteData*>& list )
-{
-	foreach(qRcvMinuteData* p,list)
-	{
-		if(mapMinutes.contains(p->tmTime))
-		{
-			qRcvMinuteData* pBefore = mapMinutes[p->tmTime];
-			if(pBefore!=p)
-				delete pBefore;
-		}
-		mapMinutes[p->tmTime] = p;
-	}
-
-	resetBuySellVOL();			//重新计算内外盘
-	emit stockItemMinuteChanged(qsCode);
-}
 
 QList<qRcvPowerData*> CStockInfoItem::getPowerList()
 {
@@ -616,30 +595,5 @@ void CStockInfoItem::resetBuySellVOL()
 			pLastFenBi = p;
 		}
 	}
-	else if(mapMinutes.size()>0)
-	{
-		//以分时数据来计算内外盘
-		fBuyVOL = 0;		//内外盘清零
-		fSellVOL = 0;
-		qRcvMinuteData* pLastMin = 0;
-		QList<qRcvMinuteData*> list = mapMinutes.values();
-		foreach(qRcvMinuteData* p,list)
-		{
-			float fVOL = p->fVolume;
-			if(pLastMin)
-				fVOL = p->fVolume - pLastMin->fVolume;
-
-			float fLastPrice = pCurrentReport->fLastClose;
-			if(pLastMin)
-				fLastPrice = pLastMin->fPrice;
-			if(p->fPrice>=fLastPrice)
-				fBuyVOL += fVOL;
-			else
-				fSellVOL += fVOL;
-
-			pLastMin = p;
-		}
-	}
-
 }
 

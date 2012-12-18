@@ -53,27 +53,14 @@ void CDataEngine::importData()
 			qDebug()<<iCount<<" reports data had been imported.";
 	}
 	{
-		//导入当天的分钟数据
-		QString qsMinFile = QString("%1/data/minutes/%2").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
-		qDebug()<<"Import minutes data from "<<qsMinFile;
-		int iCount = importMinutesData(qsMinFile);
-		if(iCount<1)
-		{
-			QFile::remove(qsMinFile);
-			qDebug()<<"Import minutes data from "<<qsMinFile<<" error!";
-		}
-		else
-			qDebug()<<iCount<<" minutes data had been imported.";
-	}
-	{
 		//导入当天的分笔数据
-		QString qsFenBiPath = QString("%1/data/FenBi/%2/").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
+		QString qsFenBiFile = QString("%1/data/FenBi/%2").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
 
-		qDebug()<<"Import FenBi data from "<<qsFenBiPath;
-		int iCount = importFenBisData(qsFenBiPath);
+		qDebug()<<"Import FenBi data from "<<qsFenBiFile;
+		int iCount = importFenBisData(qsFenBiFile);
 		if(iCount<1)
 		{
-			qDebug()<<"Import FenBi data from "<<qsFenBiPath<<" error!";
+			qDebug()<<"Import FenBi data from "<<qsFenBiFile<<" error!";
 		}
 		else
 			qDebug()<<iCount<<" FenBi data had been imported.";
@@ -103,13 +90,13 @@ void CDataEngine::exportData()
 	}
 
 	{
-		//导出当天的分时数据
-		QString qsMinDir = QString("%1/data/minutes")
+		//导出当天的分笔数据
+		QString qsFenBiDir = QString("%1/data/FenBi")
 			.arg(qsDir);
-		QDir().mkpath(qsMinDir);
-		qDebug()<<"Export minutes data to "<<qsMinDir;
-		int iCount = exportMinutesData(QString("%1/%2").arg(qsMinDir).arg(QDate::currentDate().toString("yyyyMMdd")));
-		qDebug()<<iCount<<" minutes data had been exported.";
+		QDir().mkpath(qsFenBiDir);
+		qDebug()<<"Export FenBis data to "<<qsFenBiDir;
+		int iCount = exportFenBisData(QString("%1/%2").arg(qsFenBiDir).arg(QDate::currentDate().toString("yyyyMMdd")));
+		qDebug()<<iCount<<" FenBis data had been exported.";
 	}
 }
 
@@ -242,7 +229,7 @@ int CDataEngine::importReportsInfo( const QString& qsFile )
 	return iCount;
 }
 
-int CDataEngine::importMinutesData( const QString& qsFile )
+int CDataEngine::importFenBisData( const QString& qsFile )
 {
 	QFile file(qsFile);
 	if(!file.open(QFile::ReadOnly))
@@ -273,18 +260,18 @@ int CDataEngine::importMinutesData( const QString& qsFile )
 		}
 
 		int iIndex = 0;
-		QList<qRcvMinuteData*> listMins;
+		QList<qRcvFenBiData*> listMins;
 	//	QString qsMin;
 		while(iIndex<iSize)
 		{
-			qRcvMinuteData* pData = new qRcvMinuteData();
-			memcpy(pData,&pMinData[iIndex],sizeof(qRcvMinuteData));
+			qRcvFenBiData* pData = new qRcvFenBiData();
+			memcpy(pData,&pMinData[iIndex],sizeof(qRcvFenBiData));
 			listMins.push_back(pData);
 		//	qsMin+= QString("%1\r\n").arg(QDateTime::fromTime_t(pData->tmTime).toString("hh:mm:ss"));
 
-			iIndex += sizeof(qRcvMinuteData);
+			iIndex += sizeof(qRcvFenBiData);
 		}
-		pItem->appendMinutes(listMins);
+		pItem->appendFenBis(listMins);
 		delete pMinData;
 
 		++iCount;
@@ -292,12 +279,6 @@ int CDataEngine::importMinutesData( const QString& qsFile )
 
 	file.close();
 	return iCount;
-}
-
-int CDataEngine::importFenBisData( const QString& qsPath )
-{
-
-	return 0;
 }
 
 
@@ -371,7 +352,7 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 	return iCount;
 }
 
-int CDataEngine::exportMinutesData( const QString& qsFile )
+int CDataEngine::exportFenBisData( const QString& qsFile )
 {
 	QList<CStockInfoItem*> listItem = CDataEngine::getDataEngine()->getStockInfoList();
 	int iCount = 0;
@@ -388,13 +369,13 @@ int CDataEngine::exportMinutesData( const QString& qsFile )
 	foreach(CStockInfoItem* pItem,listItem)
 	{
 		//保存当天所有的分钟数据
-		QList<qRcvMinuteData*> listMins= pItem->getMinuteList();
-		int iSize = listMins.size()*sizeof(qRcvMinuteData);
+		QList<qRcvFenBiData*> listMins= pItem->getFenBiList();
+		int iSize = listMins.size()*sizeof(qRcvFenBiData);
 		char* pMinData = new char[iSize];
 		for(int i = 0; i<listMins.size(); ++i)
 		{
-			qRcvMinuteData* pData = listMins[i];
-			memcpy(pMinData+i*sizeof(qRcvMinuteData),pData,sizeof(qRcvMinuteData));
+			qRcvFenBiData* pData = listMins[i];
+			memcpy(pMinData+i*sizeof(qRcvFenBiData),pData,sizeof(qRcvFenBiData));
 		}
 		//foreach(qRcvMinuteData* pData,listMins)
 		//{
