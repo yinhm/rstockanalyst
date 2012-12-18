@@ -245,34 +245,34 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 		if(file.read((char*)&iSize,sizeof(iSize))!=sizeof(iSize))
 			break;
 
-		char* pMinData = new char[iSize];
-		if(file.read(pMinData,iSize)!=iSize)
+		char* pFenBiData = new char[iSize];
+		if(file.read(pFenBiData,iSize)!=iSize)
 		{
-			delete pMinData;
+			delete pFenBiData;
 			break;
 		}
 
 		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(QString::fromLocal8Bit(chCode));
 		if(!pItem)
 		{
-			delete pMinData;
+			delete pFenBiData;
 			continue;
 		}
 
 		int iIndex = 0;
-		QList<qRcvFenBiData*> listMins;
+		QList<qRcvFenBiData*> listFenBis;
 	//	QString qsMin;
 		while(iIndex<iSize)
 		{
 			qRcvFenBiData* pData = new qRcvFenBiData();
-			memcpy(pData,&pMinData[iIndex],sizeof(qRcvFenBiData));
-			listMins.push_back(pData);
+			memcpy(pData,&pFenBiData[iIndex],sizeof(qRcvFenBiData));
+			listFenBis.push_back(pData);
 		//	qsMin+= QString("%1\r\n").arg(QDateTime::fromTime_t(pData->tmTime).toString("hh:mm:ss"));
 
 			iIndex += sizeof(qRcvFenBiData);
 		}
-		pItem->appendFenBis(listMins);
-		delete pMinData;
+		pItem->appendFenBis(listFenBis);
+		delete pFenBiData;
 
 		++iCount;
 	}
@@ -369,13 +369,13 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 	foreach(CStockInfoItem* pItem,listItem)
 	{
 		//保存当天所有的分钟数据
-		QList<qRcvFenBiData*> listMins= pItem->getFenBiList();
-		int iSize = listMins.size()*sizeof(qRcvFenBiData);
-		char* pMinData = new char[iSize];
-		for(int i = 0; i<listMins.size(); ++i)
+		QList<qRcvFenBiData*> listFenBis= pItem->getFenBiList();
+		int iSize = listFenBis.size()*sizeof(qRcvFenBiData);
+		char* pFenBiData = new char[iSize];
+		for(int i = 0; i<listFenBis.size(); ++i)
 		{
-			qRcvFenBiData* pData = listMins[i];
-			memcpy(pMinData+i*sizeof(qRcvFenBiData),pData,sizeof(qRcvFenBiData));
+			qRcvFenBiData* pData = listFenBis[i];
+			memcpy(pFenBiData+i*sizeof(qRcvFenBiData),pData,sizeof(qRcvFenBiData));
 		}
 		//foreach(qRcvMinuteData* pData,listMins)
 		//{
@@ -393,10 +393,10 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 		file.write(chCode,STKLABEL_LEN);
 		file.write((char*)&iSize,sizeof(int));
 
-		file.write(pMinData,iSize);
+		file.write(pFenBiData,iSize);
 		file.flush();
 
-		delete pMinData;
+		delete pFenBiData;
 
 		++iCount;
 	}
