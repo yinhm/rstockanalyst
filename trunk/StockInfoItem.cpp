@@ -25,7 +25,6 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
-	, m_lFenBiDate(0)
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
@@ -53,7 +52,6 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
-	, m_lFenBiDate(0)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
@@ -84,6 +82,10 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 		return;
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
+
+	//将新的Report数据添加到分笔数据中
+	qRcvFenBiData* pFenBi = new qRcvFenBiData(pCurrentReport);
+	appendFenBis(QList<qRcvFenBiData*>()<<pFenBi);
 	
 	updateItemInfo();
 }
@@ -94,6 +96,10 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 		return;
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
+
+	//将新的Report数据添加到分笔数据中
+	qRcvFenBiData* pFenBi = new qRcvFenBiData(pCurrentReport);
+	appendFenBis(QList<qRcvFenBiData*>()<<pFenBi);
 
 	updateItemInfo();
 }
@@ -207,31 +213,32 @@ void CStockInfoItem::appendPowers( const QList<qRcvPowerData*>& list )
 
 
 
-QList<qRcvFenBiData*> CStockInfoItem::getFenBiList( const long& lDate )
+QList<qRcvFenBiData*> CStockInfoItem::getFenBiList()
 {
 	//获取分笔数据，未完工
-	if(m_lFenBiDate == lDate)
-		return mapFenBis.values();
-
-	return QList<qRcvFenBiData*>();
+	return mapFenBis.values();
 }
 
-void CStockInfoItem::appendFenBis( const long& lDate, const QList<qRcvFenBiData*>& list )
+void CStockInfoItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 {
 	//追加分笔数据，未完工
-	if(lDate<m_lFenBiDate)
-		return;
-	if(lDate>m_lFenBiDate)
+	if(mapFenBis.size()>0&&list.size()>0)
 	{
-		foreach(qRcvFenBiData* p,mapFenBis.values())
-			delete p;
+		QDate myDate = QDateTime::fromTime_t(mapFenBis.begin().value()->tmTime).date();
+		QDate theDate = QDateTime::fromTime_t(list.first()->tmTime).date();
+		if(theDate>myDate)
+		{
+			//如果新来的数据的时间大于当前的时间，则清空当前的数据
+			foreach(qRcvFenBiData* p,mapFenBis.values())
+				delete p;
 
-		m_lFenBiDate = lDate;
-		mapFenBis.clear();
+			mapFenBis.clear();
+		}
 	}
 
 	foreach(qRcvFenBiData* p,list)
 	{
+		bool bInsert = true;
 		if(mapFenBis.contains(p->tmTime))
 		{
 			QList<qRcvFenBiData*> listV = mapFenBis.values(p->tmTime);
@@ -239,17 +246,29 @@ void CStockInfoItem::appendFenBis( const long& lDate, const QList<qRcvFenBiData*
 			{
 				if(p1->fVolume == p->fVolume)
 				{
-					//删除之前存储的相同数据
-					delete p1;
-					mapFenBis.remove(p->tmTime,p1);
+					if(p1->fBuyPrice[0]>0.0)
+					{
+						//如果之前的数据不包换挂单数据，则删除之前的
+						delete p1;
+						mapFenBis.remove(p->tmTime,p1);
+						break;
+					}
+					else
+					{
+						//删除现在的数据
+						bInsert = false;
+						delete p;
+						break;
+					}
 				}
 			}
 		}
-		mapFenBis.insert(p->tmTime,p);
+		if(bInsert)
+			mapFenBis.insert(p->tmTime,p);
 	}
 
 	resetBuySellVOL();
-	CDataEngine::getDataEngine()->exportFenBiData(qsCode,lDate,mapFenBis.values());
+//	CDataEngine::getDataEngine()->exportFenBiData(qsCode,mapFenBis.values());
 }
 
 
@@ -589,7 +608,7 @@ void CStockInfoItem::resetBuySellVOL()
 			if(pLastFenBi)
 				fVOL = (p->fVolume)-(pLastFenBi->fVolume);
 
-			if(p->fNewPrice>p->fBuyPrice[0])
+			if(p->fPrice>p->fBuyPrice[0])
 				fSellVOL += fVOL;
 			else
 				fBuyVOL += fVOL;
