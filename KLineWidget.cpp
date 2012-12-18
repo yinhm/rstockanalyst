@@ -42,7 +42,7 @@ QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
 */
 
 /* 对某分钟的数据进行转换 (qRcvMinuteData*) -> (stLinerItem) */
-bool getLinerItemByMin(stLinerItem& item, qRcvMinuteData* pMin)
+bool getLinerItemByMin(stLinerItem& item, qRcvFenBiData* pMin)
 {
 	if(!pMin)
 		return false;
@@ -58,51 +58,59 @@ bool getLinerItemByMin(stLinerItem& item, qRcvMinuteData* pMin)
 }
 
 /*通过分钟数据获取指定周期内的数据*/
-bool getLinerItemByMins(stLinerItem& item, const QList<qRcvMinuteData*>& list)
+bool getLinerItemByMins(stLinerItem& item, const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
 {
 	if(list.size()<1)
 		return false;
 
-	qRcvMinuteData* pBegin = list.first();
-	qRcvMinuteData* pLast = list.last();
-	item.time = pBegin->tmTime;
+	qRcvFenBiData* pBegin = list.first();
+	qRcvFenBiData* pLast = list.last();
+	item.time = pLast->tmTime;
 	item.fOpen = pBegin->fPrice;
 	item.fClose = pLast->fPrice;
 
 	item.fLow = pBegin->fPrice;
 	item.fHigh = pBegin->fPrice;
-	item.fAmount = 0;
-	item.fVolume = 0;
-	foreach(qRcvMinuteData* p,list)
+
+	if(pLastFenbi)
+	{
+		item.fAmount = pLast->fAmount-pLastFenbi->fAmount;
+		item.fVolume = pLast->fVolume-pLastFenbi->fVolume;
+	}
+	else
+	{
+		item.fAmount = pLast->fAmount;
+		item.fVolume = pLast->fVolume;
+	}
+	foreach(qRcvFenBiData* p,list)
 	{
 		if(item.fLow>p->fPrice)
 			item.fLow = p->fPrice;
 		if(item.fHigh<p->fPrice)
 			item.fHigh = p->fPrice;
-		item.fAmount+=p->fAmount;
-		item.fVolume+=p->fVolume;
 	}
 	return true;
 }
 
-int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvMinuteData*>& minutes, int iSize = 1)
+int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
 {
-	QList<qRcvMinuteData*> listMins;
-	int iCount = 0;
-	for(int i=minutes.size()-1;i>=0;--i)
+	QList<qRcvFenBiData*> listMins;
+	time_t tmT = 0;
+	qRcvFenBiData* pLastFenbi = 0;
+	foreach(qRcvFenBiData* p, minutes)
 	{
-		qRcvMinuteData* p = minutes[i];
-		if(iCount>=iSize)
+		if((p->tmTime-tmT)>(iSize*60))
 		{
 			stLinerItem item;
-			if(getLinerItemByMins(item,listMins))
-				listItems.push_front(item);
+			if(getLinerItemByMins(item,listMins,pLastFenbi))
+				listItems.push_back(item);
+			if(listMins.size()>0)
+				pLastFenbi = listMins.last();
 			listMins.clear();
-			iCount = 0;
+			tmT = p->tmTime;
 		}
 
-		++iCount;
-		listMins.push_front(p);
+		listMins.push_back(p);
 	}
 
 	return listItems.size();
@@ -1099,26 +1107,26 @@ void CKLineWidget::resetTmpData()
 	if(m_typeCircle<Day)
 	{
 		//获取分钟数据，进行计算
-		QList<qRcvMinuteData*> minutes = m_pStockItem->getMinuteList();
+		QList<qRcvFenBiData*> FenBis = m_pStockItem->getFenBiList();
 		if(m_typeCircle == Min1)
 		{
-			getLinerMinItems(listItems,minutes);
+			getLinerMinItems(listItems,FenBis);
 		}
 		else if(m_typeCircle == Min5)
 		{
-			getLinerMinItems(listItems,minutes,5);
+			getLinerMinItems(listItems,FenBis,5);
 		}
 		else if(m_typeCircle == Min15)
 		{
-			getLinerMinItems(listItems,minutes,15);
+			getLinerMinItems(listItems,FenBis,15);
 		}
 		else if(m_typeCircle == Min30)
 		{
-			getLinerMinItems(listItems,minutes,30);
+			getLinerMinItems(listItems,FenBis,30);
 		}
 		else if(m_typeCircle == Min60)
 		{
-			getLinerMinItems(listItems,minutes,60);
+			getLinerMinItems(listItems,FenBis,60);
 		}
 	}
 	else

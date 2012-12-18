@@ -892,7 +892,7 @@ bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, con
 		//	return false;
 		//}
 		QString qsLine = QString("time:%1	Price:%2	Buy1:%3	Sell1:%4\r\n")
-			.arg(pData->tmTime).arg(pData->fNewPrice)
+			.arg(pData->tmTime).arg(pData->fPrice)
 			.arg(pData->fBuyPrice[0]).arg(pData->fSellPrice[1]);
 		file.write(qsLine.toLocal8Bit());
 	}

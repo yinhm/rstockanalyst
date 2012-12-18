@@ -219,7 +219,7 @@ struct qRcvPowerData
 struct qRcvFenBiData
 {
 	time_t	tmTime;				// hhmmss 例：93056 表明9:30:56的盘口数据
-	float	fNewPrice;			// 最新
+	float	fPrice;			// 最新
 	float	fVolume;			// 成交量
 	float	fAmount;			// 成交额
 
@@ -231,10 +231,26 @@ struct qRcvFenBiData
 	{
 		memset(&tmTime,0,sizeof(qRcvFenBiData));
 	}
-	qRcvFenBiData(RCV_FENBI_STRUCTEx* p)
+	qRcvFenBiData(RCV_FENBI_STRUCTEx* p, const long& lDate)
 	{
-		tmTime = p->m_lTime;
-		fNewPrice = p->m_fNewPrice;
+		//将原来的时间转换为time_t
+		long l = lDate;
+		int iD = l%100;
+		l = l/100;
+		int iM = l%100;
+		l = l/100;
+		int iY = l;
+
+		l = p->m_lTime;
+		int iS = l%100;
+		l = l/100;
+		int iMin = l%100;
+		l = l/100;
+		int iH = l;
+
+		QDateTime tmT(QDate(iY,iM,iD),QTime(iH,iMin,iS));
+		tmTime = tmT.toTime_t();
+		fPrice = p->m_fNewPrice;
 		fVolume = p->m_fVolume;
 		fAmount = p->m_fAmount;
 
@@ -245,9 +261,25 @@ struct qRcvFenBiData
 		memset(&tmTime,0,sizeof(qRcvFenBiData));
 		//通过分钟数据构建 分笔数据
 		tmTime = p->m_time;
-		fNewPrice = p->m_fPrice;
+		fPrice = p->m_fPrice;
 		fVolume = p->m_fVolume;
 		fAmount = p->m_fAmount;
+	}
+	qRcvFenBiData(qRcvReportData* p)
+	{
+		tmTime = p->tmTime;
+		fPrice = p->fNewPrice;
+		fVolume = p->fVolume;
+		fAmount = p->fAmount;
+
+		memcpy(&fBuyPrice[0],&p->fBuyPrice[0],sizeof(float)*3);
+		memcpy(&fBuyVolume[0],&p->fBuyVolume[0],sizeof(float)*3);
+		memcpy(&fSellPrice[0],&p->fSellPrice[0],sizeof(float)*3);
+		memcpy(&fSellVolume[0],&p->fSellVolume[0],sizeof(float)*3);
+		fBuyPrice[3] = p->fBuyPrice4; fBuyPrice[4] = p->fBuyPrice5;
+		fBuyVolume[3] = p->fBuyVolume4; fBuyVolume[4] = p->fBuyVolume5;
+		fSellPrice[3] = p->fSellPrice4; fSellPrice[4] = p->fSellPrice5;
+		fSellVolume[3] = p->fSellVolume4; fSellVolume[4] = p->fSellVolume5;
 	}
 };
 
@@ -281,8 +313,8 @@ public:
 	void appendPowers(const QList<qRcvPowerData*>& list);
 
 	//补充分笔数据
-	QList<qRcvFenBiData*> getFenBiList(const long& lDate);
-	void appendFenBis(const long& lDate, const QList<qRcvFenBiData*>& list);
+	QList<qRcvFenBiData*> getFenBiList();
+	void appendFenBis(const QList<qRcvFenBiData*>& list);
 
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
@@ -372,7 +404,6 @@ private:
 	QMap<time_t,qRcvMinuteData*> mapMinutes;		//分钟数据
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
 	QMultiMap<long,qRcvFenBiData*> mapFenBis;		//分笔数据
-	long m_lFenBiDate;								//当前分笔数据的日期
 	qRcvBaseInfoData baseInfo;
 };
 

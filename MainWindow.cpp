@@ -254,7 +254,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					RCV_MINUTE_STRUCTEx* pMinute = pHeader->m_pMinute;
 					QString qsCode;
 
-					QList<qRcvMinuteData*> listMinute;
+					QList<qRcvFenBiData*> listFenBis;
 					for(int i=0;i<pHeader->m_nPacketNum;++i)
 					{
 						pMinute = (pHeader->m_pMinute+i);
@@ -265,19 +265,19 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 							if(pItem==NULL)
 							{
 								//删除指针，防止内存泄漏
-								foreach(qRcvMinuteData* p,listMinute)
+								foreach(qRcvFenBiData* p,listFenBis)
 									delete p;
 							}
 							else
 							{
-								pItem->appendMinutes(listMinute);
+								pItem->appendFenBis(listFenBis);
 							}
 							qsCode = QString::fromLocal8Bit(pMinute->m_head.m_szLabel);
-							listMinute.clear();
+							listFenBis.clear();
 						}
 						else
 						{
-							listMinute.append(new qRcvMinuteData(pMinute));
+							listFenBis.append(new qRcvFenBiData(pMinute));
 						}
 					}
 				}
@@ -359,12 +359,12 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 				while(iCount<pFb->m_nCount)
 				{
 					//数据处理
-					listFenBis.append(new qRcvFenBiData(p));
+					listFenBis.append(new qRcvFenBiData(p,pFb->m_lDate));
 
 					++p;
 					++iCount;
 				}
-				pItem->appendFenBis(pFb->m_lDate,listFenBis);
+				pItem->appendFenBis(listFenBis);
 			}
 			qDebug()<<"Using Time: "<<tmNow.msecsTo(QDateTime::currentDateTime());
 		}
