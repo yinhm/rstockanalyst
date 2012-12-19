@@ -16,6 +16,21 @@ class CColorBlockWidget : public CBaseWidget
 {
 	Q_OBJECT
 public:
+	enum ColorBlockCircle		//色块图的周期
+	{
+		Min1 = 1,				//1分钟
+		Min5,					//5分钟
+		Min15,					//15分钟
+		Min30,					//30分钟
+		Min60,					//60分钟
+		MinN,					//N分钟
+		Day,					//日线
+		DayN,					//N日线
+		Week,					//周线
+		Month,					//月线
+		Month3,					//季线
+		Year,					//年线
+	};
 	enum BlockMode
 	{
 		BlockCircle = 1,		//圆形
@@ -38,6 +53,7 @@ public slots:
 	void setColorMode(const QString& mode);					//设置颜色模式
 
 protected slots:
+	void onSetCircle();										//设置当前的显示周期
 	void onSetColorMode();									//点击设置颜色模式
 	void onSetBlockMode();									//设置当前的显示模式
 
@@ -66,6 +82,7 @@ private:
 
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
+	QMenu* m_pMenuCircle;					//周期设置菜单
 	QMenu* m_pMenuColorMode;				//颜色模式菜单
 	QMenu* m_pMenuBlockMode;					//显示模式菜单
 
@@ -76,6 +93,7 @@ private:
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
 	QString m_qsColorMode;						//当前颜色模式
+	ColorBlockCircle m_typeCircle;				//当前的显示周期
 
 	/*用于绘制操作的成员变量*/
 private:
