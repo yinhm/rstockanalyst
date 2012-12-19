@@ -11,6 +11,7 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iTitleHeight(16)
 	, m_iBottomHeight(16)
 	, m_iCBHeight(16)
+	, m_iCBWidth(16)
 	, showStockIndex(0)
 	, m_pSelectedStock(0)
 	, m_qsColorMode("")
@@ -120,13 +121,6 @@ void CColorBlockWidget::setBlock( const QString& block )
 {
 	clearTmpData();
 
-	foreach(CStockInfoItem* p,m_listStocks)
-	{
-		//移除所有和 updateStock关联的 信号/槽
-		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
-		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
-	}
-
 	m_listStocks = CDataEngine::getDataEngine()->getStocksByBlock(block);
 	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
@@ -190,13 +184,62 @@ void CColorBlockWidget::onSetBlockMode()
 	update();
 }
 
+void CColorBlockWidget::updateColorBlockData()
+{
+	QList<CStockInfoItem*> listShowItems;
+	int iClientHeight = this->rect().height();
+
+	//获取当前需要显示的股票列表
+	int iIndex = showStockIndex;
+	while (iIndex<m_listStocks.size())
+	{
+		if((iIndex-showStockIndex)*m_iCBHeight<iClientHeight)
+		{
+			listShowItems.push_back(m_listStocks[iIndex]);
+		}
+		else
+		{
+			break;
+		}
+		++iIndex;
+	}
+
+	//从map里删除不需要显示的股票
+	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*>::iterator iter = mapStockColorBlocks.begin();
+	while (iter!=mapStockColorBlocks.end())
+	{
+		if(!listShowItems.contains(iter.key()))
+		{
+			delete iter.value();
+			mapStockColorBlocks.remove(iter.key());
+		}
+
+		++iter;
+	}
+
+	
+	//将需要显示而map中没有的股票加入到map中
+	foreach(CStockInfoItem* p,listShowItems)
+	{
+		if(!mapStockColorBlocks.contains(p))
+		{
+			mapStockColorBlocks[p] = getColorBlockMap(p);
+		}
+	}
+}
+
 void CColorBlockWidget::clearTmpData()
 {
+	
+	foreach(CStockInfoItem* p,m_listStocks)
+	{
+		//移除所有和 updateStock关联的 信号/槽
+		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+	}
 	m_pSelectedStock = 0;
 	m_listStocks.clear();
 	m_mapStockIndex.clear();
-
-	disconnect(this,SLOT(updateStock(const QString&)));
 }
 
 void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
@@ -397,6 +440,7 @@ void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 {
 	p.fillRect(rtClient,QColor(0,0,0));
 
+	updateColorBlockData();
 	int iCurY = rtClient.top();
 	int iIndex = showStockIndex;
 	for(;iCurY<rtClient.bottom();iCurY=(iCurY+m_iCBHeight))
@@ -478,3 +522,9 @@ QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
 	return QRect();
 }
 
+QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoItem* pItem)
+{
+	QMap<time_t,stColorBlockItem>* pMap = new QMap<time_t,stColorBlockItem>();
+
+	return pMap;
+}
