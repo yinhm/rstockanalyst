@@ -72,6 +72,7 @@ public:
 
 	/*导出日线数据*/
 	bool exportHistoryData(const QString& qsCode, const QList<qRcvHistoryData*>& list);
+	bool exportHistoryData(const QString& qsCode, const QList<qRcvHistoryData*>& list, int iOffset);
 	/*获取某只股票的日线数据*/
 	QList<qRcvHistoryData*> getHistoryList(const QString& code);
 	/*获取某只股票最近count条的日线数据*/

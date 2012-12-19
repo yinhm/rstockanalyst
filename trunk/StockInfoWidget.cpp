@@ -66,7 +66,11 @@ void CStockInfoWidget::setStockCode( const QString& code )
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 	if(pItem)
 	{
-		disconnect(this,SLOT(updateStockInfo(const QString&)));		//移除所有和 updateStockInfo关联的 信号/槽
+		//移除所有和 updateStockInfo关联的 信号/槽
+		if(m_pStockItem)
+		{
+			disconnect(m_pStockItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateStockInfo(const QString&)));
+		}
 
 		m_pStockItem = pItem;
 

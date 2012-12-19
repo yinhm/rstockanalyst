@@ -574,14 +574,19 @@ void CKLineWidget::setStockCode( const QString& code )
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 	if(pItem)
 	{
-		disconnect(this,SLOT(updateKLine(const QString&)));		//移除所有和 updateKLine关联的 信号/槽
+		if(m_pStockItem)
+		{
+			//移除所有和 updateKLine关联的 信号/槽
+			connect(m_pStockItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+			connect(m_pStockItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+		}
 
 		m_pStockItem = pItem;
 
 		//建立更新机制
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		connect(pItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+//		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 
 		//更新K线图
 		updateKLine(code);

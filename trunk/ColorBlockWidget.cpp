@@ -94,6 +94,13 @@ void CColorBlockWidget::setBlock( const QString& block )
 {
 	clearTmpData();
 
+	foreach(CStockInfoItem* p,m_listStocks)
+	{
+		//移除所有和 updateStock关联的 信号/槽
+		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+	}
+
 	m_listStocks = CDataEngine::getDataEngine()->getStocksByBlock(block);
 	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
