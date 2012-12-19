@@ -15,10 +15,26 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pSelectedStock(0)
 	, m_qsColorMode("")
 	, m_typeBlock(BlockCircle)
+	, m_typeCircle(Day)
 {
 	//初始化菜单
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
 
+	{
+		//设置当前K线图的显示周期
+		m_pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
+		m_pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
+		m_pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
+		m_pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
+		m_pMenuCircle->addAction(tr("30分钟分时图"),this,SLOT(onSetCircle()))->setData(Min30);
+		m_pMenuCircle->addAction(tr("60分钟分时图"),this,SLOT(onSetCircle()))->setData(Min60);
+
+		m_pMenuCircle->addAction(tr("日线图"),this,SLOT(onSetCircle()))->setData(Day);
+		m_pMenuCircle->addAction(tr("周线图"),this,SLOT(onSetCircle()))->setData(Week);
+		m_pMenuCircle->addAction(tr("月线图"),this,SLOT(onSetCircle()))->setData(Month);
+		m_pMenuCircle->addAction(tr("季线图"),this,SLOT(onSetCircle()))->setData(Month3);
+		m_pMenuCircle->addAction(tr("年线图"),this,SLOT(onSetCircle()))->setData(Year);
+	}
 	{
 		//颜色显示模式菜单
 		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色模式");
@@ -39,6 +55,12 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 {
 	if(!CBaseWidget::loadPanelInfo(eleWidget))
 		return false;
+
+	//当前显示的周期
+	if(eleWidget.hasAttribute("circle"))
+	{
+		m_typeCircle = static_cast<ColorBlockCircle>(eleWidget.attribute("circle").toInt());
+	}
 
 	//当前的板块名称
 	QDomElement eleBlock = eleWidget.firstChildElement("block");
@@ -62,6 +84,7 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 		m_typeBlock = static_cast<CColorBlockWidget::BlockMode>(eleBlockMode.text().toInt());
 	}
 
+
 	return true;
 }
 
@@ -70,6 +93,9 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
 		return false;
 
+
+	//显示的周期
+	eleWidget.setAttribute("circle",m_typeCircle);
 
 	//当前的板块名称
 	QDomElement eleBlock = doc.createElement("block");
@@ -140,6 +166,14 @@ void CColorBlockWidget::setColorMode( const QString& mode )
 	//}
 
 	update();
+}
+
+void CColorBlockWidget::onSetCircle()
+{
+	//设置当前的显示周期
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	m_typeCircle = static_cast<ColorBlockCircle>(pAct->data().toInt());
+//	resetTmpData();
 }
 
 void CColorBlockWidget::onSetColorMode()
@@ -312,6 +346,15 @@ QMenu* CColorBlockWidget::getCustomMenu()
 	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
 		m_pMenuCustom->addMenu(m_pMenu);
 
+	{
+		//设置当前选中的周期模式
+		QList<QAction*> listAct = m_pMenuCircle->actions();
+		foreach(QAction* pAct,listAct)
+		{
+			pAct->setCheckable(true);
+			pAct->setChecked(pAct->data().toInt() == m_typeCircle);
+		}
+	}
 
 	{
 		//添加当前所有的支持的颜色模式菜单
