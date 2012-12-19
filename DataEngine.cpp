@@ -795,6 +795,42 @@ bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHist
 	return true;
 }
 
+bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list, int iOffset )
+{
+	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(qsCode);
+
+	QFile file(qsDayData);
+	if(!file.open(QFile::ReadWrite))
+		return false;
+
+	int iPos = 0;
+	int iSize = file.size();
+	if(iOffset>=0)
+	{
+		iPos = file.size()-sizeof(qRcvHistoryData)*iOffset;
+	}
+	if(iPos<0)
+	{
+		iPos = 0;
+	}
+
+	if(!file.resize(iPos))
+		return false;
+
+	foreach(qRcvHistoryData* pData, list)
+	{
+		int iSize = file.write((char*)pData,sizeof(qRcvHistoryData));
+		if(iSize!=sizeof(qRcvHistoryData))
+		{
+			file.close();
+			return false;
+		}
+	}
+
+	file.close();
+	return true;
+}
+
 QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code )
 {
 	QList<qRcvHistoryData*> list;
@@ -831,12 +867,13 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code, int co
 		return list;
 	int iDataSize = sizeof(qRcvHistoryData);
 
-	int iPos = file.size()-iDataSize;
-	int iCount = 0;
-	while(iPos>=0&&iCount<count)
+	int iPos = file.size()-iDataSize*count;
+	if(iPos<0)
+		iPos = 0;
+	file.seek(iPos);
+
+	while(true)
 	{
-		++iCount;
-		file.seek(iPos);
 		qRcvHistoryData* pData = new qRcvHistoryData;
 		int iSize = file.read(reinterpret_cast<char*>(pData),iDataSize);
 		if(iSize!=iDataSize)
@@ -844,8 +881,7 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code, int co
 			delete pData;
 			break;
 		}
-		list.push_front(pData);
-		iPos = iPos-iDataSize;
+		list.push_back(pData);
 	}
 
 	file.close();

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
+
 #include <QtGui>
 #include "BaseWidget.h"
 
@@ -42,3 +44,5 @@ private:
 	QString m_qsTemplateDir;		//板块配置文件所在的目录
 };
 
+
+#endif	//MAIN_WINDOW_H
