@@ -14,7 +14,14 @@
 
 struct stColorBlockItem
 {
-	time_t tmTime;
+	time_t	tmTime;			//当前时间
+	float	fPrice;			//当前价格
+	float	fVolume;		//量
+	float	fAmount;		//额
+	stColorBlockItem()
+	{
+		memset(&tmTime,0,sizeof(stColorBlockItem));
+	}
 };
 
 class CColorBlockWidget : public CBaseWidget
@@ -62,6 +69,8 @@ protected slots:
 	void onSetColorMode();									//点击设置颜色模式
 	void onSetBlockMode();									//设置当前的显示模式
 
+	void updateColorBlockData();							//更新当前需要显示的数据
+
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
@@ -85,6 +94,9 @@ private:
 
 	QRect rectOfStock(CStockInfoItem* pItem);			//获取某只股票显示的位置
 
+	//获取数据二维表，通过分析当前的周期。
+	QMap<time_t,stColorBlockItem>* getColorBlockMap(CStockInfoItem* pItem);
+
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
 	QMenu* m_pMenuCircle;					//周期设置菜单
@@ -95,6 +107,7 @@ private:
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
+	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*> mapStockColorBlocks;	//当前显示的ColorBlock数据
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
 	QString m_qsColorMode;						//当前颜色模式
@@ -104,6 +117,7 @@ private:
 private:
 	int m_iTitleHeight;						//头部高度
 	int m_iCBHeight;						//单个色块的高度
+	int m_iCBWidth;							//单个色块的宽度
 	int m_iBottomHeight;					//底部的高度
 	int showStockIndex;
 	BlockMode m_typeBlock;					//block显示形状

@@ -195,12 +195,12 @@ void CMarketTrendWidget::clearTmpData()
 {
 	m_pSelectedStock = 0;
 
-	disconnect(this,SLOT(stockInfoChanged(const QString&)));
-	//foreach(CStockInfoItem* pItem,m_listStocks)
-	//{
-	//	disconnect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
-	//	disconnect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
-	//}
+	//disconnect(this,SLOT(stockInfoChanged(const QString&)));
+	foreach(CStockInfoItem* pItem,m_listStocks)
+	{
+		disconnect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+		disconnect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
+	}
 	m_listStocks.clear();
 	m_mapStockIndex.clear();
 }
