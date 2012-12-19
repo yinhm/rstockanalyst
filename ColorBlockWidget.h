@@ -12,6 +12,11 @@
 #include "BaseWidget.h"
 #include "StockInfoItem.h"
 
+struct stColorBlockItem
+{
+	time_t tmTime;
+};
+
 class CColorBlockWidget : public CBaseWidget
 {
 	Q_OBJECT
