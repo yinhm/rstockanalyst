@@ -3,6 +3,280 @@
 #include "DataEngine.h"
 #include "ColorManager.h"
 
+/* 对某分钟的数据进行转换 (qRcvMinuteData*) -> (stColorBlockItem) */
+bool getColorBlockItemByMin(stColorBlockItem& item, qRcvFenBiData* pMin)
+{
+	if(!pMin)
+		return false;
+
+	item.tmTime = pMin->tmTime;
+	item.fAmount = pMin->fAmount;
+	item.fPrice = pMin->fPrice;
+	item.fVolume = pMin->fVolume;
+	return true;
+}
+
+/*通过分钟数据获取指定周期内的数据*/
+bool getColorBlockItemByMins(stColorBlockItem& item, const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
+{
+	if(list.size()<1)
+		return false;
+
+//	qRcvFenBiData* pBegin = list.first();
+	qRcvFenBiData* pLast = list.last();
+	item.tmTime = pLast->tmTime;
+	item.fPrice = pLast->fPrice;
+
+	if(pLastFenbi)
+	{
+		item.fAmount = pLast->fAmount-pLastFenbi->fAmount;
+		item.fVolume = pLast->fVolume-pLastFenbi->fVolume;
+	}
+	else
+	{
+		item.fAmount = pLast->fAmount;
+		item.fVolume = pLast->fVolume;
+	}
+
+	return true;
+}
+
+int getColorBlockMinItems(QVector<stColorBlockItem>& listItems,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
+{
+	QList<qRcvFenBiData*> listMins;
+	time_t tmT = 0;
+	qRcvFenBiData* pLastFenbi = 0;
+	foreach(qRcvFenBiData* p, minutes)
+	{
+		if((p->tmTime-tmT)>(iSize*60))
+		{
+			stColorBlockItem item;
+			if(getColorBlockItemByMins(item,listMins,pLastFenbi))
+				listItems.push_back(item);
+			if(listMins.size()>0)
+				pLastFenbi = listMins.last();
+			listMins.clear();
+			tmT = p->tmTime;
+		}
+
+		listMins.push_back(p);
+	}
+
+	return listItems.size();
+}
+
+/* 对某天的数据进行转换 (qRcvHistoryData*) -> (stColorBlockItem) */
+bool getColorBlockItemByDay(stColorBlockItem& item,const qRcvHistoryData* pHistory)
+{
+	if(!pHistory)
+		return false;
+	item.tmTime = pHistory->time;
+	item.fPrice = pHistory->fClose;
+	item.fAmount = pHistory->fAmount;
+	item.fVolume = pHistory->fVolume;
+	return true;
+}
+/*通过多天数据获取一个周期内的数据*/
+bool getColorBlockItemByDays(stColorBlockItem& item,const QList<qRcvHistoryData*>& list)
+{
+	if(list.size()<1)
+		return false;
+
+//	qRcvHistoryData* pBegin = list.first();
+	qRcvHistoryData* pLast = list.last();
+	item.tmTime = pLast->time;
+	item.fPrice = pLast->fClose;
+
+	item.fAmount = 0;
+	item.fVolume = 0;
+	foreach(qRcvHistoryData* p,list)
+	{
+		item.fAmount+=p->fAmount;
+		item.fVolume+=p->fVolume;
+	}
+	return true;
+}
+
+int getColorBlockDayItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	foreach(qRcvHistoryData* p,historys)
+	{
+		stColorBlockItem item;
+		if(getColorBlockItemByDay(item,p))
+			listItems.push_back(item);
+	}
+
+	return listItems.size();
+}
+
+int getColorBlockWeekItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	int iCurWeek = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+		iCurWeek = tmDate.weekNumber();
+	}
+
+	QList<qRcvHistoryData*> weekHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			iCurWeek = tmDate.weekNumber();
+			if(tmDate.dayOfWeek()==1)
+			{
+				stColorBlockItem item;
+				getColorBlockItemByDays(item,weekHis);
+				listItems.push_back(item);
+				weekHis.clear();
+			}
+		}
+		else if(tmDate.weekNumber()!=iCurWeek)
+		{
+			iCurWeek = tmDate.weekNumber();
+
+			stColorBlockItem item;
+			getColorBlockItemByDays(item,weekHis);
+			listItems.push_back(item);
+			weekHis.clear();
+		}
+		weekHis.push_back(pHistory);
+	}
+
+	return listItems.size();
+}
+
+int getColorBlockMonthItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	int iCurMonth = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+		iCurMonth = tmDate.month();
+	}
+
+	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			iCurMonth = tmDate.month();
+			{
+				stColorBlockItem item;
+				getColorBlockItemByDays(item,monthHis);
+				listItems.push_back(item);
+				monthHis.clear();
+			}
+		}
+		else if(tmDate.month()!=iCurMonth)
+		{
+			iCurMonth = tmDate.month();
+
+			stColorBlockItem item;
+			getColorBlockItemByDays(item,monthHis);
+			listItems.push_back(item);
+			monthHis.clear();
+		}
+		monthHis.push_back(pHistory);
+	}
+
+	return listItems.size();
+}
+
+int getColorBlockMonth3Items(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	int iCurMonth = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+		iCurMonth = tmDate.month();
+	}
+
+	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			iCurMonth = tmDate.month();
+			{
+				stColorBlockItem item;
+				getColorBlockItemByDays(item,monthHis);
+				listItems.push_back(item);
+				monthHis.clear();
+			}
+		}
+		else if(((tmDate.month()-1)/3)!=((iCurMonth-1)/3))
+		{
+			iCurMonth = tmDate.month();
+
+			stColorBlockItem item;
+			getColorBlockItemByDays(item,monthHis);
+			listItems.push_back(item);
+			monthHis.clear();
+		}
+		monthHis.push_back(pHistory);
+	}
+
+	return listItems.size();
+}
+
+int getColorBlockYearItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+{
+	if(historys.size()<1)
+		return 0;
+	int iCurYear = 0;
+	{
+		//first day's week and year.
+		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
+		iCurYear = tmDate.year();
+	}
+
+	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
+	for(int i=0;i<historys.size();++i)
+	{
+		qRcvHistoryData* pHistory = historys[i];
+		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
+		if(tmDate.year()!=iCurYear)
+		{
+			iCurYear = tmDate.year();
+			{
+				stColorBlockItem item;
+				getColorBlockItemByDays(item,monthHis);
+				listItems.push_back(item);
+				monthHis.clear();
+			}
+		}
+		monthHis.push_back(pHistory);
+	}
+
+	return listItems.size();
+}
+
+
+
+
 CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,CBaseWidget::ColorBlock)
 	, m_pMenuCustom(0)
@@ -525,6 +799,90 @@ QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
 QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoItem* pItem)
 {
 	QMap<time_t,stColorBlockItem>* pMap = new QMap<time_t,stColorBlockItem>();
+	QVector<stColorBlockItem> listItems;
+	if(m_typeCircle<CColorBlockWidget::Day)
+	{
+		//获取分钟数据，进行计算
+		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
+		if(m_typeCircle == Min1)
+		{
+			getColorBlockMinItems(listItems,FenBis);
+		}
+		else if(m_typeCircle == Min5)
+		{
+			getColorBlockMinItems(listItems,FenBis,5);
+		}
+		else if(m_typeCircle == Min15)
+		{
+			getColorBlockMinItems(listItems,FenBis,15);
+		}
+		else if(m_typeCircle == Min30)
+		{
+			getColorBlockMinItems(listItems,FenBis,30);
+		}
+		else if(m_typeCircle == Min60)
+		{
+			getColorBlockMinItems(listItems,FenBis,60);
+		}
+	}
+	else
+	{
+		//获取日线数据
+		QList<qRcvHistoryData*> historys = pItem->getHistoryList();
+		qRcvReportData* pLastReport = pItem->getCurrentReport();
+		bool bAppendLast = true;
+		if(historys.size()>0 && pLastReport)
+		{
+			qRcvHistoryData* pLastHistory = historys.last();
+			if(QDateTime::fromTime_t(pLastHistory->time).date() == QDateTime::fromTime_t(pLastReport->tmTime).date())
+				bAppendLast = false;
+		}
+		if(pLastReport&&bAppendLast)
+		{
+			qRcvHistoryData* pLastHistory = new qRcvHistoryData();
+			pLastHistory->time = pLastReport->tmTime;
+			pLastHistory->fAmount = pLastReport->fAmount;
+			pLastHistory->fClose = pLastReport->fNewPrice;
+			pLastHistory->fHigh = pLastReport->fHigh;
+			pLastHistory->fLow = pLastReport->fLow;
+			pLastHistory->fOpen = pLastReport->fOpen;
+			pLastHistory->fVolume = pLastReport->fVolume;
+
+			historys.push_back(pLastHistory);
+		}
+		if(m_typeCircle == Day)
+		{
+			getColorBlockDayItems(listItems,historys);
+		}
+		else if(m_typeCircle == DayN)
+		{
+			//目前未使用
+			//	getLinerItem(listItems,historys,3);
+		}
+		else if(m_typeCircle == Week)
+		{
+			getColorBlockWeekItems(listItems,historys);
+		}
+		else if(m_typeCircle == Month)
+		{
+			getColorBlockMonthItems(listItems,historys);
+		}
+		else if(m_typeCircle == Month3)
+		{
+			getColorBlockMonth3Items(listItems,historys);
+		}
+		else if(m_typeCircle == Year)
+		{
+			getColorBlockYearItems(listItems,historys);
+		}
+
+		{
+			//清除获取的日线数据
+			foreach(qRcvHistoryData* p,historys)
+				delete p;
+			historys.clear();
+		}
+	}
 
 	return pMap;
 }
