@@ -577,8 +577,8 @@ void CKLineWidget::setStockCode( const QString& code )
 		if(m_pStockItem)
 		{
 			//移除所有和 updateKLine关联的 信号/槽
-			connect(m_pStockItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-			connect(m_pStockItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+			disconnect(m_pStockItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+			disconnect(m_pStockItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		}
 
 		m_pStockItem = pItem;
@@ -1148,16 +1148,7 @@ void CKLineWidget::resetTmpData()
 		}
 		if(pLastReport&&bAppendLast)
 		{
-			qRcvHistoryData* pLastHistory = new qRcvHistoryData();
-			pLastHistory->time = pLastReport->tmTime;
-			pLastHistory->fAmount = pLastReport->fAmount;
-			pLastHistory->fClose = pLastReport->fNewPrice;
-			pLastHistory->fHigh = pLastReport->fHigh;
-			pLastHistory->fLow = pLastReport->fLow;
-			pLastHistory->fOpen = pLastReport->fOpen;
-			pLastHistory->fVolume = pLastReport->fVolume;
-
-			historys.push_back(pLastHistory);
+			historys.push_back(new qRcvHistoryData(pLastReport));
 		}
 		if(m_typeCircle == Day)
 		{

@@ -814,7 +814,7 @@ bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHist
 		iPos = 0;
 	}
 
-	if(!file.resize(iPos))
+	if(!(file.resize(iPos))||(!file.seek(iPos)))
 		return false;
 
 	foreach(qRcvHistoryData* pData, list)
