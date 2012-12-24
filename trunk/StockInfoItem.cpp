@@ -118,7 +118,7 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 {
 	QList<qRcvHistoryData*> listHistory;
 	int iCountFromFile = -1;
-	if(list.size()>100)
+	if(list.size()>130)
 	{
 		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode);
 	}

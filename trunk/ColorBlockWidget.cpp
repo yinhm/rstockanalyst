@@ -441,7 +441,7 @@ void CColorBlockWidget::onSetCircle()
 	//设置当前的显示周期
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 	m_typeCircle = static_cast<ColorBlockCircle>(pAct->data().toInt());
-//	resetTmpData();
+	setBlock(m_qsBlock);
 }
 
 void CColorBlockWidget::onSetColorMode()
@@ -478,6 +478,7 @@ void CColorBlockWidget::updateColorBlockData()
 		++iIndex;
 	}
 
+	/*
 	//从map里删除不需要显示的股票
 	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*>::iterator iter = mapStockColorBlocks.begin();
 	while (iter!=mapStockColorBlocks.end())
@@ -489,7 +490,8 @@ void CColorBlockWidget::updateColorBlockData()
 		}
 
 		++iter;
-	}
+	}*/
+
 
 	
 	//将需要显示而map中没有的股票加入到map中
@@ -513,6 +515,15 @@ void CColorBlockWidget::clearTmpData()
 	}
 	m_pSelectedStock = 0;
 	m_listStocks.clear();
+
+	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*>::iterator iter = mapStockColorBlocks.begin();
+	while(iter!=mapStockColorBlocks.end())
+	{
+		delete iter.value();
+		++iter;
+	}
+
+	mapStockColorBlocks.clear();
 	m_mapStockIndex.clear();
 }
 
@@ -731,10 +742,8 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 {
 	p.fillRect(rtBottom,QColor(0,0,0));
 
-	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),rtBottom.width()-32,rtBottom.height());
-	float fColorsWidth = rtBottom.width()-2*m_iBottomHeight;
-	if(fColorsWidth<0.1)
-		return;
+	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),50,rtBottom.height());
+	float fColorsWidth = rtColors.width();
 	float fColorWidth = fColorsWidth/COLOR_BLOCK_SIZE;
 	for(int i=0;i<COLOR_BLOCK_SIZE;++i)
 	{
@@ -839,16 +848,7 @@ QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoIte
 		}
 		if(pLastReport&&bAppendLast)
 		{
-			qRcvHistoryData* pLastHistory = new qRcvHistoryData();
-			pLastHistory->time = pLastReport->tmTime;
-			pLastHistory->fAmount = pLastReport->fAmount;
-			pLastHistory->fClose = pLastReport->fNewPrice;
-			pLastHistory->fHigh = pLastReport->fHigh;
-			pLastHistory->fLow = pLastReport->fLow;
-			pLastHistory->fOpen = pLastReport->fOpen;
-			pLastHistory->fVolume = pLastReport->fVolume;
-
-			historys.push_back(pLastHistory);
+			historys.push_back(new qRcvHistoryData(pLastReport));
 		}
 		if(m_typeCircle == Day)
 		{

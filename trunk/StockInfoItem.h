@@ -4,27 +4,6 @@
 
 #pragma   pack(push,1)					//设置内存对齐方式为 1字节
 
-struct qRcvHistoryData
-{
-	time_t	time;			//UCT
-	float	fOpen;			//开盘
-	float	fHigh;			//最高
-	float	fLow;				//最低
-	float	fClose;			//收盘
-	float	fVolume;			//量
-	float	fAmount;			//额
-	WORD	wAdvance;			//涨数,仅大盘有效
-	WORD	wDecline;			//跌数,仅大盘有效
-
-	qRcvHistoryData()
-	{
-
-	}
-	qRcvHistoryData(RCV_HISTORY_STRUCTEx* p)
-	{
-		memcpy(&time,&p->m_time,sizeof(qRcvHistoryData));
-	}
-};
 
 struct qRcvReportData
 {
@@ -94,6 +73,37 @@ struct qRcvReportData
 	}
 };
 
+struct qRcvHistoryData
+{
+	time_t	time;			//UCT
+	float	fOpen;			//开盘
+	float	fHigh;			//最高
+	float	fLow;				//最低
+	float	fClose;			//收盘
+	float	fVolume;			//量
+	float	fAmount;			//额
+	WORD	wAdvance;			//涨数,仅大盘有效
+	WORD	wDecline;			//跌数,仅大盘有效
+
+	qRcvHistoryData()
+	{
+
+	}
+	qRcvHistoryData(RCV_HISTORY_STRUCTEx* p)
+	{
+		memcpy(&time,&p->m_time,sizeof(qRcvHistoryData));
+	}
+	qRcvHistoryData(qRcvReportData* p)
+	{
+		time = p->tmTime;
+		fAmount = p->fAmount;
+		fClose = p->fNewPrice;
+		fHigh = p->fHigh;
+		fLow = p->fLow;
+		fOpen = p->fOpen;
+		fVolume = p->fVolume;
+	}
+};
 
 struct qRcvBaseInfoData
 {
