@@ -2,6 +2,8 @@
 #include "ColorBlockWidget.h"
 #include "DataEngine.h"
 #include "ColorManager.h"
+#define	RCB_OFFSET_Y	2
+#define RCB_OFFSET_LEFT	50
 
 /* 对某分钟的数据进行转换 (qRcvMinuteData*) -> (stColorBlockItem) */
 bool getColorBlockItemByMin(stColorBlockItem& item, qRcvFenBiData* pMin)
@@ -41,7 +43,7 @@ bool getColorBlockItemByMins(stColorBlockItem& item, const QList<qRcvFenBiData*>
 	return true;
 }
 
-int getColorBlockMinItems(QVector<stColorBlockItem>& listItems,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
+int getColorBlockMinItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
 {
 	QList<qRcvFenBiData*> listMins;
 	time_t tmT = 0;
@@ -52,7 +54,7 @@ int getColorBlockMinItems(QVector<stColorBlockItem>& listItems,const QList<qRcvF
 		{
 			stColorBlockItem item;
 			if(getColorBlockItemByMins(item,listMins,pLastFenbi))
-				listItems.push_back(item);
+				pMap->insert(item.tmTime,item);
 			if(listMins.size()>0)
 				pLastFenbi = listMins.last();
 			listMins.clear();
@@ -62,7 +64,7 @@ int getColorBlockMinItems(QVector<stColorBlockItem>& listItems,const QList<qRcvF
 		listMins.push_back(p);
 	}
 
-	return listItems.size();
+	return pMap->size();
 }
 
 /* 对某天的数据进行转换 (qRcvHistoryData*) -> (stColorBlockItem) */
@@ -97,19 +99,19 @@ bool getColorBlockItemByDays(stColorBlockItem& item,const QList<qRcvHistoryData*
 	return true;
 }
 
-int getColorBlockDayItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getColorBlockDayItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	foreach(qRcvHistoryData* p,historys)
 	{
 		stColorBlockItem item;
 		if(getColorBlockItemByDay(item,p))
-			listItems.push_back(item);
+			pMap->insert(item.tmTime,item);
 	}
 
-	return listItems.size();
+	return pMap->size();
 }
 
-int getColorBlockWeekItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -135,7 +137,7 @@ int getColorBlockWeekItems(QVector<stColorBlockItem>& listItems,const QList<qRcv
 			{
 				stColorBlockItem item;
 				getColorBlockItemByDays(item,weekHis);
-				listItems.push_back(item);
+				pMap->insert(item.tmTime,item);
 				weekHis.clear();
 			}
 		}
@@ -145,16 +147,16 @@ int getColorBlockWeekItems(QVector<stColorBlockItem>& listItems,const QList<qRcv
 
 			stColorBlockItem item;
 			getColorBlockItemByDays(item,weekHis);
-			listItems.push_back(item);
+			pMap->insert(item.tmTime,item);
 			weekHis.clear();
 		}
 		weekHis.push_back(pHistory);
 	}
 
-	return listItems.size();
+	return pMap->size();
 }
 
-int getColorBlockMonthItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getColorBlockMonthItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -179,7 +181,7 @@ int getColorBlockMonthItems(QVector<stColorBlockItem>& listItems,const QList<qRc
 			{
 				stColorBlockItem item;
 				getColorBlockItemByDays(item,monthHis);
-				listItems.push_back(item);
+				pMap->insert(item.tmTime,item);
 				monthHis.clear();
 			}
 		}
@@ -189,16 +191,16 @@ int getColorBlockMonthItems(QVector<stColorBlockItem>& listItems,const QList<qRc
 
 			stColorBlockItem item;
 			getColorBlockItemByDays(item,monthHis);
-			listItems.push_back(item);
+			pMap->insert(item.tmTime,item);
 			monthHis.clear();
 		}
 		monthHis.push_back(pHistory);
 	}
 
-	return listItems.size();
+	return pMap->size();
 }
 
-int getColorBlockMonth3Items(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getColorBlockMonth3Items(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -223,7 +225,7 @@ int getColorBlockMonth3Items(QVector<stColorBlockItem>& listItems,const QList<qR
 			{
 				stColorBlockItem item;
 				getColorBlockItemByDays(item,monthHis);
-				listItems.push_back(item);
+				pMap->insert(item.tmTime,item);
 				monthHis.clear();
 			}
 		}
@@ -233,16 +235,16 @@ int getColorBlockMonth3Items(QVector<stColorBlockItem>& listItems,const QList<qR
 
 			stColorBlockItem item;
 			getColorBlockItemByDays(item,monthHis);
-			listItems.push_back(item);
+			pMap->insert(item.tmTime,item);
 			monthHis.clear();
 		}
 		monthHis.push_back(pHistory);
 	}
 
-	return listItems.size();
+	return pMap->size();
 }
 
-int getColorBlockYearItems(QVector<stColorBlockItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getColorBlockYearItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -264,17 +266,31 @@ int getColorBlockYearItems(QVector<stColorBlockItem>& listItems,const QList<qRcv
 			{
 				stColorBlockItem item;
 				getColorBlockItemByDays(item,monthHis);
-				listItems.push_back(item);
+				pMap->insert(item.tmTime,item);
 				monthHis.clear();
 			}
 		}
 		monthHis.push_back(pHistory);
 	}
 
-	return listItems.size();
+	return pMap->size();
 }
 
 
+//计算分时数据的横坐标时间
+int getTimeMapByMin(QMap<time_t,int>& mapTimes,time_t& tmBegin, time_t& tmEnd, int iSize = 60/*second*/)
+{
+	if(tmBegin>tmEnd)
+		return 0;
+
+	time_t tmCur = tmEnd;
+	while(tmCur>=tmBegin)
+	{
+		mapTimes.insert(tmCur,mapTimes.size());
+		tmCur = tmCur-iSize;
+	}
+	return 1;
+}
 
 
 CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
@@ -317,6 +333,8 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 		m_pMenuBlockMode = m_pMenuCustom->addMenu("设置显示形状");
 		m_pMenuBlockMode->addAction("圆形",this,SLOT(onSetBlockMode()))->setData(BlockCircle);
 		m_pMenuBlockMode->addAction("方形",this,SLOT(onSetBlockMode()))->setData(BlockRect);
+		//设置色块的大小
+		m_pMenuCustom->addAction(tr("设置色块大小"),this,SLOT(onSetBlockSize()));
 	}
 }
 
@@ -335,6 +353,16 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(eleWidget.hasAttribute("circle"))
 	{
 		m_typeCircle = static_cast<ColorBlockCircle>(eleWidget.attribute("circle").toInt());
+	}
+	//色块的宽度
+	if(eleWidget.hasAttribute("CBWidth"))
+	{
+		m_iCBWidth = eleWidget.attribute("CBWidth").toInt();
+	}
+	//色块的高度
+	if(eleWidget.hasAttribute("CBHeight"))
+	{
+		m_iCBHeight = eleWidget.attribute("CBHeight").toInt();
 	}
 
 	//当前的板块名称
@@ -371,6 +399,8 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 
 	//显示的周期
 	eleWidget.setAttribute("circle",m_typeCircle);
+	eleWidget.setAttribute("CBWidth",m_iCBWidth);
+	eleWidget.setAttribute("CBHeight",m_iCBHeight);
 
 	//当前的板块名称
 	QDomElement eleBlock = doc.createElement("block");
@@ -404,7 +434,7 @@ void CColorBlockWidget::setBlock( const QString& block )
 		m_mapStockIndex[pItem] = i;
 		//建立更新机制
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
-		connect(pItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	}
 
 	m_qsBlock = block;
@@ -414,6 +444,7 @@ void CColorBlockWidget::setBlock( const QString& block )
 		clickedStock(m_listStocks.first());
 	}
 
+	updateTimesH();			//更新横坐标的时间数据
 	update();
 	return CBaseWidget::setBlock(block);
 }
@@ -421,6 +452,16 @@ void CColorBlockWidget::setBlock( const QString& block )
 void CColorBlockWidget::updateStock( const QString& code )
 {
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
+
+	if(mapStockColorBlocks.contains(pItem))
+	{
+		//更新数据
+		QMap<time_t,stColorBlockItem>* pMap = mapStockColorBlocks[pItem];
+		mapStockColorBlocks[pItem] = 0;
+		delete pMap;
+		mapStockColorBlocks[pItem] = getColorBlockMap(pItem);
+		updateTimesH();
+	}
 	update(rectOfStock(pItem));
 }
 
@@ -457,6 +498,52 @@ void CColorBlockWidget::onSetBlockMode()
 	m_typeBlock = static_cast<BlockMode>(pAct->data().toInt());
 	update();
 }
+
+void CColorBlockWidget::onSetBlockSize()
+{
+	//弹出设置色块大小的对话框，用来设置色块的大小
+	QDialog dlg(this);
+	QGridLayout layout(&dlg);
+	QLabel label1(tr("宽度"),&dlg);
+	QLabel label2(tr("高度"),&dlg);
+	QLineEdit editW(&dlg);
+	QLineEdit editH(&dlg);
+	QPushButton btnOk(&dlg);
+	dlg.setLayout(&layout);
+	layout.addWidget(&label1,0,0,1,1);
+	layout.addWidget(&label2,1,0,1,1);
+	layout.addWidget(&editW,0,1,1,1);
+	layout.addWidget(&editH,1,1,1,1);
+	layout.addWidget(&btnOk,2,0,1,2);
+	btnOk.setText(tr("确定"));
+	QIntValidator intValidator(1,100);
+	editW.setValidator(&intValidator);
+	editH.setValidator(&intValidator);
+	editW.setText(QString("%1").arg(m_iCBWidth));
+	editH.setText(QString("%1").arg(m_iCBHeight));
+	dlg.setWindowTitle(tr("色块大小设置"));
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	int iW = editW.text().toInt();
+	int iH = editH.text().toInt();
+	if((iW>0&&iH>0))
+	{
+		if(iW!=m_iCBWidth||iH!=m_iCBHeight)
+		{
+			m_iCBHeight = iH;
+			m_iCBWidth = iW;
+			update();
+		}
+	}
+	else
+	{
+		QMessageBox::information(this,tr("提示"),tr("设置色块大小失败，请检查你的输入！"));
+	}
+}
+
 
 void CColorBlockWidget::updateColorBlockData()
 {
@@ -506,12 +593,11 @@ void CColorBlockWidget::updateColorBlockData()
 
 void CColorBlockWidget::clearTmpData()
 {
-	
 	foreach(CStockInfoItem* p,m_listStocks)
 	{
 		//移除所有和 updateStock关联的 信号/槽
 		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
-		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+		disconnect(p,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	}
 	m_pSelectedStock = 0;
 	m_listStocks.clear();
@@ -545,6 +631,66 @@ void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
 	update(rectOfStock(m_pSelectedStock));
 }
 
+void CColorBlockWidget::updateTimesH()
+{
+	//更新当前的横坐标数据，从后向前计算时间
+	m_mapTimes.clear();
+
+//	int iCount = 1024;				//计算1024个时间
+	if(m_typeCircle<Day)
+	{
+		time_t tmLast = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(9-8)+60*25;
+		time_t tmCurrent = (QDateTime::currentDateTime().toTime_t()+59)/60*60;		//向上对分钟取整
+		if((tmCurrent%(3600*24))>3600*7)
+		{
+			tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7;		//3点收盘
+		}
+		if(m_typeCircle == Min1)
+		{
+			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60);
+		}
+		else if(m_typeCircle == Min5)
+		{
+			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*5);
+		}
+		else if(m_typeCircle == Min15)
+		{
+			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*15);
+		}
+		else if(m_typeCircle == Min30)
+		{
+			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*30);
+		}
+		else if(m_typeCircle == Min60)
+		{
+			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*60);
+		}
+	}
+	else
+	{
+		if(m_typeCircle == Day)
+		{
+		}
+		else if(m_typeCircle == DayN)
+		{
+			//目前未使用
+		}
+		else if(m_typeCircle == Week)
+		{
+		}
+		else if(m_typeCircle == Month)
+		{
+		}
+		else if(m_typeCircle == Month3)
+		{
+		}
+		else if(m_typeCircle == Year)
+		{
+		}
+	}
+}
+
+
 void CColorBlockWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
@@ -556,6 +702,35 @@ void CColorBlockWidget::paintEvent( QPaintEvent* )
 	drawHeader(p,m_rtHeader);
 	drawClient(p,m_rtClient);
 	drawBottom(p,m_rtBottom);
+}
+
+void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
+{
+	CStockInfoItem* pStock = hitTestStock(e->pos());
+	stColorBlockItem item = hitTestCBItem(e->pos());
+	if(item.fPrice<0.1 || pStock==0)
+	{
+		QToolTip::hideText();
+		return CBaseWidget::mouseMoveEvent(e);
+	}
+
+	QString qsTooltip;		//Tips
+	if(m_typeCircle<Day)
+	{
+		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
+			.arg(pStock->getCode()).arg(QDateTime::fromTime_t(item.tmTime).toString("HH:mm:ss"))
+			.arg(item.fPrice);
+	}
+	else
+	{
+		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
+			.arg(pStock->getCode()).arg(QDateTime::fromTime_t(item.tmTime).toString("yyyy/MM/dd"))
+			.arg(item.fPrice);
+	}
+
+	QToolTip::showText(e->globalPos(),qsTooltip,this);
+
+	return CBaseWidget::mouseMoveEvent(e);
 }
 
 void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
@@ -743,12 +918,41 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	p.fillRect(rtBottom,QColor(0,0,0));
 
 	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),50,rtBottom.height());
-	float fColorsWidth = rtColors.width();
+	float fColorsWidth = rtColors.width()-5;
 	float fColorWidth = fColorsWidth/COLOR_BLOCK_SIZE;
 	for(int i=0;i<COLOR_BLOCK_SIZE;++i)
 	{
 		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
 			CColorManager::getBlockColor(m_qsColorMode,i));
+	}
+
+	//从右向左绘制横坐标
+	float fBeginX = rtBottom.right()-RCB_OFFSET_Y;
+	float fEndX = rtBottom.left()+RCB_OFFSET_LEFT;
+	float fCBWidth = fBeginX-fEndX;
+	if(fCBWidth<0)
+		return;
+
+	QList<time_t> listTimes = m_mapTimes.keys();
+	float fCurX = fBeginX;
+	float fLastX = fCurX;
+	int iCount = listTimes.size()-1;
+	while(fCurX>fEndX && iCount>=0)
+	{
+		if(m_typeCircle<Day)
+		{
+			if((fLastX-fCurX)>30)
+			{
+				p.setPen(QColor(255,0,0));
+				p.drawLine(fCurX,rtBottom.top(),fCurX,rtBottom.top()+2);
+				p.drawText(fCurX-14,rtBottom.top()+2,30,rtBottom.height()-2,
+					Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("hh:mm"));
+				fLastX = fCurX;
+			}
+		}
+
+		--iCount;
+		fCurX = fCurX-m_iCBWidth;
 	}
 }
 
@@ -758,40 +962,94 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	{
 		p.fillRect(rtCB,QColor(50,50,50));
 	}
-	int iCBCount = rtCB.width()/m_iCBHeight;
-	QList<qRcvHistoryData*> list = pItem->getLastHistory(iCBCount+1);
 
 	p.setPen(QColor(255,255,255));
-	p.drawText(QRect(rtCB.left(),rtCB.top(),50,m_iCBHeight),Qt::AlignCenter,pItem->getCode());
+	p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,pItem->getCode());
 
-	int iCurX = rtCB.left()+50;
-	for(int i=1;i<list.size();++i)
+	//从右向左绘制横坐标
+	float fBeginX = rtCB.right()-RCB_OFFSET_Y;
+	float fEndX = rtCB.left()+RCB_OFFSET_LEFT;
+	float fCBWidth = fBeginX-fEndX;
+	if(fCBWidth<0)
+		return;
+	if(!mapStockColorBlocks.contains(pItem))
+		return;
+
+	QMap<time_t,stColorBlockItem>* pMapCBs = mapStockColorBlocks[pItem];
+	QMap<time_t,stColorBlockItem>::iterator iter = pMapCBs->begin();
+	float fLastPrice = pItem->getCurrentReport()->fLastClose;
+	while(iter!=pMapCBs->end())
 	{
-		QRect rtB = QRect(iCurX,rtCB.top(),m_iCBHeight,m_iCBHeight);
-		switch(m_typeBlock)
+		if(m_typeCircle<Day)
 		{
-		case BlockRect:
+			time_t tmCur = iter.key()/(m_typeCircle*60)*(m_typeCircle*60);
+//			QString qsTime = QDateTime::fromTime_t(tmCur).toString();
+			if(m_mapTimes.contains(tmCur))
 			{
-				rtB.adjust(2,2,-2,-2);
-				float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
+				float fCurX = fBeginX - ((m_mapTimes[tmCur])*m_iCBWidth);
+				if(fCurX>=fEndX)
+				{
+					//计算增长百分比
+					float f = (iter->fPrice - fLastPrice)/fLastPrice*10.0;
+					QRect rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
 
-				p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
+					switch(m_typeBlock)
+					{
+					case BlockRect:
+						{
+							rtB.adjust(1,1,-1,-1);
+							p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
+						}
+						break;
+					case BlockCircle:
+						{
+							QPainterPath path;
+							path.addEllipse(rtB);
+							p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
+						}
+						break;
+					}
+				}
 			}
-			break;
-		case BlockCircle:
-			{
-			//	rtB.adjust(2,2,-2,-2);
-				QPainterPath path;
-				path.addEllipse(rtB);
-				float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
-
-				p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
-			}
-			break;
 		}
-
-		iCurX = iCurX+m_iCBHeight;
+		fLastPrice = iter->fPrice;
+		++iter;
 	}
+
+	//int iCBCount = rtCB.width()/m_iCBHeight;
+	//QList<qRcvHistoryData*> list = pItem->getLastHistory(iCBCount+1);
+
+	//p.setPen(QColor(255,255,255));
+	//p.drawText(QRect(rtCB.left(),rtCB.top(),50,m_iCBHeight),Qt::AlignCenter,pItem->getCode());
+
+	//int iCurX = rtCB.left()+50;
+	//for(int i=1;i<list.size();++i)
+	//{
+	//	QRect rtB = QRect(iCurX,rtCB.top(),m_iCBHeight,m_iCBHeight);
+	//	switch(m_typeBlock)
+	//	{
+	//	case BlockRect:
+	//		{
+	//			rtB.adjust(2,2,-2,-2);
+	//			float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
+
+	//			p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
+	//		}
+	//		break;
+	//	case BlockCircle:
+	//		{
+	//		//	rtB.adjust(2,2,-2,-2);
+	//			QPainterPath path;
+	//			path.addEllipse(rtB);
+	//			float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
+
+	//			p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
+	//		}
+	//		break;
+	//	}
+
+	//	iCurX = iCurX+m_iCBHeight;
+	//}
 }
 
 QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
@@ -805,33 +1063,75 @@ QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
 	return QRect();
 }
 
+CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
+{
+	int iRow = (ptPoint.y()-m_rtClient.top())/m_iCBHeight + showStockIndex;
+	if(iRow<0||iRow>=m_listStocks.size())
+		return 0;
+
+	return m_listStocks[iRow];
+}
+
+stColorBlockItem CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
+{
+	CStockInfoItem* pItem = hitTestStock(ptPoint);
+	if(pItem && mapStockColorBlocks.contains(pItem))
+	{
+		QMap<time_t,stColorBlockItem>* pMap = mapStockColorBlocks[pItem];
+		QMap<time_t,int>::iterator iter = m_mapTimes.end();
+		if(iter!=m_mapTimes.begin())
+		{
+			--iter;
+			int iIndex = (m_rtClient.right() - RCB_OFFSET_Y - ptPoint.x())/m_iCBWidth + 1;
+			time_t tmLast = iter.key();
+			time_t tmCur = tmLast - (m_typeCircle*60*iIndex);
+
+			QMap<time_t,stColorBlockItem>::iterator iterCB = pMap->end();
+			if(iterCB==pMap->begin())
+				return stColorBlockItem();
+
+			--iterCB;
+			do
+			{
+				time_t tmAAA = iterCB.key()/(m_typeCircle*60)*(m_typeCircle*60);
+				if(tmAAA == tmCur)
+					return iterCB.value();
+				if(tmAAA<tmCur)
+					break;
+				--iterCB;
+			}
+			while (iterCB!=pMap->begin());
+		}
+	}
+	return stColorBlockItem();
+}
+
 QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoItem* pItem)
 {
 	QMap<time_t,stColorBlockItem>* pMap = new QMap<time_t,stColorBlockItem>();
-	QVector<stColorBlockItem> listItems;
 	if(m_typeCircle<CColorBlockWidget::Day)
 	{
 		//获取分钟数据，进行计算
 		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
 		if(m_typeCircle == Min1)
 		{
-			getColorBlockMinItems(listItems,FenBis);
+			getColorBlockMinItems(pMap,FenBis);
 		}
 		else if(m_typeCircle == Min5)
 		{
-			getColorBlockMinItems(listItems,FenBis,5);
+			getColorBlockMinItems(pMap,FenBis,5);
 		}
 		else if(m_typeCircle == Min15)
 		{
-			getColorBlockMinItems(listItems,FenBis,15);
+			getColorBlockMinItems(pMap,FenBis,15);
 		}
 		else if(m_typeCircle == Min30)
 		{
-			getColorBlockMinItems(listItems,FenBis,30);
+			getColorBlockMinItems(pMap,FenBis,30);
 		}
 		else if(m_typeCircle == Min60)
 		{
-			getColorBlockMinItems(listItems,FenBis,60);
+			getColorBlockMinItems(pMap,FenBis,60);
 		}
 	}
 	else
@@ -852,7 +1152,7 @@ QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoIte
 		}
 		if(m_typeCircle == Day)
 		{
-			getColorBlockDayItems(listItems,historys);
+			getColorBlockDayItems(pMap,historys);
 		}
 		else if(m_typeCircle == DayN)
 		{
@@ -861,19 +1161,19 @@ QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoIte
 		}
 		else if(m_typeCircle == Week)
 		{
-			getColorBlockWeekItems(listItems,historys);
+			getColorBlockWeekItems(pMap,historys);
 		}
 		else if(m_typeCircle == Month)
 		{
-			getColorBlockMonthItems(listItems,historys);
+			getColorBlockMonthItems(pMap,historys);
 		}
 		else if(m_typeCircle == Month3)
 		{
-			getColorBlockMonth3Items(listItems,historys);
+			getColorBlockMonth3Items(pMap,historys);
 		}
 		else if(m_typeCircle == Year)
 		{
-			getColorBlockYearItems(listItems,historys);
+			getColorBlockYearItems(pMap,historys);
 		}
 
 		{

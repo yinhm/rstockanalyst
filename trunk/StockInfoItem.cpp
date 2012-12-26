@@ -256,6 +256,7 @@ void CStockInfoItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 	}
 
 	resetBuySellVOL();
+	emit stockItemFenBiChanged(qsCode);
 //	CDataEngine::getDataEngine()->exportFenBiData(qsCode,mapFenBis.values());
 }
 

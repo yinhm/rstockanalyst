@@ -31,10 +31,10 @@ public:
 	enum ColorBlockCircle		//色块图的周期
 	{
 		Min1 = 1,				//1分钟
-		Min5,					//5分钟
-		Min15,					//15分钟
-		Min30,					//30分钟
-		Min60,					//60分钟
+		Min5 = 5,					//5分钟
+		Min15 = 15,					//15分钟
+		Min30 = 30,					//30分钟
+		Min60 = 60,					//60分钟
 		MinN,					//N分钟
 		Day,					//日线
 		DayN,					//N日线
@@ -68,15 +68,18 @@ protected slots:
 	void onSetCircle();										//设置当前的显示周期
 	void onSetColorMode();									//点击设置颜色模式
 	void onSetBlockMode();									//设置当前的显示模式
+	void onSetBlockSize();									//设置色块的大小
 
 	void updateColorBlockData();							//更新当前需要显示的数据
 
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
+	void updateTimesH();						//更新当前的横坐标数据
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
+	virtual void mouseMoveEvent(QMouseEvent* e);			//鼠标移动事件
 	virtual void mousePressEvent(QMouseEvent* e);			//鼠标点击事件
 	virtual void wheelEvent(QWheelEvent* e);				//鼠标中键滚动事件
 	virtual void keyPressEvent(QKeyEvent* e);				//键盘操作
@@ -92,7 +95,9 @@ private:
 
 	void drawStock(QPainter& p,const QRect& rtCB,CStockInfoItem* pItem);	//绘制单只股票
 
-	QRect rectOfStock(CStockInfoItem* pItem);			//获取某只股票显示的位置
+	QRect rectOfStock(CStockInfoItem* pItem);					//获取某只股票显示的位置
+	CStockInfoItem* hitTestStock(const QPoint& ptPoint) const;		//测试某点所指向的股票信息
+	stColorBlockItem hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
 
 	//获取数据二维表，通过分析当前的周期。
 	QMap<time_t,stColorBlockItem>* getColorBlockMap(CStockInfoItem* pItem);
@@ -119,8 +124,10 @@ private:
 	int m_iCBHeight;						//单个色块的高度
 	int m_iCBWidth;							//单个色块的宽度
 	int m_iBottomHeight;					//底部的高度
-	int showStockIndex;
+	int showStockIndex;						//当前显示的起始位置（列）
 	BlockMode m_typeBlock;					//block显示形状
+
+	QMap<time_t,int> m_mapTimes;				//当前需要显示的所有时间（横向坐标）
 
 
 	QRect m_rtHeader;						//头部Header区域

@@ -355,7 +355,6 @@ protected:
 signals:
 	void stockItemReportChanged(const QString&);	//行情数据更新
 	void stockItemHistoryChanged(const QString&);	//历史数据更新
-	void stockItemMinuteChanged(const QString&);	//分时数据更新
 	void stockItemFenBiChanged(const QString&);		//分笔数据更新
 
 private:
