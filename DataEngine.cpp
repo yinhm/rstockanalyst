@@ -416,6 +416,23 @@ bool CDataEngine::isStockOpenDay( time_t tmDay )
 	return true;
 }
 
+bool CDataEngine::isStockOpenTime( time_t tmMin )
+{
+	QTime tmTime = QDateTime::fromTime_t(tmMin).time();
+	uint tmT = tmTime.hour()*60+tmTime.second();
+
+	if(tmT<(9*60+25))
+		return false;
+	
+	if(tmT>11*60+35 && tmT<12*60+55)
+		return false;
+
+	if(tmT>15*60+5)
+		return false;
+
+	return true;
+}
+
 time_t* CDataEngine::getLast5DayTime()
 {
 	time_t tmCur = time(NULL);

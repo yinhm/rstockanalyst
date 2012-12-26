@@ -578,14 +578,15 @@ void CKLineWidget::setStockCode( const QString& code )
 		{
 			//移除所有和 updateKLine关联的 信号/槽
 			disconnect(m_pStockItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-			disconnect(m_pStockItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+			disconnect(m_pStockItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+//			disconnect(m_pStockItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		}
 
 		m_pStockItem = pItem;
 
 		//建立更新机制
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-		connect(pItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 //		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 
 		//更新K线图

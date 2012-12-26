@@ -76,7 +76,7 @@ void CStockInfoWidget::setStockCode( const QString& code )
 
 		//建立更新机制
 		//connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStockInfo(const QString&)));
-		//connect(pItem,SIGNAL(stockItemMinuteChanged(const QString&)),this,SLOT(updateStockInfo(const QString&)));
+		//connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStockInfo(const QString&)));
 		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateStockInfo(const QString&)));
 
 		//更新行情信息
