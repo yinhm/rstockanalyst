@@ -10,6 +10,21 @@ CDataEngine* CDataEngine::m_pDataEngine = NULL;
 time_t CDataEngine::m_tmCurrentDay = NULL;
 time_t* CDataEngine::m_tmLast5Day = new time_t[5];
 
+CDataEngine* CDataEngine::getDataEngine()
+{
+	if(m_pDataEngine == NULL)
+		m_pDataEngine = new CDataEngine;
+	return m_pDataEngine;
+}
+
+void CDataEngine::releaseDataEngine()
+{
+	if(m_pDataEngine)
+		delete m_pDataEngine;
+
+	delete m_tmLast5Day;
+}
+
 void CDataEngine::importData()
 {
 	QString qsDir = qApp->applicationDirPath();
@@ -512,6 +527,14 @@ CDataEngine::CDataEngine(void)
 
 CDataEngine::~CDataEngine(void)
 {
+	QMap<QString,CStockInfoItem*>::iterator iter = m_mapStockInfos.begin();
+	while(iter!=m_mapStockInfos.end())
+	{
+		delete iter.value();
+		++iter;
+	}
+	m_mapStockInfos.clear();
+	m_listCommonBlocks.clear();
 }
 
 
@@ -760,13 +783,6 @@ CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
 void CDataEngine::setStockInfoItem( CStockInfoItem* p )
 {
 	m_mapStockInfos[p->getCode()] = p;
-}
-
-CDataEngine* CDataEngine::getDataEngine()
-{
-	if(m_pDataEngine == NULL)
-		m_pDataEngine = new CDataEngine;
-	return m_pDataEngine;
 }
 
 bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list )

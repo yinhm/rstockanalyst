@@ -69,6 +69,26 @@ CStockInfoItem::~CStockInfoItem(void)
 {
 	delete pLastReport;
 	delete pCurrentReport;
+
+	{
+		QMap<time_t,qRcvPowerData*>::iterator iter = mapPowers.begin();			//除权数据
+		while(iter!=mapPowers.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		mapPowers.clear();
+	}
+
+	{
+		QMultiMap<long,qRcvFenBiData*>::iterator iter = mapFenBis.begin();		//分笔数据
+		while(iter!=mapFenBis.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		mapFenBis.clear();
+	}
 }
 
 qRcvReportData* CStockInfoItem::getCurrentReport() const

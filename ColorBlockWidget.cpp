@@ -298,6 +298,7 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pMenuCustom(0)
 	, m_pMenuColorMode(0)
 	, m_pMenuBlockMode(0)
+	, m_pMenuBlockList(0)
 	, m_iTitleHeight(16)
 	, m_iBottomHeight(16)
 	, m_iCBHeight(16)
@@ -335,7 +336,12 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 		m_pMenuBlockMode->addAction("方形",this,SLOT(onSetBlockMode()))->setData(BlockRect);
 		//设置色块的大小
 		m_pMenuCustom->addAction(tr("设置色块大小"),this,SLOT(onSetBlockSize()));
+
+		//设置当前显示的板块
+		m_pMenuBlockList = m_pMenuCustom->addMenu(tr("设置当前板块"));
 	}
+
+	m_pMenuCustom->addSeparator();
 }
 
 CColorBlockWidget::~CColorBlockWidget(void)
@@ -544,6 +550,12 @@ void CColorBlockWidget::onSetBlockSize()
 	}
 }
 
+
+void CColorBlockWidget::onSetCurrentBlock()
+{
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	setBlock(pAct->data().toString());
+}
 
 void CColorBlockWidget::updateColorBlockData()
 {
@@ -879,6 +891,22 @@ QMenu* CColorBlockWidget::getCustomMenu()
 		{
 			pAct->setCheckable(true);
 			pAct->setChecked(pAct->data().toInt() == m_typeBlock);
+		}
+	}
+
+	{
+		//设置所有板块的菜单
+		m_pMenuBlockList->clear();
+		QList<QString> list = CDataEngine::getDataEngine()->getStockBlocks();
+		foreach(const QString& block,list)
+		{
+			QAction* pAct = m_pMenuBlockList->addAction(block,this,SLOT(onSetCurrentBlock()));
+			pAct->setData(block);
+			if(m_qsBlock == block)
+			{
+				pAct->setCheckable(true);
+				pAct->setChecked(true);
+			}
 		}
 	}
 

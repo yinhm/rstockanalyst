@@ -43,7 +43,8 @@ CMainWindow::CMainWindow()
 
 CMainWindow::~CMainWindow()
 {
-
+	delete m_pTabWidget;
+	delete m_pMenuBar;
 }
 
 bool CMainWindow::setupStockDrv()
