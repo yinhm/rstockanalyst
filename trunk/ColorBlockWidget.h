@@ -69,6 +69,7 @@ protected slots:
 	void onSetColorMode();									//点击设置颜色模式
 	void onSetBlockMode();									//设置当前的显示模式
 	void onSetBlockSize();									//设置色块的大小
+	void onSetCurrentBlock();								//设置当前显示的板块
 
 	void updateColorBlockData();							//更新当前需要显示的数据
 
@@ -106,7 +107,8 @@ private:
 	QMenu* m_pMenuCustom;					//自定义菜单
 	QMenu* m_pMenuCircle;					//周期设置菜单
 	QMenu* m_pMenuColorMode;				//颜色模式菜单
-	QMenu* m_pMenuBlockMode;					//显示模式菜单
+	QMenu* m_pMenuBlockMode;				//显示模式菜单
+	QMenu* m_pMenuBlockList;				//所有板块信息（当前选中的板块上打勾）
 
 	QString m_qsBlock;						//当前的板块名称
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表

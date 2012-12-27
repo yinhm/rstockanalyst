@@ -12,6 +12,7 @@ public:
 	CDataEngine(void);
 	~CDataEngine(void);
 	static CDataEngine* getDataEngine();
+	static void releaseDataEngine();
 
 public:
 	//程序启动时，数据的初始化

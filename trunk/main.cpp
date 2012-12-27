@@ -67,5 +67,8 @@ int main(int argc, char *argv[])
 	CDataEngine::exportData();				//导出数据
 	splash.showMessage(QObject::tr("导出数据完成..."),99);
 
+	delete CMainWindow::getMainWindow();
+	CDataEngine::releaseDataEngine();
+
 	return 1;
 }
