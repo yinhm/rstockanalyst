@@ -43,6 +43,13 @@ int main(int argc, char *argv[])
 	app.processEvents();
 	CDataEngine::importData();				//初始化数据
 
+
+	//初始化主窗口
+	CMainWindow::getMainWindow()->initTemplates();	//初始化模板
+
+	splash.showMessage(QObject::tr("正在启动..."),99);
+	CMainWindow::getMainWindow()->showMaximized();
+
 	//设置银江数据接口
 	splash.showMessage(QObject::tr("设置银江数据接口"),30);
 	app.processEvents();
@@ -51,11 +58,7 @@ int main(int argc, char *argv[])
 		return app.exit();
 	}
 
-	CMainWindow::getMainWindow()->initTemplates();	//初始化模板
-
-	splash.showMessage(QObject::tr("正在启动..."),99);
 	splash.hide();
-	CMainWindow::getMainWindow()->showMaximized();
 
 	app.exec();
 	splash.show();
@@ -67,6 +70,8 @@ int main(int argc, char *argv[])
 	CDataEngine::exportData();				//导出数据
 	splash.showMessage(QObject::tr("导出数据完成..."),99);
 
+
+	//释放资源
 	delete CMainWindow::getMainWindow();
 	CDataEngine::releaseDataEngine();
 

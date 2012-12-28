@@ -30,11 +30,11 @@ class CColorBlockWidget : public CBaseWidget
 public:
 	enum ColorBlockCircle		//色块图的周期
 	{
-		Min1 = 1,				//1分钟
-		Min5 = 5,					//5分钟
-		Min15 = 15,					//15分钟
-		Min30 = 30,					//30分钟
-		Min60 = 60,					//60分钟
+		Min1 = 1*60,					//1分钟
+		Min5 = 5*60,					//5分钟
+		Min15 = 15*60,					//15分钟
+		Min30 = 30*60,					//30分钟
+		Min60 = 60*60,					//60分钟
 		MinN,					//N分钟
 		Day,					//日线
 		DayN,					//N日线
