@@ -527,12 +527,14 @@ CDataEngine::CDataEngine(void)
 
 CDataEngine::~CDataEngine(void)
 {
+#ifndef _DEBUG
 	QMap<QString,CStockInfoItem*>::iterator iter = m_mapStockInfos.begin();
 	while(iter!=m_mapStockInfos.end())
 	{
 		delete iter.value();
 		++iter;
 	}
+#endif // _DEBUG
 	m_mapStockInfos.clear();
 	m_listCommonBlocks.clear();
 }
@@ -837,7 +839,6 @@ bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHist
 		return false;
 
 	int iPos = 0;
-	int iSize = file.size();
 	if(iOffset>=0)
 	{
 		iPos = file.size()-sizeof(qRcvHistoryData)*iOffset;
