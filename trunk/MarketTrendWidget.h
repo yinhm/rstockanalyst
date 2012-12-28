@@ -77,6 +77,8 @@ private:
 	//判断鼠标点击的位置，做出相应的响应
 	//void hitHeader(QPoint& ptCur);
 
+	void resortStocks();					//重新对股票列表进行排序
+
 	QString dataOfDisplay(CStockInfoItem* itemData,int column);
 	QColor dataOfColor(CStockInfoItem* itemData,int column);
 	QRect rectOfStock(CStockInfoItem* pItem);			//获取某只股票显示的位置

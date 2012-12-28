@@ -46,7 +46,7 @@ CBlockColorSettingDlg::CBlockColorSettingDlg( QWidget* parent /*= 0*/ )
 	//	QGridLayout* pRightLayout = new QGridLayout(this);
 		for (int i=0;i<COLOR_BLOCK_SIZE;++i)
 		{
-			QLabel* pLabel = new QLabel(QString("%1").arg(i+1),this);
+			QLabel* pLabel = new QLabel(QString("%1").arg(i-10),this);
 			pMainLayout->addWidget(pLabel,5+i*4,40,3,10);
 
 			QPushButton* pBtn = new QPushButton(this);

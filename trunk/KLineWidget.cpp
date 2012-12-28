@@ -113,6 +113,13 @@ int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvFenBiData*>
 		listMins.push_back(p);
 	}
 
+	{
+		//最后一组数据
+		stLinerItem item;
+		if(getLinerItemByMins(item,listMins,pLastFenbi))
+			listItems.push_back(item);
+		listMins.clear();
+	}
 	return listItems.size();
 }
 

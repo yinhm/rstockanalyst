@@ -221,53 +221,7 @@ void CMarketTrendWidget::clickedHeader( int column )
 		m_iSortColumn = column;
 		m_sortOrder = Qt::AscendingOrder;
 	}
-	if(column == 1||column ==2)
-	{
-		QMultiMap<QString,CStockInfoItem*> mapSort;
-		foreach(CStockInfoItem* pItem,m_listStocks)
-		{
-			mapSort.insert(dataOfDisplay(pItem,column),pItem);
-		}
-		
-		if(m_sortOrder==Qt::AscendingOrder)
-			setStocks(mapSort.values());
-		else
-		{
-			QList<CStockInfoItem*> list;
-			QMultiMap<QString,CStockInfoItem*>::iterator iter = mapSort.begin();
-			while(iter!=mapSort.end())
-			{
-				list.push_front(iter.value());
-				++iter;
-			}
-			setStocks(list);
-		}
-	}
-	else
-	{
-		QMultiMap<float,CStockInfoItem*> mapSort;
-		foreach(CStockInfoItem* pItem,m_listStocks)
-		{
-			QString qsData = dataOfDisplay(pItem,column);
-			qsData = qsData.replace("%","");
-			mapSort.insert(qsData.toFloat(),pItem);
-		}
-		if(m_sortOrder==Qt::AscendingOrder)
-			setStocks(mapSort.values());
-		else
-		{
-			QList<CStockInfoItem*> list;
-			QMultiMap<float,CStockInfoItem*>::iterator iter = mapSort.begin();
-			while(iter!=mapSort.end())
-			{
-				list.push_front(iter.value());
-				++iter;
-			}
-			setStocks(list);
-		}
-	}
-	update(m_rtHeader);
-	update(m_rtClient);
+	resortStocks();
 }
 
 void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )
@@ -302,7 +256,13 @@ void CMarketTrendWidget::offsetShowHeaderIndex( int offset )
 void CMarketTrendWidget::clickedBlock( const QString& block )
 {
 	if(m_qsSelectedBlock == block)
+	{
+		setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
+		CMainWindow::getMainWindow()->clickedBlock(block);
+		resortStocks();
+		update();
 		return;
+	}
 
 	if(!block.isEmpty())
 	{
@@ -314,9 +274,8 @@ void CMarketTrendWidget::clickedBlock( const QString& block )
 //			m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
 			clickedHeader(0);
 		}
-
-		update();
 	}
+	update();
 }
 
 void CMarketTrendWidget::paintEvent( QPaintEvent* )
@@ -489,6 +448,7 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 
 QMenu* CMarketTrendWidget::getCustomMenu()
 {
+	update();
 	QAction* pAction = m_pMenu->menuAction();
 	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
 		m_pMenuCustom->addMenu(m_pMenu);
@@ -541,6 +501,57 @@ void CMarketTrendWidget::updateBlockRect()
 
 		iCurX = iCurX+iWidth;
 	}
+}
+
+void CMarketTrendWidget::resortStocks()
+{
+	if(m_iSortColumn == 1||m_iSortColumn ==2)
+	{
+		QMultiMap<QString,CStockInfoItem*> mapSort;
+		foreach(CStockInfoItem* pItem,m_listStocks)
+		{
+			mapSort.insert(dataOfDisplay(pItem,m_iSortColumn),pItem);
+		}
+
+		if(m_sortOrder==Qt::AscendingOrder)
+			setStocks(mapSort.values());
+		else
+		{
+			QList<CStockInfoItem*> list;
+			QMultiMap<QString,CStockInfoItem*>::iterator iter = mapSort.begin();
+			while(iter!=mapSort.end())
+			{
+				list.push_front(iter.value());
+				++iter;
+			}
+			setStocks(list);
+		}
+	}
+	else
+	{
+		QMultiMap<float,CStockInfoItem*> mapSort;
+		foreach(CStockInfoItem* pItem,m_listStocks)
+		{
+			QString qsData = dataOfDisplay(pItem,m_iSortColumn);
+			qsData = qsData.replace("%","");
+			mapSort.insert(qsData.toFloat(),pItem);
+		}
+		if(m_sortOrder==Qt::AscendingOrder)
+			setStocks(mapSort.values());
+		else
+		{
+			QList<CStockInfoItem*> list;
+			QMultiMap<float,CStockInfoItem*>::iterator iter = mapSort.begin();
+			while(iter!=mapSort.end())
+			{
+				list.push_front(iter.value());
+				++iter;
+			}
+			setStocks(list);
+		}
+	}
+	update(m_rtHeader);
+	update(m_rtClient);
 }
 
 QString CMarketTrendWidget::dataOfDisplay( CStockInfoItem* itemData,int column )
