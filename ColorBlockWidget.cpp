@@ -667,8 +667,8 @@ void CColorBlockWidget::updateTimesH()
 	{
 		time_t tmLast = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(9-8)+60*30;
 		time_t tmCurrent = (QDateTime::currentDateTime().toTime_t()+m_typeCircle)/m_typeCircle*m_typeCircle;//向上对分钟取整
-		time_t tmNoon1 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(11-8)+60*30;
-		time_t tmNoon2 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(13-8);
+		//time_t tmNoon1 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(11-8)+60*30;
+		//time_t tmNoon2 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(13-8);
 
 		if((tmCurrent%(3600*24))>3600*7)
 		{
@@ -1004,8 +1004,14 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		p.fillRect(rtCB,QColor(50,50,50));
 	}
 
-	p.setPen(QColor(255,255,255));
-	p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,pItem->getCode());
+	{
+		//绘制左侧的标识信息（代码或者名称）
+		p.setPen(QColor(255,255,255));
+		QString qsText = pItem->getName();
+		if(qsText.isEmpty())
+			qsText = pItem->getCode();
+		p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,qsText);
+	}
 
 	//从右向左绘制横坐标
 	float fBeginX = rtCB.right()-RCB_OFFSET_Y;
