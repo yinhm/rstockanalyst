@@ -1,8 +1,13 @@
-TEMPLATE = app
-CONFIG += console
-
 TARGET = RStockAnalyst
 TEMPLATE = app
+
+CONFIG += qt debug_and_release
+CONFIG(debug,debug|release) {
+	CONFIG += console
+} else {
+	DEFINES += QT_NO_DEBUG_OUTPUT
+	CONFIG -= console
+}
 
 QT += core \
     gui \
