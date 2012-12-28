@@ -50,11 +50,14 @@ int getColorBlockMinItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvFe
 	qRcvFenBiData* pLastFenbi = 0;
 	foreach(qRcvFenBiData* p, minutes)
 	{
-		if((p->tmTime-tmT)>(iSize*60))
+		if((p->tmTime-tmT)>(iSize))
 		{
 			stColorBlockItem item;
 			if(getColorBlockItemByMins(item,listMins,pLastFenbi))
+			{
+//				QString qsTime = QDateTime::fromTime_t(item.tmTime).toString("hh:mm:ss");
 				pMap->insert(item.tmTime,item);
+			}
 			if(listMins.size()>0)
 				pLastFenbi = listMins.last();
 			listMins.clear();
@@ -63,6 +66,16 @@ int getColorBlockMinItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvFe
 
 		listMins.push_back(p);
 	}
+
+	
+	{
+		//最后的数据
+		stColorBlockItem item;
+		if(getColorBlockItemByMins(item,listMins,pLastFenbi))
+			pMap->insert(item.tmTime,item);
+		listMins.clear();
+	}
+
 
 	return pMap->size();
 }
@@ -286,6 +299,7 @@ int getTimeMapByMin(QMap<time_t,int>& mapTimes,time_t& tmBegin, time_t& tmEnd, i
 	time_t tmCur = tmEnd;
 	while(tmCur>=tmBegin)
 	{
+//		QString qsTime = QDateTime::fromTime_t(tmCur).toString();
 		mapTimes.insert(tmCur,mapTimes.size());
 		tmCur = tmCur-iSize;
 	}
@@ -651,31 +665,27 @@ void CColorBlockWidget::updateTimesH()
 //	int iCount = 1024;				//计算1024个时间
 	if(m_typeCircle<Day)
 	{
-		time_t tmLast = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(9-8)+60*25;
-		time_t tmCurrent = (QDateTime::currentDateTime().toTime_t()+59)/60*60;		//向上对分钟取整
+		time_t tmLast = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(9-8)+60*30;
+		time_t tmCurrent = (QDateTime::currentDateTime().toTime_t()+m_typeCircle)/m_typeCircle*m_typeCircle;//向上对分钟取整
+		time_t tmNoon1 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(11-8)+60*30;
+		time_t tmNoon2 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(13-8);
+
 		if((tmCurrent%(3600*24))>3600*7)
 		{
 			tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7;		//3点收盘
 		}
-		if(m_typeCircle == Min1)
+		/*需向上和向下多计算两个周期*/
+		//if(tmCurrent>tmNoon1)
+		//{
+		//	time_t tmBegin = tmLast-m_typeCircle;
+		//	time_t tmEnd = tmNoon1+m_typeCircle;
+		//	getTimeMapByMin(m_mapTimes,tmBegin,tmEnd,m_typeCircle);
+		//}
+		//if(tmCurrent>tmNoon2)
 		{
-			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60);
-		}
-		else if(m_typeCircle == Min5)
-		{
-			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*5);
-		}
-		else if(m_typeCircle == Min15)
-		{
-			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*15);
-		}
-		else if(m_typeCircle == Min30)
-		{
-			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*30);
-		}
-		else if(m_typeCircle == Min60)
-		{
-			getTimeMapByMin(m_mapTimes,tmLast,tmCurrent,60*60);
+			time_t tmBegin = tmLast-m_typeCircle;
+			//time_t tmEnd = tmCurrent+m_typeCircle*2;
+			getTimeMapByMin(m_mapTimes,tmBegin,tmCurrent,m_typeCircle);
 		}
 	}
 	else
@@ -965,17 +975,20 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	float fCurX = fBeginX;
 	float fLastX = fCurX;
 	int iCount = listTimes.size()-1;
+
+	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
 	while(fCurX>fEndX && iCount>=0)
 	{
 		if(m_typeCircle<Day)
 		{
 			if((fLastX-fCurX)>30)
 			{
-				p.setPen(QColor(255,0,0));
+				p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
 				p.drawLine(fCurX,rtBottom.top(),fCurX,rtBottom.top()+2);
 				p.drawText(fCurX-14,rtBottom.top()+2,30,rtBottom.height()-2,
 					Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("hh:mm"));
 				fLastX = fCurX;
+				++iTimeCount;
 			}
 		}
 
@@ -1010,7 +1023,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	{
 		if(m_typeCircle<Day)
 		{
-			time_t tmCur = iter.key()/(m_typeCircle*60)*(m_typeCircle*60);
+			time_t tmCur = iter.key()/(m_typeCircle)*(m_typeCircle);
 //			QString qsTime = QDateTime::fromTime_t(tmCur).toString();
 			if(m_mapTimes.contains(tmCur))
 			{
@@ -1112,21 +1125,22 @@ stColorBlockItem CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 			--iter;
 			int iIndex = (m_rtClient.right() - RCB_OFFSET_Y - ptPoint.x())/m_iCBWidth + 1;
 			time_t tmLast = iter.key();
-			time_t tmCur = tmLast - (m_typeCircle*60*iIndex);
+			time_t tmCur = tmLast - (m_typeCircle*iIndex);
 
 			QMap<time_t,stColorBlockItem>::iterator iterCB = pMap->end();
 			if(iterCB==pMap->begin())
 				return stColorBlockItem();
 
-			--iterCB;
 			do
 			{
-				time_t tmAAA = iterCB.key()/(m_typeCircle*60)*(m_typeCircle*60);
+				--iterCB;
+				time_t tmAAA = iterCB.key()/(m_typeCircle)*(m_typeCircle);
+				//QString qsTime1 = QDateTime::fromTime_t(tmCur).toString("hh:mm:ss");
+				//QString qsTime2 = QDateTime::fromTime_t(tmAAA).toString("hh:mm:ss");
 				if(tmAAA == tmCur)
 					return iterCB.value();
 				if(tmAAA<tmCur)
 					break;
-				--iterCB;
 			}
 			while (iterCB!=pMap->begin());
 		}
@@ -1141,26 +1155,7 @@ QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoIte
 	{
 		//获取分钟数据，进行计算
 		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
-		if(m_typeCircle == Min1)
-		{
-			getColorBlockMinItems(pMap,FenBis);
-		}
-		else if(m_typeCircle == Min5)
-		{
-			getColorBlockMinItems(pMap,FenBis,5);
-		}
-		else if(m_typeCircle == Min15)
-		{
-			getColorBlockMinItems(pMap,FenBis,15);
-		}
-		else if(m_typeCircle == Min30)
-		{
-			getColorBlockMinItems(pMap,FenBis,30);
-		}
-		else if(m_typeCircle == Min60)
-		{
-			getColorBlockMinItems(pMap,FenBis,60);
-		}
+		getColorBlockMinItems(pMap,FenBis,m_typeCircle);
 	}
 	else
 	{
