@@ -329,6 +329,8 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	{
 		//设置当前K线图的显示周期
 		m_pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
+		m_pMenuCircle->addAction(tr("10秒分时图"),this,SLOT(onSetCircle()))->setData(Sec10);
+		m_pMenuCircle->addAction(tr("30秒分时图"),this,SLOT(onSetCircle()))->setData(Sec30);
 		m_pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
 		m_pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
 		m_pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
@@ -672,7 +674,7 @@ void CColorBlockWidget::updateTimesH()
 
 		if((tmCurrent%(3600*24))>3600*7)
 		{
-			tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7;		//3点收盘
+			tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7 + m_typeCircle*2;		//3点收盘(多加一个周期)
 		}
 		/*需向上和向下多计算两个周期*/
 		//if(tmCurrent>tmNoon1)
