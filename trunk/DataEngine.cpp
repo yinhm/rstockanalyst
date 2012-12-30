@@ -5,10 +5,11 @@
 #include <QApplication>
 #include <QtXml>
 
-CDataEngine* CDataEngine::m_pDataEngine = NULL;
+CDataEngine* CDataEngine::m_pDataEngine = 0;
 
-time_t CDataEngine::m_tmCurrentDay = NULL;
+time_t CDataEngine::m_tmCurrentDay = 0;
 time_t* CDataEngine::m_tmLast5Day = new time_t[5];
+time_t CDataEngine::m_tmCurrent = 0;
 
 CDataEngine* CDataEngine::getDataEngine()
 {
@@ -70,6 +71,14 @@ void CDataEngine::importData()
 	{
 		//导入当天的分笔数据
 		QString qsFenBiFile = QString("%1/data/FenBi/%2").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
+		while(!QFile::exists(qsFenBiFile))
+		{
+			static int iAddDays = -1;
+			qsFenBiFile = QString("%1/data/FenBi/%2").arg(qsDir).arg(QDate::currentDate().addDays(iAddDays).toString("yyyyMMdd"));
+			if(iAddDays<-10)			//超过10以后则按不存在分笔数据处理
+				break;
+			--iAddDays;
+		}
 
 		qDebug()<<"Import FenBi data from "<<qsFenBiFile;
 		int iCount = importFenBisData(qsFenBiFile);
@@ -110,7 +119,7 @@ void CDataEngine::exportData()
 			.arg(qsDir);
 		QDir().mkpath(qsFenBiDir);
 		qDebug()<<"Export FenBis data to "<<qsFenBiDir;
-		int iCount = exportFenBisData(QString("%1/%2").arg(qsFenBiDir).arg(QDate::currentDate().toString("yyyyMMdd")));
+		int iCount = exportFenBisData(QString("%1/%2").arg(qsFenBiDir).arg(QDateTime::fromTime_t(m_tmCurrent).toString("yyyyMMdd")));
 		qDebug()<<iCount<<" FenBis data had been exported.";
 	}
 }
@@ -500,6 +509,17 @@ time_t CDataEngine::getOpenSeconds( time_t tmTime )
 	return 0;
 }
 
+time_t CDataEngine::getCurrentTime()
+{
+	if(m_tmCurrent<1)
+		return QDateTime::currentDateTime().toTime_t();
+	return m_tmCurrent;
+}
+void CDataEngine::setCurrentTime(const time_t& t)
+{
+	if(m_tmCurrent<t)
+		m_tmCurrent = t;
+}
 
 
 CDataEngine::CDataEngine(void)

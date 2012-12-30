@@ -53,9 +53,9 @@ int main(int argc, char *argv[])
 	//设置银江数据接口
 	splash.showMessage(QObject::tr("设置银江数据接口"),30);
 	app.processEvents();
-	if(!CMainWindow::getMainWindow()->setupStockDrv())
+//	if(!CMainWindow::getMainWindow()->setupStockDrv())
 	{
-		return app.exit();
+//		return app.exit();
 	}
 
 	splash.hide();
@@ -67,13 +67,13 @@ int main(int argc, char *argv[])
 	CMainWindow::getMainWindow()->saveTemplates();	//保存所有模板
 	splash.showMessage(QObject::tr("正在导出数据..."),20);
 
-	CDataEngine::exportData();				//导出数据
-	splash.showMessage(QObject::tr("导出数据完成..."),99);
+//	CDataEngine::exportData();				//导出数据
+//	splash.showMessage(QObject::tr("导出数据完成..."),99);
 
 
 	//释放资源
 	delete CMainWindow::getMainWindow();
-	CDataEngine::releaseDataEngine();
+//	CDataEngine::releaseDataEngine();
 
 	return 1;
 }

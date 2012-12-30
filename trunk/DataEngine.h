@@ -49,6 +49,8 @@ public:
 	static bool isStockOpenTime(time_t tmMin);	//判断tmMin是否开市（某天的时间，不含日期）
 	static time_t getOpenSeconds();				//获取每天的开市时间（秒）；一般为4小时
 	static time_t getOpenSeconds(time_t tmTime);//获取当天相对于tmTime的开市时间（秒）
+	static time_t getCurrentTime();				//获取最后一个report数据的时间
+	static void setCurrentTime(const time_t& t);//设置最后一个report数据的时间
 
 public:
 	//获取板块数据
@@ -94,6 +96,7 @@ private:
 	static CDataEngine* m_pDataEngine;
 	static time_t m_tmCurrentDay;
 	static time_t* m_tmLast5Day;
+	static time_t m_tmCurrent;					//最后一个report数据的时间
 	QString m_qsHistroyDir;						//日线数据存储的路径 AppDir/data/history/...
 	QString m_qsBlocksDir;						//板块数据的存储路径 AppDir/data/blocks/...
 	QString m_qsCommonBlocks;					//常用板块列表配置文件的存储路径 AppDir/data/CommonBlocks.xml
