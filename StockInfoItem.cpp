@@ -102,6 +102,7 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 		return;
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
+	CDataEngine::setCurrentTime(pCurrentReport->tmTime);
 
 	//将新的Report数据添加到分笔数据中
 	qRcvFenBiData* pFenBi = new qRcvFenBiData(pCurrentReport);
@@ -116,6 +117,7 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 		return;
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
+	CDataEngine::setCurrentTime(pCurrentReport->tmTime);
 
 	//将新的Report数据添加到分笔数据中
 	qRcvFenBiData* pFenBi = new qRcvFenBiData(pCurrentReport);

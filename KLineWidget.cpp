@@ -99,7 +99,7 @@ int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvFenBiData*>
 	qRcvFenBiData* pLastFenbi = 0;
 	foreach(qRcvFenBiData* p, minutes)
 	{
-		if((p->tmTime-tmT)>(iSize*60))
+		if((p->tmTime-tmT)>(iSize))
 		{
 			stLinerItem item;
 			if(getLinerItemByMins(item,listMins,pLastFenbi))
@@ -362,11 +362,10 @@ bool CKLineWidget::initJSScript()
 }
 
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
-	: CBaseWidget(parent,CBaseWidget::KLine)
+	: CCoordXBaseWidget(parent,CBaseWidget::KLine)
 	, m_pMenuCustom(0)
 	, m_pMenuCircle(0)
 	, m_pActShowMain(0)
-	, m_typeCircle(CKLineWidget::Day)
 	, m_pStockItem(0)
 	, m_iShowCount(100)
 	, m_pLinerMain(0)
@@ -378,6 +377,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iMainLinerHeight(200)
 	, m_pScriptEngine(0)
 {
+
+	m_typeCircle = CoordXCircle::Day;
 	{
 		//初始化脚本解释器
 		m_pScriptEngine = new QScriptEngine;
@@ -402,6 +403,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	{
 		//设置当前K线图的显示周期
 		m_pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
+		m_pMenuCircle->addAction(tr("分时图"),this,SLOT(onSetCircle()))->setData(FenShi);
 		m_pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
 		m_pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
 		m_pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
@@ -462,7 +464,7 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 	//当前显示的周期
 	if(eleWidget.hasAttribute("circle"))
 	{
-		m_typeCircle = static_cast<KLineCircle>(eleWidget.attribute("circle").toInt());
+		m_typeCircle = static_cast<CoordXCircle>(eleWidget.attribute("circle").toInt());
 	}
 
 	QDomElement eleLiners = eleWidget.firstChildElement("liners");
@@ -826,6 +828,12 @@ void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* e )
 	}
 }
 
+void CKLineWidget::keyPressEvent(QKeyEvent* e)
+{
+
+	return CBaseWidget::keyPressEvent(e);
+}
+
 QMenu* CKLineWidget::getCustomMenu()
 {
 	QAction* pAction = m_pMenu->menuAction();
@@ -907,7 +915,7 @@ void CKLineWidget::onSetCircle()
 {
 	//设置当前的显示周期
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	m_typeCircle = static_cast<KLineCircle>(pAct->data().toInt());
+	m_typeCircle = static_cast<CoordXCircle>(pAct->data().toInt());
 	resetTmpData();
 }
 
@@ -1121,25 +1129,13 @@ void CKLineWidget::resetTmpData()
 	{
 		//获取分钟数据，进行计算
 		QList<qRcvFenBiData*> FenBis = m_pStockItem->getFenBiList();
-		if(m_typeCircle == Min1)
+		if(m_typeCircle == FenShi)
 		{
-			getLinerMinItems(listItems,FenBis);
+			getLinerMinItems(listItems,FenBis,m_typeCircle);
 		}
-		else if(m_typeCircle == Min5)
+		else
 		{
-			getLinerMinItems(listItems,FenBis,5);
-		}
-		else if(m_typeCircle == Min15)
-		{
-			getLinerMinItems(listItems,FenBis,15);
-		}
-		else if(m_typeCircle == Min30)
-		{
-			getLinerMinItems(listItems,FenBis,30);
-		}
-		else if(m_typeCircle == Min60)
-		{
-			getLinerMinItems(listItems,FenBis,60);
+			getLinerMinItems(listItems,FenBis,m_typeCircle);
 		}
 	}
 	else

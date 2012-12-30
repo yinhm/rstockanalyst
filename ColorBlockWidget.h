@@ -9,7 +9,7 @@
 
 #ifndef COLOR_BLOCK_WIDGET_H
 #define COLOR_BLOCK_WIDGET_H
-#include "BaseWidget.h"
+#include "CoordXBaseWidget.h"
 #include "StockInfoItem.h"
 
 struct stColorBlockItem
@@ -24,27 +24,10 @@ struct stColorBlockItem
 	}
 };
 
-class CColorBlockWidget : public CBaseWidget
+class CColorBlockWidget : public CCoordXBaseWidget
 {
 	Q_OBJECT
 public:
-	enum ColorBlockCircle		//色块图的周期
-	{
-		Sec10 = 10,						//10秒
-		Sec30 = 30,						//30秒
-		Min1 = 1*60,					//1分钟
-		Min5 = 5*60,					//5分钟
-		Min15 = 15*60,					//15分钟
-		Min30 = 30*60,					//30分钟
-		Min60 = 60*60,					//60分钟
-		MinN,					//N分钟
-		Day,					//日线
-		DayN,					//N日线
-		Week,					//周线
-		Month,					//月线
-		Month3,					//季线
-		Year,					//年线
-	};
 	enum BlockMode
 	{
 		BlockCircle = 1,		//圆形
@@ -78,7 +61,6 @@ protected slots:
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
-	void updateTimesH();						//更新当前的横坐标数据
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
@@ -120,7 +102,6 @@ private:
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
 	QString m_qsColorMode;						//当前颜色模式
-	ColorBlockCircle m_typeCircle;				//当前的显示周期
 
 	/*用于绘制操作的成员变量*/
 private:
@@ -130,9 +111,6 @@ private:
 	int m_iBottomHeight;					//底部的高度
 	int showStockIndex;						//当前显示的起始位置（列）
 	BlockMode m_typeBlock;					//block显示形状
-
-	QMap<time_t,int> m_mapTimes;				//当前需要显示的所有时间（横向坐标）
-
 
 	QRect m_rtHeader;						//头部Header区域
 	QRect m_rtClient;						//实际色块绘制区域

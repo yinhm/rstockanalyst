@@ -290,25 +290,8 @@ int getColorBlockYearItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 }
 
 
-//计算分时数据的横坐标时间
-int getTimeMapByMin(QMap<time_t,int>& mapTimes,time_t& tmBegin, time_t& tmEnd, int iSize = 60/*second*/)
-{
-	if(tmBegin>tmEnd)
-		return 0;
-
-	time_t tmCur = tmEnd;
-	while(tmCur>=tmBegin)
-	{
-//		QString qsTime = QDateTime::fromTime_t(tmCur).toString();
-		mapTimes.insert(tmCur,mapTimes.size());
-		tmCur = tmCur-iSize;
-	}
-	return 1;
-}
-
-
 CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
-	: CBaseWidget(parent,CBaseWidget::ColorBlock)
+	: CCoordXBaseWidget(parent,CBaseWidget::ColorBlock)
 	, m_pMenuCustom(0)
 	, m_pMenuColorMode(0)
 	, m_pMenuBlockMode(0)
@@ -321,8 +304,8 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pSelectedStock(0)
 	, m_qsColorMode("")
 	, m_typeBlock(BlockCircle)
-	, m_typeCircle(Day)
 {
+	m_typeCircle = Min1;				//设置初始显示周期为1分钟
 	//初始化菜单
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
 
@@ -374,7 +357,7 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	//当前显示的周期
 	if(eleWidget.hasAttribute("circle"))
 	{
-		m_typeCircle = static_cast<ColorBlockCircle>(eleWidget.attribute("circle").toInt());
+		m_typeCircle = static_cast<CoordXCircle>(eleWidget.attribute("circle").toInt());
 	}
 	//色块的宽度
 	if(eleWidget.hasAttribute("CBWidth"))
@@ -468,6 +451,7 @@ void CColorBlockWidget::setBlock( const QString& block )
 
 	updateTimesH();			//更新横坐标的时间数据
 	update();
+
 	return CBaseWidget::setBlock(block);
 }
 
@@ -503,7 +487,7 @@ void CColorBlockWidget::onSetCircle()
 {
 	//设置当前的显示周期
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	m_typeCircle = static_cast<ColorBlockCircle>(pAct->data().toInt());
+	m_typeCircle = static_cast<CoordXCircle>(pAct->data().toInt());
 	setBlock(m_qsBlock);
 }
 
@@ -659,62 +643,6 @@ void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
 	update(rectOfStock(m_pSelectedStock));
 }
 
-void CColorBlockWidget::updateTimesH()
-{
-	//更新当前的横坐标数据，从后向前计算时间
-	m_mapTimes.clear();
-
-//	int iCount = 1024;				//计算1024个时间
-	if(m_typeCircle<Day)
-	{
-		time_t tmLast = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(9-8)+60*30;
-		time_t tmCurrent = (QDateTime::currentDateTime().toTime_t()+m_typeCircle)/m_typeCircle*m_typeCircle;//向上对分钟取整
-		//time_t tmNoon1 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(11-8)+60*30;
-		//time_t tmNoon2 = ((QDateTime::currentDateTime().toTime_t()/(3600*24))*3600*24)+3600*(13-8);
-
-		if((tmCurrent%(3600*24))>3600*7)
-		{
-			tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7 + m_typeCircle*2;		//3点收盘(多加一个周期)
-		}
-		/*需向上和向下多计算两个周期*/
-		//if(tmCurrent>tmNoon1)
-		//{
-		//	time_t tmBegin = tmLast-m_typeCircle;
-		//	time_t tmEnd = tmNoon1+m_typeCircle;
-		//	getTimeMapByMin(m_mapTimes,tmBegin,tmEnd,m_typeCircle);
-		//}
-		//if(tmCurrent>tmNoon2)
-		{
-			time_t tmBegin = tmLast-m_typeCircle;
-			//time_t tmEnd = tmCurrent+m_typeCircle*2;
-			getTimeMapByMin(m_mapTimes,tmBegin,tmCurrent,m_typeCircle);
-		}
-	}
-	else
-	{
-		if(m_typeCircle == Day)
-		{
-		}
-		else if(m_typeCircle == DayN)
-		{
-			//目前未使用
-		}
-		else if(m_typeCircle == Week)
-		{
-		}
-		else if(m_typeCircle == Month)
-		{
-		}
-		else if(m_typeCircle == Month3)
-		{
-		}
-		else if(m_typeCircle == Year)
-		{
-		}
-	}
-}
-
-
 void CColorBlockWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
@@ -742,13 +670,13 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 	if(m_typeCircle<Day)
 	{
 		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
-			.arg(pStock->getCode()).arg(QDateTime::fromTime_t(item.tmTime).toString("HH:mm:ss"))
+			.arg(pStock->getName()).arg(QDateTime::fromTime_t(item.tmTime).toString("hh:mm:ss"))
 			.arg(item.fPrice);
 	}
 	else
 	{
 		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
-			.arg(pStock->getCode()).arg(QDateTime::fromTime_t(item.tmTime).toString("yyyy/MM/dd"))
+			.arg(pStock->getName()).arg(QDateTime::fromTime_t(item.tmTime).toString("yyyy/MM/dd"))
 			.arg(item.fPrice);
 	}
 
@@ -967,36 +895,9 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	}
 
 	//从右向左绘制横坐标
-	float fBeginX = rtBottom.right()-RCB_OFFSET_Y;
-	float fEndX = rtBottom.left()+RCB_OFFSET_LEFT;
-	float fCBWidth = fBeginX-fEndX;
-	if(fCBWidth<0)
-		return;
-
-	QList<time_t> listTimes = m_mapTimes.keys();
-	float fCurX = fBeginX;
-	float fLastX = fCurX;
-	int iCount = listTimes.size()-1;
-
-	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
-	while(fCurX>fEndX && iCount>=0)
-	{
-		if(m_typeCircle<Day)
-		{
-			if((fLastX-fCurX)>30)
-			{
-				p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
-				p.drawLine(fCurX,rtBottom.top(),fCurX,rtBottom.top()+2);
-				p.drawText(fCurX-14,rtBottom.top()+2,30,rtBottom.height()-2,
-					Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("hh:mm"));
-				fLastX = fCurX;
-				++iTimeCount;
-			}
-		}
-
-		--iCount;
-		fCurX = fCurX-m_iCBWidth;
-	}
+	drawCoordX(p,QRect(rtBottom.left()+RCB_OFFSET_LEFT,rtBottom.top(),
+		rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,rtBottom.height()),
+		m_iCBWidth);
 }
 
 void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem* pItem )
@@ -1031,8 +932,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	{
 		if(m_typeCircle<Day)
 		{
-			time_t tmCur = iter.key()/(m_typeCircle)*(m_typeCircle);
-//			QString qsTime = QDateTime::fromTime_t(tmCur).toString();
+			time_t tmCur = iter.key()/(m_typeCircle)*(m_typeCircle);		//向下取整
 			if(m_mapTimes.contains(tmCur))
 			{
 				float fCurX = fBeginX - ((m_mapTimes[tmCur])*m_iCBWidth);
@@ -1058,47 +958,16 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 						}
 						break;
 					}
+				}	
+				else
+				{
+					//超出范围的
 				}
 			}
 		}
 		fLastPrice = iter->fPrice;
 		++iter;
 	}
-
-	//int iCBCount = rtCB.width()/m_iCBHeight;
-	//QList<qRcvHistoryData*> list = pItem->getLastHistory(iCBCount+1);
-
-	//p.setPen(QColor(255,255,255));
-	//p.drawText(QRect(rtCB.left(),rtCB.top(),50,m_iCBHeight),Qt::AlignCenter,pItem->getCode());
-
-	//int iCurX = rtCB.left()+50;
-	//for(int i=1;i<list.size();++i)
-	//{
-	//	QRect rtB = QRect(iCurX,rtCB.top(),m_iCBHeight,m_iCBHeight);
-	//	switch(m_typeBlock)
-	//	{
-	//	case BlockRect:
-	//		{
-	//			rtB.adjust(2,2,-2,-2);
-	//			float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
-
-	//			p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
-	//		}
-	//		break;
-	//	case BlockCircle:
-	//		{
-	//		//	rtB.adjust(2,2,-2,-2);
-	//			QPainterPath path;
-	//			path.addEllipse(rtB);
-	//			float f = (list[i]->fClose - list[i-1]->fClose)/(list[i-1]->fClose);
-
-	//			p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
-	//		}
-	//		break;
-	//	}
-
-	//	iCurX = iCurX+m_iCBHeight;
-	//}
 }
 
 QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
