@@ -67,13 +67,13 @@ int main(int argc, char *argv[])
 	CMainWindow::getMainWindow()->saveTemplates();	//保存所有模板
 	splash.showMessage(QObject::tr("正在导出数据..."),20);
 
-//	CDataEngine::exportData();				//导出数据
-//	splash.showMessage(QObject::tr("导出数据完成..."),99);
+	CDataEngine::exportData();				//导出数据
+	splash.showMessage(QObject::tr("导出数据完成..."),99);
 
 
 	//释放资源
 	delete CMainWindow::getMainWindow();
-//	CDataEngine::releaseDataEngine();
+	CDataEngine::releaseDataEngine();
 
 	return 1;
 }

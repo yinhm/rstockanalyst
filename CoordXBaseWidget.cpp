@@ -87,8 +87,6 @@ void CCoordXBaseWidget::updateTimesH()
 		{
 		}
 	}
-
-	qDebug()<<"map size:"<<m_mapTimes.size();
 }
 
 
