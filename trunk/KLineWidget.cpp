@@ -99,7 +99,7 @@ int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvFenBiData*>
 	qRcvFenBiData* pLastFenbi = 0;
 	foreach(qRcvFenBiData* p, minutes)
 	{
-		if((p->tmTime-tmT)>(iSize))
+		if((p->tmTime-tmT)>=(iSize))
 		{
 			stLinerItem item;
 			if(getLinerItemByMins(item,listMins,pLastFenbi))
@@ -1131,10 +1131,12 @@ void CKLineWidget::resetTmpData()
 		QList<qRcvFenBiData*> FenBis = m_pStockItem->getFenBiList();
 		if(m_typeCircle == FenShi)
 		{
+			m_pLinerMain->setKLineType(CKLineLiner::FenShi);
 			getLinerMinItems(listItems,FenBis,m_typeCircle);
 		}
 		else
 		{
+			m_pLinerMain->setKLineType(CKLineLiner::Normal);
 			getLinerMinItems(listItems,FenBis,m_typeCircle);
 		}
 	}

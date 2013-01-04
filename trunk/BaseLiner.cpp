@@ -92,7 +92,8 @@ void CBaseLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount  )
 
 
 CKLineLiner::CKLineLiner( QScriptEngine* pEngine )
-	: CBaseLiner(pEngine,"", "K线图")
+	: CBaseLiner(pEngine,"", "K线图"),
+	m_typeKLine(KLineType::Normal)
 {
 
 }
@@ -139,9 +140,14 @@ void CKLineLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount )
 	int iIndex = m_vOpen.size()-1;
 	float fBeginX = rtClient.right()-fItemWidth;
 	int iCount = 0;
+
 	while(iCount<iShowCount&&iIndex>=0)
 	{
-		drawKGrid(iIndex,p,QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height()));
+		if(m_typeKLine == FenShi)
+			drawFenShi(iIndex,p,QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height()));
+		else
+			drawKGrid(iIndex,p,QRectF(fBeginX,rtClient.top(),fItemWidth,rtClient.height()));
+			
 
 		fBeginX-=fItemWidth;
 		--iIndex;
@@ -189,6 +195,20 @@ void CKLineLiner::drawKGrid( const int& iIndex,QPainter& p,const QRectF& rtItem 
 	}
 
 	p.drawLine(rtItem.center().x(),rtItem.bottom()-fHighY,rtItem.center().x(),rtItem.bottom()-fLowY);		//画最高价到最低价的线
+}
+
+void CKLineLiner::drawFenShi( const int& iIndex,QPainter& p,const QRectF& rtItem )
+{
+	float fPrice1 = m_vClose.size()>(iIndex+2) ? m_vClose[iIndex+1] : -1;
+	float fPrice2 = m_vClose[iIndex];
+	float fHighMax = fMaxPrice-fMinPrice;
+
+	if(fPrice1>=0)
+	{
+		float fY1 = ((fPrice1-fMinPrice)/fHighMax)*rtItem.height();
+		float fY2 = ((fPrice2-fMinPrice)/fHighMax)*rtItem.height();
+		p.drawLine(rtItem.center().x()+rtItem.width(),rtItem.bottom()-fY1,rtItem.center().x(),rtItem.bottom()-fY2);		//画最高价到最低价的线
+	}
 }
 
 
@@ -382,6 +402,15 @@ float CMultiLiner::getValueByY( int y )
 	return (fMaxPrice-fMinPrice)*fPersent+fMinPrice;
 }
 
+void CMultiLiner::setKLineType(CKLineLiner::KLineType t)
+{
+	if(m_type == MainKLine)
+	{
+		CKLineLiner* pK = reinterpret_cast<CKLineLiner*>(m_listLiner.first());
+		pK->setShowType(t);
+	}
+}
+
 void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice )
 {
 	if(!rtClient.isValid())
@@ -420,7 +449,7 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 
 	int iGridSize = 1;
 	while((fGridHeight*iGridSize)<10)
-		++iGridSize;
+			++iGridSize;
 	fGridHeight = fGridHeight*iGridSize;
 
 	float fY = rtClient.bottom();

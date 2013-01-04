@@ -69,9 +69,17 @@ protected:
 class CKLineLiner : public CBaseLiner
 {
 public:
+	enum KLineType
+	{
+		Normal = 1,
+		FenShi,
+	};
+public:
 	CKLineLiner(QScriptEngine* pEngine);
 	~CKLineLiner(void);
 
+public:
+	void setShowType(KLineType t){m_typeKLine = t;}
 public:
 	virtual void updateData();				//更新显示的数据
 	virtual void getMinAndMax(float& fMin,float& fMax,int iCount);
@@ -79,12 +87,14 @@ public:
 
 private:
 	void drawKGrid( const int& iIndex,QPainter& p,const QRectF& rtItem );
+	void drawFenShi( const int& iIndex,QPainter& p,const QRectF& rtItem );
 
 private:
 	QVector<float> m_vOpen;
 	QVector<float> m_vHigh;
 	QVector<float> m_vLow;
 	QVector<float> m_vClose;
+	KLineType m_typeKLine;
 };
 
 
@@ -126,6 +136,9 @@ public:
 	QRectF getRect() const { return m_rtClient; }
 	MultiLinerType getType() const { return m_type; }
 	float getValueByY(int y);			//通过Y坐标获取Y位置所表示的值
+
+	//临时函数（主要是为了方便分时图的绘制）
+	void setKLineType(CKLineLiner::KLineType t);
 
 private:
 	void drawCoordY(QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice);
