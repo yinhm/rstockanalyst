@@ -201,15 +201,15 @@ int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
 		if(tmDate.year()!=iCurYear)
 		{
-			iCurYear = tmDate.year();
-			iCurWeek = tmDate.weekNumber();
-			if(tmDate.dayOfWeek()==1)
+			if(tmDate.weekNumber(&iCurYear)!=iCurWeek)
 			{
 				stLinerItem item;
 				getLinerItemByDays(item,weekHis);
 				listItems.push_back(item);
 				weekHis.clear();
 			}
+			iCurYear = tmDate.year();
+			iCurWeek = tmDate.weekNumber();
 		}
 		else if(tmDate.weekNumber()!=iCurWeek)
 		{
@@ -221,6 +221,16 @@ int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 			weekHis.clear();
 		}
 		weekHis.push_back(pHistory);
+	}
+
+	if(weekHis.size()>0)
+	{
+		//最后剩余的也补上
+		stLinerItem item;
+		getLinerItemByDays(item,weekHis);
+		QString sss = QDateTime::fromTime_t(item.time).toString();
+		listItems.push_back(item);
+		weekHis.clear();
 	}
 
 	return listItems.size();
@@ -267,6 +277,14 @@ int getLinerMonthItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDa
 		monthHis.push_back(pHistory);
 	}
 
+	if(monthHis.size()>0)
+	{
+		//最后剩余的也补上
+		stLinerItem item;
+		getLinerItemByDays(item,monthHis);
+		listItems.push_back(item);
+		monthHis.clear();
+	}
 	return listItems.size();
 }
 
@@ -311,6 +329,14 @@ int getLinerMonth3Items(QVector<stLinerItem>& listItems,const QList<qRcvHistoryD
 		monthHis.push_back(pHistory);
 	}
 
+	if(monthHis.size()>0)
+	{
+		//最后剩余的也补上
+		stLinerItem item;
+		getLinerItemByDays(item,monthHis);
+		listItems.push_back(item);
+		monthHis.clear();
+	}
 	return listItems.size();
 }
 
@@ -343,6 +369,14 @@ int getLinerYearItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 		monthHis.push_back(pHistory);
 	}
 
+	if(monthHis.size()>0)
+	{
+		//最后剩余的也补上
+		stLinerItem item;
+		getLinerItemByDays(item,monthHis);
+		listItems.push_back(item);
+		monthHis.clear();
+	}
 	return listItems.size();
 }
 

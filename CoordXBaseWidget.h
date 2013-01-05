@@ -31,7 +31,7 @@ public:
 protected:
 	void updateTimesH();								//更新当前的横坐标数据
 	void drawCoordX(QPainter& p,const QRect& rtCoordX,	//绘制X坐标轴
-		int iGridSize);
+		float fGridSize);
 
 protected:
 	CoordXCircle m_typeCircle;				//本图的显示周期
