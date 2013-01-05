@@ -325,8 +325,8 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	m_rtClient = rtClient;
 	if(!rtClient.isValid())
 		return;
-	fMinPrice = 9999999.0;
-	fMaxPrice = -9999999.0;
+	fMinPrice = 9999999999.0;
+	fMaxPrice = -9999999999.0;
 
 	//获取最大值/最小值
 	foreach(CBaseLiner* pLiner,m_listLiner)
@@ -336,8 +336,12 @@ void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 	if(fMaxPrice<fMinPrice)
 		return;
 
-	fMinPrice = ((int)((float)(fMinPrice*10.0)))/10.0;
-	fMaxPrice = ((int)((float)(fMaxPrice*10.0 + 1.0)))/10.0;
+	if(fMaxPrice<214748364)
+	{
+		//取整
+		fMinPrice = ((int)((float)(fMinPrice*10.0)))/10.0;
+		fMaxPrice = ((int)((float)(fMaxPrice*10.0 + 1.0)))/10.0;
+	}
 
 	//绘制区域内Y坐标轴
 	drawCoordY(p,QRectF(rtClient.right()+2,rtClient.top(),50,rtClient.height()),fMinPrice,fMaxPrice);
@@ -414,6 +418,8 @@ void CMultiLiner::setKLineType(CKLineLiner::KLineType t)
 void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice,float fMaxPrice )
 {
 	if(!rtClient.isValid())
+		return;
+	if(fMaxPrice<fMinPrice)
 		return;
 	//绘制Y坐标轴
 	//设置画笔颜色
