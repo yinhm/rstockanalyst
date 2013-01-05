@@ -378,7 +378,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pScriptEngine(0)
 {
 
-	m_typeCircle = CoordXCircle::Day;
+	m_typeCircle = CCoordXBaseWidget::Day;
 	{
 		//初始化脚本解释器
 		m_pScriptEngine = new QScriptEngine;
@@ -891,6 +891,11 @@ void CKLineWidget::onSetExpression()
 		return;
 
 	m_pCurrentLiner->setExpression(edit.toPlainText());
+	if(m_pCurrentLiner == m_pLinerMain)
+	{
+		if(m_typeCircle == FenShi)
+			m_pCurrentLiner->setKLineType(CKLineLiner::FenShi);
+	}
 }
 
 void CKLineWidget::onClickedAddShow()
@@ -1142,6 +1147,7 @@ void CKLineWidget::resetTmpData()
 	}
 	else
 	{
+		m_pLinerMain->setKLineType(CKLineLiner::Normal);
 		//获取日线数据
 		QList<qRcvHistoryData*> historys = m_pStockItem->getHistoryList();
 		qRcvReportData* pLastReport = m_pStockItem->getCurrentReport();

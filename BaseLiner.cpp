@@ -93,7 +93,7 @@ void CBaseLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount  )
 
 CKLineLiner::CKLineLiner( QScriptEngine* pEngine )
 	: CBaseLiner(pEngine,"", "KÏßÍ¼"),
-	m_typeKLine(KLineType::Normal)
+	m_typeKLine(CKLineLiner::Normal)
 {
 
 }
