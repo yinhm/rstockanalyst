@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "StockInfoItem.h"
 #include "DataEngine.h"
-#define	FLOAT_NAN	(std::numeric_limits<float>::quiet_NaN())
 
 CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	: qsCode(code)

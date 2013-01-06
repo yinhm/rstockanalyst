@@ -95,7 +95,7 @@ struct qRcvHistoryData
 	}
 	qRcvHistoryData(qRcvReportData* p)
 	{
-		time = p->tmTime;
+		time = QDateTime(QDateTime::fromTime_t(p->tmTime).date()).toTime_t();
 		fAmount = p->fAmount;
 		fClose = p->fNewPrice;
 		fHigh = p->fHigh;
