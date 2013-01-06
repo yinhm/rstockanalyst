@@ -1,0 +1,80 @@
+<!DOCTYPE template>
+<ROOT title="demo">
+ <widget>
+  <name></name>
+  <type>0</type>
+  <relate>1</relate>
+  <align>2</align>
+  <size>100</size>
+  <widget>
+   <name></name>
+   <type>0</type>
+   <relate>1</relate>
+   <align>1</align>
+   <size>38</size>
+   <widget>
+    <name></name>
+    <type>2</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>55</size>
+    <block>上海A股</block>
+    <stock>600017</stock>
+   </widget>
+   <widget circle="3602" mainliner="1">
+    <name></name>
+    <type>1</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>28</size>
+    <code>600017</code>
+    <liners>
+     <MainLiner size="60">
+      <exp></exp>
+     </MainLiner>
+    </liners>
+   </widget>
+   <widget>
+    <name></name>
+    <type>4</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>16</size>
+    <code>600017</code>
+   </widget>
+  </widget>
+  <widget>
+   <name></name>
+   <type>0</type>
+   <relate>1</relate>
+   <align>1</align>
+   <size>61</size>
+   <widget circle="3604" mainliner="1">
+    <name></name>
+    <type>1</type>
+    <relate>0</relate>
+    <align>1</align>
+    <size>44</size>
+    <code>1A0001</code>
+    <liners>
+     <MainLiner size="60">
+      <exp></exp>
+     </MainLiner>
+     <Liner size="20" type="2">
+      <exp></exp>
+     </Liner>
+    </liners>
+   </widget>
+   <widget circle="3602" CBHeight="50" CBWidth="20">
+    <name></name>
+    <type>3</type>
+    <relate>0</relate>
+    <align>1</align>
+    <size>55</size>
+    <block>自选</block>
+    <color>红绿</color>
+    <mode>2</mode>
+   </widget>
+  </widget>
+ </widget>
+</ROOT>
