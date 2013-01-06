@@ -8,7 +8,6 @@
 CDataEngine* CDataEngine::m_pDataEngine = 0;
 
 time_t CDataEngine::m_tmCurrentDay = 0;
-time_t* CDataEngine::m_tmLast5Day = new time_t[5];
 time_t CDataEngine::m_tmCurrent = 0;
 
 CDataEngine* CDataEngine::getDataEngine()
@@ -22,8 +21,6 @@ void CDataEngine::releaseDataEngine()
 {
 	if(m_pDataEngine)
 		delete m_pDataEngine;
-
-	delete m_tmLast5Day;
 }
 
 void CDataEngine::importData()
@@ -457,31 +454,6 @@ bool CDataEngine::isStockOpenTime( time_t tmMin )
 	return true;
 }
 
-time_t* CDataEngine::getLast5DayTime()
-{
-	time_t tmCur = time(NULL);
-	tmCur = tmCur-(tmCur%(3600*24));
-	tmCur = tmCur-(3600*R_TIME_ZONE);
-
-	if(tmCur==m_tmCurrentDay)
-		return m_tmLast5Day;
-
-	m_tmCurrentDay = tmCur;
-
-	for(int i=0;i<5;++i)
-	{
-		tmCur = tmCur-(3600*24);
-		while(!isStockOpenDay(tmCur))
-		{
-			tmCur = tmCur-(3600*24);
-		}
-		m_tmLast5Day[i] = tmCur;
-	}
-	QDateTime tmDataTime = QDateTime::fromTime_t(tmCur);
-
-	return m_tmLast5Day;
-}
-
 time_t CDataEngine::getOpenSeconds()
 {
 	return 3600*4;
@@ -524,8 +496,6 @@ void CDataEngine::setCurrentTime(const time_t& t)
 
 CDataEngine::CDataEngine(void)
 {
-	getLast5DayTime();
-
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);
 
