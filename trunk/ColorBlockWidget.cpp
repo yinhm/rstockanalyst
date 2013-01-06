@@ -708,8 +708,21 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 	}
 	else
 	{
+		QString qsTime;
+		QDate dtTmp = QDateTime::fromTime_t(item.tmTime).date();
+		if(m_typeCircle == Week)
+			qsTime = QString("%1 %2").arg(dtTmp.year()).arg(dtTmp.weekNumber());
+		else if(m_typeCircle == Month)
+			qsTime = dtTmp.toString("yyyy/MM");
+		else if(m_typeCircle == Month3)
+			qsTime = dtTmp.toString("yyyy/MM");
+		else if(m_typeCircle == Year)
+			qsTime = dtTmp.toString("yyyy");
+		else
+			qsTime = dtTmp.toString("yyyy/MM/dd");
+
 		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
-			.arg(pStock->getName()).arg(QDateTime::fromTime_t(item.tmTime).toString("yyyy/MM/dd"))
+			.arg(pStock->getName()).arg(qsTime)
 			.arg(item.fPrice);
 	}
 
@@ -991,6 +1004,8 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 				{
 					//计算增长百分比
 					f = (iter->fPrice - fLastPrice)/fLastPrice;
+					if(m_typeCircle>DayN)
+						f = f/10.0;							//大于周线的，则对比例进行缩小
 					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
 				}
 			}
