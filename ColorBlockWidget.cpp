@@ -97,9 +97,9 @@ bool getColorBlockItemByDays(stColorBlockItem& item,const QList<qRcvHistoryData*
 	if(list.size()<1)
 		return false;
 
-//	qRcvHistoryData* pBegin = list.first();
+	qRcvHistoryData* pBegin = list.first();
 	qRcvHistoryData* pLast = list.last();
-	item.tmTime = pLast->time;
+	item.tmTime = pBegin->time;
 	item.fPrice = pLast->fClose;
 
 	item.fAmount = 0;
@@ -137,6 +137,7 @@ int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 		iCurWeek = tmDate.weekNumber();
 	}
 
+
 	QList<qRcvHistoryData*> weekHis;		//按星期进行归类以后的日线数据
 	for(int i=0;i<historys.size();++i)
 	{
@@ -144,15 +145,15 @@ int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
 		if(tmDate.year()!=iCurYear)
 		{
-			iCurYear = tmDate.year();
-			iCurWeek = tmDate.weekNumber();
-			if(tmDate.dayOfWeek()==1)
+			if(tmDate.weekNumber(&iCurYear)!=iCurWeek)
 			{
 				stColorBlockItem item;
 				getColorBlockItemByDays(item,weekHis);
 				pMap->insert(item.tmTime,item);
 				weekHis.clear();
 			}
+			iCurYear = tmDate.year();
+			iCurWeek = tmDate.weekNumber();
 		}
 		else if(tmDate.weekNumber()!=iCurWeek)
 		{
@@ -166,6 +167,14 @@ int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 		weekHis.push_back(pHistory);
 	}
 
+	if(weekHis.size()>0)
+	{
+		//最后剩余的也补上
+		stColorBlockItem item;
+		getColorBlockItemByDays(item,weekHis);
+		pMap->insert(item.tmTime,item);
+		weekHis.clear();
+	}
 	return pMap->size();
 }
 
@@ -210,6 +219,14 @@ int getColorBlockMonthItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcv
 		monthHis.push_back(pHistory);
 	}
 
+	if(monthHis.size()>0)
+	{
+		//最后剩余的也补上
+		stColorBlockItem item;
+		getColorBlockItemByDays(item,monthHis);
+		pMap->insert(item.tmTime,item);
+		monthHis.clear();
+	}
 	return pMap->size();
 }
 
@@ -254,6 +271,14 @@ int getColorBlockMonth3Items(QMap<time_t,stColorBlockItem>* pMap,const QList<qRc
 		monthHis.push_back(pHistory);
 	}
 
+	if(monthHis.size()>0)
+	{
+		//最后剩余的也补上
+		stColorBlockItem item;
+		getColorBlockItemByDays(item,monthHis);
+		pMap->insert(item.tmTime,item);
+		monthHis.clear();
+	}
 	return pMap->size();
 }
 
@@ -286,6 +311,14 @@ int getColorBlockYearItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 		monthHis.push_back(pHistory);
 	}
 
+	if(monthHis.size()>0)
+	{
+		//最后剩余的也补上
+		stColorBlockItem item;
+		getColorBlockItemByDays(item,monthHis);
+		pMap->insert(item.tmTime,item);
+		monthHis.clear();
+	}
 	return pMap->size();
 }
 
@@ -930,6 +963,8 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	float fLastPrice = pItem->getCurrentReport()->fLastClose;
 	while(iter!=pMapCBs->end())
 	{
+		float f = FLOAT_NAN;
+		QRect rtB;
 		if(m_typeCircle<Day)
 		{
 			time_t tmCur = iter.key()/(m_typeCircle)*(m_typeCircle);		//向下取整
@@ -939,30 +974,44 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 				if(fCurX>=fEndX)
 				{
 					//计算增长百分比
-					float f = (iter->fPrice - fLastPrice)/fLastPrice*10.0;
-					QRect rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
-
-					switch(m_typeBlock)
-					{
-					case BlockRect:
-						{
-							rtB.adjust(1,1,-1,-1);
-							p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
-						}
-						break;
-					case BlockCircle:
-						{
-							QPainterPath path;
-							path.addEllipse(rtB);
-							p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
-						}
-						break;
-					}
-				}	
-				else
-				{
-					//超出范围的
+					f = (iter->fPrice - fLastPrice)/fLastPrice*10.0;
+					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
 				}
+			}
+		}
+		else
+		{
+			time_t tmCur = iter.key();
+			QMap<time_t,int>::iterator iterTime = m_mapTimes.upperBound(tmCur);
+			if(iterTime!=m_mapTimes.begin())
+			{
+				--iterTime;
+				float fCurX = fBeginX - ((iterTime.value())*m_iCBWidth);
+				if(fCurX>=fEndX)
+				{
+					//计算增长百分比
+					f = (iter->fPrice - fLastPrice)/fLastPrice;
+					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
+				}
+			}
+		}
+		if(f!=FLOAT_NAN)
+		{
+			switch(m_typeBlock)
+			{
+			case BlockRect:
+				{
+					rtB.adjust(1,1,-1,-1);
+					p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
+				}
+				break;
+			case BlockCircle:
+				{
+					QPainterPath path;
+					path.addEllipse(rtB);
+					p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
+				}
+				break;
 			}
 		}
 		fLastPrice = iter->fPrice;
@@ -996,30 +1045,69 @@ stColorBlockItem CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 	if(pItem && mapStockColorBlocks.contains(pItem))
 	{
 		QMap<time_t,stColorBlockItem>* pMap = mapStockColorBlocks[pItem];
-		QMap<time_t,int>::iterator iter = m_mapTimes.end();
-		if(iter!=m_mapTimes.begin())
+		QMap<time_t,int>::iterator iterLastTime = m_mapTimes.end();
+		if(iterLastTime!=m_mapTimes.begin())
 		{
-			--iter;
+			--iterLastTime;								//取时间轴上的最后一个时间点
 			int iIndex = (m_rtClient.right() - RCB_OFFSET_Y - ptPoint.x())/m_iCBWidth + 1;
-			time_t tmLast = iter.key();
-			time_t tmCur = tmLast - (m_typeCircle*iIndex);
-
-			QMap<time_t,stColorBlockItem>::iterator iterCB = pMap->end();
-			if(iterCB==pMap->begin())
-				return stColorBlockItem();
-
-			do
+			time_t tmLast = iterLastTime.key();			//时间轴上的最后一个时间点
+			time_t tmCur = tmLast;
+			if (m_typeCircle<Day)
 			{
-				--iterCB;
-				time_t tmAAA = iterCB.key()/(m_typeCircle)*(m_typeCircle);
-				//QString qsTime1 = QDateTime::fromTime_t(tmCur).toString("hh:mm:ss");
-				//QString qsTime2 = QDateTime::fromTime_t(tmAAA).toString("hh:mm:ss");
-				if(tmAAA == tmCur)
-					return iterCB.value();
-				if(tmAAA<tmCur)
-					break;
+				tmCur = tmCur - (m_typeCircle*iIndex);
 			}
-			while (iterCB!=pMap->begin());
+			else
+			{
+				time_t tmDefault = 0;
+				tmCur = m_mapTimes.key(iIndex,tmDefault);
+				if(tmCur==tmDefault)
+					return stColorBlockItem();
+			}
+
+			//获取最近的节点
+			QMap<time_t,stColorBlockItem>::iterator iterCB = pMap->lowerBound(tmCur);
+			if(m_typeCircle<Day)
+			{
+				if(iterCB==pMap->end())
+					return stColorBlockItem();
+				if(iterCB.key()/m_typeCircle*m_typeCircle != (tmCur))
+					return stColorBlockItem();
+			}
+			else
+			{
+				if(iterCB==pMap->begin())
+					return stColorBlockItem();
+				if(m_typeCircle==Day)
+				{
+					return (pMap->find(tmCur)!=pMap->end()) ? pMap->find(tmCur).value() : stColorBlockItem();
+				}
+				else if(m_typeCircle == Week)
+				{
+					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
+					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
+					int iTheYear = dtKey.year();
+					return dtKey.weekNumber(&iTheYear)==dtCur.weekNumber(&iTheYear) ? iterCB.value() : stColorBlockItem();
+				}
+				else if(m_typeCircle == Month)
+				{
+					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
+					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
+					return ((dtKey.year()==dtKey.year())&&(dtKey.month()==dtCur.month())) ? iterCB.value() : stColorBlockItem();
+				}
+				else if(m_typeCircle == Month3)
+				{
+					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
+					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
+					return ((dtKey.year()==dtKey.year())&&(((dtKey.month()-1)/3)==((dtCur.month()-1)/3))) ? iterCB.value() : stColorBlockItem();
+				}
+				else if(m_typeCircle == Year)
+				{
+					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
+					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
+					return (dtKey.year()==dtKey.year()) ? iterCB.value() : stColorBlockItem();
+				}
+			}
+			return iterCB.value();
 		}
 	}
 	return stColorBlockItem();

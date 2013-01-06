@@ -18,208 +18,91 @@ int getTimeMapByMin(QMap<time_t,int>& mapTimes,time_t& tmBegin, time_t& tmEnd, i
 	return 1;
 }
 
-int getDayMapByHistory(QMap<time_t,int>& mapTimes,const QList<qRcvHistoryData*>& historys)
+int getDayMapByHistory(QMap<time_t,int>& mapTimes,time_t& _tmBegin, time_t& _tmEnd)
 {
-	foreach(qRcvHistoryData* p,historys)
+	time_t tmNow = (_tmEnd+3600*24);			//需多计算一个周期
+	while(tmNow>=_tmBegin)
 	{
-		mapTimes.insert(p->time,mapTimes.size());
+		mapTimes.insert(tmNow,mapTimes.size());
+		tmNow -= 3600*24;
 	}
 
 	return 1;
 }
 
-int getWeekMapByHistory(QMap<time_t,int>& mapTimes,const QList<qRcvHistoryData*>& historys)
+int getWeekMapByHistory(QMap<time_t,int>& mapTimes,time_t& _tmBegin, time_t& _tmEnd)
 {
-	if(historys.size()<1)
-		return 0;
-	int iCurYear = 0;
-	int iCurWeek = 0;
+	QDate dtNow = QDateTime::fromTime_t(_tmEnd).date();
+
+	dtNow = dtNow.addDays(8-dtNow.dayOfWeek());	//多计算一个周期
+	time_t tmNow = QDateTime(dtNow).toTime_t();
+
+	while(tmNow>_tmBegin)
 	{
-		//first day's week and year.
-		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
-		iCurYear = tmDate.year();
-		iCurWeek = tmDate.weekNumber();
+		mapTimes.insert(tmNow,mapTimes.size());
+		tmNow -= (3600*24*7);
 	}
 
-	QList<qRcvHistoryData*> weekHis;		//按星期进行归类以后的日线数据
-	for(int i=0;i<historys.size();++i)
-	{
-		qRcvHistoryData* pHistory = historys[i];
-		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
-		if(tmDate.year()!=iCurYear)
-		{
-			if(tmDate.weekNumber(&iCurYear)!=iCurWeek)
-			{
-				if(weekHis.size()>0)
-				{
-					mapTimes.insert(weekHis.first()->time,mapTimes.size());
-					weekHis.clear();
-				}
-			}
-			iCurYear = tmDate.year();
-			iCurWeek = tmDate.weekNumber();
-		}
-		else if(tmDate.weekNumber()!=iCurWeek)
-		{
-			iCurWeek = tmDate.weekNumber();
-
-			if(weekHis.size()>0)
-			{
-				mapTimes.insert(weekHis.first()->time,mapTimes.size());
-				weekHis.clear();
-			}
-		}
-		weekHis.push_back(pHistory);
-	}
-
-	if(weekHis.size()>0)
-	{
-		//最后剩余的也补上
-		mapTimes.insert(weekHis.first()->time,mapTimes.size());
-		weekHis.clear();
-	}
-
-
+	mapTimes.insert(tmNow,mapTimes.size());
 	return 1;
 }
 
-int getMonthMapByHistory(QMap<time_t,int>& mapTimes,const QList<qRcvHistoryData*>& historys)
+int getMonthMapByHistory(QMap<time_t,int>& mapTimes,time_t& _tmBegin, time_t& _tmEnd)
 {
-	if(historys.size()<1)
-		return 0;
-	int iCurYear = 0;
-	int iCurMonth = 0;
+	QDate dtNow = QDateTime::fromTime_t(_tmEnd).date();
+
+	dtNow = dtNow.addMonths(1);					//多计算一个周期
+	dtNow = QDate(dtNow.year(),dtNow.month(),1);
+	time_t tmNow = QDateTime(dtNow).toTime_t();
+
+	while(tmNow>_tmBegin)
 	{
-		//first day's week and year.
-		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
-		iCurYear = tmDate.year();
-		iCurMonth = tmDate.month();
+		mapTimes.insert(tmNow,mapTimes.size());
+		dtNow = dtNow.addMonths(-1);
+		dtNow = QDate(dtNow.year(),dtNow.month(),1);
+		tmNow = QDateTime(dtNow).toTime_t();
 	}
 
-	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
-	for(int i=0;i<historys.size();++i)
-	{
-		qRcvHistoryData* pHistory = historys[i];
-		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
-		if(tmDate.year()!=iCurYear)
-		{
-			iCurYear = tmDate.year();
-			iCurMonth = tmDate.month();
-			if(monthHis.size()>0)
-			{
-				mapTimes.insert(monthHis.first()->time,mapTimes.size());
-				monthHis.clear();
-			}
-		}
-		else if(tmDate.month()!=iCurMonth)
-		{
-			iCurMonth = tmDate.month();
-
-			if(monthHis.size()>0)
-			{
-				mapTimes.insert(monthHis.first()->time,mapTimes.size());
-				monthHis.clear();
-			}
-		}
-		monthHis.push_back(pHistory);
-	}
-
-	if(monthHis.size()>0)
-	{
-		//最后剩余的也补上
-		mapTimes.insert(monthHis.first()->time,mapTimes.size());
-		monthHis.clear();
-	}
-
+	mapTimes.insert(tmNow,mapTimes.size());
 	return 1;
 }
 
-int getMonth3MapByHistory(QMap<time_t,int>& mapTimes,const QList<qRcvHistoryData*>& historys)
+int getMonth3MapByHistory(QMap<time_t,int>& mapTimes,time_t& _tmBegin, time_t& _tmEnd)
 {
-	if(historys.size()<1)
-		return 0;
-	int iCurYear = 0;
-	int iCurMonth = 0;
+	QDate dtNow = QDateTime::fromTime_t(_tmEnd).date();
+	dtNow = dtNow.addMonths(3);					//多计算一个周期
+	dtNow = QDate(dtNow.year(),(dtNow.month()-1)/3*3,1);
+	time_t tmNow = QDateTime(dtNow).toTime_t();
+
+	while(tmNow>_tmBegin)
 	{
-		//first day's week and year.
-		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
-		iCurYear = tmDate.year();
-		iCurMonth = tmDate.month();
+		mapTimes.insert(tmNow,mapTimes.size());
+		dtNow = dtNow.addMonths(-3);
+		dtNow = QDate(dtNow.year(),(dtNow.month()-1)/3*3,1);
+		tmNow = QDateTime(dtNow).toTime_t();
 	}
 
-	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
-	for(int i=0;i<historys.size();++i)
-	{
-		qRcvHistoryData* pHistory = historys[i];
-		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
-		if(tmDate.year()!=iCurYear)
-		{
-			iCurYear = tmDate.year();
-			iCurMonth = tmDate.month();
-			if(monthHis.size()>0)
-			{
-				mapTimes.insert(monthHis.first()->time,mapTimes.size());
-				monthHis.clear();
-			}
-		}
-		else if(((tmDate.month()-1)/3)!=((iCurMonth-1)/3))
-		{
-			iCurMonth = tmDate.month();
-
-			if(monthHis.size()>0)
-			{
-				mapTimes.insert(monthHis.first()->time,mapTimes.size());
-				monthHis.clear();
-			}
-		}
-		monthHis.push_back(pHistory);
-	}
-
-	if(monthHis.size()>0)
-	{
-		//最后剩余的也补上
-		mapTimes.insert(monthHis.first()->time,mapTimes.size());
-		monthHis.clear();
-	}
-
+	mapTimes.insert(tmNow,mapTimes.size());
 	return 1;
 }
 
-int getYearMapByHistory(QMap<time_t,int>& mapTimes,const QList<qRcvHistoryData*>& historys)
+int getYearMapByHistory(QMap<time_t,int>& mapTimes,time_t& _tmBegin, time_t& _tmEnd)
 {
-	if(historys.size()<1)
-		return 0;
-	int iCurYear = 0;
+	QDate dtNow = QDateTime::fromTime_t(_tmEnd).date();
+
+	dtNow = dtNow.addYears(1);					//多计算一个周期
+	dtNow = QDate(dtNow.year(),1,1);
+	time_t tmNow = QDateTime(dtNow).toTime_t();
+
+	while(tmNow>_tmBegin)
 	{
-		//first day's week and year.
-		QDate tmDate = QDateTime::fromTime_t(historys.first()->time).date();
-		iCurYear = tmDate.year();
+		mapTimes.insert(tmNow,mapTimes.size());
+		dtNow = dtNow.addYears(-1);
+		dtNow = QDate(dtNow.year(),1,1);
+		tmNow = QDateTime(dtNow).toTime_t();
 	}
 
-	QList<qRcvHistoryData*> monthHis;		//按星期进行归类以后的日线数据
-	for(int i=0;i<historys.size();++i)
-	{
-		qRcvHistoryData* pHistory = historys[i];
-		QDate tmDate = QDateTime::fromTime_t(pHistory->time).date();
-		if(tmDate.year()!=iCurYear)
-		{
-			iCurYear = tmDate.year();
-			if(monthHis.size()>0)
-			{
-				mapTimes.insert(monthHis.first()->time,mapTimes.size());
-				monthHis.clear();
-			}
-		}
-		monthHis.push_back(pHistory);
-	}
-
-	if(monthHis.size()>0)
-	{
-		//最后剩余的也补上
-		mapTimes.insert(monthHis.first()->time,mapTimes.size());
-		monthHis.clear();
-	}
-
+	mapTimes.insert(tmNow,mapTimes.size());
 	return 1;
 }
 
@@ -274,8 +157,12 @@ void CCoordXBaseWidget::updateTimesH()
 	}
 	else
 	{
+		time_t tmBegin = QDateTime(QDate(2000,1,1)).toTime_t();
+		time_t tmEnd = (CDataEngine::getCurrentTime()/(3600*24))*3600*24 - 8*3600;
+
 		if(m_typeCircle == Day)
 		{
+			getDayMapByHistory(m_mapTimes,tmBegin,tmEnd);
 		}
 		else if(m_typeCircle == DayN)
 		{
@@ -283,15 +170,19 @@ void CCoordXBaseWidget::updateTimesH()
 		}
 		else if(m_typeCircle == Week)
 		{
+			getWeekMapByHistory(m_mapTimes,tmBegin,tmEnd);
 		}
 		else if(m_typeCircle == Month)
 		{
+			getMonthMapByHistory(m_mapTimes,tmBegin,tmEnd);
 		}
 		else if(m_typeCircle == Month3)
 		{
+			getMonth3MapByHistory(m_mapTimes,tmBegin,tmEnd);
 		}
 		else if(m_typeCircle == Year)
 		{
+			getYearMapByHistory(m_mapTimes,tmBegin,tmEnd);
 		}
 	}
 }
@@ -322,6 +213,51 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRect& rtCoordX, float fGri
 				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
 				p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
 					Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("hh:mm"));
+				fLastX = fCurX;
+				++iTimeCount;
+			}
+		}
+		else
+		{
+			if((fLastX-fCurX)>80)
+			{
+				p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
+				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+				switch(m_typeCircle)
+				{
+				case Week:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QString("%1 %2").arg(dtmTmp.date().year()).arg(dtmTmp.date().weekNumber()));
+					}
+					break;
+				case Month:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy/MM"));
+					}
+					break;
+				case Month3:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy/MM"));
+					}
+					break;
+				case Year:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy"));
+					}
+					break;
+				default:
+					p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+						Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy/MM/dd"));
+					break;
+				}
 				fLastX = fCurX;
 				++iTimeCount;
 			}

@@ -228,7 +228,6 @@ int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 		//最后剩余的也补上
 		stLinerItem item;
 		getLinerItemByDays(item,weekHis);
-		QString sss = QDateTime::fromTime_t(item.time).toString();
 		listItems.push_back(item);
 		weekHis.clear();
 	}
