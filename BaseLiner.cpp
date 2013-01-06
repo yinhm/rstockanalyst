@@ -418,7 +418,7 @@ void CMultiLiner::drawCoordY( QPainter& p,const QRectF& rtClient,float fMinPrice
 {
 	if(!rtClient.isValid())
 		return;
-	if(fMaxPrice<fMinPrice)
+	if(fMaxPrice<=fMinPrice)
 		return;
 	//»æÖÆY×ø±êÖá
 	//ÉèÖÃ»­±ÊÑÕÉ«
