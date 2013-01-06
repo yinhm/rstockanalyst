@@ -321,12 +321,11 @@ void CMultiLiner::updateData()
 
 void CMultiLiner::Draw( QPainter& p, const QRectF& rtClient, int iShowCount )
 {
-
 	m_rtClient = rtClient;
 	if(!rtClient.isValid())
 		return;
-	fMinPrice = 9999999999.0;
-	fMaxPrice = -9999999999.0;
+	fMinPrice = FLT_MAX;
+	fMaxPrice = FLT_MIN;
 
 	//获取最大值/最小值
 	foreach(CBaseLiner* pLiner,m_listLiner)

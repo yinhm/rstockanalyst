@@ -44,7 +44,6 @@ public:
 	static int exportFenBisData(const QString& qsFile);
 
 public:
-	static time_t* getLast5DayTime();			//获取最近5天的开市日期
 	static bool isStockOpenDay(time_t tmDay);	//判断tmDay是否开市（某天的日期，不含时间）
 	static bool isStockOpenTime(time_t tmMin);	//判断tmMin是否开市（某天的时间，不含日期）
 	static time_t getOpenSeconds();				//获取每天的开市时间（秒）；一般为4小时
@@ -95,7 +94,6 @@ private:
 private:
 	static CDataEngine* m_pDataEngine;
 	static time_t m_tmCurrentDay;
-	static time_t* m_tmLast5Day;
 	static time_t m_tmCurrent;					//最后一个report数据的时间
 	QString m_qsHistroyDir;						//日线数据存储的路径 AppDir/data/history/...
 	QString m_qsBlocksDir;						//板块数据的存储路径 AppDir/data/blocks/...
