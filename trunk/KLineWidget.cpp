@@ -1177,6 +1177,14 @@ void CKLineWidget::resetTmpData()
 			m_pLinerMain->setKLineType(CKLineLiner::Normal);
 			getLinerMinItems(listItems,FenBis,m_typeCircle);
 		}
+		if(listItems.size()>0)
+		{
+			listItems.first().fOpen = m_pStockItem->getCurrentReport()->fLastClose;	//设置第一个节点的起始价为昨天的收盘价
+			if(listItems.first().fLow>m_pStockItem->getCurrentReport()->fOpen)
+				listItems.first().fLow = m_pStockItem->getCurrentReport()->fOpen;
+			if(listItems.first().fHigh<m_pStockItem->getCurrentReport()->fOpen)
+				listItems.first().fHigh = m_pStockItem->getCurrentReport()->fOpen;
+		}
 	}
 	else
 	{

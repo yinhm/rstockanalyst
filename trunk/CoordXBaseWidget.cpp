@@ -133,9 +133,10 @@ void CCoordXBaseWidget::updateTimesH()
 	{
 		time_t tmCur = CDataEngine::getCurrentTime();
 		time_t tmLast = ((tmCur/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
-		time_t tmCurrent = (tmCur+m_typeCircle)/m_typeCircle*m_typeCircle;//向上对分钟取整
+		time_t tmCurrent = (tmCur+m_typeCircle*2)/m_typeCircle*m_typeCircle;//向上对分钟取整
 		time_t tmNoon1 = ((tmCur/(3600*24))*3600*24)+3600*(11-8)+60*30;
 		time_t tmNoon2 = ((tmCur/(3600*24))*3600*24)+3600*(13-8);
+
 
 		if((tmCurrent%(3600*24))>3600*7)
 		{
@@ -148,10 +149,17 @@ void CCoordXBaseWidget::updateTimesH()
 			//time_t tmEnd = tmCurrent+m_typeCircle*2;
 			getTimeMapByMin(m_mapTimes,tmBegin,tmCurrent,m_typeCircle);
 		}
+
 		if(tmCurrent>tmNoon1)
 		{
 			time_t tmBegin = tmLast-m_typeCircle;
 			time_t tmEnd = tmNoon1+m_typeCircle;
+			getTimeMapByMin(m_mapTimes,tmBegin,tmEnd,m_typeCircle);
+		}
+		else if(tmCurrent>tmLast)
+		{
+			time_t tmBegin = tmLast-m_typeCircle;
+			time_t tmEnd = tmCurrent;
 			getTimeMapByMin(m_mapTimes,tmBegin,tmEnd,m_typeCircle);
 		}
 	}
