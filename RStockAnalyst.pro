@@ -34,3 +34,4 @@ SOURCES += main.cpp STKDRV.cpp MainWindow.cpp \
 
 
 RESOURCES += RStockAnalyst.qrc
+RC_FILE = RStockAnalyst.rc
