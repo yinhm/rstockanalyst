@@ -21,6 +21,7 @@ CMainWindow* CMainWindow::getMainWindow()
 CMainWindow::CMainWindow()
 	: QMainWindow()
 {
+	setWindowIcon(QIcon(":/res/icon.png"));
 	m_pTabWidget = new QTabWidget();
 	setCentralWidget(m_pTabWidget);
 	m_qsTemplateDir = qApp->applicationDirPath()+"/config/template/";
