@@ -24,7 +24,7 @@ HEADERS += StdAfx.h StockDrv.h STKDRV.h MainWindow.h \
 			MarketTrendWidget.h ColorBlockWidget.h BaseLiner.h \
 			ColorManager.h BlockColorSettingDlg.h StockInfoWidget.h \
 			SplashDlg.h CoordXBaseWidget.h BColorBlockWidget.h \
-			BlockInfoItem.h
+			BlockInfoItem.h resource.h
 
 SOURCES += main.cpp STKDRV.cpp MainWindow.cpp \
 			DataEngine.cpp StockInfoItem.cpp \
