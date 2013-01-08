@@ -52,6 +52,9 @@ public:
 	static void setCurrentTime(const time_t& t);//设置最后一个report数据的时间
 
 public:
+	QString getStockBlockDir() const{ return m_qsBlocksDir; }
+
+public:
 	//获取板块数据
 	void initCommonBlocks();						//初始化常用板块分类
 	QList<QString> getStockBlocks();			//获取所有板块列表
