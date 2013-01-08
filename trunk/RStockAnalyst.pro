@@ -37,3 +37,7 @@ SOURCES += main.cpp STKDRV.cpp MainWindow.cpp \
 
 RESOURCES += RStockAnalyst.qrc
 RC_FILE = RStockAnalyst.rc
+
+INCLUDEPATH += "../branches/lua-5.2.1/include/"
+LIBS += -L"../branches/lua-5.2.1/lib/"
+LIBS += -llua52
