@@ -11,6 +11,7 @@
 #define COLOR_BLOCK_WIDGET_H
 #include "CoordXBaseWidget.h"
 #include "StockInfoItem.h"
+#include "BlockInfoItem.h"
 
 struct stColorBlockItem
 {
@@ -94,7 +95,7 @@ private:
 	QMenu* m_pMenuBlockMode;				//显示模式菜单
 	QMenu* m_pMenuBlockList;				//所有板块信息（当前选中的板块上打勾）
 
-	QString m_qsBlock;						//当前的板块名称
+	CBlockInfoItem* m_pBlock;						//当前的板块名称
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引

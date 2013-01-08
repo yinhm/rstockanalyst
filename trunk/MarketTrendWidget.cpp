@@ -131,16 +131,16 @@ void CMarketTrendWidget::stockInfoChanged( const QString& code )
 void CMarketTrendWidget::onRefresh()
 {
 	m_listBlocks.clear();
-	QStringList listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
 	if(listBlocks.size()>0)
 	{
-		foreach(const QString& b,listBlocks)
+		foreach(CBlockInfoItem* b,listBlocks)
 		{
-			m_listBlocks.push_back(QPair<QString,QRect>(b,QRect()));
+			m_listBlocks.push_back(QPair<QString,QRect>(b->getBlockName(),QRect()));
 		}
 		updateBlockRect();
 		if(m_qsSelectedBlock.isEmpty())
-			clickedBlock(listBlocks.first());
+			clickedBlock(listBlocks.first()->getBlockName());
 		else
 			clickedBlock(m_qsSelectedBlock);
 	}
@@ -156,7 +156,11 @@ void CMarketTrendWidget::onAddToBlock()
 	QString block = pAct->data().toString();
 	if(block.isEmpty())
 		return;
-	CDataEngine::getDataEngine()->appendStocksToBlock(block,QStringList()<<m_pSelectedStock->getCode());
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(pBlock)
+	{
+		pBlock->appendStocks(QStringList()<<m_pSelectedStock->getCode());
+	}
 }
 
 void CMarketTrendWidget::onAddToNewBlock()
@@ -179,15 +183,23 @@ void CMarketTrendWidget::onAddToNewBlock()
 	QString block = edit.text();
 	if(CDataEngine::getDataEngine()->isHadBlock(block))
 		return;
-	CDataEngine::getDataEngine()->appendStocksToBlock(block,QStringList()<<m_pSelectedStock->getCode());
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(pBlock)
+	{
+		pBlock->appendStocks(QStringList()<<m_pSelectedStock->getCode());
+	}
 }
 
 void CMarketTrendWidget::onRemoveStock()
 {
 	if(m_pSelectedStock)
 	{
-		if(CDataEngine::getDataEngine()->removeStocksFromBlock(m_qsSelectedBlock,QStringList()<<m_pSelectedStock->getCode()))
-			clickedBlock(m_qsSelectedBlock);
+		CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(m_qsSelectedBlock);
+		if(pBlock)
+		{
+			if(pBlock->removeStocks(QStringList()<<m_pSelectedStock->getCode()))
+				clickedBlock(m_qsSelectedBlock);
+		}
 	}
 }
 
@@ -255,18 +267,20 @@ void CMarketTrendWidget::offsetShowHeaderIndex( int offset )
 
 void CMarketTrendWidget::clickedBlock( const QString& block )
 {
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(!pBlock)
+		return;
 	if(m_qsSelectedBlock == block)
 	{
-		setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
+		setStocks(pBlock->getStockList());
 		CMainWindow::getMainWindow()->clickedBlock(block);
 		resortStocks();
 		update();
 		return;
 	}
 
-	if(!block.isEmpty())
 	{
-		setStocks(CDataEngine::getDataEngine()->getStocksByBlock(block));
+		setStocks(pBlock->getStockList());
 		CMainWindow::getMainWindow()->clickedBlock(block);
 		m_qsSelectedBlock = block;
 		{
@@ -454,13 +468,13 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 		m_pMenuCustom->addMenu(m_pMenu);
 
 	m_pMenuToBlock->clear();
-	QList<QString> list = CDataEngine::getDataEngine()->getStockBlocks();
-	foreach(const QString& block,list)
+	QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getStockBlocks();
+	foreach(CBlockInfoItem* block,list)
 	{
-		if(block == m_qsSelectedBlock)
+		if(block->getBlockName() == m_qsSelectedBlock)
 			continue;
-		QAction* pAct = m_pMenuToBlock->addAction(block,this,SLOT(onAddToBlock()));
-		pAct->setData(block);
+		QAction* pAct = m_pMenuToBlock->addAction(block->getBlockName(),this,SLOT(onAddToBlock()));
+		pAct->setData(block->getBlockName());
 	}
 	m_pMenuToBlock->addSeparator();
 	m_pMenuToBlock->addAction(tr("ÐÂ½¨°å¿é"),this,SLOT(onAddToNewBlock()));

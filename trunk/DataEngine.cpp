@@ -86,6 +86,10 @@ void CDataEngine::importData()
 		else
 			qDebug()<<iCount<<" FenBi data had been imported.";
 	}
+
+	{
+		importBlocksData("");
+	}
 }
 
 void CDataEngine::exportData()
@@ -302,6 +306,58 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 	return iCount;
 }
 
+int CDataEngine::importBlocksData( const QString& qsPath )
+{
+	QDomDocument doc("CommonBlocks");
+	QFile file(CDataEngine::getDataEngine()->getCommStockBlockFile());
+	if (!file.open(QIODevice::ReadOnly))
+		return 0;
+	if (!doc.setContent(&file)) {
+		file.close();
+		return 0;
+	}
+	file.close();
+
+	QDomElement eleRoot = doc.documentElement();
+	if(eleRoot.isNull())
+		return 0;
+	QDomElement eleNode = eleRoot.firstChildElement("block");
+	while(!eleNode.isNull())
+	{
+		QString qsName = eleNode.attribute("name");
+		if(!(qsName.isEmpty()))
+		{
+			QString qsRegexp = eleNode.text();
+			if(!qsRegexp.isEmpty())
+			{
+				QRegExp r(qsRegexp);
+				if(eleNode.hasAttribute("RegType"))
+				{
+					r.setPatternSyntax(static_cast<QRegExp::PatternSyntax>(eleNode.attribute("RegType").toInt()));
+				}
+				if(!CDataEngine::getDataEngine()->isHadBlock(qsName))
+				{
+					CDataEngine::getDataEngine()->setBlockInfoItem(new CBlockInfoItem(qsName,r));
+				}
+			}
+		}
+		eleNode = eleNode.nextSiblingElement("block");
+	}
+
+	QList<QString> listBlocks;
+	QDir dir(CDataEngine::getDataEngine()->getStockBlockDir());
+	QStringList listEntity = dir.entryList(QDir::Files);
+	foreach(const QString& qsName,listEntity)
+	{
+		if(!CDataEngine::getDataEngine()->isHadBlock(qsName))
+		{
+			CDataEngine::getDataEngine()->setBlockInfoItem(new CBlockInfoItem(qsName));
+		}
+	}
+
+	return CDataEngine::getDataEngine()->getStockBlocks().size();
+}
+
 
 int CDataEngine::exportBaseInfo( const QString& qsFile )
 {
@@ -503,7 +559,6 @@ CDataEngine::CDataEngine(void)
 	QDir().mkpath(m_qsBlocksDir);
 
 	m_qsCommonBlocks = qApp->applicationDirPath()+"/config/CommonBlocks.xml";
-	initCommonBlocks();
 
 	m_qsNewsDir = qApp->applicationDirPath()+"/data/news/";
 	QDir().mkpath(m_qsNewsDir);
@@ -526,77 +581,28 @@ CDataEngine::~CDataEngine(void)
 	}
 #endif // _DEBUG
 	m_mapStockInfos.clear();
-	m_listCommonBlocks.clear();
 }
 
-
-void CDataEngine::initCommonBlocks()
+QList<CBlockInfoItem*> CDataEngine::getStockBlocks()
 {
-	m_listCommonBlocks.clear();
-
-	QDomDocument doc("CommonBlocks");
-	QFile file(m_qsCommonBlocks);
-	if (!file.open(QIODevice::ReadOnly))
-		return;
-	if (!doc.setContent(&file)) {
-		file.close();
-		return;
-	}
-	file.close();
-
-	QDomElement eleRoot = doc.documentElement();
-	if(eleRoot.isNull())
-		return;
-	QDomElement eleNode = eleRoot.firstChildElement("block");
-	while(!eleNode.isNull())
-	{
-		QString qsName = eleNode.attribute("name");
-		if(!(qsName.isEmpty()||isBlockInCommon(qsName)))
-		{
-			QString qsRegexp = eleNode.text();
-			if(!qsRegexp.isEmpty())
-			{
-				QRegExp r(qsRegexp);
-				if(eleNode.hasAttribute("RegType"))
-				{
-					r.setPatternSyntax(static_cast<QRegExp::PatternSyntax>(eleNode.attribute("RegType").toInt()));
-				}
-				m_listCommonBlocks.push_back(QPair<QString,QRegExp>(qsName,r));
-			}
-		}
-		eleNode = eleNode.nextSiblingElement("block");
-	}
+	return m_mapBlockInfos.values();
 }
 
-QList<QString> CDataEngine::getStockBlocks()
+CBlockInfoItem* CDataEngine::getStockBlock( const QString& block )
 {
-	QList<QString> listBlocks;
-	QList<QPair<QString,QRegExp>>::iterator iter = m_listCommonBlocks.begin();
-	while(iter!=m_listCommonBlocks.end())
-	{
-		listBlocks.push_back(iter->first);
-		++iter;
-	}
-
-	QDir dir(m_qsBlocksDir);
-	QStringList listEntity = dir.entryList(QDir::Files);
-	foreach(const QString& e,listEntity)
-	{
-		if(!isBlockInCommon(e))
-		{
-			listBlocks.push_back(e);
-		}
-	}
-
-	return listBlocks;
+	if(m_mapBlockInfos.contains(block))
+		return m_mapBlockInfos[block];
+	return 0;
 }
 
 bool CDataEngine::isHadBlock( const QString& block )
 {
-	if(isBlockInCommon(block))
-		return true;
+	return m_mapBlockInfos.contains(block);
+}
 
-	return QFile::exists(m_qsBlocksDir+block);
+void CDataEngine::setBlockInfoItem( CBlockInfoItem* _p )
+{
+	m_mapBlockInfos[_p->getBlockName()] = _p;
 }
 
 QList<CStockInfoItem*> CDataEngine::getStocksByMarket( WORD wMarket )
@@ -613,124 +619,42 @@ QList<CStockInfoItem*> CDataEngine::getStocksByMarket( WORD wMarket )
 	return listStocks;
 }
 
-QList<CStockInfoItem*> CDataEngine::getStocksByBlock( const QString& block )
-{
-	QList<CStockInfoItem*> listStocks;
-	if(isBlockInCommon(block))
-	{
-		QRegExp r = getRegexpByBlock(block);
-		QMap<QString,CStockInfoItem*>::iterator iter = m_mapStockInfos.begin();
-		while(iter!=m_mapStockInfos.end())
-		{
-			if(r.exactMatch((*iter)->getCode()))
-			{
-				listStocks.push_back(*iter);
-			}
-			++iter;
-		}
-	}
-	else
-	{
-		QFile file(m_qsBlocksDir+block);
-		if(file.open(QFile::ReadOnly))
-		{
-			while(!file.atEnd())
-			{
-				QString code = file.readLine();
-				code = code.trimmed();
-				if((!code.isEmpty())&&(m_mapStockInfos.contains(code)))
-				{
-					listStocks.push_back(m_mapStockInfos[code]);
-				}
-			}
-			file.close();
-		}
-	}
-
-	return listStocks;
-}
-
-bool CDataEngine::appendStocksToBlock( const QString& block,QList<CStockInfoItem*> list )
-{
-	QStringList listCodes;
-	foreach(CStockInfoItem* pItem,list)
-		listCodes.push_back(pItem->getCode());
-
-	return appendStocksToBlock(block,listCodes);
-}
-
-bool CDataEngine::appendStocksToBlock( const QString& block,QList<QString> list )
-{
-	if(isBlockInCommon(block))
-		return false;
-	QFile file(m_qsBlocksDir+block);
-	if(!file.open(QFile::Append|QFile::WriteOnly))
-		return false;
-	foreach(const QString& e,list)
-	{
-		file.write(QString(e+"\r\n").toAscii());
-	}
-	file.close();
-
-	return true;
-}
-
-bool CDataEngine::removeStocksFromBlock( const QString& block,QList<CStockInfoItem*> list )
-{
-	QStringList listCodes;
-	foreach(CStockInfoItem* pItem,list)
-		listCodes.push_back(pItem->getCode());
-
-	return removeStocksFromBlock(block,listCodes);
-}
-
-bool CDataEngine::removeStocksFromBlock( const QString& block,QList<QString> list )
-{
-	if(isBlockInCommon(block))
-		return false;
-
-	QMap<QString,QString> mapStocks;
-	{
-		//读取文件中的股票代码
-		QFile file(m_qsBlocksDir+block);
-		if(!file.open(QFile::ReadOnly))
-			return false;
-
-		while(!file.atEnd())
-		{
-			QString code = file.readLine();
-			code = code.trimmed();
-			if((!code.isEmpty())&&(m_mapStockInfos.contains(code)))
-			{
-				mapStocks[code] = code;
-			}
-		}
-		file.close();
-	}
-	{
-		//删除对应的股票代码
-		foreach(const QString& e,list)
-		{
-			mapStocks.remove(e);
-		}
-	}
-	{
-		//重新写回去
-		QFile file(m_qsBlocksDir+block);
-		if(!file.open(QFile::Truncate|QFile::WriteOnly))
-			return false;
-
-		QMap<QString,QString>::iterator iter = mapStocks.begin();
-		while(iter!=mapStocks.end())
-		{
-			file.write(QString(iter.value()+"\r\n").toAscii());
-			++iter;
-		}
-		file.close();
-	}
-
-	return true;
-}
+//QList<CStockInfoItem*> CDataEngine::getStocksByBlock( const QString& block )
+//{
+//	QList<CStockInfoItem*> listStocks;
+//	if(isBlockInCommon(block))
+//	{
+//		QRegExp r = getRegexpByBlock(block);
+//		QMap<QString,CStockInfoItem*>::iterator iter = m_mapStockInfos.begin();
+//		while(iter!=m_mapStockInfos.end())
+//		{
+//			if(r.exactMatch((*iter)->getCode()))
+//			{
+//				listStocks.push_back(*iter);
+//			}
+//			++iter;
+//		}
+//	}
+//	else
+//	{
+//		QFile file(m_qsBlocksDir+block);
+//		if(file.open(QFile::ReadOnly))
+//		{
+//			while(!file.atEnd())
+//			{
+//				QString code = file.readLine();
+//				code = code.trimmed();
+//				if((!code.isEmpty())&&(m_mapStockInfos.contains(code)))
+//				{
+//					listStocks.push_back(m_mapStockInfos[code]);
+//				}
+//			}
+//			file.close();
+//		}
+//	}
+//
+//	return listStocks;
+//}
 
 
 void CDataEngine::appendNews( const QString& title, const QString& content )
@@ -940,31 +864,4 @@ bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, con
 
 	file.close();
 	return true;
-}
-
-
-bool CDataEngine::isBlockInCommon( const QString& block )
-{
-	QList<QPair<QString,QRegExp>>::iterator iter = m_listCommonBlocks.begin();
-	while(iter!=m_listCommonBlocks.end())
-	{
-		if(iter->first==block)
-			return true;
-		++iter;
-	}
-
-	return false;
-}
-
-QRegExp CDataEngine::getRegexpByBlock( const QString& block )
-{
-	QList<QPair<QString,QRegExp>>::iterator iter = m_listCommonBlocks.begin();
-	while(iter!=m_listCommonBlocks.end())
-	{
-		if(iter->first==block)
-			return iter->second;
-		++iter;
-	}
-
-	return QRegExp("*");
 }

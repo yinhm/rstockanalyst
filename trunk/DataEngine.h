@@ -2,6 +2,7 @@
 #define DATA_ENGINE_H
 
 #include "StockInfoItem.h"
+#include "BlockInfoItem.h"
 
 #define	R_TIME_ZONE	8
 
@@ -30,8 +31,8 @@ public:
 	static int importReportsInfo(const QString& qsFile);
 	/*导入分笔数据*/
 	static int importFenBisData(const QString& qsFile);
-	/*导入分笔数据*/
-	//static int importFenBisData(const QString& qsPath);
+	/*导入板块数据*/
+	static int importBlocksData(const QString& qsPath);
 
 
 
@@ -53,18 +54,15 @@ public:
 
 public:
 	QString getStockBlockDir() const{ return m_qsBlocksDir; }
+	QString getCommStockBlockFile() const{ return m_qsCommonBlocks; }
 
 public:
 	//获取板块数据
-	void initCommonBlocks();						//初始化常用板块分类
-	QList<QString> getStockBlocks();			//获取所有板块列表
+	QList<CBlockInfoItem*> getStockBlocks();	//获取所有板块列表
+	CBlockInfoItem* getStockBlock(const QString& block);		//通过板块名称获取板块
 	bool isHadBlock(const QString& block);		//是否存在某板块
+	void setBlockInfoItem(CBlockInfoItem* _p);						//设置板块数据
 	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表
-	QList<CStockInfoItem*> getStocksByBlock(const QString& block);	//根据板块获取股票列表
-	bool appendStocksToBlock(const QString& block,QList<CStockInfoItem*> list);		//向某一板块中添加股票
-	bool appendStocksToBlock(const QString& block,QList<QString> list);				//向某一板块中添加股票
-	bool removeStocksFromBlock(const QString& block,QList<CStockInfoItem*> list);	//从某一板块中删除股票
-	bool removeStocksFromBlock(const QString& block,QList<QString> list);			//从某一板块中删除股票
 
 	//新闻数据
 	void appendNews(const QString& title, const QString& content);		//添加新闻
@@ -88,11 +86,8 @@ public:
 	bool exportFenBiData(const QString& qsCode, const long& lDate, const QList<qRcvFenBiData*>& list);
 
 private:
-	bool isBlockInCommon(const QString&  block);
-	QRegExp getRegexpByBlock(const QString& block);
-
-private:
 	QMap<QString,CStockInfoItem*> m_mapStockInfos;
+	QMap<QString,CBlockInfoItem*> m_mapBlockInfos;
 
 private:
 	static CDataEngine* m_pDataEngine;
@@ -104,8 +99,6 @@ private:
 	QString m_qsNewsDir;						//新闻数据的存储路径 AppDir/data/news/...
 	QString m_qsF10Dir;							//F10数据的存储路径 AppDir/data/F10/...
 	QString m_qsFenBiDir;						//分笔数据的存储路径 AppDir/data/FenBi/Date/...
-
-	QList<QPair<QString,QRegExp>> m_listCommonBlocks;	//常用的股票板块；（上证A股、深圳指数……）
 };
 
 
