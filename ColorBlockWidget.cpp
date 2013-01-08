@@ -2,6 +2,7 @@
 #include "ColorBlockWidget.h"
 #include "DataEngine.h"
 #include "ColorManager.h"
+#include "BlockInfoItem.h"
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	50
 
@@ -442,7 +443,7 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 
 	//当前的板块名称
 	QDomElement eleBlock = doc.createElement("block");
-	eleBlock.appendChild(doc.createTextNode(m_qsBlock));
+	eleBlock.appendChild(doc.createTextNode(m_pBlock->getBlockName()));
 	eleWidget.appendChild(eleBlock);
 
 	//当前的颜色模式
@@ -462,8 +463,11 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 void CColorBlockWidget::setBlock( const QString& block )
 {
 	clearTmpData();
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(!pBlock)
+		return;
 
-	m_listStocks = CDataEngine::getDataEngine()->getStocksByBlock(block);
+	m_listStocks = pBlock->getStockList();
 	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
 	{
@@ -475,7 +479,7 @@ void CColorBlockWidget::setBlock( const QString& block )
 		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	}
 
-	m_qsBlock = block;
+	m_pBlock = pBlock;
 
 	if(m_listStocks.size()>0)
 	{
@@ -521,7 +525,7 @@ void CColorBlockWidget::onSetCircle()
 	//设置当前的显示周期
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 	m_typeCircle = static_cast<CoordXCircle>(pAct->data().toInt());
-	setBlock(m_qsBlock);
+	setBlock(m_pBlock->getBlockName());
 }
 
 void CColorBlockWidget::onSetColorMode()
@@ -883,12 +887,12 @@ QMenu* CColorBlockWidget::getCustomMenu()
 	{
 		//设置所有板块的菜单
 		m_pMenuBlockList->clear();
-		QList<QString> list = CDataEngine::getDataEngine()->getStockBlocks();
-		foreach(const QString& block,list)
+		QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getStockBlocks();
+		foreach(const CBlockInfoItem* block,list)
 		{
-			QAction* pAct = m_pMenuBlockList->addAction(block,this,SLOT(onSetCurrentBlock()));
-			pAct->setData(block);
-			if(m_qsBlock == block)
+			QAction* pAct = m_pMenuBlockList->addAction(block->getBlockName(),this,SLOT(onSetCurrentBlock()));
+			pAct->setData(block->getBlockName());
+			if(m_pBlock == block)
 			{
 				pAct->setCheckable(true);
 				pAct->setChecked(true);
@@ -907,7 +911,7 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 	p.drawRect(rtCoord);
 
 	p.setPen(QColor(255,255,255));
-	p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,m_qsBlock);
+	p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,m_pBlock->getBlockName());
 }
 
 void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
