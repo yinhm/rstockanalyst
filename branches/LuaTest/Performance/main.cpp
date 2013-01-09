@@ -31,6 +31,11 @@ static int my_lua_add(lua_State* _L)
 }
 
 
+static int my_c_add(int a,int b)
+{
+	return a+b;
+}
+
 int main(int argc, char *argv[])
 {
 	lua_CFunction pFun = &pppp;
@@ -43,35 +48,43 @@ int main(int argc, char *argv[])
 //	lua_pushlightuserdata(L,&qsTitle);
 //	lua_setglobal(L,"QString");
 //	luaL_dostring(L,"print(\"Lua worked!!!\\r\\n\")");
+	luaL_dostring(L,"\
+					function PAdd(a,b)\
+						return a+b\
+					end\
+		");
 	QTime tmBegin = QTime::currentTime();
 	luaL_dostring(L,"\
-	local sum=0\
-	for cnt=1, 10000000, 1 do\
-		sum = RAdd(sum,1)\
-	end\
-	return sum\
-		");
-	int j = lua_tointeger(L,-1);
-	//luaL_error(L,aaa);
-	qDebug()<<"result:"<<j<<"\tuse time:"<<QTime::currentTime().msecsTo(tmBegin)<<"ms(lua with c++)";
-	tmBegin = QTime::currentTime();
-	luaL_dostring(L,"\
-	local sum=0\
-	for cnt=1, 10000000, 1 do\
-		sum = sum + 1\
-	end\
-	return sum\
-		");
+					local sum=0\
+					for cnt=1, 10000000, 1 do\
+					sum = PAdd(sum,1)\
+					end\
+					return sum\
+					");
 	int i = lua_tointeger(L,-1);
 	//luaL_error(L,aaa);
 	qDebug()<<"result:"<<i<<"\tuse time:"<<QTime::currentTime().msecsTo(tmBegin)<<"ms(only lua)";
-	
 	tmBegin = QTime::currentTime();
-	qint64 sum = 0;
-	for(qint64 i=0;i<10000000;++i)
-		sum = sum + 1;
+	luaL_dostring(L,"\
+					local sum=0\
+					for cnt=1, 10000000, 1 do\
+					sum = RAdd(sum,1)\
+					end\
+					return sum\
+					");
+	int j = lua_tointeger(L,-1);
+	//luaL_error(L,aaa);
+	qDebug()<<"result:"<<j<<"\tuse time:"<<QTime::currentTime().msecsTo(tmBegin)<<"ms(lua with c++)";
+
+	tmBegin = QTime::currentTime();
+	qint32 sum = 0;
+	for(qint32 i=0;i<10000000;++i)
+		sum = my_c_add(sum,1);
 	qDebug()<<"result:"<<sum<<"\tuse time:"<<QTime::currentTime().msecsTo(tmBegin)<<"ms(only c++)";
 
 	lua_close(L);
 	return 0;
 }
+
+
+//验证结果：lua的效率完全可以满足要求！！！
