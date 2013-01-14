@@ -9,7 +9,7 @@
 
 #ifndef COLOR_BLOCK_WIDGET_H
 #define COLOR_BLOCK_WIDGET_H
-#include "CoordXBaseWidget.h"
+#include "BaseBlockWidget.h"
 #include "StockInfoItem.h"
 #include "BlockInfoItem.h"
 
@@ -25,15 +25,9 @@ struct stColorBlockItem
 	}
 };
 
-class CColorBlockWidget : public CCoordXBaseWidget
+class CColorBlockWidget : public CBaseBlockWidget
 {
 	Q_OBJECT
-public:
-	enum BlockMode
-	{
-		BlockCircle = 1,		//圆形
-		BlockRect,				//方块
-	};
 public:
 	CColorBlockWidget(CBaseWidget* parent = 0);
 	~CColorBlockWidget(void);
@@ -44,19 +38,15 @@ public:
 	//保存该K线图的配置信息
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
+	//更新数据
+	virtual void updateData();
 
 public slots:
 	virtual void setBlock(const QString& block);
 	virtual void updateStock(const QString& code);			//更新某只股票的显示
-	void setColorMode(const QString& mode);					//设置颜色模式
 
 protected slots:
-	void onSetCircle();										//设置当前的显示周期
-	void onSetColorMode();									//点击设置颜色模式
-	void onSetBlockMode();									//设置当前的显示模式
-	void onSetBlockSize();									//设置色块的大小
 	void onSetCurrentBlock();								//设置当前显示的板块
-
 	void updateColorBlockData();							//更新当前需要显示的数据
 
 private:
@@ -89,10 +79,6 @@ private:
 	QMap<time_t,stColorBlockItem>* getColorBlockMap(CStockInfoItem* pItem);
 
 private:
-	QMenu* m_pMenuCustom;					//自定义菜单
-	QMenu* m_pMenuCircle;					//周期设置菜单
-	QMenu* m_pMenuColorMode;				//颜色模式菜单
-	QMenu* m_pMenuBlockMode;				//显示模式菜单
 	QMenu* m_pMenuBlockList;				//所有板块信息（当前选中的板块上打勾）
 
 	CBlockInfoItem* m_pBlock;						//当前的板块名称
@@ -102,16 +88,11 @@ private:
 	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*> mapStockColorBlocks;	//当前显示的ColorBlock数据
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
-	QString m_qsColorMode;						//当前颜色模式
-
 	/*用于绘制操作的成员变量*/
 private:
 	int m_iTitleHeight;						//头部高度
-	int m_iCBHeight;						//单个色块的高度
-	int m_iCBWidth;							//单个色块的宽度
 	int m_iBottomHeight;					//底部的高度
 	int showStockIndex;						//当前显示的起始位置（列）
-	BlockMode m_typeBlock;					//block显示形状
 
 	QRect m_rtHeader;						//头部Header区域
 	QRect m_rtClient;						//实际色块绘制区域
