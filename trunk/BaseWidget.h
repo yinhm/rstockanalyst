@@ -18,7 +18,8 @@ public:
 		Basic = 0,				//基础图
 		KLine,					//K线图
 		MarketTrend,			//市场行情图
-		ColorBlock,				//色块图
+		StockColorBlock,		//股票的色块图
+		BColorBlock,			//板块的色块图
 		StockInfo,				//单只股票的行情信息
 	};
 public:

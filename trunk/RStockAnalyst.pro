@@ -24,7 +24,7 @@ HEADERS += StdAfx.h StockDrv.h STKDRV.h MainWindow.h \
 			MarketTrendWidget.h ColorBlockWidget.h BaseLiner.h \
 			ColorManager.h BlockColorSettingDlg.h StockInfoWidget.h \
 			SplashDlg.h CoordXBaseWidget.h BColorBlockWidget.h \
-			BlockInfoItem.h resource.h
+			BlockInfoItem.h resource.h BaseBlockWidget.h
 
 SOURCES += main.cpp STKDRV.cpp MainWindow.cpp \
 			DataEngine.cpp StockInfoItem.cpp \
@@ -32,7 +32,7 @@ SOURCES += main.cpp STKDRV.cpp MainWindow.cpp \
 			MarketTrendWidget.cpp ColorBlockWidget.cpp BaseLiner.cpp \
 			ColorManager.cpp BlockColorSettingDlg.cpp StockInfoWidget.cpp \
 			SplashDlg.cpp CoordXBaseWidget.cpp BColorBlockWidget.cpp \
-			BlockInfoItem.cpp
+			BlockInfoItem.cpp BaseBlockWidget.cpp
 
 
 RESOURCES += RStockAnalyst.qrc
