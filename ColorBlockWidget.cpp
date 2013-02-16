@@ -331,6 +331,7 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iBottomHeight(16)
 	, showStockIndex(0)
 	, m_pSelectedStock(0)
+	, m_pBlock(0)
 {
 	//设置当前显示的板块
 	m_pMenuBlockList = m_pMenuCustom->addMenu(tr("设置当前板块"));
@@ -711,6 +712,8 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 	p.drawRect(rtCoord);
 
 	p.setPen(QColor(255,255,255));
+	if(!m_pBlock)
+		return;
 	p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,m_pBlock->getBlockName());
 }
 
