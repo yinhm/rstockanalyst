@@ -99,6 +99,8 @@ bool CBaseBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	{
 		m_typeBlock = static_cast<CBaseBlockWidget::BlockMode>(eleBlockMode.text().toInt());
 	}
+	
+	return true;
 }
 
 bool CBaseBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
