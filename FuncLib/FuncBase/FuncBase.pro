@@ -1,5 +1,6 @@
 TARGET = FuncBase
 TEMPLATE = lib
+DESTDIR = "../Dll"
 
 CONFIG += qt debug_and_release
 

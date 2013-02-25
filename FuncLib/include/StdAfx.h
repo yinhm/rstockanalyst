@@ -13,6 +13,7 @@
 #include <limits>
 #include <Windows.h>
 
+#include "FuncDefine.h"
 
 #define	FLOAT_NAN	(std::numeric_limits<float>::quiet_NaN())
 
