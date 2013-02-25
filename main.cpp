@@ -7,11 +7,47 @@
 #include "ColorManager.h"
 #include "KLineWidget.h"
 #include "SplashDlg.h"
+extern "C"
+{
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+};
 
+int loadAllFunc()
+{
+	int iDllCount = 0;
+	QDir dirFunc(qApp->applicationDirPath() + "/../../FuncLib/Dll/");
+	QFileInfoList list = dirFunc.entryInfoList(QStringList()<<"*.dll");
+	foreach (const QFileInfo& v,list)
+	{
+		HINSTANCE hDll = LoadLibrary(v.absoluteFilePath().toStdWString().data());
+		if(hDll)
+		{
+			qDebug()<<"Load form "<<v.absoluteFilePath();
+			int (WINAPI* pfnALlFuncs)(QMap<QString,lua_CFunction>&)= NULL;
+			pfnALlFuncs = \
+				(int(WINAPI *)(QMap<QString,lua_CFunction>&)) GetProcAddress(hDll,"ExportAllFuncs");
+			if(pfnALlFuncs)
+			{
+				QMap<QString,lua_CFunction> _funcs;
+				(*pfnALlFuncs)(_funcs);
+				qDebug()<<"Func Num:"<<_funcs.size();
+			}
+			else
+			{
+				qDebug()<<"Load Dll Error!";
+			}
+		}
+	}
+
+	return iDllCount;
+}
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+	loadAllFunc();
 
 	QTextCodec::setCodecForLocale(QTextCodec::codecForName("GB2312"));
 	QTextCodec::setCodecForTr(QTextCodec::codecForName("GB2312"));
