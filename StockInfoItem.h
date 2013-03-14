@@ -284,7 +284,7 @@ struct qRcvFenBiData
 
 #pragma   pack(pop)					//去除内存对齐方式设置
 
-class CStockInfoItem : public QObject
+class Q_DECL_EXPORT CStockInfoItem : public QObject
 {
 	Q_OBJECT
 public:
