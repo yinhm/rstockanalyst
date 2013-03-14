@@ -1,5 +1,6 @@
 TARGET = RStockAnalyst
 TEMPLATE = app
+DESTDIR = "../bin"
 
 CONFIG += qt debug_and_release
 CONFIG(debug,debug|release) {
@@ -36,8 +37,8 @@ SOURCES += main.cpp MainWindow.cpp \
 RESOURCES += RStockAnalyst.qrc
 RC_FILE = RStockAnalyst.rc
 
-INCLUDEPATH += "../branches/lua-5.2.1/include/"  "../include/" "../RStockData"
+INCLUDEPATH += "../branches/lua-5.2.1/include/" "../RStockData"
 LIBS += -L"../branches/lua-5.2.1/lib/"
-LIBS += -L"../LIBS/"
+LIBS += -L"../bin/"
 LIBS += -llua52
 LIBS += -lRStockData

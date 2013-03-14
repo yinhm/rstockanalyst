@@ -1,6 +1,6 @@
 TARGET = FuncBase
 TEMPLATE = lib
-DESTDIR = "../Dll"
+DESTDIR = "../../bin/plugin"
 
 CONFIG += qt debug_and_release
 
@@ -18,6 +18,6 @@ SOURCES += FuncBase.cpp
 
 INCLUDEPATH += "../../branches/lua-5.2.1/include/" "../include/" "../../RStockData"
 LIBS += -L"../../branches/lua-5.2.1/lib/"
-LIBS += -L"../../LIBS/"
+LIBS += -L"../../bin/"
 LIBS += -llua52
 LIBS += -lRStockData

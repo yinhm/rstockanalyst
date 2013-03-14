@@ -1,6 +1,6 @@
 TARGET = RStockData
 TEMPLATE = lib
-DESTDIR = "../LIBS"
+DESTDIR = "../bin"
 DEFINES += RSD_LIBRARY
 
 CONFIG += qt debug_and_release
