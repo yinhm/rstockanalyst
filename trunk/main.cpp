@@ -17,7 +17,7 @@ extern "C"
 int loadAllFunc()
 {
 	int iDllCount = 0;
-	QDir dirFunc(qApp->applicationDirPath() + "/../../FuncLib/Dll/");
+	QDir dirFunc(qApp->applicationDirPath() + "/plugin/");
 	QFileInfoList list = dirFunc.entryInfoList(QStringList()<<"*.dll");
 	foreach (const QFileInfo& v,list)
 	{
