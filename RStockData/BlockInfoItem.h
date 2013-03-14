@@ -8,8 +8,9 @@
 #define BLOCK_INFO_ITEM_H
 #include <QtCore>
 #include "StockInfoItem.h"
+#include "rsd_global.h"
 
-class Q_DECL_EXPORT CBlockInfoItem : public QObject
+class RSDSHARED_EXPORT CBlockInfoItem : public QObject
 {
 	Q_OBJECT
 public:

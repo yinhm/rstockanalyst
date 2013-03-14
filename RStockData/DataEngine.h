@@ -3,10 +3,11 @@
 
 #include "StockInfoItem.h"
 #include "BlockInfoItem.h"
+#include "rsd_global.h"
 
 #define	R_TIME_ZONE	8
 
-class Q_DECL_EXPORT CDataEngine : public QObject
+class RSDSHARED_EXPORT CDataEngine : public QObject
 {
 	Q_OBJECT
 public:

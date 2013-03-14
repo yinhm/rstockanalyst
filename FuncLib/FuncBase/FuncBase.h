@@ -4,7 +4,20 @@
 /*
 /* 描    述：函数扩展库，实现了基本的函数计算
 /************************************************************************/
+#include <QtCore>
+#include "StockInfoItem.h"
 
 extern "C"{_declspec(dllexport) int ExportAllFuncs(QMap<QString,lua_CFunction>& mapFuncs);}
 
 static int my_lua_add(lua_State* _L);
+
+class CTestClass : public QObject
+{
+	Q_OBJECT
+public:
+	CTestClass(){}
+	~CTestClass(){}
+
+public slots:
+	void sss(){}
+};

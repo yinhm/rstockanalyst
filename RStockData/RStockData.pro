@@ -1,6 +1,7 @@
 TARGET = RStockData
 TEMPLATE = lib
-DEFINES += QWT_DLL
+DESTDIR = "../LIBS"
+DEFINES += RSD_LIBRARY
 
 CONFIG += qt debug_and_release
 
@@ -12,7 +13,7 @@ PRECOMPILED_HEADER = StdAfx.h
 
 HEADERS += StdAfx.h StockDrv.h STKDRV.h\
 			DataEngine.h StockInfoItem.h \
-			BlockInfoItem.h
+			BlockInfoItem.h rsd_global.h
 
 SOURCES += STKDRV.cpp \
 			DataEngine.cpp StockInfoItem.cpp \

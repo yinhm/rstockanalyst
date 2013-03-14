@@ -7,6 +7,7 @@
 #ifndef STOCK_INFO_ITEM_H
 #define STOCK_INFO_ITEM_H
 #include <QtCore>
+#include "rsd_global.h"
 
 #pragma   pack(push,1)					//设置内存对齐方式为 1字节
 
@@ -284,7 +285,7 @@ struct qRcvFenBiData
 
 #pragma   pack(pop)					//去除内存对齐方式设置
 
-class Q_DECL_EXPORT CStockInfoItem : public QObject
+class RSDSHARED_EXPORT CStockInfoItem : public QObject
 {
 	Q_OBJECT
 public:
