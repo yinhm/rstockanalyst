@@ -3,6 +3,10 @@
 int ExportAllFuncs(QMap<QString,lua_CFunction>& mapFuncs)
 {
 	mapFuncs.insert("RAdd",&my_lua_add);
+
+	CStockInfoItem* pItem = new CStockInfoItem("aaa",1);
+
+
 	return mapFuncs.size();
 }
 

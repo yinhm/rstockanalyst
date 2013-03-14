@@ -1,4 +1,7 @@
 #include <QtCore>
+#include "StockDrv.h"
+#include "StockInfoItem.h"
+
 extern "C"
 {
 #include "lua.h"
