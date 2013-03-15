@@ -8,15 +8,15 @@ QT += core \
     gui 
 	
 
-PRECOMPILED_HEADER = ../include/StdAfx.h
+PRECOMPILED_HEADER = ../../include/CommonDefine.h
 
 
-HEADERS += ../include/StdAfx.h FuncBase.h
+HEADERS += ../../include/CommonDefine.h FuncBase.h
 
 SOURCES += FuncBase.cpp
 
 
-INCLUDEPATH += "../../branches/lua-5.2.1/include/" "../include/" "../../RStockData"
+INCLUDEPATH += "../../branches/lua-5.2.1/include/" "../../include/"
 LIBS += -L"../../branches/lua-5.2.1/lib/"
 LIBS += -L"../../bin/"
 LIBS += -llua52
