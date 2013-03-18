@@ -1,8 +1,11 @@
 Array=
 {
 	__add=function(op1,op2)
-		op = {}
-		if(type(op2) == "table") then
+		local op = {}
+		local _t1 = type(op1)
+		local _t2 = type(op2)
+		
+		if(_t2 == "table") then
 			local c = #(op2)
 			for i=1, #(op1) do
 				if(i<=c) then
@@ -11,7 +14,7 @@ Array=
 					op[i] = op1[i]
 				end
 			end
-		elseif(type(op2) == "number") then
+		elseif(_t2 == "number") then
 			for i=1, #(op1) do
 				op[i] = op1[i]+op2
 			end
@@ -24,8 +27,11 @@ Array=
 	end,
 	
 	__mul=function(op1,op2)
-		op={}
-		if(type(op2) == "table") then
+		local op={}
+		local _t1 = type(op1)
+		local _t2 = type(op2)
+		
+		if(_t2 == "table") then
 			local c = #(op2)
 			for i=1, #(op1) do
 				if(i<=c) then
@@ -34,7 +40,7 @@ Array=
 					op[i] = 0
 				end
 			end
-		elseif(type(op2) == "number") then
+		elseif(_t2 == "number") then
 			for i=1, #(op1) do
 				op[i] = op1[i]*op2
 			end
@@ -59,3 +65,5 @@ c = a + b
 print(table.concat(c,"\t"))
 d=c*b
 print(table.concat(d,"\t"))
+
+--print(#(op1))		-- no
