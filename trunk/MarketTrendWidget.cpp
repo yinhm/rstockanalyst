@@ -51,6 +51,7 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 
 CMarketTrendWidget::~CMarketTrendWidget(void)
 {
+	m_pSelectedStock = 0;
 	clearTmpData();
 	delete m_pMenuCustom;
 }
@@ -104,6 +105,10 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 {
 	clearTmpData();
 	m_listStocks = list;
+	if(!list.contains(m_pSelectedStock))
+	{
+		m_pSelectedStock = 0;
+	}
 	//showHeaderIndex = 0;
 	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
@@ -124,6 +129,15 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 
 void CMarketTrendWidget::stockInfoChanged( const QString& code )
 {
+	if(m_iSortColumn>2)
+	{
+		static QTime tmLast = QTime::currentTime();
+		if(tmLast.secsTo(QTime::currentTime())>2)
+		{
+			resortStocks();
+			tmLast = QTime::currentTime();
+		}
+	}
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 	update(rectOfStock(pItem));
 }
@@ -205,8 +219,6 @@ void CMarketTrendWidget::onRemoveStock()
 
 void CMarketTrendWidget::clearTmpData()
 {
-	m_pSelectedStock = 0;
-
 	//disconnect(this,SLOT(stockInfoChanged(const QString&)));
 	foreach(CStockInfoItem* pItem,m_listStocks)
 	{

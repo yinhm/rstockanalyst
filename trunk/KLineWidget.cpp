@@ -1160,7 +1160,7 @@ void CKLineWidget::clearTmpData()
 
 void CKLineWidget::resetTmpData()
 {
-	if(m_iShowCount<1)
+	if(m_iShowCount<50)
 		m_iShowCount = 100;
 	clearTmpData();
 	if(m_typeCircle<Day)
