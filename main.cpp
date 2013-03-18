@@ -7,12 +7,9 @@
 #include "ColorManager.h"
 #include "KLineWidget.h"
 #include "SplashDlg.h"
-extern "C"
-{
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-};
+
+lua_State* g_Lua = 0;
+
 
 int loadAllFunc()
 {
@@ -32,7 +29,15 @@ int loadAllFunc()
 			{
 				QMap<QString,lua_CFunction> _funcs;
 				(*pfnALlFuncs)(_funcs);
-				qDebug()<<"Func Num:"<<_funcs.size();
+
+				qDebug()<<"Load funcs from\""<<v.baseName()<<"\":";
+				QMap<QString,lua_CFunction>::iterator iter = _funcs.begin();
+				while(iter!=_funcs.end())
+				{
+					lua_register(g_Lua,iter.key().toAscii(),iter.value());
+					qDebug()<<iter.key();
+					++iter;
+				}
 			}
 			else
 			{
@@ -47,7 +52,9 @@ int loadAllFunc()
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+	g_Lua = luaL_newstate();			//ÊµÀý»¯Lua
 	loadAllFunc();
+
 
 	QTextCodec::setCodecForLocale(QTextCodec::codecForName("GB2312"));
 	QTextCodec::setCodecForTr(QTextCodec::codecForName("GB2312"));
