@@ -15,6 +15,12 @@
 
 #include "StockDrv.h"
 
+extern "C"
+{
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+};
 
 #define	FLOAT_NAN	(std::numeric_limits<float>::quiet_NaN())
 
