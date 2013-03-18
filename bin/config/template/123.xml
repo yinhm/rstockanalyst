@@ -1,0 +1,19 @@
+<!DOCTYPE template>
+<ROOT title="123">
+ <widget>
+  <name></name>
+  <type>0</type>
+  <relate>1</relate>
+  <align>1</align>
+  <size>100</size>
+  <widget>
+   <name></name>
+   <type>2</type>
+   <relate>1</relate>
+   <align>1</align>
+   <size>100</size>
+   <block>上海A股</block>
+   <stock>600110</stock>
+  </widget>
+ </widget>
+</ROOT>
