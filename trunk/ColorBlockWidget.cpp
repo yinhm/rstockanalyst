@@ -3,32 +3,40 @@
 #include "DataEngine.h"
 #include "ColorManager.h"
 #include "BlockInfoItem.h"
+#include "RLuaEx.h"
+
+
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	50
 
 /* 对某分钟的数据进行转换 (qRcvMinuteData*) -> (stColorBlockItem) */
-bool getColorBlockItemByMin(stColorBlockItem& item, qRcvFenBiData* pMin)
+bool getColorBlockItemByMin(RStockData& item, qRcvFenBiData* pMin)
 {
 	if(!pMin)
 		return false;
 
 	item.tmTime = pMin->tmTime;
+	item.fOpen = pMin->fPrice;
+	item.fHigh = pMin->fPrice;
+	item.fLow = pMin->fPrice;
+	item.fClose = pMin->fPrice;
 	item.fAmount = pMin->fAmount;
-	item.fPrice = pMin->fPrice;
 	item.fVolume = pMin->fVolume;
 	return true;
 }
 
 /*通过分钟数据获取指定周期内的数据*/
-bool getColorBlockItemByMins(stColorBlockItem& item, const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
+bool getColorBlockItemByMins(RStockData& item, const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
 {
 	if(list.size()<1)
 		return false;
 
 //	qRcvFenBiData* pBegin = list.first();
 	qRcvFenBiData* pLast = list.last();
-	item.tmTime = pLast->tmTime;
-	item.fPrice = pLast->fPrice;
+	qRcvFenBiData* pFirst = list.first();
+	item.tmTime = pFirst->tmTime;
+	item.fOpen = pFirst->fPrice;
+	item.fClose = pLast->fPrice;
 
 	if(pLastFenbi)
 	{
@@ -41,10 +49,17 @@ bool getColorBlockItemByMins(stColorBlockItem& item, const QList<qRcvFenBiData*>
 		item.fVolume = pLast->fVolume;
 	}
 
+	foreach(qRcvFenBiData* p,list)
+	{
+		if(item.fLow>p->fPrice)
+			item.fLow = p->fPrice;
+		if(item.fHigh<p->fPrice)
+			item.fHigh = p->fPrice;
+	}
 	return true;
 }
 
-int getColorBlockMinItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
+int getColorBlockMinItems(QMap<time_t,RStockData>* pMap,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
 {
 	QList<qRcvFenBiData*> listMins;
 	time_t tmT = 0;
@@ -53,7 +68,7 @@ int getColorBlockMinItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvFe
 	{
 		if((p->tmTime-tmT)>(iSize))
 		{
-			stColorBlockItem item;
+			RStockData item;
 			if(getColorBlockItemByMins(item,listMins,pLastFenbi))
 			{
 //				QString qsTime = QDateTime::fromTime_t(item.tmTime).toString("hh:mm:ss");
@@ -71,7 +86,7 @@ int getColorBlockMinItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvFe
 	
 	{
 		//最后的数据
-		stColorBlockItem item;
+		RStockData item;
 		if(getColorBlockItemByMins(item,listMins,pLastFenbi))
 			pMap->insert(item.tmTime,item);
 		listMins.clear();
@@ -82,42 +97,48 @@ int getColorBlockMinItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvFe
 }
 
 /* 对某天的数据进行转换 (qRcvHistoryData*) -> (stColorBlockItem) */
-bool getColorBlockItemByDay(stColorBlockItem& item,const qRcvHistoryData* pHistory)
+bool getColorBlockItemByDay(RStockData& item,const qRcvHistoryData* pHistory)
 {
 	if(!pHistory)
 		return false;
-	item.tmTime = pHistory->time;
-	item.fPrice = pHistory->fClose;
-	item.fAmount = pHistory->fAmount;
-	item.fVolume = pHistory->fVolume;
+
+	memcpy(&item,&pHistory,sizeof(tagRStockData));
 	return true;
 }
 /*通过多天数据获取一个周期内的数据*/
-bool getColorBlockItemByDays(stColorBlockItem& item,const QList<qRcvHistoryData*>& list)
+bool getColorBlockItemByDays(RStockData& item,const QList<qRcvHistoryData*>& list)
 {
 	if(list.size()<1)
 		return false;
 
-	qRcvHistoryData* pBegin = list.first();
+	qRcvHistoryData* pFirst = list.first();
 	qRcvHistoryData* pLast = list.last();
-	item.tmTime = pBegin->time;
-	item.fPrice = pLast->fClose;
+	item.tmTime = pFirst->time;
+	item.fOpen = pFirst->fOpen;
+	item.fClose = pLast->fClose;
 
+
+	item.fLow = 0;
+	item.fHigh = 0;
 	item.fAmount = 0;
 	item.fVolume = 0;
 	foreach(qRcvHistoryData* p,list)
 	{
+		if(item.fLow>p->fLow)
+			item.fLow = p->fLow;
+		if(item.fHigh<p->fHigh)
+			item.fHigh = p->fHigh;
 		item.fAmount+=p->fAmount;
 		item.fVolume+=p->fVolume;
 	}
 	return true;
 }
 
-int getColorBlockDayItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
+int getColorBlockDayItems(QMap<time_t,RStockData>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	foreach(qRcvHistoryData* p,historys)
 	{
-		stColorBlockItem item;
+		RStockData item;
 		if(getColorBlockItemByDay(item,p))
 			pMap->insert(item.tmTime,item);
 	}
@@ -125,7 +146,7 @@ int getColorBlockDayItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHi
 	return pMap->size();
 }
 
-int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
+int getColorBlockWeekItems(QMap<time_t,RStockData>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -148,7 +169,7 @@ int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 		{
 			if(tmDate.weekNumber(&iCurYear)!=iCurWeek)
 			{
-				stColorBlockItem item;
+				RStockData item;
 				getColorBlockItemByDays(item,weekHis);
 				pMap->insert(item.tmTime,item);
 				weekHis.clear();
@@ -160,7 +181,7 @@ int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 		{
 			iCurWeek = tmDate.weekNumber();
 
-			stColorBlockItem item;
+			RStockData item;
 			getColorBlockItemByDays(item,weekHis);
 			pMap->insert(item.tmTime,item);
 			weekHis.clear();
@@ -171,7 +192,7 @@ int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 	if(weekHis.size()>0)
 	{
 		//最后剩余的也补上
-		stColorBlockItem item;
+		RStockData item;
 		getColorBlockItemByDays(item,weekHis);
 		pMap->insert(item.tmTime,item);
 		weekHis.clear();
@@ -179,7 +200,7 @@ int getColorBlockWeekItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 	return pMap->size();
 }
 
-int getColorBlockMonthItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
+int getColorBlockMonthItems(QMap<time_t,RStockData>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -202,7 +223,7 @@ int getColorBlockMonthItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcv
 			iCurYear = tmDate.year();
 			iCurMonth = tmDate.month();
 			{
-				stColorBlockItem item;
+				RStockData item;
 				getColorBlockItemByDays(item,monthHis);
 				pMap->insert(item.tmTime,item);
 				monthHis.clear();
@@ -212,7 +233,7 @@ int getColorBlockMonthItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcv
 		{
 			iCurMonth = tmDate.month();
 
-			stColorBlockItem item;
+			RStockData item;
 			getColorBlockItemByDays(item,monthHis);
 			pMap->insert(item.tmTime,item);
 			monthHis.clear();
@@ -223,7 +244,7 @@ int getColorBlockMonthItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcv
 	if(monthHis.size()>0)
 	{
 		//最后剩余的也补上
-		stColorBlockItem item;
+		RStockData item;
 		getColorBlockItemByDays(item,monthHis);
 		pMap->insert(item.tmTime,item);
 		monthHis.clear();
@@ -231,7 +252,7 @@ int getColorBlockMonthItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcv
 	return pMap->size();
 }
 
-int getColorBlockMonth3Items(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
+int getColorBlockMonth3Items(QMap<time_t,RStockData>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -254,7 +275,7 @@ int getColorBlockMonth3Items(QMap<time_t,stColorBlockItem>* pMap,const QList<qRc
 			iCurYear = tmDate.year();
 			iCurMonth = tmDate.month();
 			{
-				stColorBlockItem item;
+				RStockData item;
 				getColorBlockItemByDays(item,monthHis);
 				pMap->insert(item.tmTime,item);
 				monthHis.clear();
@@ -264,7 +285,7 @@ int getColorBlockMonth3Items(QMap<time_t,stColorBlockItem>* pMap,const QList<qRc
 		{
 			iCurMonth = tmDate.month();
 
-			stColorBlockItem item;
+			RStockData item;
 			getColorBlockItemByDays(item,monthHis);
 			pMap->insert(item.tmTime,item);
 			monthHis.clear();
@@ -275,7 +296,7 @@ int getColorBlockMonth3Items(QMap<time_t,stColorBlockItem>* pMap,const QList<qRc
 	if(monthHis.size()>0)
 	{
 		//最后剩余的也补上
-		stColorBlockItem item;
+		RStockData item;
 		getColorBlockItemByDays(item,monthHis);
 		pMap->insert(item.tmTime,item);
 		monthHis.clear();
@@ -283,7 +304,7 @@ int getColorBlockMonth3Items(QMap<time_t,stColorBlockItem>* pMap,const QList<qRc
 	return pMap->size();
 }
 
-int getColorBlockYearItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvHistoryData*>& historys)
+int getColorBlockYearItems(QMap<time_t,RStockData>* pMap,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -303,7 +324,7 @@ int getColorBlockYearItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 		{
 			iCurYear = tmDate.year();
 			{
-				stColorBlockItem item;
+				RStockData item;
 				getColorBlockItemByDays(item,monthHis);
 				pMap->insert(item.tmTime,item);
 				monthHis.clear();
@@ -315,7 +336,7 @@ int getColorBlockYearItems(QMap<time_t,stColorBlockItem>* pMap,const QList<qRcvH
 	if(monthHis.size()>0)
 	{
 		//最后剩余的也补上
-		stColorBlockItem item;
+		RStockData item;
 		getColorBlockItemByDays(item,monthHis);
 		pMap->insert(item.tmTime,item);
 		monthHis.clear();
@@ -415,7 +436,7 @@ void CColorBlockWidget::updateStock( const QString& code )
 	if(mapStockColorBlocks.contains(pItem))
 	{
 		//更新数据
-		QMap<time_t,stColorBlockItem>* pMap = mapStockColorBlocks[pItem];
+		QMap<time_t,RStockData>* pMap = mapStockColorBlocks[pItem];
 		mapStockColorBlocks[pItem] = 0;
 		delete pMap;
 		mapStockColorBlocks[pItem] = getColorBlockMap(pItem);
@@ -488,7 +509,7 @@ void CColorBlockWidget::clearTmpData()
 	m_pSelectedStock = 0;
 	m_listStocks.clear();
 
-	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*>::iterator iter = mapStockColorBlocks.begin();
+	QMap<CStockInfoItem*,QMap<time_t,RStockData>*>::iterator iter = mapStockColorBlocks.begin();
 	while(iter!=mapStockColorBlocks.end())
 	{
 		delete iter.value();
@@ -533,8 +554,8 @@ void CColorBlockWidget::paintEvent( QPaintEvent* )
 void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 {
 	CStockInfoItem* pStock = hitTestStock(e->pos());
-	stColorBlockItem item = hitTestCBItem(e->pos());
-	if(item.fPrice<0.1 || pStock==0)
+	RStockData item = hitTestCBItem(e->pos());
+	if(item.fClose<0.1 || pStock==0)
 	{
 		QToolTip::hideText();
 		return CBaseWidget::mouseMoveEvent(e);
@@ -545,7 +566,7 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 	{
 		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
 			.arg(pStock->getName()).arg(QDateTime::fromTime_t(item.tmTime).toString("hh:mm:ss"))
-			.arg(item.fPrice);
+			.arg(item.fClose);
 	}
 	else
 	{
@@ -564,7 +585,7 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 
 		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
 			.arg(pStock->getName()).arg(qsTime)
-			.arg(item.fPrice);
+			.arg(item.fClose);
 	}
 
 	QToolTip::showText(e->globalPos(),qsTooltip,this);
@@ -778,8 +799,31 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	if(!mapStockColorBlocks.contains(pItem))
 		return;
 
-	QMap<time_t,stColorBlockItem>* pMapCBs = mapStockColorBlocks[pItem];
-	QMap<time_t,stColorBlockItem>::iterator iter = pMapCBs->begin();
+	QMap<time_t,RStockData>* pMapCBs = mapStockColorBlocks[pItem];
+	RCalcInfo calc;
+	RDrawInfo draw;
+	{
+		calc.dwVersion = RSTOCK_VER;
+		calc.emCircle = m_typeCircle;
+		calc.mapData = pMapCBs;
+		calc.mapDataEx = NULL;
+		calc.pItem = pItem;
+
+		draw.dwVersion = RSTOCK_VER;
+		draw.pPainter = &p;
+		draw.rtClient = rtCB;
+	}
+	lua_pushlightuserdata(m_pL,&calc);
+	lua_setglobal(m_pL,"_calc");
+
+	lua_pushlightuserdata(m_pL,&draw);
+	lua_setglobal(m_pL,"_draw");
+
+	luaL_dostring(m_pL,"return HIGH()");
+//	QString sss = lua_tostring(m_pL,-1);
+
+
+	QMap<time_t,RStockData>::iterator iter = pMapCBs->begin();
 	float fLastPrice = pItem->getCurrentReport()->fLastClose;
 	while(iter!=pMapCBs->end())
 	{
@@ -794,7 +838,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 				if(fCurX>=fEndX)
 				{
 					//计算增长百分比
-					f = (iter->fPrice - fLastPrice)/fLastPrice*10.0;
+					f = (iter->fClose - fLastPrice)/fLastPrice*10.0;
 					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
 				}
 			}
@@ -810,7 +854,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 				if(fCurX>=fEndX)
 				{
 					//计算增长百分比
-					f = (iter->fPrice - fLastPrice)/fLastPrice;
+					f = (iter->fClose - fLastPrice)/fLastPrice;
 					if(m_typeCircle>DayN)
 						f = f/10.0;							//大于周线的，则对比例进行缩小
 					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
@@ -836,7 +880,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 				break;
 			}
 		}
-		fLastPrice = iter->fPrice;
+		fLastPrice = iter->fClose;
 		++iter;
 	}
 }
@@ -861,12 +905,12 @@ CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
 	return m_listStocks[iRow];
 }
 
-stColorBlockItem CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
+RStockData CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 {
 	CStockInfoItem* pItem = hitTestStock(ptPoint);
 	if(pItem && mapStockColorBlocks.contains(pItem))
 	{
-		QMap<time_t,stColorBlockItem>* pMap = mapStockColorBlocks[pItem];
+		QMap<time_t,RStockData>* pMap = mapStockColorBlocks[pItem];
 		QMap<time_t,int>::iterator iterLastTime = m_mapTimes.end();
 		if(iterLastTime!=m_mapTimes.begin())
 		{
@@ -883,62 +927,62 @@ stColorBlockItem CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 				time_t tmDefault = 0;
 				tmCur = m_mapTimes.key(iIndex,tmDefault);
 				if(tmCur==tmDefault)
-					return stColorBlockItem();
+					return RStockData();
 			}
 
 			//获取最近的节点
-			QMap<time_t,stColorBlockItem>::iterator iterCB = pMap->lowerBound(tmCur);
+			QMap<time_t,RStockData>::iterator iterCB = pMap->lowerBound(tmCur);
 			if(m_typeCircle<Day)
 			{
 				if(iterCB==pMap->end())
-					return stColorBlockItem();
+					return RStockData();
 				if(iterCB.key()/m_typeCircle*m_typeCircle != (tmCur))
-					return stColorBlockItem();
+					return RStockData();
 			}
 			else
 			{
 				if(iterCB==pMap->begin())
-					return stColorBlockItem();
+					return RStockData();
 				if(m_typeCircle==Day)
 				{
-					return (pMap->find(tmCur)!=pMap->end()) ? pMap->find(tmCur).value() : stColorBlockItem();
+					return (pMap->find(tmCur)!=pMap->end()) ? pMap->find(tmCur).value() : RStockData();
 				}
 				else if(m_typeCircle == Week)
 				{
 					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
 					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
 					int iTheYear = dtKey.year();
-					return dtKey.weekNumber(&iTheYear)==dtCur.weekNumber(&iTheYear) ? iterCB.value() : stColorBlockItem();
+					return dtKey.weekNumber(&iTheYear)==dtCur.weekNumber(&iTheYear) ? iterCB.value() : RStockData();
 				}
 				else if(m_typeCircle == Month)
 				{
 					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
 					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
-					return ((dtKey.year()==dtKey.year())&&(dtKey.month()==dtCur.month())) ? iterCB.value() : stColorBlockItem();
+					return ((dtKey.year()==dtKey.year())&&(dtKey.month()==dtCur.month())) ? iterCB.value() : RStockData();
 				}
 				else if(m_typeCircle == Month3)
 				{
 					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
 					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
-					return ((dtKey.year()==dtKey.year())&&(((dtKey.month()-1)/3)==((dtCur.month()-1)/3))) ? iterCB.value() : stColorBlockItem();
+					return ((dtKey.year()==dtKey.year())&&(((dtKey.month()-1)/3)==((dtCur.month()-1)/3))) ? iterCB.value() : RStockData();
 				}
 				else if(m_typeCircle == Year)
 				{
 					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
 					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
-					return (dtKey.year()==dtKey.year()) ? iterCB.value() : stColorBlockItem();
+					return (dtKey.year()==dtKey.year()) ? iterCB.value() : RStockData();
 				}
 			}
 			return iterCB.value();
 		}
 	}
-	return stColorBlockItem();
+	return RStockData();
 }
 
-QMap<time_t,stColorBlockItem>* CColorBlockWidget::getColorBlockMap(CStockInfoItem* pItem)
+QMap<time_t,RStockData>* CColorBlockWidget::getColorBlockMap(CStockInfoItem* pItem)
 {
-	QMap<time_t,stColorBlockItem>* pMap = new QMap<time_t,stColorBlockItem>();
-	if(m_typeCircle<CColorBlockWidget::Day)
+	QMap<time_t,RStockData>* pMap = new QMap<time_t,RStockData>();
+	if(m_typeCircle < Day)
 	{
 		//获取分钟数据，进行计算
 		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();

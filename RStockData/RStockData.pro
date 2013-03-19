@@ -13,11 +13,12 @@ PRECOMPILED_HEADER = StdAfx.h
 
 HEADERS += StdAfx.h ../include/StockDrv.h ../include/STKDRV.h\
 			../include/DataEngine.h ../include/StockInfoItem.h \
-			../include/BlockInfoItem.h ../include/rsd_global.h
+			../include/BlockInfoItem.h ../include/rsd_global.h \
+			../include/RLuaEx.h ../include/RStockFunc.h
 
 SOURCES += STKDRV.cpp \
 			DataEngine.cpp StockInfoItem.cpp \
-			BlockInfoItem.cpp
+			BlockInfoItem.cpp RLuaEx.cpp
 
 INCLUDEPATH += "../branches/lua-5.2.1/include/" "../include/"
 LIBS += -L"../branches/lua-5.2.1/lib/"

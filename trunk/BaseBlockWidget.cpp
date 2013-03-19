@@ -72,7 +72,7 @@ bool CBaseBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	//当前显示的周期
 	if(eleWidget.hasAttribute("circle"))
 	{
-		m_typeCircle = static_cast<CoordXCircle>(eleWidget.attribute("circle").toInt());
+		m_typeCircle = static_cast<RStockCircle>(eleWidget.attribute("circle").toInt());
 	}
 	//色块的宽度
 	if(eleWidget.hasAttribute("CBWidth"))
@@ -149,7 +149,7 @@ void CBaseBlockWidget::onSetCircle()
 {
 	//设置当前的显示周期
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	m_typeCircle = static_cast<CoordXCircle>(pAct->data().toInt());
+	m_typeCircle = static_cast<RStockCircle>(pAct->data().toInt());
 	updateData();
 }
 

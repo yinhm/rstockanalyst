@@ -1,6 +1,9 @@
 #include "StdAfx.h"
 #include "CoordXBaseWidget.h"
 #include "DataEngine.h"
+extern QMap<QString,lua_CFunction> g_func;
+extern lua_State* g_Lua;
+extern QString g_native;
 
 //计算分时数据的横坐标时间
 int getTimeMapByMin(QMap<time_t,int>& mapTimes,time_t& tmBegin, time_t& tmEnd, int iSize = 60/*second*/)
@@ -114,7 +117,19 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, WidgetType typ
 	, m_typeCircle(Min1)
 
 {
+	{
+		m_pL = luaL_newstate();
+		luaL_openlibs(m_pL);
+		luaL_dostring(m_pL,g_native.toLocal8Bit());
 
+		QMap<QString,lua_CFunction>::iterator iter = g_func.begin();
+		while(iter!=g_func.end())
+		{
+			lua_register(m_pL,iter.key().toAscii(),iter.value());
+			++iter;
+		}
+	}
+	//m_pL = lua_newthread(g_Lua);
 }
 
 
