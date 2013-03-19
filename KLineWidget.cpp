@@ -411,7 +411,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pScriptEngine(0)
 {
 
-	m_typeCircle = CCoordXBaseWidget::Day;
+	m_typeCircle = Day;
 	{
 		//初始化脚本解释器
 		m_pScriptEngine = new QScriptEngine;
@@ -497,7 +497,7 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 	//当前显示的周期
 	if(eleWidget.hasAttribute("circle"))
 	{
-		m_typeCircle = static_cast<CoordXCircle>(eleWidget.attribute("circle").toInt());
+		m_typeCircle = static_cast<RStockCircle>(eleWidget.attribute("circle").toInt());
 	}
 
 	QDomElement eleLiners = eleWidget.firstChildElement("liners");
@@ -953,7 +953,7 @@ void CKLineWidget::onSetCircle()
 {
 	//设置当前的显示周期
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	m_typeCircle = static_cast<CoordXCircle>(pAct->data().toInt());
+	m_typeCircle = static_cast<RStockCircle>(pAct->data().toInt());
 	resetTmpData();
 }
 

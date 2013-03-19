@@ -9,7 +9,8 @@
 #include "SplashDlg.h"
 
 lua_State* g_Lua = 0;
-
+QMap<QString,lua_CFunction> g_func;
+QString g_native = "";
 
 int loadAllFunc()
 {
@@ -29,6 +30,8 @@ int loadAllFunc()
 			{
 				QMap<QString,lua_CFunction> _funcs;
 				(*pfnALlFuncs)(_funcs);
+
+				g_func.unite(_funcs);
 
 				qDebug()<<"Load funcs from\""<<v.baseName()<<"\":";
 				QMap<QString,lua_CFunction>::iterator iter = _funcs.begin();
@@ -52,6 +55,15 @@ int loadAllFunc()
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+	
+	{
+		QFile file(qApp->applicationDirPath()+"/native.lua");
+		if(file.open(QFile::ReadOnly))
+		{
+			g_native = file.readAll();
+		}
+	}
+
 	g_Lua = luaL_newstate();			//ÊµÀý»¯Lua
 	loadAllFunc();
 

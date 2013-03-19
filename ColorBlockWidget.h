@@ -10,20 +10,7 @@
 #ifndef COLOR_BLOCK_WIDGET_H
 #define COLOR_BLOCK_WIDGET_H
 #include "BaseBlockWidget.h"
-#include "StockInfoItem.h"
 #include "BlockInfoItem.h"
-
-struct stColorBlockItem
-{
-	time_t	tmTime;			//当前时间
-	float	fPrice;			//当前价格
-	float	fVolume;		//量
-	float	fAmount;		//额
-	stColorBlockItem()
-	{
-		memset(&tmTime,0,sizeof(stColorBlockItem));
-	}
-};
 
 class CColorBlockWidget : public CBaseBlockWidget
 {
@@ -73,10 +60,10 @@ private:
 
 	QRect rectOfStock(CStockInfoItem* pItem);					//获取某只股票显示的位置
 	CStockInfoItem* hitTestStock(const QPoint& ptPoint) const;		//测试某点所指向的股票信息
-	stColorBlockItem hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
+	RStockData hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
 
 	//获取数据二维表，通过分析当前的周期。
-	QMap<time_t,stColorBlockItem>* getColorBlockMap(CStockInfoItem* pItem);
+	QMap<time_t,RStockData>* getColorBlockMap(CStockInfoItem* pItem);
 
 private:
 	QMenu* m_pMenuBlockList;				//所有板块信息（当前选中的板块上打勾）
@@ -85,7 +72,7 @@ private:
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
-	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*> mapStockColorBlocks;	//当前显示的ColorBlock数据
+	QMap<CStockInfoItem*,QMap<time_t,RStockData>*> mapStockColorBlocks;	//当前显示的ColorBlock数据
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
 	/*用于绘制操作的成员变量*/
