@@ -26,6 +26,31 @@ Array=
 		return op
 	end,
 	
+	__sub=function(op1,op2)
+		local op={}
+		local _t1 = type(op1)
+		local _t2 = type(op2)
+		
+		if(_t2 == "table") then
+			local c = #(op2)
+			for i=1, #(op1) do
+				if(i<=c) then
+					op[i] = op1[i]-op2[i]
+				else
+					op[i] = 0
+				end
+			end
+		elseif(_t2 == "number") then
+			for i=1, #(op1) do
+				op[i] = op1[i]-op2
+			end
+		else
+			op = op1-op2
+		end
+		setmetatable(op,Array)
+		return op
+	end,
+	
 	__mul=function(op1,op2)
 		local op={}
 		local _t1 = type(op1)
@@ -45,11 +70,36 @@ Array=
 				op[i] = op1[i]*op2
 			end
 		else
-			op = op1+op2
+			op = op1*op2
 		end
 		setmetatable(op,Array)
 		return op
 	end,
+	
+	__div=function(op1,op2)
+		local op={}
+		local _t1 = type(op1)
+		local _t2 = type(op2)
+		
+		if(_t2 == "table") then
+			local c = #(op2)
+			for i=1, #(op1) do
+				if(i<=c) then
+					op[i] = op1[i]/op2[i]
+				else
+					op[i] = 0
+				end
+			end
+		elseif(_t2 == "number") then
+			for i=1, #(op1) do
+				op[i] = op1[i]/op2
+			end
+		else
+			op = op1/op2
+		end
+		setmetatable(op,Array)
+		return op
+	end,	
 	
 	create=function(o)
 		o = o or {}
