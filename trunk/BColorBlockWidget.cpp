@@ -3,7 +3,7 @@
 
 
 CBColorBlockWidget::CBColorBlockWidget(CBaseWidget* parent /*= 0*/ )
-	: CCoordXBaseWidget(parent,CBaseWidget::StockColorBlock)
+	: CCoordXBaseWidget(parent,WidgetSColorBlock)
 {
 }
 

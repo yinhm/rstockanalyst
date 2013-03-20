@@ -7,9 +7,9 @@
 #include <QtCore>
 #include "StockInfoItem.h"
 
-extern "C"{_declspec(dllexport) int ExportAllFuncs(QMap<QString,lua_CFunction>& mapFuncs);}
+extern "C"{_declspec(dllexport) QMap<const char*,lua_CFunction>* ExportAllFuncs();}
 
-static int my_lua_high(lua_State* _L);
-static int my_lua_low(lua_State* _L);
-static int my_lua_open(lua_State* _L);
-static int my_lua_close(lua_State* _L);
+int my_lua_high(lua_State* _L);
+int my_lua_low(lua_State* _L);
+int my_lua_open(lua_State* _L);
+int my_lua_close(lua_State* _L);

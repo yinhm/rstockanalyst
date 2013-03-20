@@ -85,7 +85,11 @@ Array=
 			local c = #(op2)
 			for i=1, #(op1) do
 				if(i<=c) then
-					op[i] = op1[i]/op2[i]
+					if(op2[i]==0) then
+						op[i]=0
+					else
+						op[i] = op1[i]/op2[i]
+					end
 				else
 					op[i] = 0
 				end
@@ -107,6 +111,79 @@ Array=
 		return o
 	end
 }
+
+--[[
+别名: 向前引用
+所属类别: 引用函数  参数数量: 2
+
+引用若干周期前的数据。
+用法:
+REF(X,A),引用A周期前的X值。
+例如:
+REF(CLOSE(),1)
+表示上一周期的收盘价，在日线上就是昨收
+]]
+function REF(op1,op2)
+	if op2<1 then
+		return op1
+	elseif type(op2)~="number" then
+		return op1
+	elseif type(op1)~="table" then
+		return op1
+	end
+	--[[
+	local op=1
+	setmetatable(op,Array)
+	return op]]
+	
+	local op={}
+	local c = #(op1)
+	for i=1,(c-op2) do
+		op[i] = op1[i+op2]
+	end
+	local c1 = #(op)
+	for i=(c1+1),c do
+		op[i] = 0
+	end
+	setmetatable(op,Array)
+	return op
+end
+
+--[[
+别名: 向后引用
+所属类别: 引用函数  参数数量: 2
+
+引用若干周期后的数据。
+用法:
+REFX(X,A),引用A周期后的X值。
+例如:
+REFX(CLOSE(),1)
+表示后一周期的收盘价，在日线上就是明收
+]]
+function REFX(op1,op2)
+	if(op2<1 or type(op2)~="number" or type(op1)~="table") then
+		return op1
+	end
+	local op={}
+	for i=1,op2 do
+		op[i] = 0
+	end
+	
+	local c = #(op1)
+	for i=(op2+1),c do
+		op[i] = op1[i]
+	end
+	
+	setmetatable(op,Array)
+	return op
+end
+
+function InitValues()
+	CLOSE=RClose();
+	OPEN=ROpen();
+	HIGH=RHigh();
+	LOW=RLow();
+end
 
 --a={1.2,23.3,4}
 --a=Array.create(a)

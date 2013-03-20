@@ -21,7 +21,7 @@ public:
 		BlockRect,				//·½¿é
 	};
 public:
-	CBaseBlockWidget(CBaseWidget* parent = 0, WidgetType type = CBaseWidget::Basic);
+	CBaseBlockWidget(CBaseWidget* parent = 0, RWidgetType type = WidgetBasic);
 	~CBaseBlockWidget(void);
 
 public:

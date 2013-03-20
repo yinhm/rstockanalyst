@@ -12,8 +12,8 @@
 #include "ColorManager.h"
 
 
-CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= CBaseWidget::Basic*/ )
-	: CCoordXBaseWidget(parent,CBaseWidget::StockColorBlock)
+CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= CBaseWidget::Basic*/ )
+	: CCoordXBaseWidget(parent,WidgetSColorBlock)
 	, m_typeBlock(BlockCircle)
 	, m_pMenuCustom(0)
 	, m_pMenuColorMode(0)

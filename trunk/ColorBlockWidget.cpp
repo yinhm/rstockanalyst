@@ -346,7 +346,7 @@ int getColorBlockYearItems(QMap<time_t,RStockData>* pMap,const QList<qRcvHistory
 
 
 CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
-	: CBaseBlockWidget(parent,CBaseWidget::StockColorBlock)
+	: CBaseBlockWidget(parent,WidgetSColorBlock)
 	, m_pMenuBlockList(0)
 	, m_iTitleHeight(16)
 	, m_iBottomHeight(16)
@@ -818,9 +818,38 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 	lua_pushlightuserdata(m_pL,&draw);
 	lua_setglobal(m_pL,"_draw");
+	{
+		lua_getglobal(m_pL,"InitValues");
+		lua_call(m_pL,0,0);
+//		luaL_dostring(m_pL,"CLOSE=RClose()");
+//		luaL_dostring(m_pL,"OPEN=ROpen()");
+//		luaL_dostring(m_pL,"HIGH=RHigh()");
+//		luaL_dostring(m_pL,"LOW=RLow()");
+		for (int i = 0;i<1000;++i)
+		{
+//			luaL_dostring(m_pL,"oo = Array.create()+Array.create()");
+		}
+	}
 
-	luaL_dostring(m_pL,"return HIGH()");
-//	QString sss = lua_tostring(m_pL,-1);
+
+	{
+		luaL_dostring(m_pL,"p1 = (CLOSE-REF(CLOSE,1))/CLOSE");
+	}
+	int _t = lua_type(m_pL,-1);
+	if(_t==LUA_TSTRING)
+	{
+		qDebug()<<"lua runtime error:"<<lua_tostring(m_pL,-1);
+	}
+
+//	luaL_dostring(m_pL,"return REF(CLOSE(),1)");
+	QVector<float> _vvv;
+	RLuaEx::LuaPopArray(m_pL,"p1",_vvv);
+	if(_vvv.size()>0)
+		qDebug()<<_vvv[0];
+
+	static int ii = 0;
+	++ii;
+	qDebug()<<"run:"<<ii<<"\tstack:"<<lua_gettop(m_pL);
 
 
 	QMap<time_t,RStockData>::iterator iter = pMapCBs->begin();

@@ -21,7 +21,10 @@ void RLuaEx::LuaPopArray( lua_State* _L,const char* _t,QVector<float>& _v )
 {
 	lua_getglobal(_L,_t);
 	if(lua_type(_L,-1)!=LUA_TTABLE)
+	{
+		lua_pop(_L,1);
 		return;
+	}
 
 	int table_index = lua_gettop(_L);
 
@@ -33,6 +36,7 @@ void RLuaEx::LuaPopArray( lua_State* _L,const char* _t,QVector<float>& _v )
 		/* 移除 'value' ；保留 'key' 做下一次迭代 */
 		lua_pop(_L, 1);
 	}
+	lua_pop(_L,1);
 }
 
 

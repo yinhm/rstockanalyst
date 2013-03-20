@@ -6,6 +6,7 @@
 RStockAnalyst的扩展函数定义
 */
 
+
 // 分析周期
 enum RStockCircle			//分析周期
 {
@@ -26,6 +27,16 @@ enum RStockCircle			//分析周期
 	Year,					//年线
 };
 
+//窗口类型
+enum RWidgetType
+{
+	WidgetBasic = 0,				//基础图
+	WidgetKLine,					//K线图
+	WidgetMarketTrend,			//市场行情图
+	WidgetSColorBlock,		//股票的色块图
+	WidgetBColorBlock,			//板块的色块图
+	WidgetStockInfo,				//单只股票的行情信息
+};
 
 // 基本数据
 typedef struct tagRStockData

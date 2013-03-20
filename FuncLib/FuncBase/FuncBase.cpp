@@ -1,104 +1,129 @@
 #include "FuncBase.h"
 #include "RStockFunc.h"
 
-int ExportAllFuncs(QMap<QString,lua_CFunction>& mapFuncs)
+QMap<const char*,lua_CFunction>* ExportAllFuncs()
 {
-	mapFuncs.insert("HIGH",&my_lua_high);
-	mapFuncs.insert("LOW",&my_lua_low);
-	mapFuncs.insert("OPEN",&my_lua_open);
-	mapFuncs.insert("CLOSE",&my_lua_close);
+	QMap<const char*,lua_CFunction>* pFuncs = new QMap<const char*,lua_CFunction>;
+	pFuncs->insert("RHigh",&my_lua_high);
+	pFuncs->insert("RLow",&my_lua_low);
+	pFuncs->insert("ROpen",&my_lua_open);
+	pFuncs->insert("RClose",&my_lua_close);
 
-	return mapFuncs.size();
+	return pFuncs;
 }
 
 int my_lua_high( lua_State* _L )
 {
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
+	lua_pop(_L,1);
 	if(pCalc)
 	{
-		luaL_dostring(_L,"return Array.create()");
-		int table_index = lua_gettop(_L);
+		lua_newtable(_L);
+		lua_pushnumber(_L,-1);
+		lua_rawseti(_L,-2,0);
+
 
 		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
 		int _i = 1;
 		while(iter!=pCalc->mapData->end())
 		{
 			lua_pushnumber(_L,iter->fHigh);
-			lua_rawseti(_L,table_index,_i);
+			lua_rawseti(_L,-2,_i);
 			++iter;
 			++_i;
 		}
-	}
+		lua_getglobal(_L,"Array");
+		lua_setmetatable(_L,-2);
 
-	return 1;
+		return 1;
+	}
+	return 0;
 }
 
 int my_lua_low( lua_State* _L )
 {
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
+	lua_pop(_L,1);
 	if(pCalc)
 	{
-		luaL_dostring(_L,"return Array.create()");
-		int table_index = lua_gettop(_L);
+		lua_newtable(_L);
+		lua_pushnumber(_L,-1);
+		lua_rawseti(_L,-2,0);
+
 
 		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
 		int _i = 1;
 		while(iter!=pCalc->mapData->end())
 		{
 			lua_pushnumber(_L,iter->fLow);
-			lua_rawseti(_L,table_index,_i);
+			lua_rawseti(_L,-2,_i);
 			++iter;
 			++_i;
 		}
-	}
+		lua_getglobal(_L,"Array");
+		lua_setmetatable(_L,-2);
 
-	return 1;
+		return 1;
+	}
+	return 0;
 }
 
 int my_lua_open( lua_State* _L )
 {
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
+	lua_pop(_L,1);
 	if(pCalc)
 	{
-		luaL_dostring(_L,"return Array.create()");
-		int table_index = lua_gettop(_L);
+		lua_newtable(_L);
+		lua_pushnumber(_L,-1);
+		lua_rawseti(_L,-2,0);
 
 		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
 		int _i = 1;
 		while(iter!=pCalc->mapData->end())
 		{
 			lua_pushnumber(_L,iter->fOpen);
-			lua_rawseti(_L,table_index,_i);
+			lua_rawseti(_L,-2,_i);
 			++iter;
 			++_i;
 		}
-	}
+		lua_getglobal(_L,"Array");
+		lua_setmetatable(_L,-2);
 
-	return 1;
+		return 1;
+	}
+	return 0;
 }
 
 int my_lua_close( lua_State* _L )
 {
+	qDebug()<<"b";
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
+	lua_pop(_L,1);
 	if(pCalc)
 	{
-		luaL_dostring(_L,"return Array.create()");
-		int table_index = lua_gettop(_L);
+		lua_newtable(_L);
+		lua_pushnumber(_L,-1);
+		lua_rawseti(_L,-2,0);
 
 		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
 		int _i = 1;
 		while(iter!=pCalc->mapData->end())
 		{
 			lua_pushnumber(_L,iter->fClose);
-			lua_rawseti(_L,table_index,_i);
+			lua_rawseti(_L,-2,_i);
 			++iter;
 			++_i;
 		}
-	}
+		lua_getglobal(_L,"Array");
+		lua_setmetatable(_L,-2);
 
-	return 1;
+		qDebug()<<"e";
+		return 1;
+	}
+	return 0;
 }

@@ -395,7 +395,7 @@ bool CKLineWidget::initJSScript()
 }
 
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
-	: CCoordXBaseWidget(parent,CBaseWidget::KLine)
+	: CCoordXBaseWidget(parent,WidgetKLine)
 	, m_pMenuCustom(0)
 	, m_pMenuCircle(0)
 	, m_pActShowMain(0)
