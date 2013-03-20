@@ -11,23 +11,23 @@
 #include "ColorBlockWidget.h"
 #include "StockInfoWidget.h"
 
-CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, WidgetType type/*=Basic*/ )
+CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetType type/*=Basic*/ )
 {
 	switch(type)
 	{
-	case Basic:				//基础图
+	case WidgetBasic:				//基础图
 		return new CBaseWidget(parent);
 		break;
-	case KLine:					//K线图
+	case WidgetKLine:					//K线图
 		return new CKLineWidget(parent);
 		break;
-	case MarketTrend:			//市场行情图
+	case WidgetMarketTrend:			//市场行情图
 		return new CMarketTrendWidget(parent);
 		break;
-	case StockColorBlock:
+	case WidgetSColorBlock:
 		return new CColorBlockWidget(parent);
 		break;
-	case StockInfo:
+	case WidgetStockInfo:
 		return new CStockInfoWidget(parent);
 		break;
 	}
@@ -35,7 +35,7 @@ CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, WidgetTyp
 	return new CBaseWidget(parent);
 }
 
-CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic*/ )
+CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basic*/ )
 	: QWidget(parent)
 	, m_pParent(parent)
 	, m_type(type)
@@ -53,7 +53,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, WidgetType type /*= Basic
 	pLayout->addWidget(m_pSplitter);
 	setLayout(pLayout);
 
-	if(m_pParent == 0 && m_type==Basic)
+	if(m_pParent == 0 && m_type==WidgetBasic)
 	{
 		//确保所有可操作到的窗口都是有父窗口的
 		m_pSplitter->addWidget(new CBaseWidget(this));
@@ -77,11 +77,11 @@ void CBaseWidget::initMenu()
 		//设置版面类型
 		QMenu* pMenuType = m_pMenu->addMenu(tr("设置版面类型"));
 		{
-			pMenuType->addAction(tr("基础窗口"),this,SLOT(onResetWidget()))->setData(CBaseWidget::Basic);
-			pMenuType->addAction(tr("K线图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::KLine);
-			pMenuType->addAction(tr("市场行情图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::MarketTrend);
-			pMenuType->addAction(tr("色块图"),this,SLOT(onResetWidget()))->setData(CBaseWidget::StockColorBlock);
-			pMenuType->addAction(tr("行情信息"),this,SLOT(onResetWidget()))->setData(CBaseWidget::StockInfo);
+			pMenuType->addAction(tr("基础窗口"),this,SLOT(onResetWidget()))->setData(WidgetBasic);
+			pMenuType->addAction(tr("K线图"),this,SLOT(onResetWidget()))->setData(WidgetKLine);
+			pMenuType->addAction(tr("市场行情图"),this,SLOT(onResetWidget()))->setData(WidgetMarketTrend);
+			pMenuType->addAction(tr("色块图"),this,SLOT(onResetWidget()))->setData(WidgetSColorBlock);
+			pMenuType->addAction(tr("行情信息"),this,SLOT(onResetWidget()))->setData(WidgetStockInfo);
 		}
 		m_pMenu->addSeparator();
 	}
@@ -206,9 +206,9 @@ bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
 			sizes.push_back(eleChildSize.text().toInt());
 
 		QDomElement eleChildType = eleChild.firstChildElement("type");
-		WidgetType typeChild = Basic;
+		RWidgetType typeChild = WidgetBasic;
 		if(eleChildType.isElement())
-			typeChild = static_cast<WidgetType>(eleChildType.text().toInt());
+			typeChild = static_cast<RWidgetType>(eleChildType.text().toInt());
 
 		CBaseWidget* pWidget = createBaseWidget(this,typeChild);
 		m_pSplitter->addWidget(pWidget);
@@ -428,7 +428,7 @@ void CBaseWidget::onResetWidget()
 {
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 
-	WidgetType type = static_cast<WidgetType>(pAct->data().toInt());	//获取窗口类型
+	RWidgetType type = static_cast<RWidgetType>(pAct->data().toInt());	//获取窗口类型
 	int iIndex = m_pParent->getWidgetIndex(this);						//获取当前窗口所在的索引
 	if(iIndex>=0)
 	{

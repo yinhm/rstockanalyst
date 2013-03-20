@@ -6,7 +6,7 @@
 class CCoordXBaseWidget : public CBaseWidget
 {
 public:
-	CCoordXBaseWidget(CBaseWidget* parent = 0, WidgetType type = CBaseWidget::Basic);
+	CCoordXBaseWidget(CBaseWidget* parent = 0, RWidgetType type = WidgetBasic);
 	~CCoordXBaseWidget(void);
 
 protected:

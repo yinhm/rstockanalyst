@@ -9,12 +9,14 @@
 #include "SplashDlg.h"
 
 lua_State* g_Lua = 0;
-QMap<QString,lua_CFunction> g_func;
+luaL_Reg* g_pFuncs = 0;
 QString g_native = "";
 
 int loadAllFunc()
 {
 	int iDllCount = 0;
+	QMap<const char*,lua_CFunction> g_func;
+
 	QDir dirFunc(qApp->applicationDirPath() + "/plugin/");
 	QFileInfoList list = dirFunc.entryInfoList(QStringList()<<"*.dll");
 	foreach (const QFileInfo& v,list)
@@ -23,39 +25,47 @@ int loadAllFunc()
 		if(hDll)
 		{
 			qDebug()<<"Load form "<<v.absoluteFilePath();
-			int (WINAPI* pfnALlFuncs)(QMap<QString,lua_CFunction>&)= NULL;
+			QMap<const char*,lua_CFunction>* (WINAPI* pfnALlFuncs)()= NULL;
 			pfnALlFuncs = \
-				(int(WINAPI *)(QMap<QString,lua_CFunction>&)) GetProcAddress(hDll,"ExportAllFuncs");
+				(QMap<const char*,lua_CFunction>*(WINAPI *)()) GetProcAddress(hDll,"ExportAllFuncs");
 			if(pfnALlFuncs)
 			{
-				QMap<QString,lua_CFunction> _funcs;
-				(*pfnALlFuncs)(_funcs);
+				QMap<const char*,lua_CFunction>* _funcs = (*pfnALlFuncs)();
 
-				g_func.unite(_funcs);
-
+				g_func.unite(*_funcs);
 				qDebug()<<"Load funcs from\""<<v.baseName()<<"\":";
-				QMap<QString,lua_CFunction>::iterator iter = _funcs.begin();
-				while(iter!=_funcs.end())
-				{
-					lua_register(g_Lua,iter.key().toAscii(),iter.value());
-					qDebug()<<iter.key();
-					++iter;
-				}
+				delete _funcs;
 			}
 			else
 			{
 				qDebug()<<"Load Dll Error!";
 			}
+			//FreeLibrary(hDll);
 		}
 	}
 
+	QMap<const char*,lua_CFunction>::iterator iter = g_func.begin();
+	g_pFuncs= new luaL_Reg[g_func.size()+1];
+	luaL_Reg* pFunc = g_pFuncs;
+	qDebug()<<"---------Funcs-----------";
+	while(iter!=g_func.end())
+	{
+		qDebug()<<iter.key();
+		pFunc->name = iter.key();
+		pFunc->func = iter.value();
+		//			lua_register(m_pL,iter.key().toAscii(),iter.value());
+		++iter;
+		++pFunc;
+	}
+	pFunc->name = NULL;
+	pFunc->func = NULL;
 	return iDllCount;
 }
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-	
+
 	{
 		QFile file(qApp->applicationDirPath()+"/native.lua");
 		if(file.open(QFile::ReadOnly))
@@ -109,9 +119,9 @@ int main(int argc, char *argv[])
 	//设置银江数据接口
 	splash.showMessage(QObject::tr("设置银江数据接口"),30);
 	app.processEvents();
-	if(!CMainWindow::getMainWindow()->setupStockDrv())
+//	if(!CMainWindow::getMainWindow()->setupStockDrv())
 	{
-		return app.exit();
+//		return app.exit();
 	}
 
 	splash.hide();

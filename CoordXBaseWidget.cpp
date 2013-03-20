@@ -1,9 +1,9 @@
 #include "StdAfx.h"
 #include "CoordXBaseWidget.h"
 #include "DataEngine.h"
-extern QMap<QString,lua_CFunction> g_func;
 extern lua_State* g_Lua;
 extern QString g_native;
+extern luaL_Reg* g_pFuncs;
 
 //计算分时数据的横坐标时间
 int getTimeMapByMin(QMap<time_t,int>& mapTimes,time_t& tmBegin, time_t& tmEnd, int iSize = 60/*second*/)
@@ -112,7 +112,7 @@ int getYearMapByHistory(QMap<time_t,int>& mapTimes,time_t& _tmBegin, time_t& _tm
 
 
 
-CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, WidgetType type /*= CBaseWidget::Basic*/)
+CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType type /*= CBaseWidget::Basic*/)
 	: CBaseWidget(parent,type)
 	, m_typeCircle(Min1)
 
@@ -121,13 +121,15 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, WidgetType typ
 		m_pL = luaL_newstate();
 		luaL_openlibs(m_pL);
 		luaL_dostring(m_pL,g_native.toLocal8Bit());
-
-		QMap<QString,lua_CFunction>::iterator iter = g_func.begin();
-		while(iter!=g_func.end())
+		if(lua_type(m_pL,-1)==LUA_TSTRING)
 		{
-			lua_register(m_pL,iter.key().toAscii(),iter.value());
-			++iter;
+			const char* aa = lua_tostring(m_pL,-1);
+			QString ss = QString::fromLocal8Bit(aa);
+			qDebug()<<"Load native.lua error:"<<ss;
 		}
+		lua_pushglobaltable(m_pL);
+		luaL_setfuncs(m_pL, g_pFuncs,0);
+		lua_pop(m_pL,1);
 	}
 	//m_pL = lua_newthread(g_Lua);
 }

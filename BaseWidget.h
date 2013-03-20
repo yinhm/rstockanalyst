@@ -8,25 +8,16 @@
 #define BASE_WIDGET_H
 #include <QtGui>
 #include <QtXml>
+#include "RStockFunc.h"
 
 class CBaseWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	enum WidgetType
-	{
-		Basic = 0,				//基础图
-		KLine,					//K线图
-		MarketTrend,			//市场行情图
-		StockColorBlock,		//股票的色块图
-		BColorBlock,			//板块的色块图
-		StockInfo,				//单只股票的行情信息
-	};
-public:
-	static CBaseWidget* createBaseWidget(CBaseWidget* parent=0, WidgetType type=Basic);
+	static CBaseWidget* createBaseWidget(CBaseWidget* parent=0, RWidgetType type=WidgetBasic);
 
 public:
-	CBaseWidget(CBaseWidget* parent = 0, WidgetType type = CBaseWidget::Basic);
+	CBaseWidget(CBaseWidget* parent = 0, RWidgetType type = CBaseWidget::WidgetBasic);
 	~CBaseWidget(void);
 
 	void initMenu();				//初始化菜单项
@@ -95,7 +86,7 @@ protected:
 	QMenu* m_pMenu;					//右键菜单
 	QSplitter* m_pSplitter;			//分割器
 	QString m_qsName;				//窗口名称
-	WidgetType m_type;				//窗口类型
+	RWidgetType m_type;				//窗口类型
 	QAction* m_pActRelate;			//是否和其它窗口关联
 };
 

@@ -7,7 +7,7 @@
 
 
 CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
-	: CBaseWidget(parent,CBaseWidget::MarketTrend)
+	: CBaseWidget(parent,WidgetMarketTrend)
 	, m_iHeaderHeight(20)
 	, m_iStockHeight(16)
 	, m_iBottomHeight(18)

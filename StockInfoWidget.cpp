@@ -12,7 +12,7 @@
 #define	R_DATA_COLOR(v)	( (v>=0) ? m_clrDataRed : m_clrDataBlue)
 
 CStockInfoWidget::CStockInfoWidget( CBaseWidget* parent /*= 0*/ )
-	: CBaseWidget(parent, CBaseWidget::StockInfo)
+	: CBaseWidget(parent, WidgetStockInfo)
 	, m_pStockItem(0)
 	, m_iItemHeight(16)
 	, m_clrGrid(176,0,0)
