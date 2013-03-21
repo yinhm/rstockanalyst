@@ -20,6 +20,6 @@ SOURCES += STKDRV.cpp \
 			DataEngine.cpp StockInfoItem.cpp \
 			BlockInfoItem.cpp RLuaEx.cpp
 
-INCLUDEPATH += "../branches/lua-5.2.1/include/" "../include/"
-LIBS += -L"../branches/lua-5.2.1/lib/"
+INCLUDEPATH += "../include/"
+LIBS += -L"../bin/"
 LIBS += -llua52

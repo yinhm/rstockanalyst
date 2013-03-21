@@ -100,7 +100,6 @@ int my_lua_open( lua_State* _L )
 
 int my_lua_close( lua_State* _L )
 {
-	qDebug()<<"b";
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
 	lua_pop(_L,1);
@@ -121,8 +120,6 @@ int my_lua_close( lua_State* _L )
 		}
 		lua_getglobal(_L,"Array");
 		lua_setmetatable(_L,-2);
-
-		qDebug()<<"e";
 		return 1;
 	}
 	return 0;

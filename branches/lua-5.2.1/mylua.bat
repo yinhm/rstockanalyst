@@ -21,12 +21,12 @@ cd ..\bin
 del *.manifest
 
 cd .. 
-copy /y src\lua.h include\
-copy /y src\lualib.h include\
-copy /y src\lauxlib.h include\
-copy /y src\luaconf.h include\
-copy /y src\lauxlib.h include\
-copy /y src\luaconf.h include\
+copy /y src\lua.h ..\..\include\
+copy /y src\lualib.h ..\..\include\
+copy /y src\lauxlib.h ..\..\include\
+copy /y src\luaconf.h ..\..\include\
+copy /y src\lauxlib.h ..\..\include\
+copy /y src\luaconf.h ..\..\include\
 
 copy /y lib\lua52.lib ..\..\bin\
 copy /y lib\lua52.dll ..\..\bin\

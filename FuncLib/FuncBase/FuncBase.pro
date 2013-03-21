@@ -16,8 +16,6 @@ HEADERS += ../../include/CommonDefine.h FuncBase.h
 SOURCES += FuncBase.cpp
 
 
-INCLUDEPATH += "../../branches/lua-5.2.1/include/" "../../include/"
-LIBS += -L"../../branches/lua-5.2.1/lib/"
+INCLUDEPATH += "../../include/"
 LIBS += -L"../../bin/"
-LIBS += -llua52
-LIBS += -lRStockData
+LIBS += -llua52 -lRStockData
