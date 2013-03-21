@@ -19,7 +19,7 @@
     <align>1</align>
     <size>55</size>
     <block>上海A股</block>
-    <stock>600000</stock>
+    <stock>600011</stock>
    </widget>
    <widget circle="300" mainliner="1">
     <name></name>
@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>28</size>
-    <code>600000</code>
+    <code>600011</code>
     <liners>
      <MainLiner size="60">
       <exp></exp>
@@ -64,7 +64,7 @@
      </MainLiner>
     </liners>
    </widget>
-   <widget circle="60" CBHeight="50" CBWidth="20">
+   <widget circle="60" CBHeight="22" CBWidth="20">
     <name></name>
     <type>3</type>
     <relate>0</relate>
