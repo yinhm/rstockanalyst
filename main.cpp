@@ -8,9 +8,9 @@
 #include "KLineWidget.h"
 #include "SplashDlg.h"
 
-lua_State* g_Lua = 0;
-luaL_Reg* g_pFuncs = 0;
-QString g_native = "";
+luaL_Reg* g_pFuncs = 0;			//所有需要注册的lua函数
+QString g_native = "";			//lua源码
+QVector<HINSTANCE> g_vDll;		//加载的函数扩展动态链接库
 
 int loadAllFunc()
 {
@@ -24,6 +24,7 @@ int loadAllFunc()
 		HINSTANCE hDll = LoadLibrary(v.absoluteFilePath().toStdWString().data());
 		if(hDll)
 		{
+			g_vDll.push_back(hDll);
 			qDebug()<<"Load form "<<v.absoluteFilePath();
 			QMap<const char*,lua_CFunction>* (WINAPI* pfnALlFuncs)()= NULL;
 			pfnALlFuncs = \
@@ -67,16 +68,14 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
 	{
+		//加载lua相关函数
 		QFile file(qApp->applicationDirPath()+"/native.lua");
 		if(file.open(QFile::ReadOnly))
 		{
 			g_native = file.readAll();
 		}
+		loadAllFunc();
 	}
-
-	g_Lua = luaL_newstate();			//实例化Lua
-	loadAllFunc();
-
 
 	QTextCodec::setCodecForLocale(QTextCodec::codecForName("GB2312"));
 	QTextCodec::setCodecForTr(QTextCodec::codecForName("GB2312"));
@@ -140,6 +139,11 @@ int main(int argc, char *argv[])
 	//释放资源
 	delete CMainWindow::getMainWindow();
 	CDataEngine::releaseDataEngine();
+
+	foreach(HINSTANCE hDll,g_vDll)
+	{
+		FreeLibrary(hDll);
+	}
 
 	return 1;
 }
