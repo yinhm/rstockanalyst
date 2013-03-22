@@ -622,23 +622,25 @@ void CBaseBlockWidget::updateTimesH()
 	}
 }
 
-void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX, float fGridSize)	//绘制X坐标轴
+void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX)	//绘制X坐标轴
 {
+	m_mapShowTimes.clear();
 	//从右向左绘制横坐标
-	float fBeginX = rtCoordX.right();
-	float fEndX = rtCoordX.left();
-	float fCBWidth = fBeginX-fEndX;
+	int fBeginX = rtCoordX.right();
+	int fEndX = rtCoordX.left();
+	int fCBWidth = fBeginX-fEndX;
 	if(fCBWidth<0)
 		return;
 
 	QList<time_t> listTimes = m_mapTimes.keys();
-	float fCurX = fBeginX;
-	float fLastX = fCurX;
+	int fCurX = fBeginX;
+	int fLastX = fCurX;
 	int iCount = listTimes.size()-1;
 
 	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
 	while(fCurX>fEndX && iCount>=0)
 	{
+		m_mapTimes[listTimes[iCount]] = fCurX;
 		if(m_typeCircle<Day)
 		{
 			if((fLastX-fCurX)>30)
@@ -698,9 +700,108 @@ void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX, float fGrid
 		}
 
 		--iCount;
-		fCurX = fCurX-fGridSize;
+		fCurX = fCurX- m_iCBWidth;
 	}
 	return;
+}
+
+void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
+{
+	int nTimes = 100;
+	if(m_typeCircle<=Min60)
+		nTimes = 1000;
+	else if(m_typeCircle<=Week)
+		nTimes = 100;
+	else
+		nTimes = 10;
+
+	QMap<time_t,int>::iterator iter = m_mapShowTimes.begin();
+	while(iter!=m_mapShowTimes.end())
+	{
+		QRect rtCB = QRect(iter.value(),iY,m_iCBWidth,m_iCBHeight);
+		if(m_mapTimes.contains(iter.key()))
+		{
+			float f = vValue[m_mapTimes[iter.key()]];
+			switch(m_typeBlock)
+			{
+			case BlockRect:
+				{
+					rtCB.adjust(1,1,-1,-1);
+					p.fillRect(rtCB,CColorManager::getBlockColor(m_qsColorMode,f));
+				}
+				break;
+			case BlockCircle:
+				{
+					QPainterPath path;
+					path.addEllipse(rtCB);
+					p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
+				}
+				break;
+			}
+		}
+		++iter;
+	}
+	/*
+	QMap<time_t,RStockData>::iterator iter = pMapCBs->begin();
+	float fLastPrice = pItem->getCurrentReport()->fLastClose;
+	while(iter!=pMapCBs->end())
+	{
+		float f = FLOAT_NAN;
+		QRect rtB;
+		if(m_typeCircle<Day)
+		{
+			time_t tmCur = iter.key()/(m_typeCircle)*(m_typeCircle);		//向下取整
+			if(m_mapTimes.contains(tmCur))
+			{
+				float fCurX = fBeginX - ((m_mapTimes[tmCur])*m_iCBWidth);
+				if(fCurX>=fEndX)
+				{
+					//计算增长百分比
+					f = (iter->fClose - fLastPrice)/fLastPrice*10.0;
+					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
+				}
+			}
+		}
+		else
+		{
+			time_t tmCur = iter.key();
+			QMap<time_t,int>::iterator iterTime = m_mapTimes.upperBound(tmCur);
+			if(iterTime!=m_mapTimes.begin())
+			{
+				--iterTime;
+				float fCurX = fBeginX - ((iterTime.value())*m_iCBWidth);
+				if(fCurX>=fEndX)
+				{
+					//计算增长百分比
+					f = (iter->fClose - fLastPrice)/fLastPrice;
+					if(m_typeCircle>DayN)
+						f = f/10.0;							//大于周线的，则对比例进行缩小
+					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
+				}
+			}
+		}
+		if(f!=FLOAT_NAN)
+		{
+			switch(m_typeBlock)
+			{
+			case BlockRect:
+				{
+					rtB.adjust(1,1,-1,-1);
+					p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
+				}
+				break;
+			case BlockCircle:
+				{
+					QPainterPath path;
+					path.addEllipse(rtB);
+					p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
+				}
+				break;
+			}
+		}
+		fLastPrice = iter->fClose;
+		++iter;
+	}*/
 }
 
 QMap<time_t,RStockData*>* CBaseBlockWidget::getColorBlockMap( CStockInfoItem* pItem )

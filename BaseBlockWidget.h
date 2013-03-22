@@ -39,8 +39,9 @@ protected:
 
 protected:
 	void updateTimesH();								//更新当前的横坐标数据
-	void drawCoordX(QPainter& p,const QRect& rtCoordX,	//绘制X坐标轴
-		float fGridSize);
+	void drawCoordX(QPainter& p,const QRect& rtCoordX);	//绘制X坐标轴
+	//绘制色块
+	void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue);
 
 	//获取数据二维表，通过分析当前的周期。
 	QMap<time_t,RStockData*>* getColorBlockMap(CStockInfoItem* pItem);
@@ -55,6 +56,7 @@ protected slots:
 
 protected:
 	QMap<time_t,int> m_mapTimes;			//当前需要显示的所有时间（横向坐标）
+	QMap<time_t,int> m_mapShowTimes;		//当前已经绘制的时间
 
 protected:
 	QMenu* m_pMenuCustom;					//自定义菜单
@@ -67,6 +69,8 @@ protected:
 	BlockMode m_typeBlock;					//block显示形状
 	int m_iCBHeight;						//单个色块的高度
 	int m_iCBWidth;							//单个色块的宽度
+
+	QRect m_rtClient;						//实际色块绘制区域
 };
 
 #endif	//BASE_BLOCK_WIDGET_H
