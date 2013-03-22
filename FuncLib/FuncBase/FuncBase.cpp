@@ -20,8 +20,8 @@ int my_lua_high( lua_State* _L )
 	if(pCalc)
 	{
 		lua_newtable(_L);
-		lua_pushnumber(_L,-1);
-		lua_rawseti(_L,-2,0);
+//		lua_pushnumber(_L,-1);
+//		lua_rawseti(_L,-2,0);
 
 
 		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
@@ -61,8 +61,8 @@ int my_lua_low( lua_State* _L )
 	if(pCalc)
 	{
 		lua_newtable(_L);
-		lua_pushnumber(_L,-1);
-		lua_rawseti(_L,-2,0);
+//		lua_pushnumber(_L,-1);
+//		lua_rawseti(_L,-2,0);
 
 
 		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
@@ -102,8 +102,8 @@ int my_lua_open( lua_State* _L )
 	if(pCalc)
 	{
 		lua_newtable(_L);
-		lua_pushnumber(_L,-1);
-		lua_rawseti(_L,-2,0);
+//		lua_pushnumber(_L,-1);
+//		lua_rawseti(_L,-2,0);
 
 		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
 		if(iter != pCalc->mapData->end())
@@ -142,8 +142,8 @@ int my_lua_close( lua_State* _L )
 	if(pCalc)
 	{
 		lua_newtable(_L);
-		lua_pushnumber(_L,-1);
-		lua_rawseti(_L,-2,0);
+//		lua_pushnumber(_L,-1);
+//		lua_rawseti(_L,-2,0);
 
 		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
 		if(iter != pCalc->mapData->end())

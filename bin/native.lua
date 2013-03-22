@@ -143,7 +143,7 @@ function REF(op1,op2)
 	end
 	local c1 = #(op)
 	for i=(c1+1),c do
-		op[i] = 0
+		op[i] = op1[c]
 	end
 	setmetatable(op,Array)
 	return op
@@ -164,12 +164,17 @@ function REFX(op1,op2)
 	if(op2<1 or type(op2)~="number" or type(op1)~="table") then
 		return op1
 	end
-	local op={}
-	for i=1,op2 do
-		op[i] = 0
-	end
 	
 	local c = #(op1)
+	if(c<op2) then
+		return op1
+	end
+	
+	local op={}
+	for i=1,op2 do
+		op[i] = op1[1]
+	end
+	
 	for i=(op2+1),c do
 		op[i] = op1[i]
 	end
