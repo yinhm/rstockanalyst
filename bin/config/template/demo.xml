@@ -52,18 +52,12 @@
    <relate>1</relate>
    <align>1</align>
    <size>62</size>
-   <widget circle="3602" mainliner="1">
+   <widget>
     <name></name>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
     <size>44</size>
-    <code>1A0001</code>
-    <liners>
-     <MainLiner size="60">
-      <exp></exp>
-     </MainLiner>
-    </liners>
    </widget>
    <widget circle="60" CBHeight="22" CBWidth="20">
     <name></name>

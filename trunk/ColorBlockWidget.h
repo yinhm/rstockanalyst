@@ -79,7 +79,6 @@ private:
 	int showStockIndex;						//当前显示的起始位置（列）
 
 	QRect m_rtHeader;						//头部Header区域
-	QRect m_rtClient;						//实际色块绘制区域
 	QRect m_rtBottom;						//底部区域，用于鼠标操作等信息
 };
 

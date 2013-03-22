@@ -230,9 +230,118 @@ void CColorBlockWidget::paintEvent( QPaintEvent* )
 	m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
 
 	drawHeader(p,m_rtHeader);
-	drawClient(p,m_rtClient);
 	drawBottom(p,m_rtBottom);
+	drawClient(p,m_rtClient);
 }
+
+//绘制头部信息
+void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
+{
+	p.fillRect(rtHeader,QColor(0,0,0));
+	p.setPen(QColor(255,0,0));
+	QRect rtCoord = rtHeader.adjusted(0,0,-1,-1);
+	p.drawRect(rtCoord);
+
+	p.setPen(QColor(255,255,255));
+	if(!m_pBlock)
+		return;
+	p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,m_pBlock->getBlockName());
+}
+
+void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
+{
+	p.fillRect(rtBottom,QColor(0,0,0));
+
+	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),50,rtBottom.height());
+	float fColorsWidth = rtColors.width()-5;
+	float fColorWidth = fColorsWidth/COLOR_BLOCK_SIZE;
+	for(int i=0;i<COLOR_BLOCK_SIZE;++i)
+	{
+		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
+			CColorManager::getBlockColor(m_qsColorMode,i));
+	}
+
+	//从右向左绘制横坐标
+	drawCoordX(p,QRect(rtBottom.left()+RCB_OFFSET_LEFT,rtBottom.top(),
+		rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,rtBottom.height()));
+}
+
+void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
+{
+	p.fillRect(rtClient,QColor(0,0,0));
+
+	updateColorBlockData();
+	int iCurY = rtClient.top();
+	int iIndex = showStockIndex;
+	for(;iCurY<rtClient.bottom();iCurY=(iCurY+m_iCBHeight))
+	{
+		if(iIndex<0||iIndex>=m_listStocks.size())
+			break;
+
+		drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),m_listStocks[iIndex]);
+		++iIndex;
+	}
+}
+
+void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem* pItem )
+{
+	if(pItem == m_pSelectedStock)
+	{
+		p.fillRect(rtCB,QColor(50,50,50));
+	}
+
+	{
+		//绘制左侧的标识信息（代码或者名称）
+		p.setPen(QColor(255,255,255));
+		QString qsText = pItem->getName();
+		if(qsText.isEmpty())
+			qsText = pItem->getCode();
+		p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,qsText);
+	}
+
+	//从右向左绘制横坐标
+	float fBeginX = rtCB.right()-RCB_OFFSET_Y;
+	float fEndX = rtCB.left()+RCB_OFFSET_LEFT;
+	float fCBWidth = fBeginX-fEndX;
+	if(fCBWidth<0)
+		return;
+	if(!mapStockColorBlocks.contains(pItem))
+		return;
+
+	QMap<time_t,RStockData*>* pMapCBs = mapStockColorBlocks[pItem];
+	RCalcInfo calc;
+	RDrawInfo draw;
+	{
+		calc.dwVersion = RSTOCK_VER;
+		calc.emCircle = m_typeCircle;
+		calc.mapData = pMapCBs;
+		calc.mapDataEx = NULL;
+		calc.pItem = pItem;
+
+		draw.dwVersion = RSTOCK_VER;
+		draw.pPainter = &p;
+		draw.rtClient = rtCB;
+	}
+	{
+		lua_pushlightuserdata(m_pL,&calc);
+		lua_setglobal(m_pL,"_calc");
+
+		lua_pushlightuserdata(m_pL,&draw);
+		lua_setglobal(m_pL,"_draw");
+
+		lua_getglobal(m_pL,"InitValues");
+		lua_call(m_pL,0,0);
+	}
+
+	{
+		luaL_dostring(m_pL,"p1 = (CLOSE-REF(CLOSE,1))/CLOSE");
+
+		QVector<float> _vvv;
+		RLuaEx::LuaPopArray(m_pL,"p1",_vvv);
+		drawColocBlock(p,rtCB.top(),_vvv);
+	}
+}
+
 
 void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 {
@@ -406,177 +515,6 @@ QMenu* CColorBlockWidget::getCustomMenu()
 	}
 
 	return m_pMenuCustom;
-}
-
-void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
-{
-	p.fillRect(rtHeader,QColor(0,0,0));
-	p.setPen(QColor(255,0,0));
-	QRect rtCoord = rtHeader.adjusted(0,0,-1,-1);
-	p.drawRect(rtCoord);
-
-	p.setPen(QColor(255,255,255));
-	if(!m_pBlock)
-		return;
-	p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,m_pBlock->getBlockName());
-}
-
-void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
-{
-	p.fillRect(rtClient,QColor(0,0,0));
-
-	updateColorBlockData();
-	int iCurY = rtClient.top();
-	int iIndex = showStockIndex;
-	for(;iCurY<rtClient.bottom();iCurY=(iCurY+m_iCBHeight))
-	{
-		if(iIndex<0||iIndex>=m_listStocks.size())
-			break;
-
-		drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),m_listStocks[iIndex]);
-		++iIndex;
-	}
-}
-
-void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
-{
-	p.fillRect(rtBottom,QColor(0,0,0));
-
-	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),50,rtBottom.height());
-	float fColorsWidth = rtColors.width()-5;
-	float fColorWidth = fColorsWidth/COLOR_BLOCK_SIZE;
-	for(int i=0;i<COLOR_BLOCK_SIZE;++i)
-	{
-		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
-			CColorManager::getBlockColor(m_qsColorMode,i));
-	}
-
-	//从右向左绘制横坐标
-	drawCoordX(p,QRect(rtBottom.left()+RCB_OFFSET_LEFT,rtBottom.top(),
-		rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,rtBottom.height()),
-		m_iCBWidth);
-}
-
-void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem* pItem )
-{
-	if(pItem == m_pSelectedStock)
-	{
-		p.fillRect(rtCB,QColor(50,50,50));
-	}
-
-	{
-		//绘制左侧的标识信息（代码或者名称）
-		p.setPen(QColor(255,255,255));
-		QString qsText = pItem->getName();
-		if(qsText.isEmpty())
-			qsText = pItem->getCode();
-		p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,qsText);
-	}
-
-	//从右向左绘制横坐标
-	float fBeginX = rtCB.right()-RCB_OFFSET_Y;
-	float fEndX = rtCB.left()+RCB_OFFSET_LEFT;
-	float fCBWidth = fBeginX-fEndX;
-	if(fCBWidth<0)
-		return;
-	if(!mapStockColorBlocks.contains(pItem))
-		return;
-
-	QMap<time_t,RStockData*>* pMapCBs = mapStockColorBlocks[pItem];
-	RCalcInfo calc;
-	RDrawInfo draw;
-	{
-		calc.dwVersion = RSTOCK_VER;
-		calc.emCircle = m_typeCircle;
-		calc.mapData = pMapCBs;
-		calc.mapDataEx = NULL;
-		calc.pItem = pItem;
-
-		draw.dwVersion = RSTOCK_VER;
-		draw.pPainter = &p;
-		draw.rtClient = rtCB;
-	}
-	{
-		lua_pushlightuserdata(m_pL,&calc);
-		lua_setglobal(m_pL,"_calc");
-
-		lua_pushlightuserdata(m_pL,&draw);
-		lua_setglobal(m_pL,"_draw");
-
-		lua_getglobal(m_pL,"InitValues");
-		lua_call(m_pL,0,0);
-	}
-
-	{
-		luaL_dostring(m_pL,"p1 = (CLOSE-REF(CLOSE,1))/CLOSE");
-
-		QVector<float> _vvv;
-		RLuaEx::LuaPopArray(m_pL,"p1",_vvv);
-	}
-
-
-	/*
-	QMap<time_t,RStockData>::iterator iter = pMapCBs->begin();
-	float fLastPrice = pItem->getCurrentReport()->fLastClose;
-	while(iter!=pMapCBs->end())
-	{
-		float f = FLOAT_NAN;
-		QRect rtB;
-		if(m_typeCircle<Day)
-		{
-			time_t tmCur = iter.key()/(m_typeCircle)*(m_typeCircle);		//向下取整
-			if(m_mapTimes.contains(tmCur))
-			{
-				float fCurX = fBeginX - ((m_mapTimes[tmCur])*m_iCBWidth);
-				if(fCurX>=fEndX)
-				{
-					//计算增长百分比
-					f = (iter->fClose - fLastPrice)/fLastPrice*10.0;
-					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
-				}
-			}
-		}
-		else
-		{
-			time_t tmCur = iter.key();
-			QMap<time_t,int>::iterator iterTime = m_mapTimes.upperBound(tmCur);
-			if(iterTime!=m_mapTimes.begin())
-			{
-				--iterTime;
-				float fCurX = fBeginX - ((iterTime.value())*m_iCBWidth);
-				if(fCurX>=fEndX)
-				{
-					//计算增长百分比
-					f = (iter->fClose - fLastPrice)/fLastPrice;
-					if(m_typeCircle>DayN)
-						f = f/10.0;							//大于周线的，则对比例进行缩小
-					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
-				}
-			}
-		}
-		if(f!=FLOAT_NAN)
-		{
-			switch(m_typeBlock)
-			{
-			case BlockRect:
-				{
-					rtB.adjust(1,1,-1,-1);
-					p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
-				}
-				break;
-			case BlockCircle:
-				{
-					QPainterPath path;
-					path.addEllipse(rtB);
-					p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
-				}
-				break;
-			}
-		}
-		fLastPrice = iter->fClose;
-		++iter;
-	}
-	*/
 }
 
 QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
