@@ -37,6 +37,14 @@ protected:
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
+protected:
+	void updateTimesH();								//更新当前的横坐标数据
+	void drawCoordX(QPainter& p,const QRect& rtCoordX,	//绘制X坐标轴
+		float fGridSize);
+
+	//获取数据二维表，通过分析当前的周期。
+	QMap<time_t,RStockData*>* getColorBlockMap(CStockInfoItem* pItem);
+
 protected slots:
 	void setColorMode(const QString& mode);					//设置颜色模式
 
@@ -44,6 +52,9 @@ protected slots:
 	void onSetColorMode();									//点击设置颜色模式
 	void onSetBlockMode();									//设置当前的显示模式
 	void onSetBlockSize();									//设置色块的大小
+
+protected:
+	QMap<time_t,int> m_mapTimes;			//当前需要显示的所有时间（横向坐标）
 
 protected:
 	QMenu* m_pMenuCustom;					//自定义菜单

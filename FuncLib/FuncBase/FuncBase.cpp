@@ -24,14 +24,26 @@ int my_lua_high( lua_State* _L )
 		lua_rawseti(_L,-2,0);
 
 
-		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
-		int _i = 1;
-		while(iter!=pCalc->mapData->end())
+		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
+		if(iter != pCalc->mapData->end())
 		{
-			lua_pushnumber(_L,iter->fHigh);
-			lua_rawseti(_L,-2,_i);
-			++iter;
-			++_i;
+			int _i = 1;
+			float fLast = 0;
+			while(iter!=pCalc->mapData->end())
+			{
+				if((*iter)!=NULL)
+				{
+					fLast = (*iter)->fClose;
+					lua_pushnumber(_L,(*iter)->fHigh);
+				}
+				else
+				{
+					lua_pushnumber(_L,fLast);
+				}
+				lua_rawseti(_L,-2,_i);
+				++iter;
+				++_i;
+			}
 		}
 		lua_getglobal(_L,"Array");
 		lua_setmetatable(_L,-2);
@@ -53,14 +65,26 @@ int my_lua_low( lua_State* _L )
 		lua_rawseti(_L,-2,0);
 
 
-		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
-		int _i = 1;
-		while(iter!=pCalc->mapData->end())
+		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
+		if(iter != pCalc->mapData->end())
 		{
-			lua_pushnumber(_L,iter->fLow);
-			lua_rawseti(_L,-2,_i);
-			++iter;
-			++_i;
+			int _i = 1;
+			float fLast = 0;
+			while(iter!=pCalc->mapData->end())
+			{
+				if((*iter)!=NULL)
+				{
+					fLast = (*iter)->fClose;
+					lua_pushnumber(_L,(*iter)->fLow);
+				}
+				else
+				{
+					lua_pushnumber(_L,fLast);
+				}
+				lua_rawseti(_L,-2,_i);
+				++iter;
+				++_i;
+			}
 		}
 		lua_getglobal(_L,"Array");
 		lua_setmetatable(_L,-2);
@@ -81,14 +105,26 @@ int my_lua_open( lua_State* _L )
 		lua_pushnumber(_L,-1);
 		lua_rawseti(_L,-2,0);
 
-		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
-		int _i = 1;
-		while(iter!=pCalc->mapData->end())
+		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
+		if(iter != pCalc->mapData->end())
 		{
-			lua_pushnumber(_L,iter->fOpen);
-			lua_rawseti(_L,-2,_i);
-			++iter;
-			++_i;
+			int _i = 1;
+			float fLast = 0;
+			while(iter!=pCalc->mapData->end())
+			{
+				if((*iter)!=NULL)
+				{
+					fLast = (*iter)->fClose;
+					lua_pushnumber(_L,(*iter)->fOpen);
+				}
+				else
+				{
+					lua_pushnumber(_L,fLast);
+				}
+				lua_rawseti(_L,-2,_i);
+				++iter;
+				++_i;
+			}
 		}
 		lua_getglobal(_L,"Array");
 		lua_setmetatable(_L,-2);
@@ -109,14 +145,26 @@ int my_lua_close( lua_State* _L )
 		lua_pushnumber(_L,-1);
 		lua_rawseti(_L,-2,0);
 
-		QMap<time_t,RStockData>::iterator iter = pCalc->mapData->begin();
-		int _i = 1;
-		while(iter!=pCalc->mapData->end())
+		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
+		if(iter != pCalc->mapData->end())
 		{
-			lua_pushnumber(_L,iter->fClose);
-			lua_rawseti(_L,-2,_i);
-			++iter;
-			++_i;
+			int _i = 1;
+			float fLast = 0;
+			while(iter!=pCalc->mapData->end())
+			{
+				if((*iter)!=NULL)
+				{
+					fLast = (*iter)->fClose;
+					lua_pushnumber(_L,(*iter)->fClose);
+				}
+				else
+				{
+					lua_pushnumber(_L,fLast);
+				}
+				lua_rawseti(_L,-2,_i);
+				++iter;
+				++_i;
+			}
 		}
 		lua_getglobal(_L,"Array");
 		lua_setmetatable(_L,-2);

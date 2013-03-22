@@ -19,7 +19,7 @@
     <align>1</align>
     <size>55</size>
     <block>上海A股</block>
-    <stock>600011</stock>
+    <stock>600110</stock>
    </widget>
    <widget circle="300" mainliner="1">
     <name></name>
@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>28</size>
-    <code>600011</code>
+    <code>600110</code>
     <liners>
      <MainLiner size="60">
       <exp></exp>
@@ -39,10 +39,11 @@
    </widget>
    <widget>
     <name></name>
-    <type>0</type>
+    <type>5</type>
     <relate>1</relate>
     <align>1</align>
     <size>16</size>
+    <code>600110</code>
    </widget>
   </widget>
   <widget>
@@ -51,13 +52,13 @@
    <relate>1</relate>
    <align>1</align>
    <size>62</size>
-   <widget circle="60" mainliner="1">
+   <widget circle="3602" mainliner="1">
     <name></name>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
     <size>44</size>
-    <code>600000</code>
+    <code>1A0001</code>
     <liners>
      <MainLiner size="60">
       <exp></exp>

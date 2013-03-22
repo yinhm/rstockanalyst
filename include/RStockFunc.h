@@ -104,8 +104,8 @@ typedef struct tagRCalcInfo
 	RStockCircle emCircle;		//分析周期
 	CStockInfoItem* pItem;
 
-	QMap<time_t,RStockData>* mapData;	//常规数据,可能为NULL
-	QMap<time_t,RStockData>* mapDataEx;	//扩展数据,分笔成交买卖盘,注意:可能为 NULL
+	QMap<time_t,RStockData*>* mapData;	//常规数据,可能为NULL
+	QMap<time_t,RStockDataEx*>* mapDataEx;	//扩展数据,分笔成交买卖盘,注意:可能为 NULL
 
 	tagRCalcInfo()
 	{
