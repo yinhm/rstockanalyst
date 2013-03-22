@@ -60,10 +60,7 @@ private:
 
 	QRect rectOfStock(CStockInfoItem* pItem);					//获取某只股票显示的位置
 	CStockInfoItem* hitTestStock(const QPoint& ptPoint) const;		//测试某点所指向的股票信息
-	RStockData hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
-
-	//获取数据二维表，通过分析当前的周期。
-	QMap<time_t,RStockData>* getColorBlockMap(CStockInfoItem* pItem);
+	RStockData* hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
 
 private:
 	QMenu* m_pMenuBlockList;				//所有板块信息（当前选中的板块上打勾）
@@ -72,7 +69,7 @@ private:
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
-	QMap<CStockInfoItem*,QMap<time_t,RStockData>*> mapStockColorBlocks;	//当前显示的ColorBlock数据
+	QMap<CStockInfoItem*,QMap<time_t,RStockData*>*> mapStockColorBlocks;	//当前显示的ColorBlock数据
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
 	/*用于绘制操作的成员变量*/
