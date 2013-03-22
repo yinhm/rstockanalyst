@@ -186,7 +186,9 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 {
 	QMap<time_t,RStockData*>* pMap = new QMap<time_t,RStockData*>();
 	if(mapTimes.size()<1)
+	{
 		return pMap;
+	}
 
 	QMap<time_t,int>::iterator iter = mapTimes.begin();
 
@@ -214,30 +216,51 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 			pLastFenBi = pFenBi;
 			continue;
 		}
-		else if(pFenBi->tmTime>tmBegin&&pFenBi->tmTime<tmEnd)
+		else if(pFenBi->tmTime>=tmBegin&&pFenBi->tmTime<=tmEnd)
+		{
 			listPer.push_back(pFenBi);
+		}
 		else
 		{
 			if(listPer.size()>0)
 				pLastFenBi = listPer.last();
 			pMap->insert(tmBegin,getColorBlockItemByMins(listPer,NULL));
 			listPer.clear();
+			
 			++iter;
-
+			while (iter!=mapTimes.end())
+			{
+				tmBegin = iter.key();
+				if(iter!=mapTimes.end())
+					tmEnd = (iter+1).key();
+				else
+					tmEnd = tmBegin+3600*24*1000;		//加1000天的时间
+				
+				if(pFenBi->tmTime>=tmBegin&&pFenBi->tmTime<=tmEnd)
+				{
+					listPer.push_back(pFenBi);
+					break;
+				}
+				else
+				{
+					pMap->insert(tmBegin,NULL);
+				}
+				++iter;
+			}
+			
 			if(iter==mapTimes.end())
 				break;
-
-			tmBegin = iter.key();
-			if(iter!=mapTimes.end())
-				tmEnd = (iter+1).key();
-			else
-				tmEnd = tmBegin+3600*24*1000;		//加1000天的时间
 		}
 	}
 	while(iter!=mapTimes.end())
 	{
 		pMap->insert(iter.key(),NULL);
 		++iter;
+	}
+
+	if(pMap->size()!=mapTimes.size())
+	{
+		qDebug()<<"FenBi Map is not enouph";
 	}
 
 	return pMap;
@@ -276,7 +299,7 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 			pLastFenBi = pFenBi;
 			continue;
 		}
-		else if(pFenBi->time>tmBegin&&pFenBi->time<tmEnd)
+		else if(pFenBi->time>=tmBegin&&pFenBi->time<=tmEnd)
 			listPer.push_back(pFenBi);
 		else
 		{
@@ -284,16 +307,30 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 				pLastFenBi = listPer.last();
 			pMap->insert(tmBegin,getColorBlockItemByDays(listPer));
 			listPer.clear();
+			
 			++iter;
-
+			while (iter!=mapTimes.end())
+			{
+				tmBegin = iter.key();
+				if(iter!=mapTimes.end())
+					tmEnd = (iter+1).key();
+				else
+					tmEnd = tmBegin+3600*24*1000;		//加1000天的时间
+				
+				if(pFenBi->time>=tmBegin&&pFenBi->time<=tmEnd)
+				{
+					listPer.push_back(pFenBi);
+					break;
+				}
+				else
+				{
+					pMap->insert(tmBegin,NULL);
+				}
+				++iter;
+			}
+			
 			if(iter==mapTimes.end())
 				break;
-
-			tmBegin = iter.key();
-			if(iter!=mapTimes.end())
-				tmEnd = (iter+1).key();
-			else
-				tmEnd = tmBegin+3600*24*1000;		//加1000天的时间
 		}
 	}
 	while(iter!=mapTimes.end())
@@ -301,7 +338,11 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 		pMap->insert(iter.key(),NULL);
 		++iter;
 	}
-
+	
+	if(pMap->size()!=mapTimes.size())
+	{
+		qDebug()<<"Day Map is not enouph";
+	}
 	return pMap;
 }
 
@@ -620,6 +661,8 @@ void CBaseBlockWidget::updateTimesH()
 			getYearMapByHistory(m_mapTimes,tmBegin,tmEnd);
 		}
 	}
+
+	qDebug()<<m_mapTimes.size();
 }
 
 void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX)	//绘制X坐标轴
@@ -640,7 +683,7 @@ void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX)	//绘制X坐标
 	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
 	while(fCurX>fEndX && iCount>=0)
 	{
-		m_mapTimes[listTimes[iCount]] = fCurX;
+		m_mapShowTimes[listTimes[iCount]] = fCurX;
 		if(m_typeCircle<Day)
 		{
 			if((fLastX-fCurX)>30)
@@ -707,13 +750,13 @@ void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX)	//绘制X坐标
 
 void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 {
-	int nTimes = 100;
+	int nTimes = 1;
 	if(m_typeCircle<=Min60)
-		nTimes = 1000;
-	else if(m_typeCircle<=Week)
-		nTimes = 100;
-	else
 		nTimes = 10;
+	else if(m_typeCircle<=Week)
+		nTimes = 1;
+	else
+		nTimes = 0.1;
 
 	QMap<time_t,int>::iterator iter = m_mapShowTimes.begin();
 	while(iter!=m_mapShowTimes.end())
@@ -721,7 +764,7 @@ void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 		QRect rtCB = QRect(iter.value(),iY,m_iCBWidth,m_iCBHeight);
 		if(m_mapTimes.contains(iter.key()))
 		{
-			float f = vValue[m_mapTimes[iter.key()]];
+			float f = ((vValue[m_mapTimes[iter.key()]])*nTimes);
 			switch(m_typeBlock)
 			{
 			case BlockRect:

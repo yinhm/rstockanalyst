@@ -93,7 +93,7 @@ QStringList CColorManager::getBlockColorList()
 
 QColor CColorManager::getBlockColor( const QString& mode,float fVal )
 {
-	int iColor = fVal*100+10;
+	int iColor = fVal*100+10.5;
 	if(iColor>(COLOR_BLOCK_SIZE-1))
 		iColor = (COLOR_BLOCK_SIZE-1);
 	if(iColor<0)
