@@ -41,7 +41,7 @@ protected:
 	void updateTimesH();								//更新当前的横坐标数据
 	void drawCoordX(QPainter& p,const QRect& rtCoordX);	//绘制X坐标轴
 	//绘制色块
-	void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue);
+	void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue,bool bDraw = false);
 
 	//获取数据二维表，通过分析当前的周期。
 	QMap<time_t,RStockData*>* getColorBlockMap(CStockInfoItem* pItem);

@@ -334,23 +334,24 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	}
 
 	{
-		luaL_dostring(m_pL,"p1 = (CLOSE-REF(CLOSE,1))/CLOSE");
-//		luaL_dostring(m_pL,"p1 = CLOSE-REF(CLOSE,1)");
+//		luaL_dostring(m_pL,"p1 = (CLOSE-REF(CLOSE,1))/CLOSE");
+		luaL_dostring(m_pL,"p1 = CLOSE-REFX(CLOSE,1)");
 //		luaL_dostring(m_pL,"p2 = CLOSE");
 
-		//QVector<float> _vvv;
-		//RLuaEx::LuaPopArray(m_pL,"p1",_vvv);
-		//if(pItem->getCode() == "600000")
-		//{
-		//	foreach(float _f,_vvv)
-		//	{
-		//		qDebug()<<_f;
-		//	}
-		//}
-		
+
+		/*QVector<float> _vvv;
+		RLuaEx::LuaPopArray(m_pL,"p1",_vvv);
+		if(pItem->getCode() == "600000")
+		{
+			foreach(float _f,_vvv)
+			{
+				qDebug()<<_f;
+			}
+		}
+		*/
 		QVector<float> _vv;
 		RLuaEx::LuaPopArray(m_pL,"p1",_vv);
-		drawColocBlock(p,rtCB.top(),_vv);
+		drawColocBlock(p,rtCB.top(),_vv,pItem->getCode() == "600000");
 	}
 }
 
