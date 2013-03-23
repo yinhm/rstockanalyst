@@ -175,8 +175,8 @@ function REFX(op1,op2)
 		op[i] = op1[1]
 	end
 	
-	for i=(op2+1),c do
-		op[i] = op1[i]
+	for i=1,(c-op2) do
+		op[i+op2] = op1[i]
 	end
 	
 	setmetatable(op,Array)

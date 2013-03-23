@@ -748,7 +748,7 @@ void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX)	//»æÖÆX×ø±ê
 	return;
 }
 
-void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
+void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue,bool bDraw)
 {
 	int nTimes = 1;
 	if(m_typeCircle<=Min60)
@@ -759,18 +759,24 @@ void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 		nTimes = 0.1;
 
 	QMap<time_t,int>::iterator iter = m_mapShowTimes.begin();
+	
+	int iMapSize = m_mapTimes.size()-1;
 	while(iter!=m_mapShowTimes.end())
 	{
 		QRect rtCB = QRect(iter.value(),iY,m_iCBWidth,m_iCBHeight);
 		if(m_mapTimes.contains(iter.key()))
 		{
-			float f = ((vValue[m_mapTimes[iter.key()]])*nTimes);
+			float f = vValue[iMapSize - m_mapTimes[iter.key()]];
 			switch(m_typeBlock)
 			{
 			case BlockRect:
 				{
 					rtCB.adjust(1,1,-1,-1);
-					p.fillRect(rtCB,CColorManager::getBlockColor(m_qsColorMode,f));
+					p.fillRect(rtCB,CColorManager::getBlockColor(m_qsColorMode,f*nTimes));
+					if(bDraw)
+					{
+						p.drawText(rtCB,QString("%1,%2").arg(f,2).arg(iMapSize - m_mapTimes[iter.key()]));
+					}
 				}
 				break;
 			case BlockCircle:
