@@ -372,26 +372,11 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iCoorYWidth(50)
 	, m_iCoorXHeight(16)
 	, m_iMainLinerHeight(200)
-	, m_pScriptEngine(0)
 {
 
 	m_typeCircle = Day;
-	{
-		//初始化脚本解释器
-		m_pScriptEngine = new QScriptEngine;
-		/*
-		qScriptRegisterMetaType<stLinerItem>(m_pScriptEngine, linerItem2ScriptValue, scriptValue2LinerItem);
-		QScriptValue ctor = m_pScriptEngine->newFunction(createLinerItem);
-		m_pScriptEngine->globalObject().setProperty("stLinerItem", ctor);
-		qScriptRegisterSequenceMetaType<QVector<stLinerItem>>(m_pScriptEngine);
-		*/
-		qScriptRegisterSequenceMetaType<QVector<float>>(m_pScriptEngine);
 
-		//加载预置脚本
-		m_pScriptEngine->evaluate(QScriptProgram(g_qsScript));
-	}
-
-	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pScriptEngine,"");
+	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pL,"");
 	m_vSizes.push_back(60);
 
 	//设置菜单
@@ -440,7 +425,6 @@ CKLineWidget::~CKLineWidget(void)
 	foreach(CMultiLiner* p,m_listLiners)
 		delete p;
 	m_listLiners.clear();
-	delete m_pScriptEngine;
 
 	delete m_pMenuCustom;
 }
@@ -495,7 +479,7 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 					if(bOk)
 						t = static_cast<CMultiLiner::MultiLinerType>(iType);
 				}
-				CMultiLiner* pLiner = new CMultiLiner(t,m_pScriptEngine,"");
+				CMultiLiner* pLiner = new CMultiLiner(t,m_pL,"");
 
 				m_vSizes.push_back(eleLiner.attribute("size").toInt());
 				QDomElement eleExp = eleLiner.firstChildElement("exp");
@@ -631,6 +615,15 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
+	{
+		RDrawInfo draw;
+		draw.dwVersion = RSTOCK_VER;
+		draw.pPainter = &p;
+		draw.rtClient = rtClient;
+		
+		lua_pushlightuserdata(m_pL,&draw);
+		lua_setglobal(m_pL,"_draw");
+	}
 
 	QPoint ptCurMouse = this->mapFromGlobal(QCursor::pos());
 	CMultiLiner* pCurLiner = 0;		//当前鼠标所在位置的MultiLiner
@@ -923,7 +916,7 @@ void CKLineWidget::onSetCircle()
 
 void CKLineWidget::onAddDeputy()
 {
-	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pScriptEngine,"CLOSE;");
+	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pL,"CLOSE;");
 	m_listLiners.push_back(pMultiLiner);
 	m_vSizes.push_back(20);
 	update();
@@ -931,7 +924,7 @@ void CKLineWidget::onAddDeputy()
 
 void CKLineWidget::onAddVolume()
 {
-	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::VolumeLine,m_pScriptEngine,"");
+	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::VolumeLine,m_pL,"");
 	m_listLiners.push_back(pMultiLiner);
 	m_vSizes.push_back(20);
 	update();
@@ -1201,45 +1194,26 @@ void CKLineWidget::resetTmpData()
 		}
 	}
 
-	if(listItems.size()<m_iShowCount)
-		m_iShowCount = listItems.size();
-
-
+	
+	QTime tmNow = QTime::currentTime();
+	/*将更新后的数据设置到脚本引擎中*/
 	{
-		/*将更新后的数据设置到脚本引擎中*/
-		QVector<float> vOpen;
-		QVector<float> vHigh;
-		QVector<float> vLow;
-		QVector<float> vClose;
-		QVector<float> vVolume;
-		QVector<float> vAmount;
-		QVector<float> vAdvance;
-		QVector<float> vDecline;
-		foreach(const stLinerItem& i,listItems)
-		{
-			vOpen.push_back(i.fOpen);
-			vHigh.push_back(i.fHigh);
-			vLow.push_back(i.fLow);
-			vClose.push_back(i.fClose);
-			vVolume.push_back(i.fVolume);
-			vAmount.push_back(i.fAmount);
-			vAdvance.push_back(i.wAdvance);
-			vDecline.push_back(i.wDecline);
-		}
+		RCalcInfo calc;
+		calc.dwVersion = RSTOCK_VER;
+		calc.emCircle = m_typeCircle;
+//		calc.mapData = pMapCBs;
+		calc.mapDataEx = NULL;
+		calc.pItem = m_pStockItem;
+		
+		lua_pushlightuserdata(m_pL,&calc);
+		lua_setglobal(m_pL,"_calc");
 
-		QTime tmNow = QTime::currentTime();
-		//	m_pScriptEngine->globalObject().setProperty("ITEMS",m_pScriptEngine->toScriptValue(listItems));
-		//	qDebug()<<m_pScriptEngine->evaluate(QScriptProgram("CalcBaseData();")).toString();
-		m_pScriptEngine->globalObject().setProperty("OPEN",m_pScriptEngine->toScriptValue(vOpen));
-		m_pScriptEngine->globalObject().setProperty("HIGH",m_pScriptEngine->toScriptValue(vHigh));
-		m_pScriptEngine->globalObject().setProperty("LOW",m_pScriptEngine->toScriptValue(vLow));
-		m_pScriptEngine->globalObject().setProperty("CLOSE",m_pScriptEngine->toScriptValue(vClose));
-		m_pScriptEngine->globalObject().setProperty("VOLUME",m_pScriptEngine->toScriptValue(vVolume));
-		m_pScriptEngine->globalObject().setProperty("AMOUNT",m_pScriptEngine->toScriptValue(vAmount));
-		m_pScriptEngine->globalObject().setProperty("ADVANCE",m_pScriptEngine->toScriptValue(vAdvance));
-		m_pScriptEngine->globalObject().setProperty("DECLINE",m_pScriptEngine->toScriptValue(vDecline));
-		qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
+		lua_getglobal(m_pL,"InitValues");
+		lua_call(m_pL,0,0);
 	}
+
+	qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
+
 	//更新绘制中的数据
 	if(m_pActShowMain->isChecked())
 		m_pLinerMain->updateData();

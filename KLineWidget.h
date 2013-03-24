@@ -89,8 +89,6 @@ private:
 	QRect m_rtAddShow;						//增加显示个数的按钮区域
 	QRect m_rtSubShow;						//减少显示个数的按钮区域
 
-	QScriptEngine* m_pScriptEngine;			//脚本解释器
-
 	static QString g_qsScript;				//js脚本
 };
 

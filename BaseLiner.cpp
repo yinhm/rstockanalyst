@@ -1,10 +1,11 @@
 #include "StdAfx.h"
 #include "BaseLiner.h"
 #include "ColorManager.h"
+#include "RLuaEx.h"
 
 
-CBaseLiner::CBaseLiner( QScriptEngine* pEngine,const QString& exp,const QString& title /*= "" */ )
-	: m_pEngine(pEngine)
+CBaseLiner::CBaseLiner( lua_State* pL,const QString& exp,const QString& title /*= "" */ )
+	: m_pL(pL)
 	, m_qsExp(exp)
 	, m_qsTitle(title)
 	, m_clrLine(QColor(255,255,255))
@@ -21,9 +22,10 @@ CBaseLiner::~CBaseLiner(void)
 
 void CBaseLiner::updateData()
 {
-	if(m_pEngine)
+	if(m_pL)
 	{
-		m_vals = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate(QScriptProgram(m_qsExp)));
+		luaL_dostring(m_pL,m_qsExp.toLocal8Bit());
+		RLuaEx::LuaPopArray(m_pL,"p1",m_vals);
 	}
 }
 
@@ -91,8 +93,8 @@ void CBaseLiner::Draw( QPainter& p,const QRectF& rtClient, int iShowCount  )
 
 
 
-CKLineLiner::CKLineLiner( QScriptEngine* pEngine )
-	: CBaseLiner(pEngine,"", "K线图"),
+CKLineLiner::CKLineLiner( lua_State* pL )
+	: CBaseLiner(pL,"", "K线图"),
 	m_typeKLine(CKLineLiner::Normal)
 {
 
@@ -106,10 +108,10 @@ CKLineLiner::~CKLineLiner( void )
 void CKLineLiner::updateData()
 {
 	//更新K线所用到的数据
-	m_vOpen = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("OPEN;"));
-	m_vHigh = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("HIGH;"));
-	m_vLow = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("LOW;"));
-	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
+//	m_vOpen = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("OPEN;"));
+//	m_vHigh = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("HIGH;"));
+//	m_vLow = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("LOW;"));
+//	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
 }
 
 void CKLineLiner::getMinAndMax( float& fMin,float& fMax,int iCount )
@@ -213,8 +215,8 @@ void CKLineLiner::drawFenShi( const int& iIndex,QPainter& p,const QRectF& rtItem
 
 
 
-CVolumeLiner::CVolumeLiner( QScriptEngine* pEngine )
-	: CBaseLiner(pEngine,"", "量视图")
+CVolumeLiner::CVolumeLiner( lua_State* pL )
+	: CBaseLiner(pL,"", "量视图")
 {
 
 }
@@ -226,9 +228,9 @@ CVolumeLiner::~CVolumeLiner( void )
 
 void CVolumeLiner::updateData()
 {
-	m_vOpen = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("OPEN;"));
-	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
-	m_vals = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("VOLUME;"));
+//	m_vOpen = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("OPEN;"));
+//	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
+//	m_vals = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("VOLUME;"));
 //	m_vAmount = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
 //	return CBaseLiner::updateData();
 }
@@ -296,9 +298,9 @@ void CVolumeLiner::Draw( QPainter& p,const QRectF& rtClient,int iShowCount )
 }
 
 
-CMultiLiner::CMultiLiner( MultiLinerType type,QScriptEngine* pEngine,const QString& exp )
+CMultiLiner::CMultiLiner( MultiLinerType type,lua_State* pL,const QString& exp )
 	: m_type(type)
-	, m_pEngine(pEngine)
+	, m_pL(pL)
 {
 	setExpression(exp);
 }
@@ -376,11 +378,11 @@ void CMultiLiner::setExpression( const QString& exp )
 
 	if(m_type==MainKLine)
 	{
-		m_listLiner.push_back(new CKLineLiner(m_pEngine));
+		m_listLiner.push_back(new CKLineLiner(m_pL));
 	}
 	else if(m_type == VolumeLine)
 	{
-		m_listLiner.push_back(new CVolumeLiner(m_pEngine));
+		m_listLiner.push_back(new CVolumeLiner(m_pL));
 	}
 
 	QStringList listExp = exp.split("\n");
@@ -389,7 +391,7 @@ void CMultiLiner::setExpression( const QString& exp )
 		QString e = str.trimmed();
 		if(!e.isEmpty())
 		{
-			CBaseLiner* pLiner = new CBaseLiner(m_pEngine,str);
+			CBaseLiner* pLiner = new CBaseLiner(m_pL,str);
 			m_listLiner.push_back(pLiner);
 		}
 	}
