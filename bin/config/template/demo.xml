@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>28</size>
-    <code>600125</code>
+    <code>600006</code>
     <liners>
      <MainLiner size="60">
       <exp></exp>
@@ -43,7 +43,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>16</size>
-    <code>600125</code>
+    <code>600006</code>
    </widget>
   </widget>
   <widget>
@@ -59,7 +59,7 @@
     <align>1</align>
     <size>44</size>
    </widget>
-   <widget circle="30" CBHeight="22" CBWidth="20">
+   <widget circle="60" CBHeight="40" CBWidth="20">
     <name></name>
     <type>3</type>
     <relate>0</relate>

@@ -141,7 +141,6 @@ int my_lua_close( lua_State* _L )
 	lua_pop(_L,1);
 	if(pCalc)
 	{
-		bool bbb = pCalc->pItem->getCode() == "600000";
 		lua_newtable(_L);
 //		lua_pushnumber(_L,-1);
 //		lua_rawseti(_L,-2,0);
@@ -157,13 +156,9 @@ int my_lua_close( lua_State* _L )
 				{
 					fLast = (*iter)->fClose;
 					lua_pushnumber(_L,(*iter)->fClose);
-					if(bbb)
-						qDebug()<<"Time:"<<QDateTime::fromTime_t((*iter)->tmTime).toString("hh:mm:ss")<<"-->"<<fLast;
 				}
 				else
 				{
-					if(bbb)
-						qDebug()<<fLast;
 					lua_pushnumber(_L,fLast);
 				}
 				lua_rawseti(_L,-2,_i);
