@@ -3,6 +3,7 @@
 
 void RLuaEx::LuaPushArray( lua_State* _L,const char* _t,QVector<float>& _v )
 {
+	_v.clear();
 	luaL_dostring(_L,"return Array.create()");
 	if(lua_type(_L,-1)!=LUA_TTABLE)
 		return;
@@ -19,6 +20,7 @@ void RLuaEx::LuaPushArray( lua_State* _L,const char* _t,QVector<float>& _v )
 
 void RLuaEx::LuaPopArray( lua_State* _L,const char* _t,QVector<float>& _v )
 {
+	_v.clear();
 	lua_getglobal(_L,_t);
 	if(lua_type(_L,-1)!=LUA_TTABLE)
 	{
@@ -42,6 +44,7 @@ void RLuaEx::LuaPopArray( lua_State* _L,const char* _t,QVector<float>& _v )
 
 void RLuaEx::LuaRetArray( lua_State* _L,QVector<float>& _v )
 {
+	_v.clear();
 	if(lua_type(_L,-1)!=LUA_TTABLE)
 		return;
 	int table_index = lua_gettop(_L);

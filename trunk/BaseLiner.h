@@ -35,7 +35,7 @@ Q_DECLARE_METATYPE(QVector<stLinerItem>)
 class CBaseLiner
 {
 public:
-	CBaseLiner(QScriptEngine* pEngine,const QString& exp,const QString& title = "" );
+	CBaseLiner(lua_State* pL,const QString& exp,const QString& title = "" );
 	~CBaseLiner(void);
 public:
 	virtual void updateData();				//更新显示的数据
@@ -59,7 +59,7 @@ protected:
 	float fMinPrice;
 	QString m_qsTitle;			//标题
 	QString m_qsExp;			//表达式
-	QScriptEngine* m_pEngine;	//脚本引擎
+	lua_State* m_pL;	//脚本引擎
 
 	QVector<float> m_vals;
 	int m_iPower;					//倍数
@@ -75,7 +75,7 @@ public:
 		FenShi,
 	};
 public:
-	CKLineLiner(QScriptEngine* pEngine);
+	CKLineLiner(lua_State* pL);
 	~CKLineLiner(void);
 
 public:
@@ -101,7 +101,7 @@ private:
 class CVolumeLiner : public CBaseLiner
 {
 public:
-	CVolumeLiner(QScriptEngine* pEngine);
+	CVolumeLiner(lua_State* pL);
 	~CVolumeLiner(void);
 
 public:
@@ -125,7 +125,7 @@ public:
 		Deputy,			//副图
 	};
 public:
-	CMultiLiner(MultiLinerType type,QScriptEngine* pEngine,const QString& exp);
+	CMultiLiner(MultiLinerType type,lua_State* pL,const QString& exp);
 	~CMultiLiner(void);
 
 public:
@@ -146,7 +146,7 @@ private:
 private:
 	QList<CBaseLiner*> m_listLiner;	//所拥有的绘制列表
 	MultiLinerType m_type;			//用于区分是主图还是副图
-	QScriptEngine* m_pEngine;		//数据引擎
+	lua_State* m_pL;		//数据引擎
 	QRectF m_rtClient;				//当前窗口的大小
 	QString m_qsExp;				//该窗口中的表达式
 

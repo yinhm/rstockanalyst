@@ -17,7 +17,7 @@ int my_lua_high( lua_State* _L )
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
 	lua_pop(_L,1);
-	if(pCalc)
+	if(pCalc&&pCalc->mapData)
 	{
 		lua_newtable(_L);
 //		lua_pushnumber(_L,-1);
@@ -58,7 +58,7 @@ int my_lua_low( lua_State* _L )
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
 	lua_pop(_L,1);
-	if(pCalc)
+	if(pCalc&&pCalc->mapData)
 	{
 		lua_newtable(_L);
 //		lua_pushnumber(_L,-1);
@@ -99,7 +99,7 @@ int my_lua_open( lua_State* _L )
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
 	lua_pop(_L,1);
-	if(pCalc)
+	if(pCalc&&pCalc->mapData)
 	{
 		lua_newtable(_L);
 //		lua_pushnumber(_L,-1);
@@ -139,7 +139,7 @@ int my_lua_close( lua_State* _L )
 	lua_getglobal(_L,"_calc");
 	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
 	lua_pop(_L,1);
-	if(pCalc)
+	if(pCalc&&pCalc->mapData)
 	{
 		lua_newtable(_L);
 //		lua_pushnumber(_L,-1);
