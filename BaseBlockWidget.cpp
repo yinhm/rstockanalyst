@@ -748,7 +748,7 @@ void CBaseBlockWidget::drawCoordX(QPainter& p,const QRect& rtCoordX)	//»æÖÆX×ø±ê
 	return;
 }
 
-void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue,bool bDraw)
+void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 {
 	int nTimes = 1;
 	if(m_typeCircle<=Min60)
@@ -773,10 +773,6 @@ void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue,
 				{
 					rtCB.adjust(1,1,-1,-1);
 					p.fillRect(rtCB,CColorManager::getBlockColor(m_qsColorMode,f*nTimes));
-					if(bDraw)
-					{
-						p.drawText(rtCB,QString("%1,%2").arg(f,2).arg(iMapSize - m_mapTimes[iter.key()]));
-					}
 				}
 				break;
 			case BlockCircle:

@@ -4,42 +4,6 @@
 
 #define	KLINE_BORDER	2
 
-/*
-对stLinerItem进行转换的代码，由于效率问题，取消了该转换
-QScriptValue linerItem2ScriptValue(QScriptEngine *engine, const stLinerItem &s)
-{
-	QScriptValue obj = engine->newObject();
-	obj.setProperty("time", engine->newDate(QDateTime::fromTime_t(s.time)));
-	obj.setProperty("open", s.fOpen);
-	obj.setProperty("high", s.fHigh);
-	obj.setProperty("low", s.fLow);
-	obj.setProperty("close", s.fClose);
-	obj.setProperty("volume", s.fVolume);
-	obj.setProperty("amount", s.fAmount);
-	obj.setProperty("advance", s.wAdvance);
-	obj.setProperty("decline", s.wDecline);
-	return obj;
-}
-
-void scriptValue2LinerItem(const QScriptValue &obj, stLinerItem &s)
-{
-	s.time = obj.property("time").toDateTime().toTime_t();
-	s.fOpen = obj.property("open").toNumber();
-	s.fHigh = obj.property("high").toNumber();
-	s.fLow = obj.property("low").toNumber();
-	s.fClose = obj.property("close").toNumber();
-	s.fVolume = obj.property("volume").toNumber();
-	s.fAmount = obj.property("amount").toNumber();
-	s.wAdvance = obj.property("advance").toUInt16();
-	s.wDecline = obj.property("decline").toUInt16();
-}
-
-QScriptValue createLinerItem(QScriptContext *, QScriptEngine *engine)
-{
-	stLinerItem s;
-	return engine->toScriptValue(s);
-}
-*/
 
 /* 对某分钟的数据进行转换 (qRcvMinuteData*) -> (stLinerItem) */
 bool getLinerItemByMin(stLinerItem& item, qRcvFenBiData* pMin)
