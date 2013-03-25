@@ -38,29 +38,18 @@ protected:
 	virtual QMenu* getCustomMenu();
 
 protected:
-	void updateTimesH();								//更新当前的横坐标数据
-	void drawCoordX(QPainter& p,const QRect& rtCoordX);	//绘制X坐标轴
 	//绘制色块
 	void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue);
-
-	//获取数据二维表，通过分析当前的周期。
-	QMap<time_t,RStockData*>* getColorBlockMap(CStockInfoItem* pItem);
 
 protected slots:
 	void setColorMode(const QString& mode);					//设置颜色模式
 
-	void onSetCircle();										//设置当前的显示周期
 	void onSetColorMode();									//点击设置颜色模式
 	void onSetBlockMode();									//设置当前的显示模式
 	void onSetBlockSize();									//设置色块的大小
 
-protected:
-	QMap<time_t,int> m_mapTimes;			//当前需要显示的所有时间（横向坐标）
-	QMap<time_t,int> m_mapShowTimes;		//当前已经绘制的时间
 
 protected:
-	QMenu* m_pMenuCustom;					//自定义菜单
-	QMenu* m_pMenuCircle;					//周期设置菜单
 	QMenu* m_pMenuColorMode;				//颜色模式菜单
 	QMenu* m_pMenuBlockMode;				//显示模式菜单
 
