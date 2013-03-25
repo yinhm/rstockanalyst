@@ -22,41 +22,43 @@ bool getLinerItemByMin(stLinerItem& item, qRcvFenBiData* pMin)
 }
 
 /*通过分钟数据获取指定周期内的数据*/
-bool getLinerItemByMins(stLinerItem& item, const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
+RStockData* getLinerItemByMins(const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
 {
 	if(list.size()<1)
-		return false;
+		return NULL;
+
+	RStockData* pData = new RStockData();
 
 	qRcvFenBiData* pBegin = list.first();
 	qRcvFenBiData* pLast = list.last();
-	item.time = pLast->tmTime;
-	item.fOpen = pBegin->fPrice;
-	item.fClose = pLast->fPrice;
+	pData->tmTime = pLast->tmTime;
+	pData->fOpen = pBegin->fPrice;
+	pData->fClose = pLast->fPrice;
 
-	item.fLow = pBegin->fPrice;
-	item.fHigh = pBegin->fPrice;
+	pData->fLow = pBegin->fPrice;
+	pData->fHigh = pBegin->fPrice;
 
 	if(pLastFenbi)
 	{
-		item.fAmount = pLast->fAmount-pLastFenbi->fAmount;
-		item.fVolume = pLast->fVolume-pLastFenbi->fVolume;
+		pData->fAmount = pLast->fAmount-pLastFenbi->fAmount;
+		pData->fVolume = pLast->fVolume-pLastFenbi->fVolume;
 	}
 	else
 	{
-		item.fAmount = pLast->fAmount;
-		item.fVolume = pLast->fVolume;
+		pData->fAmount = pLast->fAmount;
+		pData->fVolume = pLast->fVolume;
 	}
 	foreach(qRcvFenBiData* p,list)
 	{
-		if(item.fLow>p->fPrice)
-			item.fLow = p->fPrice;
-		if(item.fHigh<p->fPrice)
-			item.fHigh = p->fPrice;
+		if(pData->fLow>p->fPrice)
+			pData->fLow = p->fPrice;
+		if(pData->fHigh<p->fPrice)
+			pData->fHigh = p->fPrice;
 	}
-	return true;
+	return pData;
 }
 
-int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
+int getLinerMinItems(QMap<time_t,RStockData*>& mapData,const QList<qRcvFenBiData*>& minutes, int iSize = 1)
 {
 	QList<qRcvFenBiData*> listMins;
 	time_t tmT = 0;
@@ -65,9 +67,15 @@ int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvFenBiData*>
 	{
 		if((p->tmTime-tmT)>=(iSize))
 		{
-			stLinerItem item;
-			if(getLinerItemByMins(item,listMins,pLastFenbi))
-				listItems.push_back(item);
+			RStockData* pData = getLinerItemByMins(listMins,pLastFenbi);
+			if(pData)
+			{
+				if(!mapData.contains(pData->tmTime))
+					mapData[pData->tmTime] = pData;
+				else
+					delete pData;
+			}
+
 			if(listMins.size()>0)
 				pLastFenbi = listMins.last();
 			listMins.clear();
@@ -79,73 +87,87 @@ int getLinerMinItems(QVector<stLinerItem>& listItems,const QList<qRcvFenBiData*>
 
 	{
 		//最后一组数据
-		stLinerItem item;
-		if(getLinerItemByMins(item,listMins,pLastFenbi))
-			listItems.push_back(item);
+		RStockData* pData = getLinerItemByMins(listMins,pLastFenbi);
+		if(pData)
+		{
+			if(!mapData.contains(pData->tmTime))
+				mapData[pData->tmTime] = pData;
+			else
+				delete pData;
+		}
 		listMins.clear();
 	}
-	return listItems.size();
+	return mapData.size();
 }
 
 /* 对某天的数据进行转换 (qRcvHistoryData*) -> (stLinerItem) */
-bool getLinerItemByDay(stLinerItem& item,const qRcvHistoryData* pHistory)
+RStockData* getLinerItemByDay(const qRcvHistoryData* pHistory)
 {
 	if(!pHistory)
-		return false;
-	item.time = pHistory->time;
-	item.fOpen = pHistory->fOpen;
-	item.fClose = pHistory->fClose;
-	item.fHigh = pHistory->fHigh;
-	item.fLow = pHistory->fLow;
-	item.fAmount = pHistory->fAmount;
-	item.fVolume = pHistory->fVolume;
-	item.wAdvance = pHistory->wAdvance;
-	item.wDecline = pHistory->wDecline;
-	return true;
+		return NULL;
+	RStockData* pData = new RStockData();
+
+	pData->tmTime = pHistory->time;
+	pData->fOpen = pHistory->fOpen;
+	pData->fClose = pHistory->fClose;
+	pData->fHigh = pHistory->fHigh;
+	pData->fLow = pHistory->fLow;
+	pData->fAmount = pHistory->fAmount;
+	pData->fVolume = pHistory->fVolume;
+	pData->wAdvance = pHistory->wAdvance;
+	pData->wDecline = pHistory->wDecline;
+	return pData;
 }
 /*通过多天数据获取一个周期内的数据*/
-bool getLinerItemByDays(stLinerItem& item,const QList<qRcvHistoryData*>& list)
+RStockData* getLinerItemByDays(const QList<qRcvHistoryData*>& list)
 {
 	if(list.size()<1)
-		return false;
+		return NULL;
+
+	RStockData* pData = new RStockData;
 
 	qRcvHistoryData* pBegin = list.first();
 	qRcvHistoryData* pLast = list.last();
-	item.time = pBegin->time;
-	item.fOpen = pBegin->fOpen;
-	item.fClose = pLast->fClose;
+	pData->tmTime = pBegin->time;
+	pData->fOpen = pBegin->fOpen;
+	pData->fClose = pLast->fClose;
 
-	item.fLow = pBegin->fLow;
-	item.fHigh = pBegin->fHigh;
-	item.fAmount = 0;
-	item.fVolume = 0;
+	pData->fLow = pBegin->fLow;
+	pData->fHigh = pBegin->fHigh;
+	pData->fAmount = 0;
+	pData->fVolume = 0;
 	foreach(qRcvHistoryData* p,list)
 	{
-		if(item.fLow>p->fLow)
-			item.fLow = p->fLow;
-		if(item.fHigh<p->fHigh)
-			item.fHigh = p->fHigh;
-		item.fAmount+=p->fAmount;
-		item.fVolume+=p->fVolume;
+		if(pData->fLow>p->fLow)
+			pData->fLow = p->fLow;
+		if(pData->fHigh<p->fHigh)
+			pData->fHigh = p->fHigh;
+		pData->fAmount+=p->fAmount;
+		pData->fVolume+=p->fVolume;
 	}
 //	item.wAdvance = pHistory->wAdvance;
 //	item.wDecline = pHistory->wDecline;
-	return true;
+	return pData;
 }
 
-int getLinerDayItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getLinerDayItems(QMap<time_t,RStockData*>& mapData,const QList<qRcvHistoryData*>& historys)
 {
 	foreach(qRcvHistoryData* p,historys)
 	{
-		stLinerItem item;
-		if(getLinerItemByDay(item,p))
-			listItems.push_back(item);
+		RStockData* pData = getLinerItemByDay(p);
+		if(pData)
+		{
+			if(!mapData.contains(pData->tmTime))
+				mapData[pData->tmTime] = pData;
+			else
+				delete pData;
+		}
 	}
 
-	return listItems.size();
+	return mapData.size();
 }
 
-int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getLinerWeekItems(QMap<time_t,RStockData*>& mapData,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -167,9 +189,14 @@ int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 		{
 			if(tmDate.weekNumber(&iCurYear)!=iCurWeek)
 			{
-				stLinerItem item;
-				getLinerItemByDays(item,weekHis);
-				listItems.push_back(item);
+				RStockData* pData = getLinerItemByDays(weekHis);
+				if(pData)
+				{
+					if(!mapData.contains(pData->tmTime))
+						mapData[pData->tmTime] = pData;
+					else
+						delete pData;
+				}
 				weekHis.clear();
 			}
 			iCurYear = tmDate.year();
@@ -179,9 +206,14 @@ int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 		{
 			iCurWeek = tmDate.weekNumber();
 
-			stLinerItem item;
-			getLinerItemByDays(item,weekHis);
-			listItems.push_back(item);
+			RStockData* pData = getLinerItemByDays(weekHis);
+			if(pData)
+			{
+				if(!mapData.contains(pData->tmTime))
+					mapData[pData->tmTime] = pData;
+				else
+					delete pData;
+			}
 			weekHis.clear();
 		}
 		weekHis.push_back(pHistory);
@@ -190,16 +222,21 @@ int getLinerWeekItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 	if(weekHis.size()>0)
 	{
 		//最后剩余的也补上
-		stLinerItem item;
-		getLinerItemByDays(item,weekHis);
-		listItems.push_back(item);
+		RStockData* pData = getLinerItemByDays(weekHis);
+		if(pData)
+		{
+			if(!mapData.contains(pData->tmTime))
+				mapData[pData->tmTime] = pData;
+			else
+				delete pData;
+		}
 		weekHis.clear();
 	}
 
-	return listItems.size();
+	return mapData.size();
 }
 
-int getLinerMonthItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getLinerMonthItems(QMap<time_t,RStockData*>& mapData,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -222,9 +259,14 @@ int getLinerMonthItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDa
 			iCurYear = tmDate.year();
 			iCurMonth = tmDate.month();
 			{
-				stLinerItem item;
-				getLinerItemByDays(item,monthHis);
-				listItems.push_back(item);
+				RStockData* pData = getLinerItemByDays(monthHis);
+				if(pData)
+				{
+					if(!mapData.contains(pData->tmTime))
+						mapData[pData->tmTime] = pData;
+					else
+						delete pData;
+				}
 				monthHis.clear();
 			}
 		}
@@ -232,9 +274,14 @@ int getLinerMonthItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDa
 		{
 			iCurMonth = tmDate.month();
 
-			stLinerItem item;
-			getLinerItemByDays(item,monthHis);
-			listItems.push_back(item);
+			RStockData* pData = getLinerItemByDays(monthHis);
+			if(pData)
+			{
+				if(!mapData.contains(pData->tmTime))
+					mapData[pData->tmTime] = pData;
+				else
+					delete pData;
+			}
 			monthHis.clear();
 		}
 		monthHis.push_back(pHistory);
@@ -243,15 +290,20 @@ int getLinerMonthItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDa
 	if(monthHis.size()>0)
 	{
 		//最后剩余的也补上
-		stLinerItem item;
-		getLinerItemByDays(item,monthHis);
-		listItems.push_back(item);
+		RStockData* pData = getLinerItemByDays(monthHis);
+		if(pData)
+		{
+			if(!mapData.contains(pData->tmTime))
+				mapData[pData->tmTime] = pData;
+			else
+				delete pData;
+		}
 		monthHis.clear();
 	}
-	return listItems.size();
+	return mapData.size();
 }
 
-int getLinerMonth3Items(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getLinerMonth3Items(QMap<time_t,RStockData*>& mapData,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -274,9 +326,14 @@ int getLinerMonth3Items(QVector<stLinerItem>& listItems,const QList<qRcvHistoryD
 			iCurYear = tmDate.year();
 			iCurMonth = tmDate.month();
 			{
-				stLinerItem item;
-				getLinerItemByDays(item,monthHis);
-				listItems.push_back(item);
+				RStockData* pData = getLinerItemByDays(monthHis);
+				if(pData)
+				{
+					if(!mapData.contains(pData->tmTime))
+						mapData[pData->tmTime] = pData;
+					else
+						delete pData;
+				}
 				monthHis.clear();
 			}
 		}
@@ -284,9 +341,14 @@ int getLinerMonth3Items(QVector<stLinerItem>& listItems,const QList<qRcvHistoryD
 		{
 			iCurMonth = tmDate.month();
 
-			stLinerItem item;
-			getLinerItemByDays(item,monthHis);
-			listItems.push_back(item);
+			RStockData* pData = getLinerItemByDays(monthHis);
+			if(pData)
+			{
+				if(!mapData.contains(pData->tmTime))
+					mapData[pData->tmTime] = pData;
+				else
+					delete pData;
+			}
 			monthHis.clear();
 		}
 		monthHis.push_back(pHistory);
@@ -295,15 +357,21 @@ int getLinerMonth3Items(QVector<stLinerItem>& listItems,const QList<qRcvHistoryD
 	if(monthHis.size()>0)
 	{
 		//最后剩余的也补上
-		stLinerItem item;
-		getLinerItemByDays(item,monthHis);
-		listItems.push_back(item);
+		RStockData* pData = getLinerItemByDays(monthHis);
+		if(pData)
+		{
+			if(!mapData.contains(pData->tmTime))
+				mapData[pData->tmTime] = pData;
+			else
+				delete pData;
+		}
+
 		monthHis.clear();
 	}
-	return listItems.size();
+	return mapData.size();
 }
 
-int getLinerYearItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryData*>& historys)
+int getLinerYearItems(QMap<time_t,RStockData*>& mapData,const QList<qRcvHistoryData*>& historys)
 {
 	if(historys.size()<1)
 		return 0;
@@ -323,9 +391,15 @@ int getLinerYearItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 		{
 			iCurYear = tmDate.year();
 			{
-				stLinerItem item;
-				getLinerItemByDays(item,monthHis);
-				listItems.push_back(item);
+				RStockData* pData = getLinerItemByDays(monthHis);
+				if(pData)
+				{
+					if(!mapData.contains(pData->tmTime))
+						mapData[pData->tmTime] = pData;
+					else
+						delete pData;
+				}
+
 				monthHis.clear();
 			}
 		}
@@ -335,33 +409,23 @@ int getLinerYearItems(QVector<stLinerItem>& listItems,const QList<qRcvHistoryDat
 	if(monthHis.size()>0)
 	{
 		//最后剩余的也补上
-		stLinerItem item;
-		getLinerItemByDays(item,monthHis);
-		listItems.push_back(item);
+		RStockData* pData = getLinerItemByDays(monthHis);
+		if(pData)
+		{
+			if(!mapData.contains(pData->tmTime))
+				mapData[pData->tmTime] = pData;
+			else
+				delete pData;
+		}
+
 		monthHis.clear();
 	}
-	return listItems.size();
+	return mapData.size();
 }
 
-QString CKLineWidget::g_qsScript;
-bool CKLineWidget::initJSScript()
-{
-	QFile file(qApp->applicationDirPath()+"/RStockLiners.js");
-	if(!file.open(QFile::ReadOnly))
-	{
-		qDebug()<<"load script error.";
-		return false;
-	}
-	g_qsScript = file.readAll();
-	qDebug()<<"loaded script from:"<<file.fileName();
-	file.close();
-	return true;
-}
 
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CCoordXBaseWidget(parent,WidgetKLine)
-	, m_pMenuCustom(0)
-	, m_pMenuCircle(0)
 	, m_pActShowMain(0)
 	, m_pStockItem(0)
 	, m_iShowCount(100)
@@ -372,6 +436,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iCoorYWidth(50)
 	, m_iCoorXHeight(16)
 	, m_iMainLinerHeight(200)
+	, m_mapData(NULL)
 {
 
 	m_typeCircle = Day;
@@ -379,25 +444,6 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pL,"");
 	m_vSizes.push_back(60);
 
-	//设置菜单
-	m_pMenuCustom = new QMenu("K线图操作");
-	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
-	{
-		//设置当前K线图的显示周期
-		m_pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
-		m_pMenuCircle->addAction(tr("分时图"),this,SLOT(onSetCircle()))->setData(FenShi);
-		m_pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
-		m_pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
-		m_pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
-		m_pMenuCircle->addAction(tr("30分钟分时图"),this,SLOT(onSetCircle()))->setData(Min30);
-		m_pMenuCircle->addAction(tr("60分钟分时图"),this,SLOT(onSetCircle()))->setData(Min60);
-
-		m_pMenuCircle->addAction(tr("日线图"),this,SLOT(onSetCircle()))->setData(Day);
-		m_pMenuCircle->addAction(tr("周线图"),this,SLOT(onSetCircle()))->setData(Week);
-		m_pMenuCircle->addAction(tr("月线图"),this,SLOT(onSetCircle()))->setData(Month);
-		m_pMenuCircle->addAction(tr("季线图"),this,SLOT(onSetCircle()))->setData(Month3);
-		m_pMenuCircle->addAction(tr("年线图"),this,SLOT(onSetCircle()))->setData(Year);
-	}
 	{
 		m_pMenuCustom->addSeparator();
 		QMenu* pMenuDeputy = m_pMenuCustom->addMenu(tr("添加副图"));
@@ -431,7 +477,7 @@ CKLineWidget::~CKLineWidget(void)
 
 bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 {
-	if(!CBaseWidget::loadPanelInfo(eleWidget))
+	if(!CCoordXBaseWidget::loadPanelInfo(eleWidget))
 		return false;
 
 	m_vSizes.clear();
@@ -440,12 +486,6 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(eleWidget.hasAttribute("mainliner"))
 	{
 		m_pActShowMain->setChecked(eleWidget.attribute("mainliner").toInt());
-	}
-
-	//当前显示的周期
-	if(eleWidget.hasAttribute("circle"))
-	{
-		m_typeCircle = static_cast<RStockCircle>(eleWidget.attribute("circle").toInt());
 	}
 
 	QDomElement eleLiners = eleWidget.firstChildElement("liners");
@@ -503,7 +543,7 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 
 bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 {
-	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
+	if(!CCoordXBaseWidget::savePanelInfo(doc,eleWidget))
 		return false;
 	if(m_pStockItem)
 	{
@@ -514,9 +554,6 @@ bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 
 		//是否显示主图
 		eleWidget.setAttribute("mainliner",m_pActShowMain->isChecked());
-
-		//显示的周期
-		eleWidget.setAttribute("circle",m_typeCircle);
 
 		QDomElement eleLiners = doc.createElement("liners");
 		eleWidget.appendChild(eleLiners);
@@ -557,6 +594,12 @@ bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	}
 
 	return true;
+}
+
+void CKLineWidget::updateData()
+{
+	resetTmpData();
+	return /*CCoordXBaseWidget::updateData()*/;
 }
 
 void CKLineWidget::setStockCode( const QString& code )
@@ -602,13 +645,21 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	if(!m_pStockItem)
 		return;
 
+	if(m_iShowCount>m_mapData->size())
+	{
+		m_iShowCount = m_mapData->size();
+	}
+
 	/*画头部*/
 	QRect rtTitle = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
 	drawTitle(p,rtTitle);
 
 	/*画X坐标轴*/
-	QRect rtCoordX = QRect(rtClient.left(),rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth,m_iCoorXHeight);
-	drawCoordX(p,rtCoordX);
+	QRectF rtCoordX = QRectF(rtClient.left()-3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
+	m_fItemWidth = float(rtCoordX.width())/float(m_iShowCount);
+	updateShowTimes(rtCoordX,m_fItemWidth);
+	CCoordXBaseWidget::drawCoordX(p,rtCoordX,m_fItemWidth);
+
 	/*画右下角的两个按钮*/
 	QRect rtShowBtns = QRect(rtClient.right()-m_iCoorYWidth,rtClient.bottom()-m_iCoorXHeight,m_iCoorYWidth,m_iCoorXHeight);
 	drawShowBtns(p,rtShowBtns);
@@ -620,17 +671,23 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		draw.dwVersion = RSTOCK_VER;
 		draw.pPainter = &p;
 		draw.rtClient = rtClient;
+		draw.fItemWidth = m_fItemWidth;
+		draw.iEndIndex = m_mapData->size()-1;
 		
 		lua_pushlightuserdata(m_pL,&draw);
 		lua_setglobal(m_pL,"_draw");
+
+		luaL_dostring(m_pL,"DrawK(OPEN,CLOSE,HIGH,LOW)");
 	}
+
+	return;
 
 	QPoint ptCurMouse = this->mapFromGlobal(QCursor::pos());
 	CMultiLiner* pCurLiner = 0;		//当前鼠标所在位置的MultiLiner
 
 	int iCurY = rtClient.top();		//当前绘制到的位置
 	int iSizeIndex = 0;
-	/*绘制主图*/
+	//绘制主图
 	if(m_pActShowMain->isChecked())
 	{
 		if(m_vSizes.size()<1)
@@ -694,7 +751,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		p.drawLine(ptCurMouse,QPoint(rtClient.right(),ptCurMouse.y()));
 		p.drawLine(ptCurMouse,QPoint(ptCurMouse.x(),rtClient.bottom()));
 
-		/*绘制y轴的值*/
+		//绘制y轴的值
 		float fV = pCurLiner->getValueByY(ptCurMouse.y());
 		{
 			if(fV>10000.0)
@@ -703,24 +760,27 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 				p.drawText(QRect(rtClient.right()+10,ptCurMouse.y()-5,50,20),Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(fV,0,'f',2));				
 		}
 
-		/*绘制x轴的值*/
+		//绘制x轴的值
 		QRectF rtCurLiner = pCurLiner->getRect();
-		int iAbsIndex = (rtCurLiner.right() - ptCurMouse.x())/fItemWidth;
-		int iIndex = listItems.size()-iAbsIndex-1;
-		if(iIndex>=0&&iIndex<listItems.size())
+		int iAbsIndex = (rtCurLiner.right() - ptCurMouse.x())/m_fItemWidth;
+
+		/*
+		QList<time_t> times = m_mapData.keys();
+		int iIndex = times.size()-iAbsIndex-1;
+		if(iIndex>=0&&iIndex<m_mapData.size())
 		{
 			p.setPen(QColor(0,255,255));
 			if(m_typeCircle<Day)
 			{
-				QTime tmTime = QDateTime::fromTime_t(listItems[iIndex].time).time();
+				QTime tmTime = QDateTime::fromTime_t(times[iIndex]).time();
 				p.drawText(QRect(ptCurMouse.x(),rtClient.bottom(),100,20),Qt::AlignCenter,tmTime.toString("HH:mm:ss"));
 			}
 			else
 			{
-				QDate tmDate = QDateTime::fromTime_t(listItems[iIndex].time).date();
+				QDate tmDate = QDateTime::fromTime_t(times[iIndex]).date();
 				p.drawText(QRect(ptCurMouse.x()-50,rtClient.bottom(),100,20),Qt::AlignCenter,tmDate.toString("yyyy/MM/dd"));
 			}
-		}
+		}*/
 	}
 }
 
@@ -740,16 +800,18 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
 	float fEnd = rtClient.right();
-	int iLastN = (fEnd - e->posF().x())/fItemWidth;
+	int iLastN = (fEnd - e->posF().x())/m_fItemWidth;
 	if(iLastN<0||iLastN>=m_iShowCount)
 		return QToolTip::hideText();
 
-	int iIndex = listItems.size()-iLastN-1;
+	return;
+	/*
+	int iIndex = m_mapData.size()-iLastN-1;
 	if(iIndex<0)
 		return QToolTip::hideText();
 
 	QString qsTooltip;		//Tips
-	stLinerItem item = listItems[iIndex];
+	stLinerItem item = m_mapData[iIndex];
 	if(m_typeCircle<Day)
 	{
 		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n成交量:%5\r\n成交额:%6")
@@ -763,8 +825,7 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 			.arg(item.fHigh).arg(item.fLow).arg(item.fOpen).arg(item.fClose)
 			.arg(item.fVolume).arg(item.fAmount);
 	}
-
-	QToolTip::showText(e->globalPos(),qsTooltip,this);
+	QToolTip::showText(e->globalPos(),qsTooltip,this);*/
 	return CBaseWidget::mouseMoveEvent(e);
 }
 
@@ -890,7 +951,7 @@ void CKLineWidget::onSetExpression()
 
 void CKLineWidget::onClickedAddShow()
 {
-	if((m_iShowCount+10)<=listItems.size())
+	if((m_iShowCount+10)<=m_mapData->size())
 	{
 		m_iShowCount += 10;
 		update();
@@ -904,14 +965,6 @@ void CKLineWidget::onClickedSubShow()
 		m_iShowCount -= 10;
 		update();
 	}
-}
-
-void CKLineWidget::onSetCircle()
-{
-	//设置当前的显示周期
-	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	m_typeCircle = static_cast<RStockCircle>(pAct->data().toInt());
-	resetTmpData();
 }
 
 void CKLineWidget::onAddDeputy()
@@ -1021,77 +1074,6 @@ void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )
 	p.drawText(rtClient,Qt::AlignLeft|Qt::AlignVCenter,qsName);
 }
 
-void CKLineWidget::drawCoordX( QPainter& p,const QRect& rtCoordX )
-{
-	if(!rtCoordX.isValid())
-		return;
-
-	//绘制单线
-	float fTopLine = rtCoordX.top()+1;
-	p.setPen(QColor(255,0,0));
-	p.drawLine(rtCoordX.right(),fTopLine,rtCoordX.left(),fTopLine);
-
-
-	//左空余3Pix，右空余2Pix
-	fItemWidth = float(rtCoordX.width()-2-3)/float(m_iShowCount);
-	//从右向左绘制
-	float fCurX = rtCoordX.right();
-	float fLastX = fCurX;
-	//绘制刻度
-	if(m_typeCircle<Day)
-	{
-		//分时数据的横轴绘制（需绘制精度为小时）
-		int iCurHour = 0;
-		int iCurIndex = listItems.size()-1;
-		int iCount = 0;
-		while(iCount<m_iShowCount)
-		{
-			QTime tmTime = QDateTime::fromTime_t(listItems[iCurIndex].time).time();
-			if(tmTime.hour()!=iCurHour)
-			{
-				if((fLastX-fCurX)>16)
-				{
-					p.drawLine(fCurX,fTopLine,fCurX,rtCoordX.bottom()-1);
-					p.drawText(fCurX+2,rtCoordX.bottom()-3,QString("%1时").arg(iCurHour));
-					fLastX = fCurX;
-				}
-
-				iCurHour = tmTime.hour();
-			}
-
-			fCurX -= fItemWidth;
-			++iCount;
-			--iCurIndex;
-		}
-	}
-	else
-	{
-		//日线数据的横轴绘制（只需绘制精度为月份即可）
-		int iCurMonth = 0;
-		int iCurIndex = listItems.size()-1;
-		int iCount = 0;
-		while(iCount<m_iShowCount)
-		{
-			QDate tmDate = QDateTime::fromTime_t(listItems[iCurIndex].time).date();
-			if(tmDate.month()!=iCurMonth)
-			{				
-				if((fLastX-fCurX)>16)
-				{
-					p.drawLine(fCurX,fTopLine,fCurX,rtCoordX.bottom()-1);
-					p.drawText(fCurX+2,rtCoordX.bottom()-3,QString("%1").arg(iCurMonth));
-					fLastX = fCurX;
-				}
-
-				iCurMonth = tmDate.month();
-			}
-
-			fCurX -= fItemWidth;
-			++iCount;
-			--iCurIndex;
-		}
-	}
-}
-
 void CKLineWidget::drawShowBtns( QPainter& p,const QRect& rtBtns )
 {
 	p.setPen(QColor(255,0,0));
@@ -1111,7 +1093,18 @@ void CKLineWidget::clearTmpData()
 {
 	//foreach(stLinerItem* p,listItems)
 	//	delete p;
-	listItems.clear();
+	if(m_mapData)
+	{
+		QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+		while(iter!=m_mapData->end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		m_mapData->clear();
+		delete m_mapData;
+		m_mapData = NULL;
+	}
 	disconnect(this,SLOT(updateKLine(const QString&)));
 }
 
@@ -1120,80 +1113,9 @@ void CKLineWidget::resetTmpData()
 	if(m_iShowCount<50)
 		m_iShowCount = 100;
 	clearTmpData();
-	if(m_typeCircle<Day)
-	{
-		//获取分钟数据，进行计算
-		QList<qRcvFenBiData*> FenBis = m_pStockItem->getFenBiList();
-		if(m_typeCircle == FenShi)
-		{
-			m_pLinerMain->setKLineType(CKLineLiner::FenShi);
-			getLinerMinItems(listItems,FenBis,m_typeCircle);
-		}
-		else
-		{
-			m_pLinerMain->setKLineType(CKLineLiner::Normal);
-			getLinerMinItems(listItems,FenBis,m_typeCircle);
-		}
-		if(listItems.size()>0)
-		{
-			listItems.first().fOpen = m_pStockItem->getCurrentReport()->fLastClose;	//设置第一个节点的起始价为昨天的收盘价
-			if(listItems.first().fLow>m_pStockItem->getCurrentReport()->fOpen)
-				listItems.first().fLow = m_pStockItem->getCurrentReport()->fOpen;
-			if(listItems.first().fHigh<m_pStockItem->getCurrentReport()->fOpen)
-				listItems.first().fHigh = m_pStockItem->getCurrentReport()->fOpen;
-		}
-	}
-	else
-	{
-		m_pLinerMain->setKLineType(CKLineLiner::Normal);
-		//获取日线数据
-		QList<qRcvHistoryData*> historys = m_pStockItem->getHistoryList();
-		qRcvReportData* pLastReport = m_pStockItem->getCurrentReport();
-		bool bAppendLast = true;
-		if(historys.size()>0 && pLastReport)
-		{
-			qRcvHistoryData* pLastHistory = historys.last();
-			if(QDateTime::fromTime_t(pLastHistory->time).date() == QDateTime::fromTime_t(pLastReport->tmTime).date())
-				bAppendLast = false;
-		}
-		if(pLastReport&&bAppendLast)
-		{
-			historys.push_back(new qRcvHistoryData(pLastReport));
-		}
-		if(m_typeCircle == Day)
-		{
-			getLinerDayItems(listItems,historys);
-		}
-		else if(m_typeCircle == DayN)
-		{
-			//目前未使用
-		//	getLinerItem(listItems,historys,3);
-		}
-		else if(m_typeCircle == Week)
-		{
-			getLinerWeekItems(listItems,historys);
-		}
-		else if(m_typeCircle == Month)
-		{
-			getLinerMonthItems(listItems,historys);
-		}
-		else if(m_typeCircle == Month3)
-		{
-			getLinerMonth3Items(listItems,historys);
-		}
-		else if(m_typeCircle == Year)
-		{
-			getLinerYearItems(listItems,historys);
-		}
+	updateTimesH();			//更新最新的时间轴数据
 
-		{
-			//清除获取的日线数据
-			foreach(qRcvHistoryData* p,historys)
-				delete p;
-			historys.clear();
-		}
-	}
-
+	m_mapData = getColorBlockMap(m_pStockItem);
 	
 	QTime tmNow = QTime::currentTime();
 	/*将更新后的数据设置到脚本引擎中*/
@@ -1201,7 +1123,7 @@ void CKLineWidget::resetTmpData()
 		RCalcInfo calc;
 		calc.dwVersion = RSTOCK_VER;
 		calc.emCircle = m_typeCircle;
-//		calc.mapData = pMapCBs;
+		calc.mapData = m_mapData;
 		calc.mapDataEx = NULL;
 		calc.pItem = m_pStockItem;
 		

@@ -35,6 +35,7 @@ public slots:
 protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
 	void updateColorBlockData();							//更新当前需要显示的数据
+	void updateShowMap();									//更新要显示的数据，不删除之前的
 
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
@@ -80,6 +81,8 @@ private:
 
 	QRect m_rtHeader;						//头部Header区域
 	QRect m_rtBottom;						//底部区域，用于鼠标操作等信息
+
+	QTimer m_timerUpdateUI;					//界面更新的timer
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H

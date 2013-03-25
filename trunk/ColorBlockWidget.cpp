@@ -34,6 +34,9 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 {
 	//设置当前显示的板块
 	m_pMenuBlockList = m_pMenuCustom->addMenu(tr("设置当前板块"));
+
+	connect(&m_timerUpdateUI,SIGNAL(timeout()),this,SLOT(updateColorBlockData()));
+	m_timerUpdateUI.start(1000);
 }
 
 CColorBlockWidget::~CColorBlockWidget(void)
@@ -46,6 +49,7 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(!CBaseBlockWidget::loadPanelInfo(eleWidget))
 		return false;
 
+	updateData();
 	//当前的板块名称
 	QDomElement eleBlock = eleWidget.firstChildElement("block");
 	if(eleBlock.isElement())
@@ -71,8 +75,20 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 
 void CColorBlockWidget::updateData()
 {
-	setBlock(m_pBlock->getBlockName());
-	return CBaseBlockWidget::updateData();
+	updateColorBlockData();
+	if(m_typeCircle<Day)
+	{
+		//分笔数据1秒中更新一次
+		m_timerUpdateUI.stop();
+		m_timerUpdateUI.start(1000);
+	}
+	else
+	{
+		//日线数据10秒中更新一次
+		m_timerUpdateUI.stop();
+		m_timerUpdateUI.start(10000);
+	}
+	return/* CBaseBlockWidget::updateData()*/;
 }
 
 void CColorBlockWidget::setBlock( const QString& block )
@@ -89,9 +105,9 @@ void CColorBlockWidget::setBlock( const QString& block )
 		CStockInfoItem* pItem = m_listStocks[i];
 
 		m_mapStockIndex[pItem] = i;
-		//建立更新机制
-		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
-		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+		//建立更新机制(目前采用定时刷新，未使用该更新接口)
+	//	connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+	//	connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	}
 
 	m_pBlock = pBlock;
@@ -101,30 +117,32 @@ void CColorBlockWidget::setBlock( const QString& block )
 		clickedStock(m_listStocks.first());
 	}
 
-	updateTimesH();			//更新横坐标的时间数据
-	update();
+	updateColorBlockData();
+
+//	updateTimesH();			//更新横坐标的时间数据
+//	update();
 
 	return CBaseWidget::setBlock(block);
 }
 
 void CColorBlockWidget::updateStock( const QString& code )
 {
-	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
+	//CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 
-	if(mapStockColorBlocks.contains(pItem))
-	{
-		//更新数据
-		QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
-		mapStockColorBlocks[pItem] = 0;
-		{
-			//删除之前的资源
-			FreeRStockInfoMap(pMap);
-			delete pMap;
-		}
-		mapStockColorBlocks[pItem] = getColorBlockMap(pItem);
-		updateTimesH();
-	}
-	update(rectOfStock(pItem));
+	//if(mapStockColorBlocks.contains(pItem))
+	//{
+	//	//更新数据
+	//	QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
+	//	mapStockColorBlocks[pItem] = 0;
+	//	{
+	//		//删除之前的资源
+	//		FreeRStockInfoMap(pMap);
+	//		delete pMap;
+	//	}
+	//	mapStockColorBlocks[pItem] = getColorBlockMap(pItem);
+	//	updateTimesH();
+	//}
+	//update(rectOfStock(pItem));
 }
 
 
@@ -136,6 +154,7 @@ void CColorBlockWidget::onSetCurrentBlock()
 
 void CColorBlockWidget::updateColorBlockData()
 {
+	updateTimesH();			//更新时间轴
 	QList<CStockInfoItem*> listShowItems;
 	int iClientHeight = this->rect().height();
 
@@ -154,39 +173,61 @@ void CColorBlockWidget::updateColorBlockData()
 		++iIndex;
 	}
 
-	/*
 	//从map里删除不需要显示的股票
-	QMap<CStockInfoItem*,QMap<time_t,stColorBlockItem>*>::iterator iter = mapStockColorBlocks.begin();
+	QMap<CStockInfoItem*,QMap<time_t,RStockData*>*>::iterator iter = mapStockColorBlocks.begin();
 	while (iter!=mapStockColorBlocks.end())
 	{
-		if(!listShowItems.contains(iter.key()))
-		{
-			delete iter.value();
-			mapStockColorBlocks.remove(iter.key());
-		}
-
+		FreeRStockInfoMap(iter.value());
 		++iter;
-	}*/
-
+	}
+	mapStockColorBlocks.clear();
 
 	
 	//将需要显示而map中没有的股票加入到map中
 	foreach(CStockInfoItem* p,listShowItems)
 	{
-		if(!mapStockColorBlocks.contains(p))
-		{
-			mapStockColorBlocks[p] = getColorBlockMap(p);
-		}
+		mapStockColorBlocks[p] = getColorBlockMap(p);
 	}
+
+	update();
+}
+
+void CColorBlockWidget::updateShowMap()
+{
+	QList<CStockInfoItem*> listShowItems;
+	int iClientHeight = this->rect().height();
+	//获取当前需要显示的股票列表
+	int iIndex = showStockIndex;
+	while (iIndex<m_listStocks.size())
+	{
+		if((iIndex-showStockIndex)*m_iCBHeight<iClientHeight)
+		{
+			listShowItems.push_back(m_listStocks[iIndex]);
+		}
+		else
+		{
+			break;
+		}
+		++iIndex;
+	}
+
+	//将需要显示而map中没有的股票加入到map中
+	foreach(CStockInfoItem* p,listShowItems)
+	{
+		if(!mapStockColorBlocks.contains(p))
+			mapStockColorBlocks[p] = getColorBlockMap(p);
+	}
+
+	update();
 }
 
 void CColorBlockWidget::clearTmpData()
 {
-	foreach(CStockInfoItem* p,m_listStocks)
+//	foreach(CStockInfoItem* p,m_listStocks)
 	{
 		//移除所有和 updateStock关联的 信号/槽
-		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
-		disconnect(p,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+//		disconnect(p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
+//		disconnect(p,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	}
 	m_pSelectedStock = 0;
 	m_listStocks.clear();
@@ -229,9 +270,12 @@ void CColorBlockWidget::paintEvent( QPaintEvent* )
 	m_rtClient = QRect(rtClient.left(),rtClient.top()+m_iTitleHeight,rtClient.width(),rtClient.height()-m_iTitleHeight-m_iBottomHeight);
 	m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
 
+	updateShowTimes(QRect(m_rtBottom.left()+RCB_OFFSET_LEFT,m_rtBottom.top(),
+		m_rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,m_rtBottom.height()),m_iCBWidth);
+
 	drawHeader(p,m_rtHeader);
-	drawBottom(p,m_rtBottom);
 	drawClient(p,m_rtClient);
+	drawBottom(p,m_rtBottom);
 }
 
 //绘制头部信息
@@ -263,14 +307,13 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 
 	//从右向左绘制横坐标
 	drawCoordX(p,QRect(rtBottom.left()+RCB_OFFSET_LEFT,rtBottom.top(),
-		rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,rtBottom.height()));
+		rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,rtBottom.height()),m_iCBWidth);
 }
 
 void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 {
 	p.fillRect(rtClient,QColor(0,0,0));
 
-	updateColorBlockData();
 	int iCurY = rtClient.top();
 	int iIndex = showStockIndex;
 	for(;iCurY<rtClient.bottom();iCurY=(iCurY+m_iCBHeight))
@@ -417,7 +460,7 @@ void CColorBlockWidget::wheelEvent( QWheelEvent* e )
 	{
 		e->accept();
 		showStockIndex = iIndex;
-		update();
+		updateShowMap();
 	}
 	return CBaseWidget::wheelEvent(e);
 }
@@ -447,7 +490,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 			if((iRow-showStockIndex)>=iShowCount)
 			{
 				showStockIndex = iRow-iShowCount+1;
-				update(m_rtClient);
+				updateShowMap();
 			}
 			clickedStock(m_listStocks[iCurIndex+1]);
 		}
@@ -463,7 +506,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 			if(iRow<showStockIndex)
 			{
 				showStockIndex = iRow;
-				update(m_rtClient);
+				updateShowMap();
 			}
 			clickedStock(pItem);
 		}
@@ -477,7 +520,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 		if((showStockIndex+iShowCount)<m_listStocks.size())
 		{
 			showStockIndex = showStockIndex+iShowCount;
-			update(m_rtClient);
+			updateShowMap();
 		}
 		e->accept();
 	}
@@ -487,8 +530,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 		if(iShowCount<1)
 			return;
 		showStockIndex = (showStockIndex-iShowCount)>0 ? (showStockIndex-iShowCount) : 0;
-		update(m_rtClient);
-
+		updateShowMap();
 		e->accept();
 	}
 

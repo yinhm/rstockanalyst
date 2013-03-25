@@ -2,6 +2,10 @@
 #define _RSTOCK_FUNC_H_
 #include "StockInfoItem.h"
 
+#ifndef FLOAT_NAN
+#define	FLOAT_NAN	(std::numeric_limits<float>::quiet_NaN())
+#endif
+
 /*
 RStockAnalyst的扩展函数定义
 */
@@ -59,7 +63,7 @@ typedef struct tagRStockData
 	{
 		memcpy(&tmTime,&p->m_time,sizeof(tagRStockData));
 	}
-	tagRStockData(qRcvReportData* p)
+	tagRStockData(const qRcvReportData* p)
 	{
 		tmTime = QDateTime(QDateTime::fromTime_t(p->tmTime).date()).toTime_t();
 		fAmount = p->fAmount;
@@ -120,7 +124,19 @@ typedef struct tagRDrawInfo
 {
 	DWORD dwVersion;
 	QPainter* pPainter;
-	QRect rtClient;
+	QRectF rtClient;
+	int iEndIndex;				//结束的数组索引
+	float fItemWidth;			//单个数据的绘制宽度
+
+	float fMin;
+	float fMax;
+
+	tagRDrawInfo()
+	{
+		memset(&dwVersion,0,sizeof(tagRDrawInfo));
+		fMin = 1.0;
+		fMax = -1.0;
+	}
 } RDrawInfo;
 
 #endif	//_RSTOCK_FUNC_H_

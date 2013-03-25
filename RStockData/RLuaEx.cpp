@@ -56,4 +56,5 @@ void RLuaEx::LuaRetArray( lua_State* _L,QVector<float>& _v )
 		/* 移除 'value' ；保留 'key' 做下一次迭代 */
 		lua_pop(_L, 1);
 	}
+	lua_pop(_L,1);
 }

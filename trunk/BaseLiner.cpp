@@ -25,7 +25,7 @@ void CBaseLiner::updateData()
 	if(m_pL)
 	{
 		luaL_dostring(m_pL,m_qsExp.toLocal8Bit());
-		RLuaEx::LuaPopArray(m_pL,"p1",m_vals);
+		RLuaEx::LuaRetArray(m_pL,m_vals);
 	}
 }
 
@@ -108,10 +108,20 @@ CKLineLiner::~CKLineLiner( void )
 void CKLineLiner::updateData()
 {
 	//更新K线所用到的数据
-//	m_vOpen = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("OPEN;"));
-//	m_vHigh = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("HIGH;"));
-//	m_vLow = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("LOW;"));
-//	m_vClose = qscriptvalue_cast<QVector<float>>(m_pEngine->evaluate("CLOSE;"));
+	if(m_pL)
+	{
+		luaL_dostring(m_pL,"return OPEN;");
+		RLuaEx::LuaRetArray(m_pL,m_vOpen);
+
+		luaL_dostring(m_pL,"return HIGH;");
+		RLuaEx::LuaRetArray(m_pL,m_vHigh);
+
+		luaL_dostring(m_pL,"return LOW;");
+		RLuaEx::LuaRetArray(m_pL,m_vLow);
+
+		luaL_dostring(m_pL,"return CLOSE;");
+		RLuaEx::LuaRetArray(m_pL,m_vClose);
+	}
 }
 
 void CKLineLiner::getMinAndMax( float& fMin,float& fMax,int iCount )

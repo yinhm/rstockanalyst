@@ -94,8 +94,6 @@ int main(int argc, char *argv[])
 
 	//初始化颜色表
 	CColorManager::initAll();
-	//初始化js脚本
-	CKLineWidget::initJSScript();
 
 	splash.showMessage(QObject::tr("安装驱动"),20);
 	CSTKDRV::InitStockDrv();
