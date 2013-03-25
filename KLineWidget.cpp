@@ -1116,6 +1116,28 @@ void CKLineWidget::resetTmpData()
 	updateTimesH();			//更新最新的时间轴数据
 
 	m_mapData = getColorBlockMap(m_pStockItem);
+
+	//去除空值
+	QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+	while(iter != m_mapData->end())
+	{
+		time_t tmRemove = 0;
+		if(iter.value()==NULL)
+		{
+			tmRemove = iter.key();
+		}
+		++iter;
+
+		if(tmRemove!=0)
+		{
+			m_mapData->remove(tmRemove);
+			m_mapTimes.remove(tmRemove);
+		}
+	}
+	if(m_mapData->size()!=m_mapTimes.size())
+	{
+		qDebug()<<"Something wrong in 'CKLineWidget::resetTmpData()'!";
+	}
 	
 	QTime tmNow = QTime::currentTime();
 	/*将更新后的数据设置到脚本引擎中*/

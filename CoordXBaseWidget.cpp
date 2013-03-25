@@ -609,29 +609,10 @@ QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CStockInfoItem* p
 	QMap<time_t,RStockData*>* pMap = NULL;
 	if(m_typeCircle < Day)
 	{
-		float fDefault = 0.0;
-		qRcvReportData* pReport = pItem->getCurrentReport();
-		if(pReport!=0)
-			fDefault = pReport->fLastClose;
 		//获取分钟数据，进行计算
 		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
 
 		pMap = getColorBlockItems(m_mapTimes,FenBis);
-		if(m_mapTimes.size()>0)
-		{
-			time_t tmBegin = m_mapTimes.begin().key();
-			RStockData* pStockData = (*pMap)[tmBegin];
-			if(pStockData==NULL)
-			{
-				pStockData = new RStockData;
-				pStockData->fLow = fDefault;
-				pStockData->fHigh = fDefault;
-				pStockData->fClose = fDefault;
-				pStockData->fOpen = fDefault;
-				pStockData->tmTime = tmBegin;
-				(*pMap)[tmBegin] = pStockData;
-			}
-		}
 	}
 	else
 	{
