@@ -5,22 +5,6 @@
 #define	KLINE_BORDER	2
 
 
-/* 对某分钟的数据进行转换 (qRcvMinuteData*) -> (stLinerItem) */
-bool getLinerItemByMin(stLinerItem& item, qRcvFenBiData* pMin)
-{
-	if(!pMin)
-		return false;
-
-	item.time = pMin->tmTime;
-	item.fOpen = pMin->fPrice;
-	item.fClose = pMin->fPrice;
-	item.fLow = pMin->fPrice;
-	item.fHigh = pMin->fPrice;
-	item.fAmount = pMin->fAmount;
-	item.fVolume = pMin->fVolume;
-	return true;
-}
-
 /*通过分钟数据获取指定周期内的数据*/
 RStockData* getLinerItemByMins(const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
 {
@@ -608,36 +592,55 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
-	int iCurY = rtClient.top();		//当前绘制到的位置
-	for(int i=0;i<m_vSizes.size();++i)
+	if(m_bShowMax&&m_iCurExp<m_vExps.size())
 	{
-		int iTotal = 0;					//比例总和
-		for (int j=i;j<m_vSizes.size();++j)
-			iTotal += m_vSizes[j];
+		//进行全屏绘制
+		RDrawInfo draw;
+		draw.dwVersion = RSTOCK_VER;
+		draw.pPainter = &p;
+		draw.rtClient = rtClient;
+		draw.fItemWidth = m_fItemWidth;
+		draw.iEndIndex = m_mapData->size()-1;
 
-		int iTotalHeight = rtClient.bottom()-iCurY;
-		int iHeight = (float)((float)m_vSizes[i]/float(iTotal))*iTotalHeight + 0.5;
+		lua_pushlightuserdata(m_pL,&draw);
+		lua_setglobal(m_pL,"_draw");
 
-		QRectF rtArea = QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight);
-		{
-			RDrawInfo draw;
-			draw.dwVersion = RSTOCK_VER;
-			draw.pPainter = &p;
-			draw.rtClient = rtArea;
-			draw.fItemWidth = m_fItemWidth;
-			draw.iEndIndex = m_mapData->size()-1;
+		luaL_dostring(m_pL,m_vExps[m_iCurExp].toLocal8Bit());
 
-			lua_pushlightuserdata(m_pL,&draw);
-			lua_setglobal(m_pL,"_draw");
-
-			luaL_dostring(m_pL,m_vExps[i].toLocal8Bit());
-
-			drawCoordY(p,QRectF(rtArea.right(),rtArea.top(),50,rtArea.height()),draw.fMax,draw.fMin);
-		}
-
-		iCurY += iHeight;
+		drawCoordY(p,QRectF(rtClient.right(),rtClient.top(),50,rtClient.height()),draw.fMax,draw.fMin);
 	}
+	else
+	{
+		int iCurY = rtClient.top();		//当前绘制到的位置
+		for(int i=0;i<m_vSizes.size();++i)
+		{
+			int iTotal = 0;					//比例总和
+			for (int j=i;j<m_vSizes.size();++j)
+				iTotal += m_vSizes[j];
 
+			int iTotalHeight = rtClient.bottom()-iCurY;
+			int iHeight = (float)((float)m_vSizes[i]/float(iTotal))*iTotalHeight + 0.5;
+
+			QRectF rtArea = QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight);
+			{
+				RDrawInfo draw;
+				draw.dwVersion = RSTOCK_VER;
+				draw.pPainter = &p;
+				draw.rtClient = rtArea;
+				draw.fItemWidth = m_fItemWidth;
+				draw.iEndIndex = m_mapData->size()-1;
+
+				lua_pushlightuserdata(m_pL,&draw);
+				lua_setglobal(m_pL,"_draw");
+
+				luaL_dostring(m_pL,m_vExps[i].toLocal8Bit());
+
+				drawCoordY(p,QRectF(rtArea.right(),rtArea.top(),50,rtArea.height()),draw.fMax,draw.fMin);
+			}
+
+			iCurY += iHeight;
+		}
+	}
 	return;
 }
 
@@ -823,14 +826,14 @@ void CKLineWidget::onClickedSubShow()
 void CKLineWidget::onAddDeputy()
 {
 	m_vSizes.push_back(20);
-	m_vExps.push_back("DrawK(OPEN,CLOSE,HIGH,LOW)");
+	m_vExps.push_back("DrawLine(CLOSE)");
 	update();
 }
 
 void CKLineWidget::onAddVolume()
 {
 	m_vSizes.push_back(20);
-	m_vExps.push_back("DrawK(OPEN,CLOSE,HIGH,LOW)");
+	m_vExps.push_back("DrawHist(VOLUME)");
 	update();
 }
 

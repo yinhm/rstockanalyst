@@ -13,7 +13,7 @@
    <align>1</align>
    <size>45</size>
    <block>自选</block>
-   <stock>600000</stock>
+   <stock>000999</stock>
   </widget>
   <widget circle="60">
    <name></name>
@@ -21,7 +21,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>54</size>
-   <code>600000</code>
+   <code>000999</code>
    <liners>
     <Liner size="50">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>

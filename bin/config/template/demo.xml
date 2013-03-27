@@ -11,7 +11,7 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>37</size>
+   <size>40</size>
    <widget>
     <name></name>
     <type>2</type>
@@ -54,7 +54,7 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>62</size>
+   <size>59</size>
    <widget circle="3602">
     <name></name>
     <type>1</type>

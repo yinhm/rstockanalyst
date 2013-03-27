@@ -10,7 +10,6 @@
 #include <QtGui>
 #include "CoordXBaseWidget.h"
 #include "StockInfoItem.h"
-#include "BaseLiner.h"
 
 
 class CKLineWidget : public CCoordXBaseWidget
