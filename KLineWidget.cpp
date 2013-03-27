@@ -591,6 +591,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 
 	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
+	m_rtClient = rtClient;
 
 	if(m_bShowMax&&m_iCurExp<m_vExps.size())
 	{
@@ -650,43 +651,69 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 	{
 		update();
 		QToolTip::hideText();
-		return CBaseWidget::mouseMoveEvent(e);
+		return CCoordXBaseWidget::mouseMoveEvent(e);
 	}
 	if(!m_pStockItem)
 	{
 		return QToolTip::hideText();
 	}
-	QRectF rtClient = this->rect();
-	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
-	float fEnd = rtClient.right();
+	float fEnd = m_rtClient.right();
 	int iLastN = (fEnd - e->posF().x())/m_fItemWidth;
 	if(iLastN<0||iLastN>=m_iShowCount)
 		return QToolTip::hideText();
 
-	return;
-	/*
-	int iIndex = m_mapData.size()-iLastN-1;
-	if(iIndex<0)
-		return QToolTip::hideText();
-
-	QString qsTooltip;		//Tips
-	stLinerItem item = m_mapData[iIndex];
-	if(m_typeCircle<Day)
+	RStockData* pData = NULL;
+	int iIndex = 0;
+	QMap<time_t,RStockData*>::iterator iter = m_mapData->end();
+	while(iter!=m_mapData->begin())
 	{
-		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n成交量:%5\r\n成交额:%6")
-			.arg(m_pStockItem->getCode()).arg(QDateTime::fromTime_t(item.time).toString("HH:mm:ss"))
-			.arg(item.fHigh).arg(item.fLow).arg(item.fVolume).arg(item.fAmount);
+		--iter;
+		if(iIndex == iLastN)
+		{
+			pData = iter.value();
+			break;
+		}
+		if(iIndex>iLastN)
+			break;
+		++iIndex;
+	}
+	
+	if(pData)
+	{
+		QString qsTooltip;		//Tips
+		QString qsTime;
+		if(m_typeCircle<Day)
+		{
+			qsTime = QDateTime::fromTime_t(pData->tmTime).toString("hh:mm:ss");
+		}
+		else
+		{
+			QDate dtTmp = QDateTime::fromTime_t(pData->tmTime).date();
+			if(m_typeCircle == Week)
+				qsTime = QString("%1 %2").arg(dtTmp.year()).arg(dtTmp.weekNumber());
+			else if(m_typeCircle == Month)
+				qsTime = dtTmp.toString("yyyy/MM");
+			else if(m_typeCircle == Month3)
+				qsTime = dtTmp.toString("yyyy/MM");
+			else if(m_typeCircle == Year)
+				qsTime = dtTmp.toString("yyyy");
+			else
+				qsTime = dtTmp.toString("yyyy/MM/dd");
+		}
+	
+		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最新价:%7\r\n最高价:%3\r\n最低价:%4\r\n成交量:%5\r\n成交额:%6")
+			.arg(m_pStockItem->getCode()).arg(qsTime).arg(pData->fHigh).arg(pData->fLow)
+			.arg(pData->fVolume).arg(pData->fAmount).arg(pData->fClose);
+
+		QToolTip::showText(e->globalPos(),qsTooltip,this);
 	}
 	else
 	{
-		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最高价:%3\r\n最低价:%4\r\n开盘价:%5\r\n收盘价:%6\r\n成交量:%7\r\n成交额:%8")
-			.arg(m_pStockItem->getCode()).arg(QDateTime::fromTime_t(item.time).toString("yyyy/MM/dd"))
-			.arg(item.fHigh).arg(item.fLow).arg(item.fOpen).arg(item.fClose)
-			.arg(item.fVolume).arg(item.fAmount);
+		QToolTip::hideText();
 	}
-	QToolTip::showText(e->globalPos(),qsTooltip,this);*/
-	return CBaseWidget::mouseMoveEvent(e);
+
+	return CCoordXBaseWidget::mouseMoveEvent(e);
 }
 
 void CKLineWidget::leaveEvent( QEvent* e )
@@ -736,8 +763,14 @@ void CKLineWidget::mousePressEvent( QMouseEvent* e )
 
 void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* e )
 {
-	m_bShowMax = !m_bShowMax;
-	update();
+	QPoint ptCur = e->pos();
+	QRect rtClient = rect();
+	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
+	if(rtClient.contains(ptCur))
+	{
+		m_bShowMax = !m_bShowMax;
+		update();
+	}
 }
 
 void CKLineWidget::keyPressEvent(QKeyEvent* e)

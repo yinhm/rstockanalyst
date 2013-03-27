@@ -79,6 +79,8 @@ private:
 
 	QRect m_rtAddShow;						//增加显示个数的按钮区域
 	QRect m_rtSubShow;						//减少显示个数的按钮区域
+
+	QRect m_rtClient;						//绘制K线图的区域
 };
 
 

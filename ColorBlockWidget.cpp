@@ -397,15 +397,13 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 	}
 
 	QString qsTooltip;		//Tips
+	QString qsTime;
 	if(m_typeCircle<Day)
 	{
-		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
-			.arg(pStock->getName()).arg(QDateTime::fromTime_t(item->tmTime).toString("hh:mm:ss"))
-			.arg(item->fClose);
+		qsTime = QDateTime::fromTime_t(item->tmTime).toString("hh:mm:ss");
 	}
 	else
 	{
-		QString qsTime;
 		QDate dtTmp = QDateTime::fromTime_t(item->tmTime).date();
 		if(m_typeCircle == Week)
 			qsTime = QString("%1 %2").arg(dtTmp.year()).arg(dtTmp.weekNumber());
@@ -417,15 +415,15 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 			qsTime = dtTmp.toString("yyyy");
 		else
 			qsTime = dtTmp.toString("yyyy/MM/dd");
-
-		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n价格:%3")
-			.arg(pStock->getName()).arg(qsTime)
-			.arg(item->fClose);
 	}
+	
+	qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最新价:%7\r\n最高价:%3\r\n最低价:%4\r\n成交量:%5\r\n成交额:%6")
+		.arg(pStock->getCode()).arg(qsTime).arg(item->fHigh).arg(item->fLow)
+		.arg(item->fVolume).arg(item->fAmount).arg(item->fClose);
 
 	QToolTip::showText(e->globalPos(),qsTooltip,this);
 
-	return CBaseWidget::mouseMoveEvent(e);
+	return CBaseBlockWidget::mouseMoveEvent(e);
 }
 
 void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
@@ -582,74 +580,29 @@ CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
 RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 {
 	CStockInfoItem* pItem = hitTestStock(ptPoint);
+	
+	RStockData* pData = NULL;
 	if(pItem && mapStockColorBlocks.contains(pItem))
 	{
 		QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
-		QMap<time_t,int>::iterator iterLastTime = m_mapTimes.end();
-		if(iterLastTime!=m_mapTimes.begin())
+		int iIndex = (m_rtClient.right() - ptPoint.x())/m_iCBWidth;
+		QMap<time_t,int>::iterator iter = m_mapTimes.end();
+		while(iter!=m_mapTimes.begin())
 		{
-			--iterLastTime;								//取时间轴上的最后一个时间点
-			int iIndex = (m_rtClient.right() - RCB_OFFSET_Y - ptPoint.x())/m_iCBWidth + 1;
-			time_t tmLast = iterLastTime.key();			//时间轴上的最后一个时间点
-			time_t tmCur = tmLast;
-			if (m_typeCircle<Day)
-			{
-				tmCur = tmCur - (m_typeCircle*iIndex);
-			}
-			else
-			{
-				time_t tmDefault = 0;
-				tmCur = m_mapTimes.key(iIndex,tmDefault);
-				if(tmCur==tmDefault)
-					return NULL;
-			}
+			--iter;
 
-			//获取最近的节点
-			QMap<time_t,RStockData*>::iterator iterCB = pMap->lowerBound(tmCur);
-			if(m_typeCircle<Day)
+			if(iIndex==iter.value())
 			{
-				if(iterCB==pMap->end())
-					return NULL;
-				if(iterCB.key()/m_typeCircle*m_typeCircle != (tmCur))
-					return NULL;
-			}
-			else
-			{
-				if(iterCB==pMap->begin())
-					return NULL;
-				if(m_typeCircle==Day)
+				if(pMap->contains(iter.key()))
 				{
-					return (pMap->find(tmCur)!=pMap->end()) ? pMap->find(tmCur).value() : NULL;
-				}
-				else if(m_typeCircle == Week)
-				{
-					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
-					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
-					int iTheYear = dtKey.year();
-					return dtKey.weekNumber(&iTheYear)==dtCur.weekNumber(&iTheYear) ? iterCB.value() : NULL;
-				}
-				else if(m_typeCircle == Month)
-				{
-					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
-					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
-					return ((dtKey.year()==dtKey.year())&&(dtKey.month()==dtCur.month())) ? iterCB.value() : NULL;
-				}
-				else if(m_typeCircle == Month3)
-				{
-					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
-					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
-					return ((dtKey.year()==dtKey.year())&&(((dtKey.month()-1)/3)==((dtCur.month()-1)/3))) ? iterCB.value() : NULL;
-				}
-				else if(m_typeCircle == Year)
-				{
-					QDate dtKey = QDateTime::fromTime_t(iterCB.key()).date();
-					QDate dtCur = QDateTime::fromTime_t(tmCur).date();
-					return (dtKey.year()==dtKey.year()) ? iterCB.value() : NULL;
+					pData = pMap->value(iter.key());
+					break;
 				}
 			}
-			return iterCB.value();
+			else if(iIndex<iter.value())
+				break;
 		}
 	}
-	return NULL;
+	return pData;
 }
 
