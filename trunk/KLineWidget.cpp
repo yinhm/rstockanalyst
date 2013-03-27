@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "KLineWidget.h"
 #include "DataEngine.h"
-#include <math.h>
 
 #define	KLINE_BORDER	2
 
@@ -427,11 +426,9 @@ int getLinerYearItems(QMap<time_t,RStockData*>& mapData,const QList<qRcvHistoryD
 
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CCoordXBaseWidget(parent,WidgetKLine)
-	, m_pActShowMain(0)
 	, m_pStockItem(0)
 	, m_iShowCount(100)
-	, m_pLinerMain(0)
-	, m_pCurrentLiner(0)
+	, m_iCurExp(0)
 	, m_bShowMax(false)
 	, m_iTitleHeight(16)
 	, m_iCoorYWidth(50)
@@ -439,11 +436,10 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iMainLinerHeight(200)
 	, m_mapData(NULL)
 {
-
 	m_typeCircle = Day;
 
-	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pL,"");
 	m_vSizes.push_back(60);
+	m_vExps.push_back("DrawK(OPEN,CLOSE,HIGH,LOW)");
 
 	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
 	{
@@ -455,12 +451,6 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	}
 	m_pMenuCustom->addAction(tr("删除副图"),this,SLOT(onRemoveDeputy()));
 	m_pMenuCustom->addAction(tr("设置表达式"),this,SLOT(onSetExpression()));
-	{
-		m_pActShowMain = m_pMenuCustom->addAction(tr("显示主图"));
-		m_pActShowMain->setCheckable(true);
-		m_pActShowMain->setChecked(true);
-		connect(m_pActShowMain,SIGNAL(toggled(bool)),this,SLOT(onShowMainChanged(bool)));
-	}
 	m_pMenuCustom->addAction(tr("设置所有图的显示比例"),this,SLOT(onSetSizes()));
 
 //	setMinimumSize(200,200);
@@ -469,10 +459,6 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 CKLineWidget::~CKLineWidget(void)
 {
 	clearTmpData();
-	delete m_pLinerMain;
-	foreach(CMultiLiner* p,m_listLiners)
-		delete p;
-	m_listLiners.clear();
 
 	delete m_pMenuCustom;
 }
@@ -483,56 +469,28 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 		return false;
 
 	m_vSizes.clear();
-
-	//是否显示主图
-	if(eleWidget.hasAttribute("mainliner"))
-	{
-		m_pActShowMain->setChecked(eleWidget.attribute("mainliner").toInt());
-	}
+	m_vExps.clear();
 
 	QDomElement eleLiners = eleWidget.firstChildElement("liners");
 	if(eleLiners.isElement())
 	{
 		//加载所有的Liner
+		QDomElement eleLiner = eleLiners.firstChildElement("Liner");
+		while(eleLiner.isElement())
 		{
-			//加载主图的信息
-			QDomElement eleMainLiner = eleLiners.firstChildElement("MainLiner");
-			if(eleMainLiner.isElement())
+			m_vSizes.push_back(eleLiner.attribute("size").toInt());
+
+			QDomElement eleExp = eleLiner.firstChildElement("exp");
+			if(eleExp.isElement())
 			{
-				m_vSizes.push_back(eleMainLiner.attribute("size").toInt());
-
-				QDomElement eleExp = eleMainLiner.firstChildElement("exp");
-				if(eleExp.isElement())
-				{
-					m_pLinerMain->setExpression(eleExp.text());
-				}
+				m_vExps.push_back(eleExp.text());
 			}
-		}
-		{
-			//加载所有的副图信息
-			QDomElement eleLiner = eleLiners.firstChildElement("Liner");
-			while(eleLiner.isElement())
+			else
 			{
-				CMultiLiner::MultiLinerType t = CMultiLiner::Deputy;
-				{
-					//获取该副图的类型
-					bool bOk = false;
-					int iType = eleLiner.attribute("type").toInt(&bOk);
-					if(bOk)
-						t = static_cast<CMultiLiner::MultiLinerType>(iType);
-				}
-				CMultiLiner* pLiner = new CMultiLiner(t,m_pL,"");
-
-				m_vSizes.push_back(eleLiner.attribute("size").toInt());
-				QDomElement eleExp = eleLiner.firstChildElement("exp");
-				if(eleExp.isElement())
-				{
-					pLiner->setExpression(eleExp.text());
-				}
-				m_listLiners.push_back(pLiner);
-
-				eleLiner = eleLiner.nextSiblingElement("Liner");
+				m_vExps.push_back("DrawK(OPEN,CLOSE,HIGH,LOW)");
 			}
+
+			eleLiner = eleLiner.nextSiblingElement("Liner");
 		}
 	}
 
@@ -554,43 +512,21 @@ bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 		eleCode.appendChild(doc.createTextNode(m_pStockItem->getCode()));
 		eleWidget.appendChild(eleCode);
 
-		//是否显示主图
-		eleWidget.setAttribute("mainliner",m_pActShowMain->isChecked());
 
 		QDomElement eleLiners = doc.createElement("liners");
 		eleWidget.appendChild(eleLiners);
 		{
-			//创建所有的Liner
+			//保存所有的副图信息
+			for(int i=0;i<m_vSizes.size();++i)
 			{
-				//保存主图的信息
-				QDomElement eleMainLiner = doc.createElement("MainLiner");
-				eleLiners.appendChild(eleMainLiner);
-				int iSize = 1;
-				if(m_vSizes.size()>0)
-					iSize = m_vSizes[0];
-				eleMainLiner.setAttribute("size",iSize);
+				QDomElement eleLiner = doc.createElement("Liner");
+				eleLiners.appendChild(eleLiner);
+				int iSize = m_vSizes[i];
+				eleLiner.setAttribute("size",iSize);
 
 				QDomElement eleExp = doc.createElement("exp");
-				eleExp.appendChild(doc.createTextNode(m_pLinerMain->getExpression()));
-				eleMainLiner.appendChild(eleExp);
-			}
-			{
-				//保存所有的副图信息
-				for(int i=0;i<m_listLiners.size();++i)
-				{
-					CMultiLiner* pLiner = m_listLiners[i];
-					QDomElement eleLiner = doc.createElement("Liner");
-					eleLiners.appendChild(eleLiner);
-					int iSize = 1;
-					if(m_vSizes.size()>(i+1))
-						iSize = m_vSizes[i+1];
-					eleLiner.setAttribute("size",iSize);
-					eleLiner.setAttribute("type",pLiner->getType());
-
-					QDomElement eleExp = doc.createElement("exp");
-					eleExp.appendChild(doc.createTextNode(pLiner->getExpression()));
-					eleLiner.appendChild(eleExp);
-				}
+				eleExp.appendChild(doc.createTextNode(m_vExps[i]));
+				eleLiner.appendChild(eleExp);
 			}
 		}
 	}
@@ -669,126 +605,40 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	QRect rtShowBtns = QRect(rtClient.right()-m_iCoorYWidth,rtClient.bottom()-m_iCoorXHeight,m_iCoorYWidth,m_iCoorXHeight);
 	drawShowBtns(p,rtShowBtns);
 
+
 	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 
+	int iCurY = rtClient.top();		//当前绘制到的位置
+	for(int i=0;i<m_vSizes.size();++i)
 	{
-		RDrawInfo draw;
-		draw.dwVersion = RSTOCK_VER;
-		draw.pPainter = &p;
-		draw.rtClient = rtClient;
-		draw.fItemWidth = m_fItemWidth;
-		draw.iEndIndex = m_mapData->size()-1;
-		
-		lua_pushlightuserdata(m_pL,&draw);
-		lua_setglobal(m_pL,"_draw");
+		int iTotal = 0;					//比例总和
+		for (int j=i;j<m_vSizes.size();++j)
+			iTotal += m_vSizes[j];
 
-		luaL_dostring(m_pL,"DrawK(OPEN,CLOSE,HIGH,LOW)");
+		int iTotalHeight = rtClient.bottom()-iCurY;
+		int iHeight = (float)((float)m_vSizes[i]/float(iTotal))*iTotalHeight + 0.5;
 
-		drawCoordY(p,QRectF(rtClient.right(),rtClient.top(),50,rtClient.height()),draw.fMax,draw.fMin);
+		QRectF rtArea = QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight);
+		{
+			RDrawInfo draw;
+			draw.dwVersion = RSTOCK_VER;
+			draw.pPainter = &p;
+			draw.rtClient = rtArea;
+			draw.fItemWidth = m_fItemWidth;
+			draw.iEndIndex = m_mapData->size()-1;
+
+			lua_pushlightuserdata(m_pL,&draw);
+			lua_setglobal(m_pL,"_draw");
+
+			luaL_dostring(m_pL,m_vExps[i].toLocal8Bit());
+
+			drawCoordY(p,QRectF(rtArea.right(),rtArea.top(),50,rtArea.height()),draw.fMax,draw.fMin);
+		}
+
+		iCurY += iHeight;
 	}
 
 	return;
-
-	QPoint ptCurMouse = this->mapFromGlobal(QCursor::pos());
-	CMultiLiner* pCurLiner = 0;		//当前鼠标所在位置的MultiLiner
-
-	int iCurY = rtClient.top();		//当前绘制到的位置
-	int iSizeIndex = 0;
-	//绘制主图
-	if(m_pActShowMain->isChecked())
-	{
-		if(m_vSizes.size()<1)
-			m_vSizes.push_back(60);
-		int iTotal = 0;					//比例总和
-		for (int i=iSizeIndex;i<m_vSizes.size();++i)
-			iTotal += m_vSizes[i];
-		int iTotalHeight = rtClient.bottom()-iCurY;
-
-		int iMainHeight = (float)((float)m_vSizes[iSizeIndex]/float(iTotal))*iTotalHeight + 0.5;
-		m_pLinerMain->Draw(p,QRectF(rtClient.left(),rtClient.top(),rtClient.width(),iMainHeight),m_iShowCount);
-		if(m_pLinerMain->getRect().contains(ptCurMouse))
-			pCurLiner = m_pLinerMain;
-		iCurY += iMainHeight;
-	}
-	else
-	{
-		m_pLinerMain->Draw(p,QRectF(),0);
-	}
-	++iSizeIndex;
-
-	//绘制分割线
-	if(m_listLiners.size()>0)
-	{
-		p.setPen(QColor(255,255,255));
-		if(m_listLiners.contains(m_pCurrentLiner)&&m_bShowMax)
-		{
-			p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
-			foreach(CMultiLiner* pLiner,m_listLiners)
-				pLiner->Draw(p,QRectF(),0);
-			m_pCurrentLiner->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),rtClient.bottom()-iCurY),m_iShowCount);
-			if(m_pCurrentLiner->getRect().contains(ptCurMouse))
-				pCurLiner = m_pCurrentLiner;
-		}
-		else
-		{
-			for(int i=0;i<m_listLiners.size();++i)
-			{
-				int iTotal = 0;					//比例总和
-				for (int j=iSizeIndex;j<m_vSizes.size();++j)
-					iTotal += m_vSizes[j];
-				int iTotalHeight = rtClient.bottom()-iCurY;
-				int iHeight = (float)((float)m_vSizes[iSizeIndex]/float(iTotal))*iTotalHeight + 0.5;
-
-				p.drawLine(this->rect().left(),iCurY,this->rect().right(),iCurY);
-				m_listLiners[i]->Draw(p,QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight),m_iShowCount);
-				if(m_listLiners[i]->getRect().contains(ptCurMouse))
-					pCurLiner = m_listLiners[i];
-				iCurY += iHeight;
-				++iSizeIndex;
-			}
-		}
-	}
-
-	if(pCurLiner)
-	{
-		//绘制辅助线
-		QPen pen(QColor(255,0,0));
-		pen.setStyle(Qt::DotLine);
-		p.setPen(pen);
-		p.drawLine(ptCurMouse,QPoint(rtClient.right(),ptCurMouse.y()));
-		p.drawLine(ptCurMouse,QPoint(ptCurMouse.x(),rtClient.bottom()));
-
-		//绘制y轴的值
-		float fV = pCurLiner->getValueByY(ptCurMouse.y());
-		{
-			if(fV>10000.0)
-				p.drawText(QRect(rtClient.right()+10,ptCurMouse.y()-5,50,20),Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(fV,0,'g',2));
-			else
-				p.drawText(QRect(rtClient.right()+10,ptCurMouse.y()-5,50,20),Qt::AlignLeft|Qt::AlignTop,QString("%1").arg(fV,0,'f',2));				
-		}
-
-		//绘制x轴的值
-		QRectF rtCurLiner = pCurLiner->getRect();
-		int iAbsIndex = (rtCurLiner.right() - ptCurMouse.x())/m_fItemWidth;
-
-		/*
-		QList<time_t> times = m_mapData.keys();
-		int iIndex = times.size()-iAbsIndex-1;
-		if(iIndex>=0&&iIndex<m_mapData.size())
-		{
-			p.setPen(QColor(0,255,255));
-			if(m_typeCircle<Day)
-			{
-				QTime tmTime = QDateTime::fromTime_t(times[iIndex]).time();
-				p.drawText(QRect(ptCurMouse.x(),rtClient.bottom(),100,20),Qt::AlignCenter,tmTime.toString("HH:mm:ss"));
-			}
-			else
-			{
-				QDate tmDate = QDateTime::fromTime_t(times[iIndex]).date();
-				p.drawText(QRect(ptCurMouse.x()-50,rtClient.bottom(),100,20),Qt::AlignCenter,tmDate.toString("yyyy/MM/dd"));
-			}
-		}*/
-	}
 }
 
 void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
@@ -845,21 +695,29 @@ void CKLineWidget::leaveEvent( QEvent* e )
 void CKLineWidget::mousePressEvent( QMouseEvent* e )
 {
 	QPoint ptCur = e->pos();
-	if(m_pLinerMain->getRect().contains(ptCur))
+	QRect rtClient = rect();
+	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
+
+	int iCurY = rtClient.top();		//当前绘制到的位置
+	for(int i=0;i<m_vSizes.size();++i)
 	{
-		m_pCurrentLiner = m_pLinerMain;
-	}
-	else
-	{
-		foreach(CMultiLiner* p, m_listLiners)
+		int iTotal = 0;					//比例总和
+		for (int j=i;j<m_vSizes.size();++j)
+			iTotal += m_vSizes[j];
+
+		int iTotalHeight = rtClient.bottom()-iCurY;
+		int iHeight = (float)((float)m_vSizes[i]/float(iTotal))*iTotalHeight + 0.5;
+
+		QRectF rtArea = QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight);
+		if(rtArea.contains(ptCur))
 		{
-			if(p->getRect().contains(ptCur))
-			{
-				m_pCurrentLiner = p;
-				break;
-			}
+			m_iCurExp = i;
+			break;
 		}
+
+		iCurY += iHeight;
 	}
+
 	if(e->button()==Qt::LeftButton)
 	{
 		if(m_rtAddShow.contains(ptCur))
@@ -875,15 +733,8 @@ void CKLineWidget::mousePressEvent( QMouseEvent* e )
 
 void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* e )
 {
-	foreach(CMultiLiner* pLiner,m_listLiners)
-	{
-		if(pLiner->getRect().contains(e->pos()))
-		{
-			m_pCurrentLiner = pLiner;
-			m_bShowMax = !m_bShowMax;
-			update();
-		}
-	}
+	m_bShowMax = !m_bShowMax;
+	update();
 }
 
 void CKLineWidget::keyPressEvent(QKeyEvent* e)
@@ -931,7 +782,7 @@ void CKLineWidget::onSetStockCode()
 
 void CKLineWidget::onSetExpression()
 {
-	if(!m_pCurrentLiner)
+	if(m_iCurExp>=m_vExps.size())
 		return;
 
 	QDialog dlg(this);
@@ -942,18 +793,13 @@ void CKLineWidget::onSetExpression()
 	layout.addWidget(&edit);
 	layout.addWidget(&btnOk);
 	btnOk.setText(tr("确定"));
-	edit.setText(m_pCurrentLiner->getExpression());
+	edit.setText(m_vExps[m_iCurExp]);
 	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
 
 	if(QDialog::Accepted != dlg.exec())
 		return;
 
-	m_pCurrentLiner->setExpression(edit.toPlainText());
-	if(m_pCurrentLiner == m_pLinerMain)
-	{
-		if(m_typeCircle == FenShi)
-			m_pCurrentLiner->setKLineType(CKLineLiner::FenShi);
-	}
+	m_vExps[m_iCurExp] = edit.toPlainText();
 }
 
 void CKLineWidget::onClickedAddShow()
@@ -976,17 +822,15 @@ void CKLineWidget::onClickedSubShow()
 
 void CKLineWidget::onAddDeputy()
 {
-	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::Deputy,m_pL,"CLOSE;");
-	m_listLiners.push_back(pMultiLiner);
 	m_vSizes.push_back(20);
+	m_vExps.push_back("DrawK(OPEN,CLOSE,HIGH,LOW)");
 	update();
 }
 
 void CKLineWidget::onAddVolume()
 {
-	CMultiLiner* pMultiLiner = new CMultiLiner(CMultiLiner::VolumeLine,m_pL,"");
-	m_listLiners.push_back(pMultiLiner);
 	m_vSizes.push_back(20);
+	m_vExps.push_back("DrawK(OPEN,CLOSE,HIGH,LOW)");
 	update();
 }
 
@@ -994,31 +838,13 @@ void CKLineWidget::onAddVolume()
 void CKLineWidget::onRemoveDeputy()
 {
 	//删除当前选中的副图
-	if(m_pCurrentLiner)
+	if(m_iCurExp<m_vSizes.size())
 	{
-		if(m_pCurrentLiner!=m_pLinerMain)
-		{
-			//如果不是副图的话再进行删除操作
-			int iIndex = m_listLiners.indexOf(m_pCurrentLiner);
-			if(iIndex>=0)
-			{
-				m_listLiners.removeOne(m_pCurrentLiner);
-				delete m_pCurrentLiner;
-				if(m_vSizes.size()>(iIndex+1))
-					m_vSizes.remove(iIndex+1);
-
-				update();
-			}
-		}
-		m_pCurrentLiner = m_pLinerMain;
+		m_vSizes.remove(m_iCurExp);
+		m_vExps.remove(m_iCurExp);
+		m_iCurExp = 0;
+		update();
 	}
-}
-
-void CKLineWidget::onShowMainChanged( bool bShow )
-{
-	if(bShow)
-		m_pLinerMain->updateData();
-	update();
 }
 
 void CKLineWidget::onSetSizes()
@@ -1029,7 +855,7 @@ void CKLineWidget::onSetSizes()
 	QPushButton btnOk(this);
 	dlg.setLayout(&layout);
 
-	int iCount = m_listLiners.size()+1;
+	int iCount = m_vSizes.size();
 	QVector<QLabel*> vLabels;
 	QVector<QSpinBox*> vSpins;
 	for (int i=0;i<iCount;++i)
@@ -1094,139 +920,6 @@ void CKLineWidget::drawShowBtns( QPainter& p,const QRect& rtBtns )
 
 	p.drawText(m_rtAddShow,Qt::AlignCenter,QString("+"));
 	p.drawText(m_rtSubShow,Qt::AlignCenter,QString("-"));
-}
-
-//绘制Y坐标轴
-void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, float fMin )
-{
-	//最高精确到小数点后三位，将数据扩大1000倍进行计算
-
-	if(!rtCoordY.isValid())
-		return;
-	if(fMax<=fMin)
-		return;
-
-	//设置画笔颜色
-	p.setPen(QColor(255,0,0));
-
-	//Y坐标（价格）
-	p.drawLine(rtCoordY.topLeft(),rtCoordY.bottomLeft());			//主线
-
-	qint64 iValueMax = fMax*1000;
-	qint64 iValueMin = fMin*1000;
-	qint64 iAllValue = iValueMax-iValueMin;
-	float fAllUi = rtCoordY.height();
-	float fPerUi = fAllUi/iAllValue;
-	float fRealPerUi = fAllUi/(fMax-fMin);
-
-	int iValueIncre = 1;
-	while(iAllValue/iValueIncre>100)
-	{
-		iValueIncre *= 10;
-	}
-
-	qint64 iValue = qint64((iValueMin + iValueIncre)/iValueIncre)*iValueIncre;
-	float fBottom = rtCoordY.bottom();
-	float fX = rtCoordY.left();
-
-	float fLastY = -100;
-	while(iValue<iValueMax)
-	{
-		float fValue = iValue/(1000.0);
-		float fY = (fBottom - (fValue - fMin)*(fRealPerUi));
-		if(abs(fY-fLastY) > 15)
-		{
-			p.drawLine(fX,fY,fX+4,fY);
-			p.setPen(QColor(0,255,255));
-
-			int iDot = 3 - int(log10(double(iValueIncre))+0.1);
-			if(iDot<0)
-				iDot = 0;
-			if(fValue>10000.0)
-			{
-				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
-			}
-			else
-			{
-				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
-			}
-			p.setPen(QColor(255,0,0));
-
-			fLastY = fY;
-		}
-		iValue = iValue+iValueIncre;
-	}
-
-
-	/*
-	float fAllGrid = fAllUi/fPerUi;
-	if(fAllGrid<0)
-		return;
-
-	while(fAllGrid<50)
-	{
-		iPower = iPower/10.0;
-		fAllGrid = fAllUi/(fPerUi*iPower);
-	}
-	while(fAllGrid>500)
-	{
-		iPower = iPower*10.0;
-		fAllGrid = fAllUi/(fPerUi*iPower);
-	}
-
-	float fGridHeight = fAllUi/fAllGrid;
-	int iGridSize = 1;
-	while((fGridHeight*iGridSize)<10)
-		++iGridSize;
-
-	float fGridValue = fAllValue/fAllGrid;		//一个Grid的value
-
-	float fBottom = rtCoordY.bottom();
-	float fX = rtCoordY.left();
-
-	float fValue = int((fMin + fGridValue)*(1/iPower))/(1/iPower);
-	while(fValue < fMax)
-	{
-		float fY = (fBottom - (fValue - fMin)*fPerUi);
-
-		p.drawLine(fX,fY,fX+4,fY);
-		p.setPen(QColor(0,255,255));
-		if(fValue>10000.0)
-		{
-			int iDot = 2;
-			if(iPower<1.0)
-			{
-				iDot = iDot + 1;
-			}
-			p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
-		}
-		else
-		{
-			int iDot = 2;
-			if(iPower<1.0)
-			{
-				iDot = iDot + 1;
-			}
-			p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
-		}
-		p.setPen(QColor(255,0,0));
-
-		fValue += (fGridValue*iGridSize);
-	}
-
-	////////
-	for (int i=(iBeginPrice+iGridSize); i<iEndPrice; i=i+iGridSize)
-	{
-		fY = fY-fGridHeight;
-		if((fLast-fY)>30)
-		{
-			fLast = fY;
-		}
-		else
-		{
-			p.drawLine(fX,fY,fX+2,fY);
-		}
-	}*/
 }
 
 void CKLineWidget::clearTmpData()
@@ -1296,12 +989,6 @@ void CKLineWidget::resetTmpData()
 
 	if(m_pStockItem)
 		qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
-
-	//更新绘制中的数据
-	if(m_pActShowMain->isChecked())
-		m_pLinerMain->updateData();
-	foreach(CMultiLiner* p,m_listLiners)
-		p->updateData();
 
 	//更新界面
 	update();

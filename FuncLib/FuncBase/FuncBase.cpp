@@ -8,6 +8,7 @@ QMap<const char*,lua_CFunction>* ExportAllFuncs()
 	pFuncs->insert("RLow",&my_lua_low);
 	pFuncs->insert("ROpen",&my_lua_open);
 	pFuncs->insert("RClose",&my_lua_close);
+	pFuncs->insert("RVolume",&my_lua_volume);
 
 	return pFuncs;
 }
@@ -160,6 +161,41 @@ int my_lua_close( lua_State* _L )
 				else
 				{
 					lua_pushnumber(_L,fLast);
+				}
+				lua_rawseti(_L,-2,_i);
+				++iter;
+				++_i;
+			}
+		}
+		lua_getglobal(_L,"Array");
+		lua_setmetatable(_L,-2);
+		return 1;
+	}
+	return 0;
+}
+
+int my_lua_volume( lua_State* _L )
+{
+	lua_getglobal(_L,"_calc");
+	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
+	lua_pop(_L,1);
+	if(pCalc&&pCalc->mapData)
+	{
+		lua_newtable(_L);
+
+		QMap<time_t,RStockData*>::iterator iter = pCalc->mapData->begin();
+		if(iter != pCalc->mapData->end())
+		{
+			int _i = 1;
+			while(iter!=pCalc->mapData->end())
+			{
+				if((*iter)!=NULL)
+				{
+					lua_pushnumber(_L,(*iter)->fVolume);
+				}
+				else
+				{
+					lua_pushnumber(_L,0);
 				}
 				lua_rawseti(_L,-2,_i);
 				++iter;

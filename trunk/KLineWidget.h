@@ -52,30 +52,22 @@ protected slots:
 	void onAddDeputy();									//增加副图
 	void onAddVolume();									//是否显示量视图
 	void onRemoveDeputy();								//删除副图
-	void onShowMainChanged(bool bShow);					//是否显示主图
 	void onSetSizes();									//设置所有图的显示比例
 
 private:
 	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
 	void drawShowBtns(QPainter& p,const QRect& rtBtns);	//绘制右下角的两个按钮
-	//绘制Y轴，
-	void drawCoordY(QPainter& p,const QRectF rtCoordY, float fMax, float fMin);
 private:
 	void resetTmpData();					//重新计算数据。
 	void clearTmpData();					//清理本窗口中创建的内存。
 
 private:
-	QAction* m_pActShowMain;				//是否显示主图
-
 	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
 	QMap<time_t,RStockData*>* m_mapData;	//所有用于显示的数据
 	int m_iShowCount;						//需要显示的数据个数（长度，理论上应小于listItems的size）
-	CMultiLiner* m_pLinerMain;				//主图，K线主图
-	CMultiLiner* m_pCurrentLiner;			//当前选中的图（包括主图和副图）
-	QList<CMultiLiner*> m_listLiners;		//副图，包括 成交量/成交额，公式指标图等
 
+	int m_iCurExp;							//当前选中的表达式
 	bool m_bShowMax;						//是否最大化显示（目前只对副图有效）
-
 
 	int m_iTitleHeight;						//头部高度
 	int m_iCoorYWidth;						//Y坐标轴的宽度
@@ -84,6 +76,7 @@ private:
 	int m_iMainLinerHeight;					//主图的高度
 
 	QVector<int> m_vSizes;					//显示比例(总和为100)
+	QVector<QString> m_vExps;				//显示的表达式
 
 	QRect m_rtAddShow;						//增加显示个数的按钮区域
 	QRect m_rtSubShow;						//减少显示个数的按钮区域

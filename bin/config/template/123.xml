@@ -15,7 +15,7 @@
    <block>自选</block>
    <stock>600000</stock>
   </widget>
-  <widget circle="60" mainliner="1">
+  <widget circle="60">
    <name></name>
    <type>1</type>
    <relate>1</relate>
@@ -23,9 +23,12 @@
    <size>54</size>
    <code>600000</code>
    <liners>
-    <MainLiner size="60">
-     <exp></exp>
-    </MainLiner>
+    <Liner size="50">
+     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
+    </Liner>
+    <Liner size="20">
+     <exp>DrawHist(VOLUME)</exp>
+    </Liner>
    </liners>
   </widget>
  </widget>

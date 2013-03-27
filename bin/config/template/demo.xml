@@ -19,21 +19,24 @@
     <align>1</align>
     <size>56</size>
     <block>上海A股</block>
-    <stock>600000</stock>
+    <stock>600067</stock>
    </widget>
-   <widget circle="300" mainliner="1">
+   <widget circle="300">
     <name></name>
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
     <size>27</size>
-    <code>600000</code>
+    <code>600067</code>
     <liners>
-     <MainLiner size="60">
-      <exp></exp>
-     </MainLiner>
-     <Liner size="20" type="3">
-      <exp>CLOSE;</exp>
+     <Liner size="60">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
+     </Liner>
+     <Liner size="20">
+      <exp>DrawLine(CLOSE);</exp>
+     </Liner>
+     <Liner size="20">
+      <exp>DrawHist(VOLUME)</exp>
      </Liner>
     </liners>
    </widget>
@@ -43,7 +46,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>16</size>
-    <code>600000</code>
+    <code>600067</code>
    </widget>
   </widget>
   <widget>
@@ -52,7 +55,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>62</size>
-   <widget circle="30" mainliner="1">
+   <widget circle="3602">
     <name></name>
     <type>1</type>
     <relate>0</relate>
@@ -60,9 +63,12 @@
     <size>44</size>
     <code>1A0001</code>
     <liners>
-     <MainLiner size="1">
-      <exp></exp>
-     </MainLiner>
+     <Liner size="50">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
+     </Liner>
+     <Liner size="15">
+      <exp>DrawHist(VOLUME)</exp>
+     </Liner>
     </liners>
    </widget>
    <widget circle="30" CBHeight="40" CBWidth="20">

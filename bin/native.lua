@@ -188,6 +188,7 @@ function InitValues()
 	OPEN=ROpen();
 	HIGH=RHigh();
 	LOW=RLow();
+	VOLUME=RVolume();
 end
 
 --a={1.2,23.3,4}

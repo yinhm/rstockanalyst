@@ -13,3 +13,4 @@ int my_lua_high(lua_State* _L);
 int my_lua_low(lua_State* _L);
 int my_lua_open(lua_State* _L);
 int my_lua_close(lua_State* _L);
+int my_lua_volume(lua_State* _L);

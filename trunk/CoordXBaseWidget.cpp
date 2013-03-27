@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "CoordXBaseWidget.h"
 #include "DataEngine.h"
+#include <math.h>
 extern lua_State* g_Lua;
 extern QString g_native;
 extern luaL_Reg* g_pFuncs;
@@ -218,9 +219,9 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 		}
 		else
 		{
+			pMap->insert(tmBegin,getColorBlockItemByMins(listPer,pLastFenBi));
 			if(listPer.size()>0)
 				pLastFenBi = listPer.last();
-			pMap->insert(tmBegin,getColorBlockItemByMins(listPer,NULL));
 			listPer.clear();
 
 			++iter;
@@ -620,6 +621,74 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 		fCurX = fCurX- fItemWidth;
 	}
 	return;
+}
+
+//绘制Y坐标轴
+void CCoordXBaseWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, float fMin )
+{
+	//最高精确到小数点后三位，将数据扩大1000倍进行计算
+
+	if(!rtCoordY.isValid())
+		return;
+	if(fMax<=fMin)
+		return;
+
+	//设置画笔颜色
+	p.setPen(QColor(255,0,0));
+
+	//Y坐标（价格）
+	p.drawLine(rtCoordY.topLeft(),rtCoordY.bottomLeft());			//主线
+
+	qint64 iValueMax = fMax*1000;
+	qint64 iValueMin = fMin*1000;
+	qint64 iAllValue = iValueMax-iValueMin;
+	float fAllUi = rtCoordY.height();
+	float fRealPerUi = fAllUi/(fMax-fMin);
+
+	qint64 iValueIncre = 1;
+	while(iAllValue/iValueIncre>100)
+	{
+		iValueIncre *= 10;
+	}
+	if(iValueIncre>10000000000)
+		return;
+
+	qint64 iValue = qint64((iValueMin + iValueIncre)/iValueIncre)*iValueIncre;
+	float fBottom = rtCoordY.bottom();
+	float fX = rtCoordY.left();
+
+	float fLastY = -100;
+	int iDrawIndex = 0;
+	while(iValue<iValueMax)
+	{
+		float fValue = iValue/(1000.0);
+		float fY = (fBottom - (fValue - fMin)*(fRealPerUi));
+		if(abs(fY-fLastY) > 15)
+		{
+			if(iDrawIndex%2)
+				p.setPen(QColor(255,0,0));
+			else
+				p.setPen(QColor(0,255,255));
+
+			p.drawLine(fX,fY,fX+4,fY);
+			int iDot = 3 - int(log10(double(iValueIncre))+0.1);
+			if(iDot<0)
+				iDot = 0;
+			if(fValue>10000.0)
+			{
+				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
+			}
+			else
+			{
+				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
+			}
+			p.setPen(QColor(255,0,0));
+
+			fLastY = fY;
+			++iDrawIndex;
+		}
+		iValue = iValue+iValueIncre;
+	}
 }
 
 void CCoordXBaseWidget::onSetCircle()
