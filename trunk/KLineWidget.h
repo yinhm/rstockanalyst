@@ -58,6 +58,8 @@ protected slots:
 private:
 	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
 	void drawShowBtns(QPainter& p,const QRect& rtBtns);	//绘制右下角的两个按钮
+	//绘制Y轴，
+	void drawCoordY(QPainter& p,const QRectF rtCoordY, float fMax, float fMin);
 private:
 	void resetTmpData();					//重新计算数据。
 	void clearTmpData();					//清理本窗口中创建的内存。
@@ -85,8 +87,6 @@ private:
 
 	QRect m_rtAddShow;						//增加显示个数的按钮区域
 	QRect m_rtSubShow;						//减少显示个数的按钮区域
-
-	static QString g_qsScript;				//js脚本
 };
 
 

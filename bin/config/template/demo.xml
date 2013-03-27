@@ -17,16 +17,16 @@
     <type>2</type>
     <relate>1</relate>
     <align>1</align>
-    <size>55</size>
+    <size>56</size>
     <block>上海A股</block>
     <stock>600000</stock>
    </widget>
-   <widget circle="60" mainliner="1">
+   <widget circle="300" mainliner="1">
     <name></name>
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
-    <size>28</size>
+    <size>27</size>
     <code>600000</code>
     <liners>
      <MainLiner size="60">
@@ -52,14 +52,20 @@
    <relate>1</relate>
    <align>1</align>
    <size>62</size>
-   <widget circle="3602">
+   <widget circle="30" mainliner="1">
     <name></name>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
     <size>44</size>
+    <code>1A0001</code>
+    <liners>
+     <MainLiner size="1">
+      <exp></exp>
+     </MainLiner>
+    </liners>
    </widget>
-   <widget circle="300" CBHeight="40" CBWidth="20">
+   <widget circle="30" CBHeight="40" CBWidth="20">
     <name></name>
     <type>3</type>
     <relate>0</relate>

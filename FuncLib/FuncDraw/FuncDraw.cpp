@@ -16,8 +16,11 @@ bool getMinAndMax(QVector<float>& _v, float& fMin, float& fMax)
 	if(_v.size()<1)
 		return false;
 
-	fMin = _v.first();
-	fMax = _v.first();
+	if(fMin>fMax)
+	{
+		fMin = _v.first();
+		fMax = _v.first();
+	}
 
 	foreach(const float& _f,_v)
 	{
@@ -110,6 +113,10 @@ int my_lua_drawk( lua_State* _L )
 	{
 		getMinAndMax(vHigh,fMin,fMax);
 		getMinAndMax(vLow,fMin,fMax);
+
+		//将最大值和最小值分别扩大5%，方便查看
+		fMin = fMin - (fMax-fMin)*0.05;
+		fMax = fMax + (fMax-fMin)*0.05;
 	}
 
 	{
@@ -132,10 +139,10 @@ int my_lua_drawk( lua_State* _L )
 		{
 			//绘制K线
 			float fHighMax = fMax-fMin;
-			float fH = vHigh[iIndex];
-			float fL = vLow[iIndex];
-			float fO = vOpen[iIndex];
-			float fC = vClose[iIndex];
+			//float fH = vHigh[iIndex];
+			//float fL = vLow[iIndex];
+			//float fO = vOpen[iIndex];
+			//float fC = vClose[iIndex];
 			float fHighY = ((vHigh[iIndex]-fMin)/fHighMax)*fItemHeight;
 			float fLowY = ((vLow[iIndex]-fMin)/fHighMax)*fItemHeight;
 			float fOpenY = ((vOpen[iIndex]-fMin)/fHighMax)*fItemHeight;

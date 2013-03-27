@@ -11,9 +11,22 @@
    <type>2</type>
    <relate>1</relate>
    <align>1</align>
-   <size>100</size>
+   <size>45</size>
    <block>自选</block>
-   <stock>600006</stock>
+   <stock>600000</stock>
+  </widget>
+  <widget circle="60" mainliner="1">
+   <name></name>
+   <type>1</type>
+   <relate>1</relate>
+   <align>1</align>
+   <size>54</size>
+   <code>600000</code>
+   <liners>
+    <MainLiner size="60">
+     <exp></exp>
+    </MainLiner>
+   </liners>
   </widget>
  </widget>
 </ROOT>
