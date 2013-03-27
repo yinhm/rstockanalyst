@@ -21,14 +21,14 @@ PRECOMPILED_HEADER = StdAfx.h
 
 HEADERS += StdAfx.h MainWindow.h \
 			BaseWidget.h KLineWidget.h \
-			MarketTrendWidget.h ColorBlockWidget.h BaseLiner.h \
+			MarketTrendWidget.h ColorBlockWidget.h \
 			ColorManager.h BlockColorSettingDlg.h StockInfoWidget.h \
 			SplashDlg.h CoordXBaseWidget.h BColorBlockWidget.h \
 			resource.h BaseBlockWidget.h
 
 SOURCES += main.cpp MainWindow.cpp \
 			BaseWidget.cpp KLineWidget.cpp \
-			MarketTrendWidget.cpp ColorBlockWidget.cpp BaseLiner.cpp \
+			MarketTrendWidget.cpp ColorBlockWidget.cpp \
 			ColorManager.cpp BlockColorSettingDlg.cpp StockInfoWidget.cpp \
 			SplashDlg.cpp CoordXBaseWidget.cpp BColorBlockWidget.cpp \
 			BaseBlockWidget.cpp
