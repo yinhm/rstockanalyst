@@ -108,13 +108,24 @@ int my_lua_drawk( lua_State* _L )
 	if(!pDraw||(!pDraw->pPainter))
 		return 0;
 
+
+	//读取数据
+	QPainter& p = *(pDraw->pPainter);
+	QRectF rtClient = pDraw->rtClient;
+	float fItemWidth = pDraw->fItemWidth;
+	int iEndIndex = pDraw->iEndIndex;
+	int iCount = rtClient.width()/fItemWidth + 2;
+
 	//获取最大值和最小值
 	float fMin = pDraw->fMin;
 	float fMax = pDraw->fMax;
 	if(fMin>fMax)
 	{
-		getMinAndMax(vHigh,fMin,fMax);
-		getMinAndMax(vLow,fMin,fMax);
+		int iBeginIndex = iEndIndex-iCount;
+		if(iBeginIndex<0)
+			iBeginIndex = 0;
+		getMinAndMax(vHigh.mid(iBeginIndex,iCount),fMin,fMax);
+		getMinAndMax(vLow.mid(iBeginIndex,iCount),fMin,fMax);
 
 		//将最大值和最小值分别扩大5%，方便查看
 		fMin = fMin - (fMax-fMin)*0.05;
@@ -122,11 +133,6 @@ int my_lua_drawk( lua_State* _L )
 	}
 
 	{
-		QPainter& p = *(pDraw->pPainter);
-		QRectF rtClient = pDraw->rtClient;
-		float fItemWidth = pDraw->fItemWidth;
-		int iEndIndex = pDraw->iEndIndex;
-
 		p.setPen(QColor(127,0,0));
 		p.drawRect(rtClient);
 
@@ -225,12 +231,23 @@ int my_lua_drawLine( lua_State* _L )
 	if(!pDraw||(!pDraw->pPainter))
 		return 0;
 
+
+	//获取数据
+	QPainter& p = *(pDraw->pPainter);
+	QRectF rtClient = pDraw->rtClient;
+	float fItemWidth = pDraw->fItemWidth;
+	int iEndIndex = pDraw->iEndIndex;
+	int iCount = rtClient.width()/fItemWidth + 2;
+
 	//获取最大值和最小值
 	float fMin = pDraw->fMin;
 	float fMax = pDraw->fMax;
 	if(fMin>fMax)
 	{
-		getMinAndMax(vValues,fMin,fMax);
+		int iBeginIndex = iEndIndex-iCount;
+		if(iBeginIndex<0)
+			iBeginIndex = 0;
+		getMinAndMax(vValues.mid(iBeginIndex,iCount),fMin,fMax);
 
 		//将最大值和最小值分别扩大5%，方便查看
 		fMin = fMin - (fMax-fMin)*0.05;
@@ -238,11 +255,6 @@ int my_lua_drawLine( lua_State* _L )
 	}
 
 	{
-		QPainter& p = *(pDraw->pPainter);
-		QRectF rtClient = pDraw->rtClient;
-		float fItemWidth = pDraw->fItemWidth;
-		int iEndIndex = pDraw->iEndIndex;
-
 		p.setPen(QColor(127,0,0));
 		p.drawRect(rtClient);
 
@@ -307,24 +319,29 @@ int my_lua_drawHistogram( lua_State* _L )
 	lua_pop(_L,1);
 	if(!pDraw||(!pDraw->pPainter))
 		return 0;
+	
+	//获取数据
+	QPainter& p = *(pDraw->pPainter);
+	QRectF rtClient = pDraw->rtClient;
+	float fItemWidth = pDraw->fItemWidth;
+	int iEndIndex = pDraw->iEndIndex;
+	int iCount = rtClient.width()/fItemWidth + 2;
 
 	//获取最大值和最小值
 	float fMin = pDraw->fMin;
 	float fMax = pDraw->fMax;
 	if(fMin>fMax)
 	{
-		getMinAndMax(vValues,fMin,fMax);
+		int iBeginIndex = iEndIndex-iCount;
+		if(iBeginIndex<0)
+			iBeginIndex = 0;
+		getMinAndMax(vValues.mid(iBeginIndex,iCount),fMin,fMax);
 
 		//将最大值扩大5%，方便查看
 		fMax = fMax + (fMax-fMin)*0.05;
 	}
 
 	{
-		QPainter& p = *(pDraw->pPainter);
-		QRectF rtClient = pDraw->rtClient;
-		float fItemWidth = pDraw->fItemWidth;
-		int iEndIndex = pDraw->iEndIndex;
-
 		p.setPen(QColor(127,0,0));
 		p.drawRect(rtClient);
 

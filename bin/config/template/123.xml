@@ -21,7 +21,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>54</size>
-   <code>000999</code>
+   <code>600011</code>
    <liners>
     <Liner size="50">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>

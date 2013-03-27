@@ -529,7 +529,7 @@ void CCoordXBaseWidget::updateShowTimes( const QRectF& rtCoordX,float fItemWidth
 		return;
 
 	QList<time_t> listTimes = m_mapTimes.keys();
-	float fCurX = fBeginX-fEndX;
+	float fCurX = fBeginX-fItemWidth;
 	int iCount = listTimes.size()-1;
 
 	while(fCurX>fEndX && iCount>=0)

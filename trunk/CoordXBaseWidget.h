@@ -20,7 +20,7 @@ protected:
 
 protected:
 	void updateTimesH();												//更新当前的横坐标数据
-	void updateShowTimes(const QRectF& rtCoordX,float fItemWidth);			//更新需要进行绘制的时间轴
+	void updateShowTimes(const QRectF& rtCoordX,float fItemWidth);		//更新需要进行绘制的时间轴
 
 	void drawCoordX(QPainter& p,const QRectF& rtCoordX,float fItemWidth);	//绘制X坐标轴
 	//绘制Y轴，主要用于K线图
