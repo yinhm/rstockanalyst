@@ -161,8 +161,8 @@ RStockData* getColorBlockItemByDays(const QList<qRcvHistoryData*>& list)
 	pData->fClose = pLast->fClose;
 
 
-	pData->fLow = 0;
-	pData->fHigh = 0;
+	pData->fLow = pFirst->fLow;
+	pData->fHigh = pFirst->fHigh;
 	pData->fAmount = 0;
 	pData->fVolume = 0;
 	foreach(qRcvHistoryData* p,list)
@@ -248,11 +248,24 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 				break;
 		}
 	}
+
+	//获取最后一个数据块，并进行计算
+	RStockData* pLastData = getColorBlockItemByMins(listPer,pLastFenBi);
 	while(iter!=mapTimes.end())
 	{
-		pMap->insert(iter.key(),NULL);
+		tmBegin = iter.key();
+		if(pLastData && pLastData->tmTime>=tmBegin)
+		{
+			pMap->insert(tmBegin,pLastData);
+			pLastData = NULL;
+		}
+		else
+		{
+			pMap->insert(tmBegin,NULL);
+		}
 		++iter;
 	}
+	delete pLastData;
 
 	if(pMap->size()!=mapTimes.size())
 	{
@@ -329,11 +342,24 @@ QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const Q
 				break;
 		}
 	}
+
+	//获取最后一个数据块，并进行计算
+	RStockData* pLastData = getColorBlockItemByDays(listPer);
 	while(iter!=mapTimes.end())
 	{
-		pMap->insert(iter.key(),NULL);
+		tmBegin = iter.key();
+		if(pLastData && pLastData->tmTime>=tmBegin)
+		{
+			pMap->insert(tmBegin,pLastData);
+			pLastData = NULL;
+		}
+		else
+		{
+			pMap->insert(tmBegin,NULL);
+		}
 		++iter;
 	}
+	delete pLastData;
 
 	if(pMap->size()!=mapTimes.size())
 	{
@@ -502,8 +528,8 @@ void CCoordXBaseWidget::updateShowTimes( const QRectF& rtCoordX,float fItemWidth
 		return;
 
 	QList<time_t> listTimes = m_mapTimes.keys();
-	float fCurX = fBeginX;
-	float iCount = listTimes.size()-1;
+	float fCurX = fBeginX-fEndX;
+	int iCount = listTimes.size()-1;
 
 	while(fCurX>fEndX && iCount>=0)
 	{
@@ -525,9 +551,9 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 		return;
 
 	QList<time_t> listTimes = m_mapTimes.keys();
-	float fCurX = fBeginX;
-	float fLastX = fCurX;
-	float iCount = listTimes.size()-1;
+	float fCurX = fBeginX-fItemWidth;
+	float fLastX = fBeginX;
+	int iCount = listTimes.size()-1;
 
 	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
 	while(fCurX>fEndX && iCount>=0)
@@ -606,6 +632,8 @@ void CCoordXBaseWidget::onSetCircle()
 
 QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CStockInfoItem* pItem )
 {
+	if(!pItem)
+		return new QMap<time_t,RStockData*>();
 	QMap<time_t,RStockData*>* pMap = NULL;
 	if(m_typeCircle < Day)
 	{

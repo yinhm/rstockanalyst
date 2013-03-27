@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "KLineWidget.h"
 #include "DataEngine.h"
+#include <math.h>
 
 #define	KLINE_BORDER	2
 
@@ -444,6 +445,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pLinerMain = new CMultiLiner(CMultiLiner::MainKLine,m_pL,"");
 	m_vSizes.push_back(60);
 
+	m_pMenuCustom->addAction(tr("设置股票代码"),this,SLOT(onSetStockCode()));
 	{
 		m_pMenuCustom->addSeparator();
 		QMenu* pMenuDeputy = m_pMenuCustom->addMenu(tr("添加副图"));
@@ -615,8 +617,11 @@ void CKLineWidget::setStockCode( const QString& code )
 //			disconnect(m_pStockItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		}
 
-		m_pStockItem = pItem;
+		//设置默认显示100个K线
+		if((pItem!=m_pStockItem)&&(m_iShowCount<50))
+			m_iShowCount = 100;
 
+		m_pStockItem = pItem;
 		//建立更新机制
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
@@ -655,7 +660,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	drawTitle(p,rtTitle);
 
 	/*画X坐标轴*/
-	QRectF rtCoordX = QRectF(rtClient.left()-3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
+	QRectF rtCoordX = QRectF(rtClient.left()+3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
 	m_fItemWidth = float(rtCoordX.width())/float(m_iShowCount);
 	updateShowTimes(rtCoordX,m_fItemWidth);
 	CCoordXBaseWidget::drawCoordX(p,rtCoordX,m_fItemWidth);
@@ -678,6 +683,8 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		lua_setglobal(m_pL,"_draw");
 
 		luaL_dostring(m_pL,"DrawK(OPEN,CLOSE,HIGH,LOW)");
+
+		drawCoordY(p,QRectF(rtClient.right(),rtClient.top(),50,rtClient.height()),draw.fMax,draw.fMin);
 	}
 
 	return;
@@ -1089,6 +1096,139 @@ void CKLineWidget::drawShowBtns( QPainter& p,const QRect& rtBtns )
 	p.drawText(m_rtSubShow,Qt::AlignCenter,QString("-"));
 }
 
+//绘制Y坐标轴
+void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, float fMin )
+{
+	//最高精确到小数点后三位，将数据扩大1000倍进行计算
+
+	if(!rtCoordY.isValid())
+		return;
+	if(fMax<=fMin)
+		return;
+
+	//设置画笔颜色
+	p.setPen(QColor(255,0,0));
+
+	//Y坐标（价格）
+	p.drawLine(rtCoordY.topLeft(),rtCoordY.bottomLeft());			//主线
+
+	qint64 iValueMax = fMax*1000;
+	qint64 iValueMin = fMin*1000;
+	qint64 iAllValue = iValueMax-iValueMin;
+	float fAllUi = rtCoordY.height();
+	float fPerUi = fAllUi/iAllValue;
+	float fRealPerUi = fAllUi/(fMax-fMin);
+
+	int iValueIncre = 1;
+	while(iAllValue/iValueIncre>100)
+	{
+		iValueIncre *= 10;
+	}
+
+	qint64 iValue = qint64((iValueMin + iValueIncre)/iValueIncre)*iValueIncre;
+	float fBottom = rtCoordY.bottom();
+	float fX = rtCoordY.left();
+
+	float fLastY = -100;
+	while(iValue<iValueMax)
+	{
+		float fValue = iValue/(1000.0);
+		float fY = (fBottom - (fValue - fMin)*(fRealPerUi));
+		if(abs(fY-fLastY) > 15)
+		{
+			p.drawLine(fX,fY,fX+4,fY);
+			p.setPen(QColor(0,255,255));
+
+			int iDot = 3 - int(log10(double(iValueIncre))+0.1);
+			if(iDot<0)
+				iDot = 0;
+			if(fValue>10000.0)
+			{
+				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
+			}
+			else
+			{
+				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
+			}
+			p.setPen(QColor(255,0,0));
+
+			fLastY = fY;
+		}
+		iValue = iValue+iValueIncre;
+	}
+
+
+	/*
+	float fAllGrid = fAllUi/fPerUi;
+	if(fAllGrid<0)
+		return;
+
+	while(fAllGrid<50)
+	{
+		iPower = iPower/10.0;
+		fAllGrid = fAllUi/(fPerUi*iPower);
+	}
+	while(fAllGrid>500)
+	{
+		iPower = iPower*10.0;
+		fAllGrid = fAllUi/(fPerUi*iPower);
+	}
+
+	float fGridHeight = fAllUi/fAllGrid;
+	int iGridSize = 1;
+	while((fGridHeight*iGridSize)<10)
+		++iGridSize;
+
+	float fGridValue = fAllValue/fAllGrid;		//一个Grid的value
+
+	float fBottom = rtCoordY.bottom();
+	float fX = rtCoordY.left();
+
+	float fValue = int((fMin + fGridValue)*(1/iPower))/(1/iPower);
+	while(fValue < fMax)
+	{
+		float fY = (fBottom - (fValue - fMin)*fPerUi);
+
+		p.drawLine(fX,fY,fX+4,fY);
+		p.setPen(QColor(0,255,255));
+		if(fValue>10000.0)
+		{
+			int iDot = 2;
+			if(iPower<1.0)
+			{
+				iDot = iDot + 1;
+			}
+			p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
+		}
+		else
+		{
+			int iDot = 2;
+			if(iPower<1.0)
+			{
+				iDot = iDot + 1;
+			}
+			p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
+		}
+		p.setPen(QColor(255,0,0));
+
+		fValue += (fGridValue*iGridSize);
+	}
+
+	////////
+	for (int i=(iBeginPrice+iGridSize); i<iEndPrice; i=i+iGridSize)
+	{
+		fY = fY-fGridHeight;
+		if((fLast-fY)>30)
+		{
+			fLast = fY;
+		}
+		else
+		{
+			p.drawLine(fX,fY,fX+2,fY);
+		}
+	}*/
+}
+
 void CKLineWidget::clearTmpData()
 {
 	//foreach(stLinerItem* p,listItems)
@@ -1110,8 +1250,6 @@ void CKLineWidget::clearTmpData()
 
 void CKLineWidget::resetTmpData()
 {
-	if(m_iShowCount<50)
-		m_iShowCount = 100;
 	clearTmpData();
 	updateTimesH();			//更新最新的时间轴数据
 
@@ -1156,7 +1294,8 @@ void CKLineWidget::resetTmpData()
 		lua_call(m_pL,0,0);
 	}
 
-	qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
+	if(m_pStockItem)
+		qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
 
 	//更新绘制中的数据
 	if(m_pActShowMain->isChecked())
