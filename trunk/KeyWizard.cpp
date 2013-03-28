@@ -27,6 +27,7 @@ CKeyWizard::CKeyWizard( QWidget* parent /*= 0*/ )
 	pLayout->addWidget(&m_viewList);
 	setLayout(pLayout);
 
+	m_viewList.setSelectionMode(QListView::SingleSelection);
 	connect(&m_editInput,SIGNAL(textChanged(const QString&)),this,SLOT(inputTextChanged(const QString&)));
 
 	CMainWindow* pMain = CMainWindow::getMainWindow();
@@ -62,10 +63,15 @@ void CKeyWizard::hideEvent( QHideEvent* )
 
 void CKeyWizard::keyPressEvent( QKeyEvent* e )
 {
-	if(e->key() == Qt::Key_Escape)
+	int iKey  = e->key();
+	if(iKey == Qt::Key_Escape)
 		return hide();
-	else if(e->key() == Qt::Key_Enter || e->key()==Qt::Key_Return)
+	else if(iKey == Qt::Key_Enter || iKey==Qt::Key_Return)
 		return enterPressed();
+	else if(iKey == Qt::Key_Down)
+		return selectItemAbs(1);
+	else if(iKey == Qt::Key_Up)
+		return selectItemAbs(-1);
 
 	return QWidget::keyPressEvent(e);
 }
@@ -73,7 +79,9 @@ void CKeyWizard::keyPressEvent( QKeyEvent* e )
 void CKeyWizard::inputTextChanged( const QString& text )
 {
 	if((text.isEmpty())||(!m_pCurWidget))
-		return;
+	{
+		return hide();
+	}
 
 	clearWizData();
 	m_pCurWidget->getKeyWizData(text,m_listWizData);
@@ -83,6 +91,7 @@ void CKeyWizard::inputTextChanged( const QString& text )
 		pItem->setData(Qt::UserRole,(uint)pData);
 		m_viewList.addItem(pItem);
 	}
+	selectItemAbs(0);
 }
 
 void CKeyWizard::clearWizData()
@@ -107,4 +116,41 @@ void CKeyWizard::enterPressed()
 	}
 
 	return hide();
+}
+
+void CKeyWizard::selectItemAbs(int iAbs)
+{
+	QList<QListWidgetItem*> list = m_viewList.selectedItems();
+	QListWidgetItem* pItemBefore = NULL;
+	QListWidgetItem* pItemAfter = NULL;
+	if(list.size()>0)
+	{
+		pItemBefore = list[0];
+
+		int iRow = m_viewList.row(pItemBefore) + iAbs;
+		if(iRow<m_viewList.count())
+		{
+			pItemAfter = m_viewList.item(iRow);
+		}
+	}
+	else
+	{
+		if(m_viewList.count()>0)
+		{
+			pItemAfter = m_viewList.item(0);
+		}
+	}
+	
+	if(pItemBefore)
+	{
+		pItemBefore->setBackgroundColor(QColor::fromRgb(255,255,255));
+	}
+	if(!pItemAfter)
+		pItemAfter = pItemBefore;
+	
+	if(pItemAfter)
+	{
+		m_viewList.setItemSelected(pItemAfter,true);
+		pItemAfter->setBackgroundColor(QColor::fromRgb(255,0,0));
+	}
 }

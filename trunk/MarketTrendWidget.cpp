@@ -1044,6 +1044,8 @@ void CMarketTrendWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*
 			pData->arg = pItem->getCode();
 			pData->desc = QString("%1 %2").arg(pItem->getCode()).arg(pItem->getName());
 			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
 		}
 	}
 }

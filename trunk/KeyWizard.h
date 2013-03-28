@@ -36,6 +36,7 @@ protected slots:
 
 private:
 	void enterPressed();
+	void selectItemAbs(int iAbs);
 
 private:
 	void clearWizData();
