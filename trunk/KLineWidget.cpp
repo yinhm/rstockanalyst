@@ -759,6 +759,8 @@ void CKLineWidget::mousePressEvent( QMouseEvent* e )
 			onClickedSubShow();
 		}
 	}
+
+	return CCoordXBaseWidget::mousePressEvent(e);
 }
 
 void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* e )

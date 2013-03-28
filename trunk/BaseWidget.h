@@ -10,6 +10,13 @@
 #include <QtXml>
 #include "RStockFunc.h"
 
+typedef struct tagKeyWizData
+{
+	int cmd;			//当前的命令
+	QString arg;		//参数
+	QString desc;		//描述信息（用于显示在键盘精灵列表里）
+} KeyWizData;
+
 class CBaseWidget : public QWidget
 {
 	Q_OBJECT
@@ -57,6 +64,12 @@ public:
 	//保存该Widget的配置信息
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
+public:
+	//通过查找keyword获取需要在键盘精灵上显示的数据
+	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);
+	//键盘精灵窗口确认后触发
+	virtual void keyWizEntered(KeyWizData* pData);
+
 public slots:
 	/*
 		虚函数，派生类中需重载此函数以进行相应操作
@@ -80,6 +93,8 @@ protected slots:
 protected:
 	virtual void paintEvent(QPaintEvent* e);
 	virtual void contextMenuEvent(QContextMenuEvent* e);
+	virtual void keyPressEvent(QKeyEvent* e);
+	virtual void mousePressEvent(QMouseEvent* e);
 
 protected:
 	CBaseWidget* m_pParent;			//父窗口指针

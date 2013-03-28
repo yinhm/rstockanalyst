@@ -12,8 +12,8 @@
    <relate>1</relate>
    <align>1</align>
    <size>45</size>
-   <block>自选</block>
-   <stock>000999</stock>
+   <block>所有股票</block>
+   <stock>002001</stock>
   </widget>
   <widget circle="60">
    <name></name>
@@ -21,7 +21,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>54</size>
-   <code>600020</code>
+   <code>002001</code>
    <liners>
     <Liner size="50">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
