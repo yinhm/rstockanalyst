@@ -2,6 +2,7 @@
 #include "MarketTrendWidget.h"
 #include "DataEngine.h"
 #include "MainWindow.h"
+#include "KeyWizard.h"
 
 #define	GetColorByFloat(x)	(((x)==0.0) ? QColor(191,191,191) : (((x)>0.0) ? QColor(255,80,80) : QColor(0,255,255)))
 
@@ -382,6 +383,8 @@ void CMarketTrendWidget::mousePressEvent( QMouseEvent* e )
 			}
 		}
 	}
+
+	return CBaseWidget::mousePressEvent(e);
 }
 
 void CMarketTrendWidget::wheelEvent( QWheelEvent* e )
@@ -468,8 +471,10 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 
 		e->accept();
 	}
-
-	return CBaseWidget::keyPressEvent(e);
+	else
+	{
+		return CBaseWidget::keyPressEvent(e);
+	}
 }
 
 QMenu* CMarketTrendWidget::getCustomMenu()
@@ -1025,5 +1030,35 @@ void CMarketTrendWidget::drawBottomBtn( QPainter& p )
 		path.lineTo(rtBtn.left()+4,rtBtn.top()+4);
 		path.lineTo(rtBtn.left()+4,rtBtn.bottom()-4);
 		p.fillPath(path,QColor(0,0,0));
+	}
+}
+
+void CMarketTrendWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
+{
+	foreach(CStockInfoItem* pItem,m_listStocks)
+	{
+		if(pItem->getCode().indexOf(keyword)>-1)
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdStock;
+			pData->arg = pItem->getCode();
+			pData->desc = QString("%1 %2").arg(pItem->getCode()).arg(pItem->getName());
+			listRet.push_back(pData);
+		}
+	}
+}
+
+void CMarketTrendWidget::keyWizEntered( KeyWizData* pData )
+{
+	if(pData->cmd == CKeyWizard::CmdStock)
+	{
+		foreach(CStockInfoItem* pItem,m_listStocks)
+		{
+			if(pItem->getCode() == pData->arg)
+			{
+				clickedStock(pItem);
+				return;
+			}
+		}
 	}
 }

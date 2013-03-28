@@ -10,6 +10,7 @@
 #include "MarketTrendWidget.h"
 #include "ColorBlockWidget.h"
 #include "StockInfoWidget.h"
+#include "KeyWizard.h"
 
 CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetType type/*=Basic*/ )
 {
@@ -304,6 +305,33 @@ void CBaseWidget::contextMenuEvent( QContextMenuEvent* e )
 	return e->accept();
 }
 
+void CBaseWidget::keyPressEvent( QKeyEvent* e )
+{
+	//屏蔽不需要的按键
+	int iKey = e->key();
+	if(iKey == Qt::Key_Escape)
+		return;
+
+	//弹出键盘精灵对话框
+	CKeyWizard::getKeyWizard()->showWizard(this,e->text().trimmed());
+}
+
+void CBaseWidget::mousePressEvent( QMouseEvent* e )
+{
+	CKeyWizard* pWizard = CKeyWizard::getKeyWizard();
+	if(pWizard->isVisible())
+	{
+		if(pWizard->getCurrentWidget() == this)
+		{
+			pWizard->showWizard(this);
+		}
+		else
+		{
+			pWizard->hide();
+		}
+	}
+}
+
 void CBaseWidget::onLeftInsert()
 {
 	//左插入
@@ -435,3 +463,14 @@ void CBaseWidget::onResetWidget()
 		m_pParent->replaceWidget(iIndex,createBaseWidget(m_pParent,type));	//替换窗口
 	}
 }
+
+void CBaseWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
+{
+
+}
+
+void CBaseWidget::keyWizEntered( KeyWizData* pData )
+{
+
+}
+
