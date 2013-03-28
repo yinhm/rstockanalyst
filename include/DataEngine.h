@@ -87,8 +87,11 @@ public:
 	bool exportFenBiData(const QString& qsCode, const long& lDate, const QList<qRcvFenBiData*>& list);
 
 private:
-	QMap<QString,CStockInfoItem*> m_mapStockInfos;
-	QMap<QString,CBlockInfoItem*> m_mapBlockInfos;
+	QMap<QString,CStockInfoItem*> m_mapStockInfos;			//股票数据
+	QMap<QString,CBlockInfoItem*> m_mapBlockInfos;			//板块数据
+
+private:
+	QMap<CStockInfoItem*,QList<QList<QChar>>> m_mapStockNames;	//股票的简拼列表
 
 private:
 	static CDataEngine* m_pDataEngine;

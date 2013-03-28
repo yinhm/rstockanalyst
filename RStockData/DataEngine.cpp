@@ -1,9 +1,10 @@
 #include "StdAfx.h"
-#include "DataEngine.h"
-#include "STKDRV.h"
 #include <time.h>
 #include <QApplication>
 #include <QtXml>
+#include "DataEngine.h"
+#include "STKDRV.h"
+#include "Hz2Py.h"
 
 CDataEngine* CDataEngine::m_pDataEngine = 0;
 
@@ -306,7 +307,7 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 	return iCount;
 }
 
-int CDataEngine::importBlocksData( const QString& qsPath )
+int CDataEngine::importBlocksData( const QString& /*qsPath*/ )
 {
 	QDomDocument doc("CommonBlocks");
 	QFile file(CDataEngine::getDataEngine()->getCommStockBlockFile());
@@ -568,6 +569,9 @@ CDataEngine::CDataEngine(void)
 
 	m_qsFenBiDir = qApp->applicationDirPath()+"/data/FenBi/";
 	QDir().mkpath(m_qsFenBiDir);
+
+	//导入汉字->拼音对照表
+	CHz2Py::initHz2PyTable(qApp->applicationDirPath()+"/data/PY.hz");
 }
 
 CDataEngine::~CDataEngine(void)
@@ -699,29 +703,11 @@ CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
 void CDataEngine::setStockInfoItem( CStockInfoItem* p )
 {
 	m_mapStockInfos[p->getCode()] = p;
+	m_mapStockNames[p] = CHz2Py::getHzFirstLetter(p->getName());
 }
 
 bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list )
 {
-	/*数据库操作
-	QSqlDatabase db = QSqlDatabase::database("HISTORY");
-	if(!db.isOpen())
-		return false;
-	db.transaction();
-	QSqlQuery q(db);
-
-	foreach(qRcvHistoryData* pData, list)
-	{
-		QString qsQuery = QString("replace into [History] ('code','time','open','high','low','close','volume','amount') \
-								  values ('%1',%2,%3,%4,%5,%6,%7,%8)")
-								  .arg(qsCode).arg(pData->time).arg(pData->fOpen).arg(pData->fHigh)
-								  .arg(pData->fLow).arg(pData->fClose).arg(pData->fVolume).arg(pData->fAmount);
-		q.exec(qsQuery);
-	}
-	db.commit();
-	return true;
-	*/
-
 	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(qsCode);
 
 	QFile file(qsDayData);
