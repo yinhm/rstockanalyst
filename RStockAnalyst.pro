@@ -24,14 +24,14 @@ HEADERS += StdAfx.h MainWindow.h \
 			MarketTrendWidget.h ColorBlockWidget.h \
 			ColorManager.h BlockColorSettingDlg.h StockInfoWidget.h \
 			SplashDlg.h CoordXBaseWidget.h BColorBlockWidget.h \
-			resource.h BaseBlockWidget.h
+			resource.h BaseBlockWidget.h KeyWizard.h
 
 SOURCES += main.cpp MainWindow.cpp \
 			BaseWidget.cpp KLineWidget.cpp \
 			MarketTrendWidget.cpp ColorBlockWidget.cpp \
 			ColorManager.cpp BlockColorSettingDlg.cpp StockInfoWidget.cpp \
 			SplashDlg.cpp CoordXBaseWidget.cpp BColorBlockWidget.cpp \
-			BaseBlockWidget.cpp
+			BaseBlockWidget.cpp KeyWizard.cpp
 
 
 RESOURCES += RStockAnalyst.qrc
