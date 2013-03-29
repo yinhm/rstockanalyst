@@ -393,28 +393,28 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 	}
 	{
 		//初始化显示周期的快速查找表
-		m_listCircle.push_back(RStockCircleData(Sec10,".m10","10秒分时图"));
-		m_listCircle.push_back(RStockCircleData(Sec30,".m30","30秒分时图"));
-		m_listCircle.push_back(RStockCircleData(Min1,".f1","1分钟分时图"));
-		m_listCircle.push_back(RStockCircleData(Min5,".f5","5分钟分时图"));
-		m_listCircle.push_back(RStockCircleData(Min15,".f15","15分钟分时图"));
-		m_listCircle.push_back(RStockCircleData(Min30,".f30","30分钟分时图"));
-		m_listCircle.push_back(RStockCircleData(Min60,".f60","60分钟分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec10,".m10","10秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec30,".m30","30秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min1,".f1","1分钟分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min5,".f5","5分钟分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min15,".f15","15分钟分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min30,".f30","30分钟分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min60,".f60","60分钟分时图"));
 
-		m_listCircle.push_back(RStockCircleData(Day,".r","日线图"));
-		m_listCircle.push_back(RStockCircleData(Week,".z","周线图"));
-		m_listCircle.push_back(RStockCircleData(Month,".y","月线图"));
-		m_listCircle.push_back(RStockCircleData(Month3,".y3","季线图"));
-		m_listCircle.push_back(RStockCircleData(Year,".n","年线图"));
+		m_listCircle.push_back(RWidgetOpData(Day,".r","日线图"));
+		m_listCircle.push_back(RWidgetOpData(Week,".z","周线图"));
+		m_listCircle.push_back(RWidgetOpData(Month,".y","月线图"));
+		m_listCircle.push_back(RWidgetOpData(Month3,".y3","季线图"));
+		m_listCircle.push_back(RWidgetOpData(Year,".n","年线图"));
 	}
 
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
 	{
 		//设置当前K线图的显示周期
 		m_pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
-		foreach(const RStockCircleData& _d,m_listCircle)
+		foreach(const RWidgetOpData& _d,m_listCircle)
 		{
-			m_pMenuCircle->addAction(_d.desc,this,SLOT(onSetCircle()))->setData(_d.circle);
+			m_pMenuCircle->addAction(_d.desc,this,SLOT(onSetCircle()))->setData(_d.value);
 		}
 	}
 	//m_pL = lua_newthread(g_Lua);
@@ -755,13 +755,13 @@ QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CStockInfoItem* p
 
 void CCoordXBaseWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
 {
-	foreach(const RStockCircleData& _d,m_listCircle)
+	foreach(const RWidgetOpData& _d,m_listCircle)
 	{
 		if(_d.key.indexOf(keyword)>-1)
 		{
 			KeyWizData* pData = new KeyWizData;
 			pData->cmd = CKeyWizard::CmdCircle;
-			pData->arg = (void*)_d.circle;
+			pData->arg = (void*)_d.value;
 			pData->desc = _d.desc;
 			listRet.push_back(pData);
 			if(listRet.size()>20)

@@ -421,7 +421,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iMainLinerHeight(200)
 	, m_mapData(NULL)
 {
-	m_typeCircle = Day;
+	m_typeCircle = Min1;
 
 	m_vSizes.push_back(60);
 	m_vExps.push_back("DrawK(OPEN,CLOSE,HIGH,LOW)");

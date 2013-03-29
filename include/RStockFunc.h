@@ -42,6 +42,17 @@ enum RWidgetType
 	WidgetStockInfo,				//单只股票的行情信息
 };
 
+
+//窗口的方向
+enum RWidgetInsert
+{
+	InsertLeft =1,			//左插入
+	InsertRight,				//右插入
+	InsertTop,				//上插入
+	InsertBottom,			//下插入
+	InsertRemove,			//删除
+};
+
 // 基本数据
 typedef struct tagRStockData
 {

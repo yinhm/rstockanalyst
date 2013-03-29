@@ -16,6 +16,8 @@ public:
 		CmdStock = 1,		//选中某股票
 		CmdBlock,			//选中某板块
 		CmdCircle,			//设置显示周期
+		CmdWidget,			//更换窗口的类型
+		CmdInsert,			//插入窗口
 	};
 
 public:

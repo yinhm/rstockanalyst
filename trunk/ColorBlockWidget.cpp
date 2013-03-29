@@ -126,7 +126,7 @@ void CColorBlockWidget::setBlock( const QString& block )
 	return CBaseWidget::setBlock(block);
 }
 
-void CColorBlockWidget::updateStock( const QString& code )
+void CColorBlockWidget::updateStock( const QString& /*code*/ )
 {
 	//CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 

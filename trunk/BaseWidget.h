@@ -17,6 +17,22 @@ typedef struct tagKeyWizData
 	QString desc;		//描述信息（用于显示在键盘精灵列表里）
 } KeyWizData;
 
+
+//窗口操作的关联数据
+typedef struct tagRWidgetOpData
+{
+	int value;					//值
+	QString key;				//快速查找键
+	QString desc;				//描述信息
+
+	tagRWidgetOpData(const int& _v, const QString& _k, const QString& _d)
+		: value(_v)
+		, key(_k)
+		, desc(_d)
+	{
+	}
+} RWidgetOpData;
+
 class CBaseWidget : public QWidget
 {
 	Q_OBJECT
@@ -86,9 +102,13 @@ protected slots:
 	void onRightInsert();			//右插入
 	void onTopInsert();				//上插入
 	void onBottomInsert();			//下插入
+	void onInsertWidget();			//插入窗口响应
 
 	/*右键菜单，设置不同的版面*/
 	void onResetWidget();			//重新设置窗口类型
+protected:
+	void insertWidget(RWidgetInsert _i);
+	void setWidgetType(RWidgetType _t);
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);
@@ -103,6 +123,10 @@ protected:
 	QString m_qsName;				//窗口名称
 	RWidgetType m_type;				//窗口类型
 	QAction* m_pActRelate;			//是否和其它窗口关联
+
+private:
+	QList<RWidgetOpData> m_listWidget;	//支持的窗口类型
+	QList<RWidgetOpData> m_listOperate;	//支持的窗口类型
 };
 
 
