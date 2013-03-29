@@ -2,6 +2,33 @@
 #include "KeyWizard.h"
 #include "MainWindow.h"
 
+class CWizardInput : public QLineEdit
+{
+public:
+	CWizardInput(QWidget* parent = 0)
+		: QLineEdit(parent)
+	{
+	}
+	~CWizardInput(){}
+
+protected:
+	virtual void keyPressEvent(QKeyEvent* e)
+	{
+		QString _t = e->text();
+		if(_t.size()>0)
+		{
+			QChar _c = _t[0];
+			if(_c>=QChar('a')&&_c<=QChar('z'))
+			{
+				return setText(text()+e->text().toUpper());
+			}
+		}
+
+		return QLineEdit::keyPressEvent(e);
+	}
+};
+
+
 CKeyWizard* CKeyWizard::m_pSelf = NULL;
 
 CKeyWizard* CKeyWizard::getKeyWizard()
@@ -19,16 +46,17 @@ CKeyWizard::CKeyWizard( QWidget* parent /*= 0*/ )
 	setWindowFlags(windowFlags()|Qt::WindowStaysOnTopHint|Qt::Tool);
 	setFixedSize(150,200);
 
+	m_pInput = new CWizardInput(this);
 	QVBoxLayout* pLayout = new QVBoxLayout();
 	pLayout->setContentsMargins(0,0,0,0);
 	pLayout->setMargin(0);
 	pLayout->setSpacing(0);
-	pLayout->addWidget(&m_editInput);
+	pLayout->addWidget(m_pInput);
 	pLayout->addWidget(&m_viewList);
 	setLayout(pLayout);
 
 	m_viewList.setSelectionMode(QListView::SingleSelection);
-	connect(&m_editInput,SIGNAL(textChanged(const QString&)),this,SLOT(inputTextChanged(const QString&)));
+	connect(m_pInput,SIGNAL(textChanged(const QString&)),this,SLOT(inputTextChanged(const QString&)));
 
 	CMainWindow* pMain = CMainWindow::getMainWindow();
 	if(pMain)
@@ -40,6 +68,7 @@ CKeyWizard::CKeyWizard( QWidget* parent /*= 0*/ )
 
 CKeyWizard::~CKeyWizard(void)
 {
+	delete m_pInput;
 }
 
 bool CKeyWizard::showWizard( CBaseWidget* pWidget, const QString& text )
@@ -47,7 +76,7 @@ bool CKeyWizard::showWizard( CBaseWidget* pWidget, const QString& text )
 	m_pCurWidget = pWidget;
 	if(!isVisible())
 	{
-		m_editInput.setText(text);
+		m_pInput->setText(text.toUpper());
 	}
 	this->show();
 	if(::GetForegroundWindow() != winId())
@@ -57,7 +86,7 @@ bool CKeyWizard::showWizard( CBaseWidget* pWidget, const QString& text )
 
 void CKeyWizard::hideEvent( QHideEvent* )
 {
-	m_editInput.clear();
+	m_pInput->clear();
 	clearWizData();
 }
 
@@ -84,7 +113,7 @@ void CKeyWizard::inputTextChanged( const QString& text )
 	}
 
 	clearWizData();
-	m_pCurWidget->getKeyWizData(text,m_listWizData);
+	m_pCurWidget->getKeyWizData(text.toLower(),m_listWizData);
 	foreach(KeyWizData* pData,m_listWizData)
 	{
 		QListWidgetItem* pItem = new QListWidgetItem(pData->desc);

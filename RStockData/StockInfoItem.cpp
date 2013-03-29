@@ -503,7 +503,11 @@ void CStockInfoItem::updateItemInfo()
 {
 	//设置股票名称
 	if(qsName.isEmpty())
+	{
 		qsName = pCurrentReport->qsName;
+		//更新词库表中的简拼
+		CDataEngine::getDataEngine()->updateKeyword(this,qsName);
+	}
 	if(baseInfo.code[0]==0)
 	{
 		strcpy_s(baseInfo.code,qsCode.toLocal8Bit().data());
