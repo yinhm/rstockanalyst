@@ -309,14 +309,14 @@ void CBaseWidget::keyPressEvent( QKeyEvent* e )
 {
 	//屏蔽不需要的按键
 	int iKey = e->key();
-	if(iKey == Qt::Key_Escape)
+	if( Qt::Key_Escape == iKey || Qt::Key_Backspace == iKey)
 		return;
 
 	//弹出键盘精灵对话框
 	CKeyWizard::getKeyWizard()->showWizard(this,e->text().trimmed());
 }
 
-void CBaseWidget::mousePressEvent( QMouseEvent* e )
+void CBaseWidget::mousePressEvent( QMouseEvent* /*e*/ )
 {
 	CKeyWizard* pWizard = CKeyWizard::getKeyWizard();
 	if(pWizard->isVisible())

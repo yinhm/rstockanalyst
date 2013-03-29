@@ -1037,7 +1037,7 @@ void CMarketTrendWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*
 {
 	foreach(CStockInfoItem* pItem,m_listStocks)
 	{
-		if(pItem->getCode().indexOf(keyword)>-1)
+		if((pItem->getCode().indexOf(keyword)>-1) || CDataEngine::getDataEngine()->isKeywordMatch(pItem,keyword))
 		{
 			KeyWizData* pData = new KeyWizData;
 			pData->cmd = CKeyWizard::CmdStock;

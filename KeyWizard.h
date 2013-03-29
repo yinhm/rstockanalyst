@@ -47,7 +47,7 @@ private:
 	QList<KeyWizData*> m_listWizData;
 
 private:
-	QLineEdit m_editInput;
+	QLineEdit* m_pInput;
 	QListWidget m_viewList;
 };
 
