@@ -1048,6 +1048,8 @@ void CMarketTrendWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*
 				return;
 		}
 	}
+
+	return CBaseWidget::getKeyWizData(keyword,listRet);
 }
 
 void CMarketTrendWidget::keyWizEntered( KeyWizData* pData )
@@ -1055,5 +1057,8 @@ void CMarketTrendWidget::keyWizEntered( KeyWizData* pData )
 	if(pData->cmd == CKeyWizard::CmdStock)
 	{
 		clickedStock(reinterpret_cast<CStockInfoItem*>(pData->arg));
+		return;
 	}
+
+	return CBaseWidget::keyWizEntered(pData);
 }

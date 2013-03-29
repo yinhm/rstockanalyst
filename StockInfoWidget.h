@@ -22,9 +22,18 @@ public:
 	//保存该K线图的配置信息
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
+public:
+	//通过查找keyword获取需要在按键精灵上显示的数据
+	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);
+	//键盘精灵窗口确认后触发
+	virtual void keyWizEntered(KeyWizData* pData);
+
 public slots:
 	virtual void setStockCode(const QString& code);
 	void updateStockInfo(const QString& code);
+
+protected:
+	void setStockItem(CStockInfoItem* pItem);
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
