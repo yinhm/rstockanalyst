@@ -55,13 +55,13 @@
    <relate>1</relate>
    <align>1</align>
    <size>58</size>
-   <widget circle="60">
+   <widget circle="300">
     <name></name>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
     <size>44</size>
-    <code>1A0001</code>
+    <code>399106</code>
     <liners>
      <Liner size="50">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>

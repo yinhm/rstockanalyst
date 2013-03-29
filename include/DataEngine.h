@@ -86,16 +86,9 @@ public:
 	/*导出分笔数据*/
 	bool exportFenBiData(const QString& qsCode, const long& lDate, const QList<qRcvFenBiData*>& list);
 
-	/*更新词库组*/
-	void updateKeyword(CStockInfoItem* _item, const QString& _name);
-	/*判断关键词_key是否跟_item匹配*/
-	bool isKeywordMatch(CStockInfoItem* _item, const QString& _key);
 private:
 	QMap<QString,CStockInfoItem*> m_mapStockInfos;			//股票数据
 	QMap<QString,CBlockInfoItem*> m_mapBlockInfos;			//板块数据
-
-private:
-	QMap<CStockInfoItem*,QList<QList<QChar>>> m_mapStockNames;	//股票的简拼列表
 
 private:
 	static CDataEngine* m_pDataEngine;

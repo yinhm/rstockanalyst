@@ -3,6 +3,20 @@
 #include "RStockFunc.h"
 #include "BaseWidget.h"
 
+typedef struct tagRStockCircleData
+{
+	RStockCircle circle;		//周期
+	QString key;				//快速查找键
+	QString desc;				//描述信息
+
+	tagRStockCircleData(const RStockCircle& _c, const QString& _k, const QString& _d)
+		: circle(_c)
+		, key(_k)
+		, desc(_d)
+	{
+	}
+} RStockCircleData;
+
 class CCoordXBaseWidget : public CBaseWidget
 {
 	Q_OBJECT
@@ -18,6 +32,12 @@ protected:
 	//更新数据
 	virtual void updateData();
 
+public:
+	//通过查找keyword获取需要在按键精灵上显示的数据
+	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);
+	//键盘精灵窗口确认后触发
+	virtual void keyWizEntered(KeyWizData* pData);
+
 protected:
 	void updateTimesH();												//更新当前的横坐标数据
 	void updateShowTimes(const QRectF& rtCoordX,float fItemWidth);		//更新需要进行绘制的时间轴
@@ -30,7 +50,10 @@ protected:
 	QMap<time_t,RStockData*>* getColorBlockMap(CStockInfoItem* pItem);
 
 protected slots:
-	void onSetCircle();										//设置当前的显示周期
+	void onSetCircle();								//设置当前的显示周期
+
+protected:
+	void setCircle(RStockCircle _c);				//设置当前的显示周期
 
 protected:
 	QMenu* m_pMenuCustom;					//自定义菜单
@@ -41,6 +64,8 @@ protected:
 protected:
 	QMap<time_t,int> m_mapTimes;			//当前需要显示的所有时间（横向坐标）
 	QMap<time_t,float> m_mapShowTimes;		//当前已经绘制的时间
+
+	QList<RStockCircleData> m_listCircle;	//显示周期表
 };
 
 #endif	//COORDX_BASE_WIDGET_H

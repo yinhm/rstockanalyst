@@ -850,36 +850,3 @@ bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, con
 	file.close();
 	return true;
 }
-
-
-void CDataEngine::updateKeyword( CStockInfoItem* _item, const QString& _name )
-{
-	m_mapStockNames[_item] = CHz2Py::getHzFirstLetter(_name);
-}
-
-bool CDataEngine::isKeywordMatch( CStockInfoItem* _item, const QString& _key )
-{
-	if(!_item || !m_mapStockNames.contains(_item))
-		return false;
-
-	QList<QList<QChar>> listWord = m_mapStockNames[_item];
-	for (int i = 0; i < _key.size(); ++i)
-	{
-		if(i>=listWord.size())
-			return false;
-		QList<QChar> _l = listWord[i];
-		bool bMatch = false;
-		foreach(const QChar& _c,_l)
-		{
-			if(_c == _key[i])
-			{
-				bMatch = true;
-				break;
-			}
-		}
-		if(!bMatch)
-			return false;
-	}
-
-	return true;
-}

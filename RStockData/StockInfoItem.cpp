@@ -8,6 +8,7 @@
 #include "StdAfx.h"
 #include "StockInfoItem.h"
 #include "DataEngine.h"
+#include "Hz2Py.h"
 
 CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	: qsCode(code)
@@ -506,7 +507,7 @@ void CStockInfoItem::updateItemInfo()
 	{
 		qsName = pCurrentReport->qsName;
 		//∏¸–¬¥ ø‚±Ì÷–µƒºÚ∆¥
-		CDataEngine::getDataEngine()->updateKeyword(this,qsName);
+		shortName = CHz2Py::getHzFirstLetter(qsName);
 	}
 	if(baseInfo.code[0]==0)
 	{
@@ -680,5 +681,33 @@ void CStockInfoItem::resetBuySellVOL()
 			pLastFenBi = p;
 		}
 	}
+}
+
+bool CStockInfoItem::isMatch( const QString& _key )
+{
+	//≈–∂œ¥˙¬Î «∑Ò∆•≈‰
+	if(qsCode.indexOf(_key)>-1)
+		return true;
+
+	//≈–∂œ√˚≥∆ºÚ∆¥ «∑Ò∆•≈‰
+	for (int i = 0; i < _key.size(); ++i)
+	{
+		if(i>=shortName.size())
+			return false;
+		QList<QChar> _l = shortName[i];
+		bool bMatch = false;
+		foreach(const QChar& _c,_l)
+		{
+			if(_c == _key[i])
+			{
+				bMatch = true;
+				break;
+			}
+		}
+		if(!bMatch)
+			return false;
+	}
+
+	return true;
 }
 

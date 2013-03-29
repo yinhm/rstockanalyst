@@ -354,7 +354,8 @@ public:
 	float getMgjzc();		//每股净资产
 	float getMgsy();		//获取每股收益
 
-
+	/*判断关键词_key是否匹配*/
+	bool isMatch(const QString& _key);
 protected:
 	void updateItemInfo();
 	void resetBuySellVOL();		//重新计算内外盘数据
@@ -394,6 +395,8 @@ private:
 	float fCommSent;				//委差
 
 	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
+
+	QList<QList<QChar>> shortName;	//简拼表
 
 private:
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据

@@ -13,7 +13,7 @@
 typedef struct tagKeyWizData
 {
 	int cmd;			//当前的命令
-	QString arg;		//参数
+	void* arg;			//参数
 	QString desc;		//描述信息（用于显示在键盘精灵列表里）
 } KeyWizData;
 
