@@ -3,20 +3,6 @@
 #include "RStockFunc.h"
 #include "BaseWidget.h"
 
-typedef struct tagRStockCircleData
-{
-	RStockCircle circle;		//周期
-	QString key;				//快速查找键
-	QString desc;				//描述信息
-
-	tagRStockCircleData(const RStockCircle& _c, const QString& _k, const QString& _d)
-		: circle(_c)
-		, key(_k)
-		, desc(_d)
-	{
-	}
-} RStockCircleData;
-
 class CCoordXBaseWidget : public CBaseWidget
 {
 	Q_OBJECT
@@ -65,7 +51,7 @@ protected:
 	QMap<time_t,int> m_mapTimes;			//当前需要显示的所有时间（横向坐标）
 	QMap<time_t,float> m_mapShowTimes;		//当前已经绘制的时间
 
-	QList<RStockCircleData> m_listCircle;	//显示周期表
+	QList<RWidgetOpData> m_listCircle;	//显示周期表
 };
 
 #endif	//COORDX_BASE_WIDGET_H

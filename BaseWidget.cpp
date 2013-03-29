@@ -60,6 +60,22 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 		m_pSplitter->addWidget(new CBaseWidget(this));
 	}
 
+	{
+		//初始化显示周期的快速查找表
+		m_listWidget.push_back(RWidgetOpData(WidgetBasic,"vb","基础窗口"));
+		m_listWidget.push_back(RWidgetOpData(WidgetKLine,"vk","K线图"));
+		m_listWidget.push_back(RWidgetOpData(WidgetMarketTrend,"vm","市场行情图"));
+		m_listWidget.push_back(RWidgetOpData(WidgetSColorBlock,"vs","股票色块图"));
+		m_listWidget.push_back(RWidgetOpData(WidgetStockInfo,"vi","行情信息"));
+	}
+
+	{
+		m_listOperate.push_back(RWidgetOpData(InsertLeft,"il","左插入窗口"));
+		m_listOperate.push_back(RWidgetOpData(InsertRight,"ir","右插入窗口"));
+		m_listOperate.push_back(RWidgetOpData(InsertTop,"it","上插入窗口"));
+		m_listOperate.push_back(RWidgetOpData(InsertBottom,"ib","下插入窗口"));
+		m_listOperate.push_back(RWidgetOpData(InsertRemove,"id","删除窗口"));
+	}
 	setFocusPolicy(Qt::WheelFocus);
 }
 
@@ -78,23 +94,20 @@ void CBaseWidget::initMenu()
 		//设置版面类型
 		QMenu* pMenuType = m_pMenu->addMenu(tr("设置版面类型"));
 		{
-			pMenuType->addAction(tr("基础窗口"),this,SLOT(onResetWidget()))->setData(WidgetBasic);
-			pMenuType->addAction(tr("K线图"),this,SLOT(onResetWidget()))->setData(WidgetKLine);
-			pMenuType->addAction(tr("市场行情图"),this,SLOT(onResetWidget()))->setData(WidgetMarketTrend);
-			pMenuType->addAction(tr("色块图"),this,SLOT(onResetWidget()))->setData(WidgetSColorBlock);
-			pMenuType->addAction(tr("行情信息"),this,SLOT(onResetWidget()))->setData(WidgetStockInfo);
+			foreach(const RWidgetOpData& _d,m_listWidget)
+			{
+				pMenuType->addAction(_d.desc,this,SLOT(onResetWidget()))->setData(_d.value);
+			}
 		}
 		m_pMenu->addSeparator();
 	}
 
 	{
 		//设置插入方式
-		m_pMenu->addAction(tr("左插入"),this,SLOT(onLeftInsert()));
-		m_pMenu->addAction(tr("右插入"),this,SLOT(onRightInsert()));
-		m_pMenu->addAction(tr("上插入"),this,SLOT(onTopInsert()));
-		m_pMenu->addAction(tr("下插入"),this,SLOT(onBottomInsert()));
-		m_pMenu->addSeparator();
-		m_pMenu->addAction(tr("删除该窗口"),this,SLOT(deleteLater()));
+		foreach(const RWidgetOpData& _d,m_listOperate)
+		{
+			m_pMenu->addAction(_d.desc,this,SLOT(onInsertWidget()))->setData(_d.value);
+		}
 		m_pMenu->addSeparator();
 		m_pActRelate = new QAction(tr("和其它窗口关联"),m_pMenu);
 		m_pMenu->addAction(m_pActRelate);
@@ -175,6 +188,10 @@ void CBaseWidget::replaceWidget( int index, CBaseWidget* widget )
 	m_pSplitter->insertWidget(index,widget);
 	QApplication::flush();
 	m_pSplitter->setSizes(sizes);
+	
+	//设置新窗口获取焦点
+	if(::GetForegroundWindow() != widget->winId())
+		::SetForegroundWindow(widget->winId());
 }
 
 bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
@@ -312,8 +329,12 @@ void CBaseWidget::keyPressEvent( QKeyEvent* e )
 	if( Qt::Key_Escape == iKey || Qt::Key_Backspace == iKey)
 		return;
 
-	//弹出键盘精灵对话框
-	CKeyWizard::getKeyWizard()->showWizard(this,e->text().trimmed());
+	QString _t = e->text().trimmed();
+	if(!_t.isEmpty())
+	{
+		//弹出键盘精灵对话框
+		CKeyWizard::getKeyWizard()->showWizard(this,_t);
+	}
 }
 
 void CBaseWidget::mousePressEvent( QMouseEvent* /*e*/ )
@@ -452,25 +473,94 @@ void CBaseWidget::onBottomInsert()
 	}
 }
 
+void CBaseWidget::onInsertWidget()
+{
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	insertWidget(static_cast<RWidgetInsert>(pAct->data().toInt()));
+}
+
+void CBaseWidget::insertWidget(RWidgetInsert _i)
+{
+	switch (_i)
+	{
+	case InsertLeft:
+		onLeftInsert();
+		break;
+	case InsertRight:
+		onRightInsert();
+		break;
+	case InsertTop:
+		onTopInsert();
+		break;
+	case InsertBottom:
+		onBottomInsert();
+		break;
+	case InsertRemove:
+		deleteLater();
+		break;
+	default:
+		break;
+	}
+}
+
 void CBaseWidget::onResetWidget()
 {
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	//获取并重置窗口类型
+	setWidgetType(static_cast<RWidgetType>(pAct->data().toInt()));
+}
 
-	RWidgetType type = static_cast<RWidgetType>(pAct->data().toInt());	//获取窗口类型
+void CBaseWidget::setWidgetType(RWidgetType _t)
+{
 	int iIndex = m_pParent->getWidgetIndex(this);						//获取当前窗口所在的索引
 	if(iIndex>=0)
 	{
-		m_pParent->replaceWidget(iIndex,createBaseWidget(m_pParent,type));	//替换窗口
+		m_pParent->replaceWidget(iIndex,createBaseWidget(m_pParent,_t));	//替换窗口
 	}
 }
 
 void CBaseWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
 {
-
+	foreach(const RWidgetOpData& _d,m_listWidget)
+	{
+		if(_d.key.indexOf(keyword)>-1)
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdWidget;
+			pData->arg = (void*)_d.value;
+			pData->desc = _d.desc;
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+	
+	foreach(const RWidgetOpData& _d,m_listOperate)
+	{
+		if(_d.key.indexOf(keyword)>-1)
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdInsert;
+			pData->arg = (void*)_d.value;
+			pData->desc = _d.desc;
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
 }
 
 void CBaseWidget::keyWizEntered( KeyWizData* pData )
 {
-
+	if(pData->cmd == CKeyWizard::CmdWidget)
+	{
+		setWidgetType(static_cast<RWidgetType>((int)(pData->arg)));
+		return;
+	}
+	else if(pData->cmd == CKeyWizard::CmdInsert)
+	{
+		insertWidget(static_cast<RWidgetInsert>((int)(pData->arg)));
+		return;
+	}
 }
 
