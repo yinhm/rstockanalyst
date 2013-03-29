@@ -55,8 +55,22 @@ CKeyWizard::CKeyWizard( QWidget* parent /*= 0*/ )
 	pLayout->addWidget(&m_viewList);
 	setLayout(pLayout);
 
-	m_viewList.setSelectionMode(QListView::SingleSelection);
-	connect(m_pInput,SIGNAL(textChanged(const QString&)),this,SLOT(inputTextChanged(const QString&)));
+
+	{
+		//List控件相关设置
+		m_viewList.setSelectionMode(QListView::SingleSelection);
+		QPalette _pal = m_viewList.palette();
+		_pal.setColor(QPalette::HighlightedText,QColor(255,255,255));
+		_pal.setBrush(QPalette::Normal, QPalette::Highlight, QBrush(QColor(0,0,0)));
+		_pal.setBrush(QPalette::Inactive, QPalette::Highlight, QBrush(QColor(0,0,0)));
+		m_viewList.setPalette(_pal);
+		connect(&m_viewList,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(itemClicked(QListWidgetItem*)));
+	}
+
+	{
+		//Input控件相关设置
+		connect(m_pInput,SIGNAL(textChanged(const QString&)),this,SLOT(inputTextChanged(const QString&)));
+	}
 
 	CMainWindow* pMain = CMainWindow::getMainWindow();
 	if(pMain)
@@ -123,11 +137,18 @@ void CKeyWizard::inputTextChanged( const QString& text )
 	selectItemAbs(0);
 }
 
+void CKeyWizard::itemClicked( QListWidgetItem* /*_item*/ )
+{
+	enterPressed();
+}
+
 void CKeyWizard::clearWizData()
 {
 	m_viewList.clear();
 	foreach(KeyWizData* p,m_listWizData)
+	{
 		delete p;
+	}
 	m_listWizData.clear();
 }
 
@@ -169,17 +190,14 @@ void CKeyWizard::selectItemAbs(int iAbs)
 			pItemAfter = m_viewList.item(0);
 		}
 	}
-	
-	if(pItemBefore)
-	{
-		pItemBefore->setBackgroundColor(QColor::fromRgb(255,255,255));
-	}
+
 	if(!pItemAfter)
 		pItemAfter = pItemBefore;
 	
 	if(pItemAfter)
 	{
 		m_viewList.setItemSelected(pItemAfter,true);
-		pItemAfter->setBackgroundColor(QColor::fromRgb(255,0,0));
+		m_viewList.scrollToItem(pItemAfter);
+		m_pInput->setFocus();
 	}
 }

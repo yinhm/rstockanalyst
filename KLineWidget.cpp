@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "KLineWidget.h"
 #include "DataEngine.h"
+#include "KeyWizard.h"
 
 #define	KLINE_BORDER	2
 
@@ -529,12 +530,22 @@ void CKLineWidget::setStockCode( const QString& code )
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 	if(pItem)
 	{
+		setStockItem(pItem);
+	}
+
+	return CBaseWidget::setStockCode(code);
+}
+
+void CKLineWidget::setStockItem( CStockInfoItem* pItem )
+{
+	if(pItem)
+	{
 		if(m_pStockItem)
 		{
 			//移除所有和 updateKLine关联的 信号/槽
 			disconnect(m_pStockItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 			disconnect(m_pStockItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-//			disconnect(m_pStockItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+			//disconnect(m_pStockItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		}
 
 		//设置默认显示100个K线
@@ -545,13 +556,11 @@ void CKLineWidget::setStockCode( const QString& code )
 		//建立更新机制
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-//		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+		//		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
 
 		//更新K线图
-		updateKLine(code);
+		resetTmpData();
 	}
-
-	return CBaseWidget::setStockCode(code);
 }
 
 void CKLineWidget::updateKLine( const QString& code )
@@ -1030,4 +1039,34 @@ void CKLineWidget::resetTmpData()
 
 	//更新界面
 	update();
+}
+
+void CKLineWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
+{
+	foreach(CStockInfoItem* pItem,CDataEngine::getDataEngine()->getStockInfoList())
+	{
+		if(pItem->isMatch(keyword))
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdStock;
+			pData->arg = pItem;
+			pData->desc = QString("%1 %2").arg(pItem->getCode()).arg(pItem->getName());
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+
+	return CCoordXBaseWidget::getKeyWizData(keyword,listRet);
+}
+
+void CKLineWidget::keyWizEntered( KeyWizData* pData )
+{
+	if(pData->cmd == CKeyWizard::CmdStock)
+	{
+		setStockItem(reinterpret_cast<CStockInfoItem*>(pData->arg));
+		return;
+	}
+
+	return CCoordXBaseWidget::keyWizEntered(pData);
 }

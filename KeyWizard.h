@@ -14,6 +14,8 @@ public:
 	enum CmdType
 	{
 		CmdStock = 1,		//选中某股票
+		CmdBlock,			//选中某板块
+		CmdCircle,			//设置显示周期
 	};
 
 public:
@@ -33,6 +35,7 @@ protected:
 
 protected slots:
 	void inputTextChanged(const QString& text);
+	void itemClicked(QListWidgetItem* _item);
 
 private:
 	void enterPressed();

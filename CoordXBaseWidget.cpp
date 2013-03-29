@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "CoordXBaseWidget.h"
 #include "DataEngine.h"
+#include "KeyWizard.h"
 #include <math.h>
 extern lua_State* g_Lua;
 extern QString g_native;
@@ -390,23 +391,31 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 		luaL_setfuncs(m_pL, g_pFuncs,0);
 		lua_pop(m_pL,1);
 	}
+	{
+		//初始化显示周期的快速查找表
+		m_listCircle.push_back(RStockCircleData(Sec10,".m10","10秒分时图"));
+		m_listCircle.push_back(RStockCircleData(Sec30,".m30","30秒分时图"));
+		m_listCircle.push_back(RStockCircleData(Min1,".f1","1分钟分时图"));
+		m_listCircle.push_back(RStockCircleData(Min5,".f5","5分钟分时图"));
+		m_listCircle.push_back(RStockCircleData(Min15,".f15","15分钟分时图"));
+		m_listCircle.push_back(RStockCircleData(Min30,".f30","30分钟分时图"));
+		m_listCircle.push_back(RStockCircleData(Min60,".f60","60分钟分时图"));
+
+		m_listCircle.push_back(RStockCircleData(Day,".r","日线图"));
+		m_listCircle.push_back(RStockCircleData(Week,".z","周线图"));
+		m_listCircle.push_back(RStockCircleData(Month,".y","月线图"));
+		m_listCircle.push_back(RStockCircleData(Month3,".y3","季线图"));
+		m_listCircle.push_back(RStockCircleData(Year,".n","年线图"));
+	}
+
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
 	{
 		//设置当前K线图的显示周期
 		m_pMenuCircle = m_pMenuCustom->addMenu(tr("周期设置"));
-		m_pMenuCircle->addAction(tr("10秒分时图"),this,SLOT(onSetCircle()))->setData(Sec10);
-		m_pMenuCircle->addAction(tr("30秒分时图"),this,SLOT(onSetCircle()))->setData(Sec30);
-		m_pMenuCircle->addAction(tr("1分钟分时图"),this,SLOT(onSetCircle()))->setData(Min1);
-		m_pMenuCircle->addAction(tr("5分钟分时图"),this,SLOT(onSetCircle()))->setData(Min5);
-		m_pMenuCircle->addAction(tr("15分钟分时图"),this,SLOT(onSetCircle()))->setData(Min15);
-		m_pMenuCircle->addAction(tr("30分钟分时图"),this,SLOT(onSetCircle()))->setData(Min30);
-		m_pMenuCircle->addAction(tr("60分钟分时图"),this,SLOT(onSetCircle()))->setData(Min60);
-
-		m_pMenuCircle->addAction(tr("日线图"),this,SLOT(onSetCircle()))->setData(Day);
-		m_pMenuCircle->addAction(tr("周线图"),this,SLOT(onSetCircle()))->setData(Week);
-		m_pMenuCircle->addAction(tr("月线图"),this,SLOT(onSetCircle()))->setData(Month);
-		m_pMenuCircle->addAction(tr("季线图"),this,SLOT(onSetCircle()))->setData(Month3);
-		m_pMenuCircle->addAction(tr("年线图"),this,SLOT(onSetCircle()))->setData(Year);
+		foreach(const RStockCircleData& _d,m_listCircle)
+		{
+			m_pMenuCircle->addAction(_d.desc,this,SLOT(onSetCircle()))->setData(_d.circle);
+		}
 	}
 	//m_pL = lua_newthread(g_Lua);
 }
@@ -695,7 +704,12 @@ void CCoordXBaseWidget::onSetCircle()
 {
 	//设置当前的显示周期
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	m_typeCircle = static_cast<RStockCircle>(pAct->data().toInt());
+	setCircle(static_cast<RStockCircle>(pAct->data().toInt()));
+}
+
+void CCoordXBaseWidget::setCircle( RStockCircle _c )
+{
+	m_typeCircle = _c;
 	updateData();
 }
 
@@ -737,4 +751,33 @@ QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CStockInfoItem* p
 	}
 
 	return pMap;
+}
+
+void CCoordXBaseWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
+{
+	foreach(const RStockCircleData& _d,m_listCircle)
+	{
+		if(_d.key.indexOf(keyword)>-1)
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdCircle;
+			pData->arg = (void*)_d.circle;
+			pData->desc = _d.desc;
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+
+	return CBaseWidget::getKeyWizData(keyword,listRet);
+}
+
+void CCoordXBaseWidget::keyWizEntered( KeyWizData* pData )
+{
+	if(pData->cmd == CKeyWizard::CmdCircle)
+	{
+		setCircle(static_cast<RStockCircle>((int)(pData->arg)));
+		return;
+	}
+	return CBaseWidget::keyWizEntered(pData);
 }

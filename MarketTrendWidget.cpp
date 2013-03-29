@@ -1037,11 +1037,11 @@ void CMarketTrendWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*
 {
 	foreach(CStockInfoItem* pItem,m_listStocks)
 	{
-		if((pItem->getCode().indexOf(keyword)>-1) || CDataEngine::getDataEngine()->isKeywordMatch(pItem,keyword))
+		if(pItem->isMatch(keyword))
 		{
 			KeyWizData* pData = new KeyWizData;
 			pData->cmd = CKeyWizard::CmdStock;
-			pData->arg = pItem->getCode();
+			pData->arg = pItem;
 			pData->desc = QString("%1 %2").arg(pItem->getCode()).arg(pItem->getName());
 			listRet.push_back(pData);
 			if(listRet.size()>20)
@@ -1054,13 +1054,6 @@ void CMarketTrendWidget::keyWizEntered( KeyWizData* pData )
 {
 	if(pData->cmd == CKeyWizard::CmdStock)
 	{
-		foreach(CStockInfoItem* pItem,m_listStocks)
-		{
-			if(pItem->getCode() == pData->arg)
-			{
-				clickedStock(pItem);
-				return;
-			}
-		}
+		clickedStock(reinterpret_cast<CStockInfoItem*>(pData->arg));
 	}
 }
