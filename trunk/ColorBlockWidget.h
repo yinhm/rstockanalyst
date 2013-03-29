@@ -28,6 +28,12 @@ public:
 	//更新数据
 	virtual void updateData();
 
+public:
+	//通过查找keyword获取需要在按键精灵上显示的数据
+	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);
+	//键盘精灵窗口确认后触发
+	virtual void keyWizEntered(KeyWizData* pData);
+
 public slots:
 	virtual void setBlock(const QString& block);
 	virtual void updateStock(const QString& code);			//更新某只股票的显示

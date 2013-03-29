@@ -8,6 +8,7 @@
 #include "StdAfx.h"
 #include "StockInfoWidget.h"
 #include "DataEngine.h"
+#include "KeyWizard.h"
 
 #define	R_DATA_COLOR(v)	( (v>=0) ? m_clrDataRed : m_clrDataBlue)
 
@@ -63,7 +64,12 @@ bool CStockInfoWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 
 void CStockInfoWidget::setStockCode( const QString& code )
 {
-	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
+	setStockItem(CDataEngine::getDataEngine()->getStockInfoItem(code));
+	return CBaseWidget::setStockCode(code);
+}
+
+void CStockInfoWidget::setStockItem( CStockInfoItem* pItem )
+{
 	if(pItem)
 	{
 		//移除所有和 updateStockInfo关联的 信号/槽
@@ -80,10 +86,8 @@ void CStockInfoWidget::setStockCode( const QString& code )
 		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateStockInfo(const QString&)));
 
 		//更新行情信息
-		updateStockInfo(code);
+		update();
 	}
-
-	return CBaseWidget::setStockCode(code);
 }
 
 void CStockInfoWidget::updateStockInfo( const QString& code )
@@ -427,4 +431,34 @@ void CStockInfoWidget::onSetStockCode()
 
 	QString code = edit.text();
 	setStockCode(code);
+}
+
+void CStockInfoWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
+{
+	foreach(CStockInfoItem* pItem,CDataEngine::getDataEngine()->getStockInfoList())
+	{
+		if(pItem->isMatch(keyword))
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdStock;
+			pData->arg = pItem;
+			pData->desc = QString("%1 %2").arg(pItem->getCode()).arg(pItem->getName());
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+
+	return CBaseWidget::getKeyWizData(keyword,listRet);
+}
+
+void CStockInfoWidget::keyWizEntered( KeyWizData* pData )
+{
+	if(pData->cmd == CKeyWizard::CmdStock)
+	{
+		setStockItem(reinterpret_cast<CStockInfoItem*>(pData->arg));
+		return;
+	}
+
+	return CBaseWidget::keyWizEntered(pData);
 }

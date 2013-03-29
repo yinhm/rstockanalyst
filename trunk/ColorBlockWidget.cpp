@@ -4,6 +4,7 @@
 #include "ColorManager.h"
 #include "BlockInfoItem.h"
 #include "RLuaEx.h"
+#include "KeyWizard.h"
 
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	50
@@ -446,6 +447,8 @@ void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	{
 
 	}
+
+	return CBaseBlockWidget::mousePressEvent(e);
 }
 
 void CColorBlockWidget::wheelEvent( QWheelEvent* e )
@@ -493,6 +496,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 			clickedStock(m_listStocks[iCurIndex+1]);
 		}
 		e->accept();
+		return;
 	}
 	else if(Qt::Key_Up == e->key())
 	{
@@ -509,6 +513,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 			clickedStock(pItem);
 		}
 		e->accept();
+		return;
 	}
 	else if(Qt::Key_PageDown == e->key())
 	{
@@ -521,6 +526,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 			updateShowMap();
 		}
 		e->accept();
+		return;
 	}
 	else if(Qt::Key_PageUp == e->key())
 	{
@@ -530,6 +536,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 		showStockIndex = (showStockIndex-iShowCount)>0 ? (showStockIndex-iShowCount) : 0;
 		updateShowMap();
 		e->accept();
+		return;
 	}
 
 	return CBaseWidget::keyPressEvent(e);
@@ -604,5 +611,35 @@ RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 		}
 	}
 	return pData;
+}
+
+void CColorBlockWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
+{
+	foreach(CStockInfoItem* pItem,m_listStocks)
+	{
+		if(pItem->isMatch(keyword))
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdStock;
+			pData->arg = pItem;
+			pData->desc = QString("%1 %2").arg(pItem->getCode()).arg(pItem->getName());
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+
+	return CBaseWidget::getKeyWizData(keyword,listRet);
+}
+
+void CColorBlockWidget::keyWizEntered( KeyWizData* pData )
+{
+	if(pData->cmd == CKeyWizard::CmdStock)
+	{
+		clickedStock(reinterpret_cast<CStockInfoItem*>(pData->arg));
+		return;
+	}
+
+	return CBaseWidget::keyWizEntered(pData);
 }
 
