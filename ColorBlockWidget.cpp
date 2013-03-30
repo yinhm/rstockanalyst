@@ -303,7 +303,7 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	for(int i=0;i<COLOR_BLOCK_SIZE;++i)
 	{
 		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
-			CColorManager::getBlockColor(m_qsColorMode,i));
+			QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,i)));
 	}
 
 	//从右向左绘制横坐标

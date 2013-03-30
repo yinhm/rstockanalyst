@@ -594,8 +594,6 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	updateShowTimes(rtCoordX,m_fItemWidth);
 	CCoordXBaseWidget::drawCoordX(p,rtCoordX,m_fItemWidth);
 
-	qDebug()<<"Draw "<<m_mapShowTimes.size();
-
 	/*画右下角的两个按钮*/
 	QRect rtShowBtns = QRect(rtClient.right()-m_iCoorYWidth,rtClient.bottom()-m_iCoorXHeight,m_iCoorYWidth,m_iCoorXHeight);
 	drawShowBtns(p,rtShowBtns);
