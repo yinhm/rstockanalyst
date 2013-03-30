@@ -62,6 +62,9 @@ protected slots:
 	void onRemoveDeputy();								//删除副图
 	void onSetSizes();									//设置所有图的显示比例
 
+protected:
+	void setShowCount(int _iShow);						//设置当前的显示个数
+
 private:
 	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
 	void drawShowBtns(QPainter& p,const QRect& rtBtns);	//绘制右下角的两个按钮

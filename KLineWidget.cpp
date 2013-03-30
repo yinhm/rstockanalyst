@@ -590,9 +590,11 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 	/*画X坐标轴*/
 	QRectF rtCoordX = QRectF(rtClient.left()+3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
-	m_fItemWidth = float(rtCoordX.width())/float(m_iShowCount);
+	m_fItemWidth = float(rtCoordX.width()-1)/float(m_iShowCount);
 	updateShowTimes(rtCoordX,m_fItemWidth);
 	CCoordXBaseWidget::drawCoordX(p,rtCoordX,m_fItemWidth);
+
+	qDebug()<<"Draw "<<m_mapShowTimes.size();
 
 	/*画右下角的两个按钮*/
 	QRect rtShowBtns = QRect(rtClient.right()-m_iCoorYWidth,rtClient.bottom()-m_iCoorXHeight,m_iCoorYWidth,m_iCoorXHeight);
@@ -786,6 +788,11 @@ void CKLineWidget::mouseDoubleClickEvent( QMouseEvent* e )
 
 void CKLineWidget::keyPressEvent(QKeyEvent* e)
 {
+	int iKey = e->key();
+	if(iKey == Qt::Key_Up)
+		return setShowCount(m_iShowCount-10);
+	else if(iKey == Qt::Key_Down)
+		return setShowCount(m_iShowCount+10);
 
 	return CBaseWidget::keyPressEvent(e);
 }
@@ -851,20 +858,12 @@ void CKLineWidget::onSetExpression()
 
 void CKLineWidget::onClickedAddShow()
 {
-	if((m_iShowCount+10)<=m_mapData->size())
-	{
-		m_iShowCount += 10;
-		update();
-	}
+	setShowCount(m_iShowCount+10);
 }
 
 void CKLineWidget::onClickedSubShow()
 {
-	if((m_iShowCount-10)>0)
-	{
-		m_iShowCount -= 10;
-		update();
-	}
+	setShowCount(m_iShowCount-10);
 }
 
 void CKLineWidget::onAddDeputy()
@@ -935,6 +934,17 @@ void CKLineWidget::onSetSizes()
 		delete vLabels[i];
 		delete vSpins[i];
 	}
+}
+
+void CKLineWidget::setShowCount(int _iShow)
+{
+	if(_iShow>m_mapData->size())
+		m_iShowCount = m_mapData->size();
+	else if(_iShow<1)
+		m_iShowCount = 1;
+	else
+		m_iShowCount = _iShow;
+	update();
 }
 
 void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )
