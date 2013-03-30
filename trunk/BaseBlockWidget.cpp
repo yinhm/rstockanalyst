@@ -244,79 +244,18 @@ void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 			case BlockRect:
 				{
 					rtCB.adjust(1,1,-1,-1);
-					p.fillRect(rtCB,CColorManager::getBlockColor(m_qsColorMode,f*nTimes));
+					p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*nTimes)));
 				}
 				break;
 			case BlockCircle:
 				{
 					QPainterPath path;
 					path.addEllipse(rtCB);
-					p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
+					p.fillPath(path,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f)));
 				}
 				break;
 			}
 		}
 		++iter;
 	}
-	/*
-	QMap<time_t,RStockData>::iterator iter = pMapCBs->begin();
-	float fLastPrice = pItem->getCurrentReport()->fLastClose;
-	while(iter!=pMapCBs->end())
-	{
-		float f = FLOAT_NAN;
-		QRect rtB;
-		if(m_typeCircle<Day)
-		{
-			time_t tmCur = iter.key()/(m_typeCircle)*(m_typeCircle);		//向下取整
-			if(m_mapTimes.contains(tmCur))
-			{
-				float fCurX = fBeginX - ((m_mapTimes[tmCur])*m_iCBWidth);
-				if(fCurX>=fEndX)
-				{
-					//计算增长百分比
-					f = (iter->fClose - fLastPrice)/fLastPrice*10.0;
-					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
-				}
-			}
-		}
-		else
-		{
-			time_t tmCur = iter.key();
-			QMap<time_t,int>::iterator iterTime = m_mapTimes.upperBound(tmCur);
-			if(iterTime!=m_mapTimes.begin())
-			{
-				--iterTime;
-				float fCurX = fBeginX - ((iterTime.value())*m_iCBWidth);
-				if(fCurX>=fEndX)
-				{
-					//计算增长百分比
-					f = (iter->fClose - fLastPrice)/fLastPrice;
-					if(m_typeCircle>DayN)
-						f = f/10.0;							//大于周线的，则对比例进行缩小
-					rtB = QRect(fCurX,rtCB.top(),m_iCBWidth,m_iCBHeight);
-				}
-			}
-		}
-		if(f!=FLOAT_NAN)
-		{
-			switch(m_typeBlock)
-			{
-			case BlockRect:
-				{
-					rtB.adjust(1,1,-1,-1);
-					p.fillRect(rtB,CColorManager::getBlockColor(m_qsColorMode,f));
-				}
-				break;
-			case BlockCircle:
-				{
-					QPainterPath path;
-					path.addEllipse(rtB);
-					p.fillPath(path,CColorManager::getBlockColor(m_qsColorMode,f));
-				}
-				break;
-			}
-		}
-		fLastPrice = iter->fClose;
-		++iter;
-	}*/
 }

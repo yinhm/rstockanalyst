@@ -1,11 +1,10 @@
 #include "StdAfx.h"
 #include "ColorManager.h"
 
-QVector<QColor> CColorManager::CommonColor;
+QVector<uint> CColorManager::CommonColor;
 
-QVector<QColor> CColorManager::DefaultColor;
-QMap<QString,QVector<QColor>> CColorManager::BlockColors;
-
+QVector<uint> CColorManager::DefaultColor;
+QMap<QString,QVector<uint>> CColorManager::BlockColors;
 
 void CColorManager::initAll()
 {
@@ -23,7 +22,7 @@ void CColorManager::reloadBlockColors()
 
 	foreach(const QFileInfo& info,list)
 	{
-		QVector<QColor> colors;
+		QVector<uint> colors;
 		QFile file(info.absoluteFilePath());
 		if(!file.open(QFile::ReadOnly))
 			continue;
@@ -43,7 +42,7 @@ void CColorManager::reloadBlockColors()
 			int iG = RGBs[1].toInt();
 			int iB = RGBs[2].toInt();
 
-			colors.push_back(QColor::fromRgb(iR,iG,iB));
+			colors.push_back(rRGB(iR,iG,iB));
 		}
 
 		if(colors.size()>20)
@@ -56,22 +55,22 @@ void CColorManager::reloadBlockColors()
 void CColorManager::initCommonColor()
 {
 	//http://blog.csdn.net/daichanglin/article/details/1563299
-	CommonColor.push_back(QColor(220,20,60));		//猩红
-	CommonColor.push_back(QColor(255,240,245));		//脸红的淡紫色
-	CommonColor.push_back(QColor(128,0,128));		//紫色
-	CommonColor.push_back(QColor(75,0,130));		//靛青
-	CommonColor.push_back(QColor(0,0,205));			//适中的蓝色
-	CommonColor.push_back(QColor(0,0,128));			//海军蓝
-	CommonColor.push_back(QColor(176,196,222));		//淡钢蓝
-	CommonColor.push_back(QColor(135,206,235));		//天蓝色
-	CommonColor.push_back(QColor(0,191,255));		//深蓝色
-	CommonColor.push_back(QColor(60,179,113));		//春天的绿色
-	CommonColor.push_back(QColor(0,100,0));			//深绿色
-	CommonColor.push_back(QColor(255,255,0));		//纯黄色
-	CommonColor.push_back(QColor(128,128,0));		//橄榄色
-	CommonColor.push_back(QColor(255,215,0));		//金色
-	CommonColor.push_back(QColor(222,184,135));		//结实的树
-	CommonColor.push_back(QColor(192,192,192));		//银白色
+	CommonColor.push_back(rRGB(220,20,60));		//猩红
+	CommonColor.push_back(rRGB(255,240,245));		//脸红的淡紫色
+	CommonColor.push_back(rRGB(128,0,128));		//紫色
+	CommonColor.push_back(rRGB(75,0,130));		//靛青
+	CommonColor.push_back(rRGB(0,0,205));			//适中的蓝色
+	CommonColor.push_back(rRGB(0,0,128));			//海军蓝
+	CommonColor.push_back(rRGB(176,196,222));		//淡钢蓝
+	CommonColor.push_back(rRGB(135,206,235));		//天蓝色
+	CommonColor.push_back(rRGB(0,191,255));		//深蓝色
+	CommonColor.push_back(rRGB(60,179,113));		//春天的绿色
+	CommonColor.push_back(rRGB(0,100,0));			//深绿色
+	CommonColor.push_back(rRGB(255,255,0));		//纯黄色
+	CommonColor.push_back(rRGB(128,128,0));		//橄榄色
+	CommonColor.push_back(rRGB(255,215,0));		//金色
+	CommonColor.push_back(rRGB(222,184,135));		//结实的树
+	CommonColor.push_back(rRGB(192,192,192));		//银白色
 }
 
 void CColorManager::initBlockColors()
@@ -80,7 +79,7 @@ void CColorManager::initBlockColors()
 	for (int i=0;i<COLOR_BLOCK_SIZE;++i)
 	{
 		int iColor = (255.0/(COLOR_BLOCK_SIZE-1))*i;
-		DefaultColor.push_back(QColor::fromRgb(iColor,iColor,iColor));
+		DefaultColor.push_back(rRGB(iColor,iColor,iColor));
 	}
 
 	reloadBlockColors();		//从文件加载颜色表
@@ -91,7 +90,7 @@ QStringList CColorManager::getBlockColorList()
 	return BlockColors.keys();
 }
 
-QColor CColorManager::getBlockColor( const QString& mode,float fVal )
+uint CColorManager::getBlockColor( const QString& mode,float fVal )
 {
 	int iColor = fVal*100+10.5;
 	if(iColor>(COLOR_BLOCK_SIZE-1))
@@ -109,7 +108,7 @@ QColor CColorManager::getBlockColor( const QString& mode,float fVal )
 	}
 }
 
-QColor CColorManager::getBlockColor( const QString& mode,int index )
+uint CColorManager::getBlockColor( const QString& mode,int index )
 {
 	if(index>(COLOR_BLOCK_SIZE-1))
 		index = (COLOR_BLOCK_SIZE-1);
@@ -124,4 +123,9 @@ QColor CColorManager::getBlockColor( const QString& mode,int index )
 	{
 		return DefaultColor[index];
 	}
+}
+
+uint CColorManager::getCommonColor( int index )
+{
+	return CommonColor[(index%(CommonColor.size()))];
 }
