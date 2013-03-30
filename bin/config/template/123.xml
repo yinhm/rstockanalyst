@@ -11,23 +11,21 @@
    <type>2</type>
    <relate>1</relate>
    <align>1</align>
-   <size>57</size>
-   <block>所有股票</block>
-   <stock>002064</stock>
+   <size>50</size>
+   <block>上海A股</block>
+   <stock>600037</stock>
   </widget>
-  <widget circle="10">
+  <widget circle="3602">
    <name></name>
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
-   <size>42</size>
-   <code>002064</code>
+   <size>49</size>
+   <code>600037</code>
    <liners>
-    <Liner size="50">
-     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
-    </Liner>
-    <Liner size="20">
-     <exp>DrawHist(VOLUME)</exp>
+    <Liner size="60">
+     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))</exp>
     </Liner>
    </liners>
   </widget>

@@ -183,6 +183,41 @@ function REFX(op1,op2)
 	return op
 end
 
+--[[
+别名: 简单移动平均
+所属类别: 引用函数  参数数量: 2
+
+求简单移动平均。
+用法:
+MA(X,N),求X的N周期简单移动平均值。
+算法：
+(X1+X2+X3+...+Xn)/N
+例如:
+MA(CLOSE,20)
+表示求20日均价
+]]
+function MA(op1,op2)
+	if(type(op1)~="table" or type(op2)~="number") then
+		return op1;
+	end
+	
+	local op={}
+	local c = #(op1)
+	for i=1,c do
+		local sum = 0;
+		local j = i;
+		local step = 0;
+		while (j>=1 and step<op2) do
+			sum=sum+op1[j];
+			j=j-1;
+			step=step+1;
+		end
+		op[i]=sum/step;
+	end
+	return op;
+end
+
+
 function InitValues()
 	CLOSE=RClose();
 	OPEN=ROpen();
