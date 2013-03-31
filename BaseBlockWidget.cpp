@@ -11,6 +11,7 @@
 #include "BaseBlockWidget.h"
 #include "ColorManager.h"
 #include "DataEngine.h"
+#include "KeyWizard.h"
 
 
 CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= CBaseWidget::Basic*/ )
@@ -21,8 +22,18 @@ CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType typ
 	, m_iCBHeight(16)
 	, m_iCBWidth(16)
 	, m_qsColorMode("")
+	, m_sort(SortByCode)
+	, m_sortOrder(Qt::AscendingOrder)
 {
 	m_typeCircle = Min1;				//设置初始显示周期为1分钟
+	
+	{
+		//初始化排序方式
+		m_listSortOp.push_back(RWidgetOpData(SortByCode,"vsc","按股票代码排序"));
+		m_listSortOp.push_back(RWidgetOpData(SortByIncrease,"vsi","按涨幅排序"));
+		m_listSortOp.push_back(RWidgetOpData(SortByTurnRatio,"vst","按换手率排序"));
+		m_listSortOp.push_back(RWidgetOpData(SortByVolumeRatio,"vsv","按量比排序"));
+	}
 	//初始化菜单
 	{
 		//颜色显示模式菜单
@@ -34,6 +45,14 @@ CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType typ
 		//设置色块的大小
 		m_pMenuCustom->addAction(tr("设置色块大小"),this,SLOT(onSetBlockSize()));
 
+		//设置排序方式
+		m_pMenuSortMode = m_pMenuCustom->addMenu("设置排序方式");
+		{
+			foreach(const RWidgetOpData& _d,m_listSortOp)
+			{
+				m_pMenuSortMode->addAction(_d.desc,this,SLOT(onSetSortMode()))->setData(_d.value);
+			}
+		}
 	}
 
 	m_pMenuCustom->addSeparator();
@@ -132,6 +151,14 @@ void CBaseBlockWidget::onSetBlockMode()
 	update();
 }
 
+void CBaseBlockWidget::onSetSortMode()
+{
+	//设置当前的显示周期
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	setSortMode(static_cast<RSortType>(pAct->data().toInt()));
+	return;
+}
+
 void CBaseBlockWidget::onSetBlockSize()
 {
 	//弹出设置色块大小的对话框，用来设置色块的大小
@@ -177,6 +204,13 @@ void CBaseBlockWidget::onSetBlockSize()
 	}
 }
 
+void CBaseBlockWidget::setSortMode(RSortType sort)
+{
+	m_sort = sort;
+	updateSortMode();
+	return;
+}
+
 QMenu* CBaseBlockWidget::getCustomMenu()
 {
 	QAction* pAction = m_pMenu->menuAction();
@@ -207,12 +241,23 @@ QMenu* CBaseBlockWidget::getCustomMenu()
 				pAct->setChecked(true);
 		}
 	}
+
 	{
+		//设置当前选中的色块形状
 		QList<QAction*> listAct = m_pMenuBlockMode->actions();
 		foreach(QAction* pAct,listAct)
 		{
 			pAct->setCheckable(true);
 			pAct->setChecked(pAct->data().toInt() == m_typeBlock);
+		}
+	}
+	{
+		//设置当前选中的排序方式
+		QList<QAction*> listAct = m_pMenuSortMode->actions();
+		foreach(QAction* pAct,listAct)
+		{
+			pAct->setCheckable(true);
+			pAct->setChecked(pAct->data().toInt() == m_sort);
 		}
 	}
 
@@ -258,4 +303,33 @@ void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 		}
 		++iter;
 	}
+}
+//通过查找keyword获取需要在键盘精灵上显示的数据
+void CBaseBlockWidget::getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet)
+{
+	foreach(const RWidgetOpData& _d,m_listSortOp)
+	{
+		if(_d.key.indexOf(keyword)>-1)
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdSort;
+			pData->arg = (void*)_d.value;
+			pData->desc = _d.desc;
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+	return CCoordXBaseWidget::getKeyWizData(keyword,listRet);
+}
+//键盘精灵窗口确认后触发
+void CBaseBlockWidget::keyWizEntered(KeyWizData* pData)
+{
+	if(pData->cmd == CKeyWizard::CmdSort)
+	{
+		setSortMode(static_cast<RSortType>((int)(pData->arg)));
+		return;
+	}
+
+	return CCoordXBaseWidget::keyWizEntered(pData);
 }

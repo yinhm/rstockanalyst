@@ -18,6 +18,7 @@ public:
 		CmdCircle,			//设置显示周期
 		CmdWidget,			//更换窗口的类型
 		CmdInsert,			//插入窗口
+		CmdSort,			//股票排序方式
 	};
 
 public:

@@ -28,6 +28,8 @@ public:
 	//更新数据
 	virtual void updateData();
 
+	//更新当前的排序方式
+	virtual void updateSortMode();
 public:
 	//通过查找keyword获取需要在按键精灵上显示的数据
 	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);
@@ -72,7 +74,7 @@ private:
 private:
 	QMenu* m_pMenuBlockList;				//所有板块信息（当前选中的板块上打勾）
 
-	CBlockInfoItem* m_pBlock;						//当前的板块名称
+	CBlockInfoItem* m_pBlock;				//当前的板块名称
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引

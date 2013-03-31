@@ -20,6 +20,13 @@ public:
 		BlockCircle = 1,		//圆形
 		BlockRect,				//方块
 	};
+	enum RSortType
+	{
+		SortByCode = 1,		//按股票代码排序
+		SortByIncrease,		//按涨幅排序
+		SortByTurnRatio,	//按换手率排序
+		SortByVolumeRatio,	//按量比排序
+	};
 public:
 	CBaseBlockWidget(CBaseWidget* parent = 0, RWidgetType type = WidgetBasic);
 	~CBaseBlockWidget(void);
@@ -32,6 +39,15 @@ public:
 
 	//更新数据
 	virtual void updateData();
+
+	//更新排序方式
+	virtual void updateSortMode(){};
+	
+public:
+	//通过查找keyword获取需要在键盘精灵上显示的数据
+	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);
+	//键盘精灵窗口确认后触发
+	virtual void keyWizEntered(KeyWizData* pData);
 
 protected:
 	//虚函数，各个控件的自定义菜单。
@@ -48,10 +64,15 @@ protected slots:
 	void onSetBlockMode();									//设置当前的显示模式
 	void onSetBlockSize();									//设置色块的大小
 
+	void onSetSortMode();									//菜单，设置当前的排序方式
+
+protected:
+	void setSortMode(RSortType sort);						//设置当前的排序方式
 
 protected:
 	QMenu* m_pMenuColorMode;				//颜色模式菜单
 	QMenu* m_pMenuBlockMode;				//显示模式菜单
+	QMenu* m_pMenuSortMode;					//排序方式菜单
 
 	QString m_qsColorMode;					//当前颜色模式
 protected:
@@ -60,6 +81,11 @@ protected:
 	int m_iCBWidth;							//单个色块的宽度
 
 	QRect m_rtClient;						//实际色块绘制区域
+
+	RSortType m_sort;						//当前的排序方式
+	Qt::SortOrder m_sortOrder;				//当前的排序模式（升序，降序）
+private:
+	QList<RWidgetOpData> m_listSortOp;		//排序方式列表
 };
 
 #endif	//BASE_BLOCK_WIDGET_H

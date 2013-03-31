@@ -42,7 +42,6 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 	, m_type(type)
 {
 	setMouseTracking(true);
-	initMenu();
 	//将Splitter放入到Layout中，这样使其充满整个窗口
 	QVBoxLayout* pLayout = new QVBoxLayout();
 	pLayout->setMargin(0);		//更改此处可设置Panel的边框大小
@@ -77,6 +76,8 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 		m_listOperate.push_back(RWidgetOpData(InsertRemove,"id","删除窗口"));
 	}
 	setFocusPolicy(Qt::WheelFocus);
+
+	initMenu();			//初始化菜单
 }
 
 
