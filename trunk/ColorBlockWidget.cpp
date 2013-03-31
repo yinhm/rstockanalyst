@@ -92,37 +92,93 @@ void CColorBlockWidget::updateData()
 	return/* CBaseBlockWidget::updateData()*/;
 }
 
-void CColorBlockWidget::setBlock( const QString& block )
+void CColorBlockWidget::updateSortMode()
 {
-	clearTmpData();
-	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
-	if(!pBlock)
-		return;
+	if(m_sort<=SortByCode)
+	{
+		QMultiMap<QString,CStockInfoItem*> mapSort;
+		foreach(CStockInfoItem* pItem,m_listStocks)
+		{
+			if(m_sort == SortByCode)
+				mapSort.insert(pItem->getCode(),pItem);
+		}
+		if(m_sortOrder==Qt::AscendingOrder)
+			m_listStocks = mapSort.values();
+		else
+		{
+			QList<CStockInfoItem*> list;
+			QMultiMap<QString,CStockInfoItem*>::iterator iter = mapSort.begin();
+			while(iter!=mapSort.end())
+			{
+				list.push_front(iter.value());
+				++iter;
+			}
+			m_listStocks = list;
+		}
+	}
+	else
+	{
+		QMultiMap<float,CStockInfoItem*> mapSort;
+		foreach(CStockInfoItem* pItem,m_listStocks)
+		{
+			float v = 0.0;
+			if(m_sort == SortByIncrease)
+				v = _isnan(pItem->getIncrease()) ? 0.0 : pItem->getIncrease();
+			else if(m_sort == SortByTurnRatio)
+				v = _isnan(pItem->getTurnRatio()) ? 0.0 : pItem->getTurnRatio();
+			else if(m_sort == SortByVolumeRatio)
+				v = _isnan(pItem->getVolumeRatio()) ? 0.0 : pItem->getVolumeRatio();
+			else
+				v = _isnan(pItem->getIncrease()) ? 0.0 : pItem->getIncrease();
+			
+			mapSort.insert(v,pItem);
+		}
+		if(m_sortOrder==Qt::AscendingOrder)
+			m_listStocks = mapSort.values();
+		else
+		{
+			QList<CStockInfoItem*> list;
+			QMultiMap<float,CStockInfoItem*>::iterator iter = mapSort.begin();
+			while(iter!=mapSort.end())
+			{
+				list.push_front(iter.value());
+				++iter;
+			}
+			m_listStocks = list;
+		}
+	}
 
-	m_listStocks = pBlock->getStockList();
 	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
 	{
 		CStockInfoItem* pItem = m_listStocks[i];
-
 		m_mapStockIndex[pItem] = i;
 		//建立更新机制(目前采用定时刷新，未使用该更新接口)
 	//	connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	//	connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	}
 
-	m_pBlock = pBlock;
-
 	if(m_listStocks.size()>0)
 	{
 		clickedStock(m_listStocks.first());
 	}
 
+	//更新显示
 	updateColorBlockData();
+	return;
+}
 
-//	updateTimesH();			//更新横坐标的时间数据
-//	update();
+void CColorBlockWidget::setBlock( const QString& block )
+{
+	clearTmpData();
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(!pBlock)
+		return;
+	
+	m_pBlock = pBlock;
 
+	m_listStocks = pBlock->getStockList();
+	updateSortMode();
 	return CBaseWidget::setBlock(block);
 }
 
@@ -290,7 +346,15 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 	p.setPen(QColor(255,255,255));
 	if(!m_pBlock)
 		return;
-	p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,m_pBlock->getBlockName());
+	
+	if(m_sortOrder == Qt::AscendingOrder)
+	{
+		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↑%1").arg(m_pBlock->getBlockName()));
+	}
+	else
+	{
+		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↓%1").arg(m_pBlock->getBlockName()));
+	}
 }
 
 void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
@@ -340,6 +404,12 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		QString qsText = pItem->getName();
 		if(qsText.isEmpty())
 			qsText = pItem->getCode();
+		if(m_sort == SortByIncrease)
+			qsText += QString("\n%1%").arg(pItem->getIncrease(),0,'f',2);
+		else if(m_sort == SortByTurnRatio)
+			qsText += QString("\n%1%").arg(pItem->getTurnRatio(),0,'f',2);
+		else if(m_sort == SortByVolumeRatio)
+			qsText += QString("\n%1%").arg(pItem->getVolumeRatio(),0,'f',2);
 		p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,qsText);
 	}
 
@@ -433,7 +503,8 @@ void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	QPoint ptCur = e->pos();
 	if(m_rtHeader.contains(ptCur))
 	{
-
+		m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
+		updateSortMode();
 	}
 	else if(m_rtClient.contains(ptCur))
 	{
@@ -629,7 +700,7 @@ void CColorBlockWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>
 		}
 	}
 
-	return CBaseWidget::getKeyWizData(keyword,listRet);
+	return CBaseBlockWidget::getKeyWizData(keyword,listRet);
 }
 
 void CColorBlockWidget::keyWizEntered( KeyWizData* pData )
@@ -640,6 +711,6 @@ void CColorBlockWidget::keyWizEntered( KeyWizData* pData )
 		return;
 	}
 
-	return CBaseWidget::keyWizEntered(pData);
+	return CBaseBlockWidget::keyWizEntered(pData);
 }
 
