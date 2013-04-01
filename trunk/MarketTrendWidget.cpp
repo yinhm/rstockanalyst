@@ -111,7 +111,6 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 		m_pSelectedStock = 0;
 	}
 	//showHeaderIndex = 0;
-	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
 	{
 		m_mapStockIndex[m_listStocks[i]] = i;
@@ -122,8 +121,9 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
 	}
 
-	if(m_listStocks.size()>0)
+	if(m_pSelectedStock==0 && m_listStocks.size()>0)
 	{
+		showStockIndex = 0;
 		clickedStock(m_listStocks.first());
 	}
 }
@@ -174,7 +174,7 @@ void CMarketTrendWidget::onAddToBlock()
 	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
 	if(pBlock)
 	{
-		pBlock->appendStocks(QStringList()<<m_pSelectedStock->getCode());
+		pBlock->appendStocks(QList<CStockInfoItem*>()<<m_pSelectedStock);
 	}
 }
 
@@ -201,7 +201,7 @@ void CMarketTrendWidget::onAddToNewBlock()
 	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
 	if(pBlock)
 	{
-		pBlock->appendStocks(QStringList()<<m_pSelectedStock->getCode());
+		pBlock->appendStocks(QList<CStockInfoItem*>()<<m_pSelectedStock);
 	}
 }
 
@@ -212,7 +212,7 @@ void CMarketTrendWidget::onRemoveStock()
 		CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(m_qsSelectedBlock);
 		if(pBlock)
 		{
-			if(pBlock->removeStocks(QStringList()<<m_pSelectedStock->getCode()))
+			if(pBlock->removeStocks(QList<CStockInfoItem*>()<<m_pSelectedStock))
 				clickedBlock(m_qsSelectedBlock);
 		}
 	}
@@ -247,6 +247,14 @@ void CMarketTrendWidget::clickedHeader( int column )
 		m_sortOrder = Qt::AscendingOrder;
 	}
 	resortStocks();
+	{
+		//设置当前选中项为第一项
+		if(m_listStocks.size()>0)
+		{
+			showStockIndex = 0;
+			clickedStock(m_listStocks.first());
+		}
+	}
 }
 
 void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )

@@ -23,8 +23,10 @@ public:
 	QList<CStockInfoItem*> getStockList();						//获取板块列表
 
 	bool appendStocks(QList<CStockInfoItem*> list);		//向板块中添加股票
-	bool appendStocks(QList<QString> list);				//向板块中添加股票
 	bool removeStocks(QList<CStockInfoItem*> list);		//从板块中删除股票
+
+private:
+	bool appendStocks(QList<QString> list);				//向板块中添加股票
 	bool removeStocks(QList<QString> list);				//从板块中删除股票
 
 protected slots:

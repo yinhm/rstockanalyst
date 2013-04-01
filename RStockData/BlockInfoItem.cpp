@@ -60,7 +60,17 @@ bool CBlockInfoItem::appendStocks( QList<CStockInfoItem*> list )
 	foreach(CStockInfoItem* pItem,list)
 		listCodes.push_back(pItem->getCode());
 
-	return appendStocks(listCodes);
+	if(appendStocks(listCodes))
+	{
+		foreach(CStockInfoItem* pItem,list)
+		{
+			if(!stocksInBlock.contains(pItem))
+				stocksInBlock.push_back(pItem);
+		}
+		return true;
+	}
+	else
+		return false;
 }
 
 bool CBlockInfoItem::appendStocks( QList<QString> list )
@@ -86,7 +96,16 @@ bool CBlockInfoItem::removeStocks( QList<CStockInfoItem*> list )
 	foreach(CStockInfoItem* pItem,list)
 		listCodes.push_back(pItem->getCode());
 
-	return removeStocks(listCodes);
+	if(removeStocks(listCodes))
+	{
+		foreach(CStockInfoItem* pItem,list)
+		{
+			stocksInBlock.removeOne(pItem);
+		}
+		return true;
+	}
+	else
+		return false;
 }
 
 bool CBlockInfoItem::removeStocks( QList<QString> list )

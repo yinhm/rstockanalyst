@@ -41,7 +41,7 @@ public:
 	virtual void updateData();
 
 	//更新排序方式
-	virtual void updateSortMode(){};
+	virtual void updateSortMode(bool bSelFirst = true);
 	
 public:
 	//通过查找keyword获取需要在键盘精灵上显示的数据

@@ -29,7 +29,7 @@ public:
 	virtual void updateData();
 
 	//更新当前的排序方式
-	virtual void updateSortMode();
+	virtual void updateSortMode(bool bSelFirst);
 public:
 	//通过查找keyword获取需要在按键精灵上显示的数据
 	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);

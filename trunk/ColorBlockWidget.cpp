@@ -76,7 +76,7 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 
 void CColorBlockWidget::updateData()
 {
-	updateColorBlockData();
+	updateSortMode(false);
 	if(m_typeCircle<Day)
 	{
 		//分笔数据1秒中更新一次
@@ -92,8 +92,63 @@ void CColorBlockWidget::updateData()
 	return/* CBaseBlockWidget::updateData()*/;
 }
 
-void CColorBlockWidget::updateSortMode()
+void CColorBlockWidget::updateSortMode(bool bSelFirst)
 {
+	if(bSelFirst)
+	{
+		m_pSelectedStock = 0;
+		showStockIndex = 0;
+	}
+
+	//更新显示
+	updateColorBlockData();
+	return;
+}
+
+void CColorBlockWidget::setBlock( const QString& block )
+{
+	clearTmpData();
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(!pBlock)
+		return;
+	
+	m_pBlock = pBlock;
+
+	m_listStocks = pBlock->getStockList();
+	updateSortMode(true);
+	return CBaseWidget::setBlock(block);
+}
+
+void CColorBlockWidget::updateStock( const QString& /*code*/ )
+{
+	//CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
+
+	//if(mapStockColorBlocks.contains(pItem))
+	//{
+	//	//更新数据
+	//	QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
+	//	mapStockColorBlocks[pItem] = 0;
+	//	{
+	//		//删除之前的资源
+	//		FreeRStockInfoMap(pMap);
+	//		delete pMap;
+	//	}
+	//	mapStockColorBlocks[pItem] = getColorBlockMap(pItem);
+	//	updateTimesH();
+	//}
+	//update(rectOfStock(pItem));
+}
+
+
+void CColorBlockWidget::onSetCurrentBlock()
+{
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	setBlock(pAct->data().toString());
+}
+
+void CColorBlockWidget::updateColorBlockData()
+{
+	//进行重新排序
 	if(m_sort<=SortByCode)
 	{
 		QMultiMap<QString,CStockInfoItem*> mapSort;
@@ -130,7 +185,7 @@ void CColorBlockWidget::updateSortMode()
 				v = _isnan(pItem->getVolumeRatio()) ? 0.0 : pItem->getVolumeRatio();
 			else
 				v = _isnan(pItem->getIncrease()) ? 0.0 : pItem->getIncrease();
-			
+
 			mapSort.insert(v,pItem);
 		}
 		if(m_sortOrder==Qt::AscendingOrder)
@@ -148,70 +203,20 @@ void CColorBlockWidget::updateSortMode()
 		}
 	}
 
-	showStockIndex = 0;
 	for(int i=0;i<m_listStocks.size();++i)
 	{
 		CStockInfoItem* pItem = m_listStocks[i];
 		m_mapStockIndex[pItem] = i;
 		//建立更新机制(目前采用定时刷新，未使用该更新接口)
-	//	connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateStock(const QString&)));
-	//	connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateStock(const QString&)));
 	}
-
-	if(m_listStocks.size()>0)
+	if(m_pSelectedStock == 0 && m_listStocks.size()>0)
 	{
 		clickedStock(m_listStocks.first());
 	}
 
-	//更新显示
-	updateColorBlockData();
-	return;
-}
 
-void CColorBlockWidget::setBlock( const QString& block )
-{
-	clearTmpData();
-	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
-	if(!pBlock)
-		return;
-	
-	m_pBlock = pBlock;
-
-	m_listStocks = pBlock->getStockList();
-	updateSortMode();
-	return CBaseWidget::setBlock(block);
-}
-
-void CColorBlockWidget::updateStock( const QString& /*code*/ )
-{
-	//CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
-
-	//if(mapStockColorBlocks.contains(pItem))
-	//{
-	//	//更新数据
-	//	QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
-	//	mapStockColorBlocks[pItem] = 0;
-	//	{
-	//		//删除之前的资源
-	//		FreeRStockInfoMap(pMap);
-	//		delete pMap;
-	//	}
-	//	mapStockColorBlocks[pItem] = getColorBlockMap(pItem);
-	//	updateTimesH();
-	//}
-	//update(rectOfStock(pItem));
-}
-
-
-void CColorBlockWidget::onSetCurrentBlock()
-{
-	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	setBlock(pAct->data().toString());
-}
-
-void CColorBlockWidget::updateColorBlockData()
-{
 	updateTimesH();			//更新时间轴
+
 	QList<CStockInfoItem*> listShowItems;
 	int iClientHeight = this->rect().height();
 
@@ -504,7 +509,7 @@ void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	if(m_rtHeader.contains(ptCur))
 	{
 		m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
-		updateSortMode();
+		updateSortMode(true);
 	}
 	else if(m_rtClient.contains(ptCur))
 	{
