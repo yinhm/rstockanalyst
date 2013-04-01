@@ -124,6 +124,11 @@ void CBaseBlockWidget::updateData()
 	return CCoordXBaseWidget::updateData();
 }
 
+void CBaseBlockWidget::updateSortMode( bool /*bSelFirst = true*/ )
+{
+
+}
+
 
 void CBaseBlockWidget::setColorMode( const QString& mode )
 {
