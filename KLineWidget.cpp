@@ -575,6 +575,7 @@ void CKLineWidget::updateKLine( const QString& code )
 void CKLineWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
+	p.setRenderHints(QPainter::Antialiasing|QPainter::HighQualityAntialiasing,true);
 	QRect rtClient = this->rect();
 	p.fillRect(rtClient,QColor(0,0,0));
 	if(!m_pStockItem)
