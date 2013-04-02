@@ -21,18 +21,19 @@
    <relate>1</relate>
    <align>1</align>
    <size>49</size>
-   <code>601186</code>
+   <code>601231</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
 DrawLine(MA(OPEN,10))
 DrawLine(MA(OPEN,5))
-DrawLine(MA(OPEN,3))</exp>
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5))</exp>
     </Liner>
     <Liner size="20">
-     <exp>DrawLine(MA(OPEN,10))
+     <exp>DrawLine(MA(OPEN,3))
 DrawLine(MA(OPEN,5))
-DrawLine(MA(OPEN,3))</exp>
+DrawLine(MA(OPEN,10))</exp>
     </Liner>
    </liners>
   </widget>

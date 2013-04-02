@@ -47,3 +47,16 @@ DrawHist(VOLUME)
 绘制量的柱状图
 */
 int my_lua_drawHistogram(lua_State* _L);
+
+/*
+别名: 绘制交叉点
+所属类别: 绘图函数  参数数量: 2
+
+通过输入的参数绘制柱状图
+用法:
+DrawCross(line1,line2)
+例如:
+DrawCross(line1,line2)
+绘制line1和line2的交叉点
+*/
+int my_lua_drawCross(lua_State* _L);
