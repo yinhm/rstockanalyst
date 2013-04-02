@@ -4,6 +4,7 @@
 #include "DataEngine.h"
 #include "KLineWidget.h"
 #include "BlockColorSettingDlg.h"
+#include "FuncHelper.h"
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
 
@@ -39,6 +40,10 @@ CMainWindow::CMainWindow()
 		//设置
 		QMenu* pMenuSettings = m_pMenuBar->addMenu(tr("设置"));
 		pMenuSettings->addAction(tr("设置色块颜色"),CBlockColorSettingDlg::getDialog(),SLOT(exec()));
+
+		//帮助
+		QMenu* pMenuHelp = m_pMenuBar->addMenu(tr("帮助"));
+		pMenuHelp->addAction(tr("函数说明"),this,SLOT(onShowFuncHelper()));
 	}
 }
 
@@ -415,6 +420,12 @@ void CMainWindow::onRemoveTemplate()
 	QString qsText = m_pTabWidget->tabText(iCurIndex);
 	if(QFile::remove(m_qsTemplateDir+qsText+".xml"))
 		m_pTabWidget->removeTab(iCurIndex);
+}
+
+void CMainWindow::onShowFuncHelper()
+{
+	CFuncHelper dlg(this);
+	dlg.exec();
 }
 
 
