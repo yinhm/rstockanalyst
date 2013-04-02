@@ -68,13 +68,12 @@ protected:
 private:
 	void drawTitle(QPainter& p,const QRect& rtTitle);	//绘制头部
 	void drawShowBtns(QPainter& p,const QRect& rtBtns);	//绘制右下角的两个按钮
+	void drawExpArgs(QPainter& p,const QRect& rtClient,
+		const QString& e,QList<uint>& lsColor);
 private:
 	void resetTmpData();					//重新计算数据。
 	void clearTmpData();					//清理本窗口中创建的内存。
 
-private:
-	void drawExpArgs(QPainter& p,const QRect& rtClient,
-		const QString& e,QList<uint>& lsColor);
 private:
 	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
 	QMap<time_t,RStockData*>* m_mapData;	//所有用于显示的数据

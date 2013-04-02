@@ -3,15 +3,6 @@
 	<block name="上海A股" RegType="1">60*</block>
 	<block name="上海B股" RegType="1">900*</block>
 	<block name="深圳A股" RegType="1">000*</block>
-	<block name="深圳B股" RegType="1">200*</block>
 	<block name="中小板" RegType="1">002*</block>
 	<block name="创业板" RegType="1">300*</block>
-	<block name="国债/指数" RegType="1">001*</block>
-	<block name="债券" RegType="1">1*</block>
-	<block name="国债回购" RegType="1">201*</block>
-	<block name="国债期货" RegType="1">310*</block>
-	<block name="基金/权证" RegType="1">5*</block>
-	<block name="沪市新股申购" RegType="1">730*</block>
-	<block name="沪市配股" RegType="1">700*</block>
-	<block name="深市配股" RegType="1">080*</block>
 </root>

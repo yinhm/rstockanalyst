@@ -13,7 +13,7 @@
    <align>1</align>
    <size>50</size>
    <block>上海A股</block>
-   <stock>600000</stock>
+   <stock>600026</stock>
   </widget>
   <widget circle="3602">
    <name></name>
@@ -26,6 +26,11 @@
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
 DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))</exp>
+    </Liner>
+    <Liner size="20">
+     <exp>DrawLine(MA(OPEN,10))
 DrawLine(MA(OPEN,5))
 DrawLine(MA(OPEN,3))</exp>
     </Liner>
