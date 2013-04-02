@@ -825,9 +825,9 @@ QMenu* CKLineWidget::getCustomMenu()
 void CKLineWidget::onSetStockCode()
 {
 	QDialog dlg(this);
-	QVBoxLayout layout(this);
-	QLineEdit edit(this);
-	QPushButton btnOk(this);
+	QVBoxLayout layout(&dlg);
+	QLineEdit edit(&dlg);
+	QPushButton btnOk(&dlg);
 	dlg.setLayout(&layout);
 	layout.addWidget(&edit);
 	layout.addWidget(&btnOk);
@@ -847,12 +847,12 @@ void CKLineWidget::onSetExpression()
 		return;
 
 	QDialog dlg(this);
-	QVBoxLayout layout(this);
-	QTextEdit edit(this);
-	QPushButton btnOk(this);
-	dlg.setLayout(&layout);
+	QVBoxLayout layout(&dlg);
+	QTextEdit edit(&dlg);
+	QPushButton btnOk(&dlg);
 	layout.addWidget(&edit);
 	layout.addWidget(&btnOk);
+	dlg.setLayout(&layout);
 	btnOk.setText(tr("È·¶¨"));
 	edit.setText(m_vExps[m_iCurExp]);
 	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));

@@ -140,14 +140,16 @@ int my_lua_drawk( lua_State* _L )
 		//设置画笔颜色
 		p.setPen(QColor(255,0,0));
 
-
+		
+		float fHighMax = fMax-fMin;
+		if(fHighMax<0.00001)
+			return 0;
 		float fBeginX = rtClient.right()-fItemWidth;
 		int iIndex = iEndIndex;
 		float fItemHeight = rtClient.height();
 		while(fBeginX>rtClient.left() && iIndex>=0)
 		{
 			//绘制K线
-			float fHighMax = fMax-fMin;
 			//float fH = vHigh[iIndex];
 			//float fL = vLow[iIndex];
 			//float fO = vOpen[iIndex];
@@ -156,6 +158,7 @@ int my_lua_drawk( lua_State* _L )
 			float fLowY = ((vLow[iIndex]-fMin)/fHighMax)*fItemHeight;
 			float fOpenY = ((vOpen[iIndex]-fMin)/fHighMax)*fItemHeight;
 			float fCloseY = ((vClose[iIndex]-fMin)/fHighMax)*fItemHeight;
+
 
 			if(vClose[iIndex]>=vOpen[iIndex])
 			{
@@ -268,7 +271,10 @@ int my_lua_drawLine( lua_State* _L )
 		//设置画笔颜色
 		p.setPen(clPen);
 
-
+		
+		float fHighMax = fMax-fMin;
+		if(fHighMax<0.00001)
+			return 0;
 		float fBeginX = rtClient.right()-fItemWidth;
 		int iIndex = iEndIndex;
 		float fItemHeight = rtClient.height();
@@ -276,7 +282,6 @@ int my_lua_drawLine( lua_State* _L )
 		while(fBeginX>rtClient.left() && iIndex>=0)
 		{
 			//绘制K线
-			float fHighMax = fMax-fMin;
 			float fValue = ((vValues[iIndex]-fMin)/fHighMax)*fItemHeight;
 
 			if(fLastValue<rtClient.bottom())
@@ -351,6 +356,10 @@ int my_lua_drawHistogram( lua_State* _L )
 	{
 		p.setPen(QColor(127,0,0));
 		p.drawRect(rtClient);
+		
+		float fHighMax = fMax-fMin;
+		if(fHighMax<0.00001)
+			return 0;
 
 		float fBeginX = rtClient.right()-fItemWidth;
 		int iIndex = iEndIndex;
@@ -358,7 +367,6 @@ int my_lua_drawHistogram( lua_State* _L )
 		while(fBeginX>rtClient.left() && iIndex>=0)
 		{
 			//绘制K线
-			float fHighMax = fMax-fMin;
 			float fValue = ((vValues[iIndex]-fMin)/fHighMax)*fItemHeight;
 
 			p.fillRect(QRectF(fBeginX+0.5,rtClient.bottom()-fValue,fItemWidth-1,fValue),QColor(255,0,0));
@@ -454,6 +462,8 @@ int my_lua_drawCross( lua_State* _L )
 		float fItemHeight = rtClient.height();
 
 		float fHighMax = fMax-fMin;
+		if(fHighMax<0.00001)
+			return 0;
 
 		float fLastL1 = 0.0;
 		if(vL1.size()>0)
@@ -478,9 +488,12 @@ int my_lua_drawCross( lua_State* _L )
 				double y = ((fLastL1 - fL1Y) * (fLastX * fL2Y - fCenterX * fLastL2) - (fLastX * fL1Y - fCenterX * fLastL1) * (fLastL2 - fL2Y))
 					/ ((fLastL1 - fL1Y) * (fLastX - fCenterX) - (fLastX - fCenterX) * (fLastL2 - fL2Y));
 
-				QPainterPath _path;
-				_path.addEllipse(x-3,rtClient.bottom()-y-3,6,6);
-				p.fillPath(_path,QBrush(QColor(255,255,255)));
+				if(!qIsNaN(x) && !qIsNaN(y))
+				{
+					QPainterPath _path;
+					_path.addEllipse(x-3,rtClient.bottom()-y-3,6,6);
+					p.fillPath(_path,QBrush(QColor(255,255,255)));
+				}
 			}
 
 			fLastX = fCenterX;
