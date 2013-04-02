@@ -351,14 +351,34 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 	p.setPen(QColor(255,255,255));
 	if(!m_pBlock)
 		return;
+
+	QString qsText = m_pBlock->getBlockName();
+	switch(m_sort)
+	{
+	case SortByCode:		//按股票代码排序
+		qsText += " (代码)";
+		break;
+	case SortByIncrease:		//按涨幅排序
+		qsText += " (涨幅)";
+		break;
+	case SortByTurnRatio:	//按换手率排序
+		qsText += " (换手率)";
+		break;
+	case SortByVolumeRatio:	//按量比排序
+		qsText += " (量比)";
+		break;
+	default:
+		qsText += " (未排序)";
+		break;
+	}
 	
 	if(m_sortOrder == Qt::AscendingOrder)
 	{
-		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↑%1").arg(m_pBlock->getBlockName()));
+		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↑%1").arg(qsText));
 	}
 	else
 	{
-		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↓%1").arg(m_pBlock->getBlockName()));
+		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↓%1").arg(qsText));
 	}
 }
 
@@ -409,12 +429,16 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		QString qsText = pItem->getName();
 		if(qsText.isEmpty())
 			qsText = pItem->getCode();
-		if(m_sort == SortByIncrease)
-			qsText += QString("\n%1%").arg(pItem->getIncrease(),0,'f',2);
-		else if(m_sort == SortByTurnRatio)
-			qsText += QString("\n%1%").arg(pItem->getTurnRatio(),0,'f',2);
-		else if(m_sort == SortByVolumeRatio)
-			qsText += QString("\n%1%").arg(pItem->getVolumeRatio(),0,'f',2);
+		if(rtCB.height()>35)
+		{
+			//如果单个色块的高度足够的话，则显示两行
+			if(m_sort == SortByIncrease)
+				qsText += QString("\n%1%").arg(pItem->getIncrease(),0,'f',2);
+			else if(m_sort == SortByTurnRatio)
+				qsText += QString("\n%1%").arg(pItem->getTurnRatio(),0,'f',2);
+			else if(m_sort == SortByVolumeRatio)
+				qsText += QString("\n%1%").arg(pItem->getVolumeRatio(),0,'f',2);
+		}
 		p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,qsText);
 	}
 
