@@ -1,5 +1,6 @@
 #include "FuncDraw.h"
 #include "RStockFunc.h"
+#include "ColorManager.h"
 #include <QtGui>
 
 QMap<const char*,lua_CFunction>* ExportAllFuncs()
@@ -9,10 +10,40 @@ QMap<const char*,lua_CFunction>* ExportAllFuncs()
 	pFuncs->insert("DrawLine",&my_lua_drawLine);
 	pFuncs->insert("DrawHist",&my_lua_drawHistogram);
 	pFuncs->insert("DrawCross",&my_lua_drawCross);
+	pFuncs->insert("Color",&my_lua_color);
 
 	return pFuncs;
 }
 
+int my_lua_color(lua_State* _L)
+{
+	int iArgc = lua_gettop(_L);
+	if(iArgc<3)
+	{
+		lua_settop(_L,0);
+		lua_pushinteger(_L,rRGB(255,255,255));
+		return 1;
+	}
+	if(lua_type(_L,-1)!=LUA_TNUMBER ||
+		lua_type(_L,-2)!=LUA_TNUMBER ||
+		lua_type(_L,-3)!=LUA_TNUMBER)
+	{
+		lua_settop(_L,0);
+		lua_pushinteger(_L,rRGB(255,255,255));
+		return 1;
+	}
+
+	if(iArgc>3)
+		lua_pop(_L,iArgc-3);
+		
+	int iR = lua_tointeger(_L,1);
+	int iG = lua_tointeger(_L,2);
+	int iB = lua_tointeger(_L,3);
+	
+	lua_settop(_L,0);
+	lua_pushinteger(_L,rRGB(iR,iG,iB));
+	return 1;
+}
 
 bool getMinAndMax(QVector<float>& _v, float& fMin, float& fMax)
 {
@@ -386,9 +417,17 @@ int my_lua_drawCross( lua_State* _L )
 	int iArgc = lua_gettop(_L);
 	if(iArgc<2)
 		return 0;
-	if(lua_type(_L,-1)!=LUA_TTABLE ||
-		lua_type(_L,-2)!=LUA_TTABLE)
+	if(lua_type(_L,1)!=LUA_TTABLE ||
+		lua_type(_L,2)!=LUA_TTABLE)
 		return 0;
+
+	QColor clDot(255,255,255);
+	if(iArgc>2)
+	{
+		if(lua_type(_L,3) == LUA_TNUMBER)
+			clDot = QColor::fromRgb(lua_tointeger(_L,3));
+		lua_pop(_L,iArgc-2);
+	}
 
 	QVector<float> vL1,vL2;
 
@@ -492,7 +531,7 @@ int my_lua_drawCross( lua_State* _L )
 				{
 					QPainterPath _path;
 					_path.addEllipse(x-3,rtClient.bottom()-y-3,6,6);
-					p.fillPath(_path,QBrush(QColor(255,255,255)));
+					p.fillPath(_path,QBrush(clDot));
 				}
 			}
 

@@ -10,6 +10,19 @@
 extern "C"{_declspec(dllexport) QMap<const char*,lua_CFunction>* ExportAllFuncs();}
 
 /*
+别名: 颜色函数
+所属类别: 绘图函数  参数数量: 3
+
+通过输入的RGB三个值来获取一个颜色
+用法:
+Color(Red,Green,Blue)
+例如:
+Color(Red,Green,Blue)
+将Red，Green，Blue三个0~255的值生成一个颜色值
+*/
+int my_lua_color(lua_State* _L);
+
+/*
 别名: 绘制K线图
 所属类别: 绘图函数  参数数量: 4
 
@@ -50,13 +63,13 @@ int my_lua_drawHistogram(lua_State* _L);
 
 /*
 别名: 绘制交叉点
-所属类别: 绘图函数  参数数量: 2
+所属类别: 绘图函数  参数数量: 3
 
 通过输入的参数绘制柱状图
 用法:
-DrawCross(line1,line2)
+DrawCross(line1,line2,color)
 例如:
-DrawCross(line1,line2)
+DrawCross(line1,line2,color)
 绘制line1和line2的交叉点
 */
 int my_lua_drawCross(lua_State* _L);
