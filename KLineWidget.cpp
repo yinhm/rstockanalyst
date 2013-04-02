@@ -2,6 +2,7 @@
 #include "KLineWidget.h"
 #include "DataEngine.h"
 #include "KeyWizard.h"
+#include "ColorManager.h"
 
 #define	KLINE_BORDER	2
 
@@ -604,6 +605,8 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 	if(m_bShowMax&&m_iCurExp<m_vExps.size())
 	{
+		QString qsExp = m_vExps[m_iCurExp];		//获取表达式
+
 		//进行全屏绘制
 		RDrawInfo draw;
 		draw.dwVersion = RSTOCK_VER;
@@ -611,11 +614,13 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		draw.rtClient = rtClient;
 		draw.fItemWidth = m_fItemWidth;
 		draw.iEndIndex = m_mapData->size()-1;
+		draw.iCurColor = 0;
+		drawExpArgs(p,rtClient,qsExp,draw.lsColors);
 
 		lua_pushlightuserdata(m_pL,&draw);
 		lua_setglobal(m_pL,"_draw");
 
-		luaL_dostring(m_pL,m_vExps[m_iCurExp].toLocal8Bit());
+		luaL_dostring(m_pL,qsExp.toLocal8Bit());
 
 		drawCoordY(p,QRectF(rtClient.right(),rtClient.top(),50,rtClient.height()),draw.fMax,draw.fMin);
 	}
@@ -633,17 +638,20 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 			QRectF rtArea = QRectF(rtClient.left(),iCurY,rtClient.width(),iHeight);
 			{
+				QString qsExp = m_vExps[i];		//获取表达式
 				RDrawInfo draw;
 				draw.dwVersion = RSTOCK_VER;
 				draw.pPainter = &p;
 				draw.rtClient = rtArea;
 				draw.fItemWidth = m_fItemWidth;
 				draw.iEndIndex = m_mapData->size()-1;
+				draw.iCurColor = 0;
+				drawExpArgs(p,rtClient,qsExp,draw.lsColors);
 
 				lua_pushlightuserdata(m_pL,&draw);
 				lua_setglobal(m_pL,"_draw");
 
-				luaL_dostring(m_pL,m_vExps[i].toLocal8Bit());
+				luaL_dostring(m_pL,qsExp.toLocal8Bit());
 
 				drawCoordY(p,QRectF(rtArea.right(),rtArea.top(),50,rtArea.height()),draw.fMax,draw.fMin);
 			}
@@ -1077,4 +1085,28 @@ void CKLineWidget::keyWizEntered( KeyWizData* pData )
 	}
 
 	return CCoordXBaseWidget::keyWizEntered(pData);
+}
+
+void CKLineWidget::drawExpArgs( QPainter& p,const QRect& rtClient, 
+							   const QString& e,QList<uint>& lsColor )
+{
+	QFontMetrics fm(p.font());
+	int x = rtClient.left()+5;
+	int y = rtClient.top() + fm.height();
+
+	QStringList listExps = e.split("\n");
+	foreach(const QString& _e,listExps)
+	{
+		int _i = _e.indexOf("DrawLine");
+		if(_i>-1)
+		{
+			_i += 9;
+			QString _arg = _e.mid(_i,_e.lastIndexOf(")")-_i);
+			uint clPen = CColorManager::getCommonColor(lsColor.size());
+			lsColor.push_back(clPen);
+			p.setPen(QColor::fromRgb(clPen));
+			p.drawText(x,y,_arg+";");
+			x += (fm.width(_arg)+20);
+		}
+	}
 }
