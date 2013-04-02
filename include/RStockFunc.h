@@ -135,16 +135,17 @@ typedef struct tagRDrawInfo
 {
 	DWORD dwVersion;
 	QPainter* pPainter;
-	QRectF rtClient;
 	int iEndIndex;				//结束的数组索引
 	float fItemWidth;			//单个数据的绘制宽度
-
 	float fMin;
 	float fMax;
+	int iCurColor;				//当前使用的颜色索引
+	QList<uint> lsColors;		//绘制所需要的颜色表
+	QRectF rtClient;
 
 	tagRDrawInfo()
 	{
-		memset(&dwVersion,0,sizeof(tagRDrawInfo));
+		memset(&dwVersion,0,28);
 		fMin = 1.0;
 		fMax = -1.0;
 	}

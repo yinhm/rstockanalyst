@@ -238,6 +238,12 @@ int my_lua_drawLine( lua_State* _L )
 	float fItemWidth = pDraw->fItemWidth;
 	int iEndIndex = pDraw->iEndIndex;
 	int iCount = rtClient.width()/fItemWidth + 2;
+	QColor clPen = QColor(255,0,0);
+	if(pDraw->lsColors.size()>0)
+	{
+		clPen = QColor::fromRgb(pDraw->lsColors[pDraw->iCurColor%(pDraw->lsColors.size())]);
+		pDraw->iCurColor = pDraw->iCurColor+1;
+	}
 
 	//获取最大值和最小值
 	float fMin = pDraw->fMin;
@@ -259,7 +265,7 @@ int my_lua_drawLine( lua_State* _L )
 		p.drawRect(rtClient);
 
 		//设置画笔颜色
-		p.setPen(QColor(255,0,0));
+		p.setPen(clPen);
 
 
 		float fBeginX = rtClient.right()-fItemWidth;

@@ -73,6 +73,9 @@ private:
 	void clearTmpData();					//清理本窗口中创建的内存。
 
 private:
+	void drawExpArgs(QPainter& p,const QRect& rtClient,
+		const QString& e,QList<uint>& lsColor);
+private:
 	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
 	QMap<time_t,RStockData*>* m_mapData;	//所有用于显示的数据
 	int m_iShowCount;						//需要显示的数据个数（长度，理论上应小于listItems的size）

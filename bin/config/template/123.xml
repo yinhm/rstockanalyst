@@ -21,11 +21,13 @@
    <relate>1</relate>
    <align>1</align>
    <size>49</size>
-   <code>600000</code>
+   <code>601186</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
-DrawLine(MA(OPEN,10))</exp>
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))</exp>
     </Liner>
    </liners>
   </widget>
