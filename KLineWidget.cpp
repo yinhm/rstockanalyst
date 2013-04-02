@@ -646,7 +646,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 				draw.fItemWidth = m_fItemWidth;
 				draw.iEndIndex = m_mapData->size()-1;
 				draw.iCurColor = 0;
-				drawExpArgs(p,rtClient,qsExp,draw.lsColors);
+				drawExpArgs(p,rtArea.toRect(),qsExp,draw.lsColors);
 
 				lua_pushlightuserdata(m_pL,&draw);
 				lua_setglobal(m_pL,"_draw");
@@ -985,6 +985,30 @@ void CKLineWidget::drawShowBtns( QPainter& p,const QRect& rtBtns )
 	p.drawText(m_rtSubShow,Qt::AlignCenter,QString("-"));
 }
 
+void CKLineWidget::drawExpArgs( QPainter& p,const QRect& rtClient, 
+							   const QString& e,QList<uint>& lsColor )
+{
+	QFontMetrics fm(p.font());
+	int x = rtClient.left()+5;
+	int y = rtClient.top() + fm.height();
+
+	QStringList listExps = e.split("\n");
+	foreach(const QString& _e,listExps)
+	{
+		int _i = _e.indexOf("DrawLine");
+		if(_i>-1)
+		{
+			_i += 9;
+			QString _arg = _e.mid(_i,_e.lastIndexOf(")")-_i);
+			uint clPen = CColorManager::getCommonColor(lsColor.size());
+			lsColor.push_back(clPen);
+			p.setPen(QColor::fromRgb(clPen));
+			p.drawText(x,y,_arg+";");
+			x += (fm.width(_arg)+20);
+		}
+	}
+}
+
 void CKLineWidget::clearTmpData()
 {
 	//foreach(stLinerItem* p,listItems)
@@ -1085,28 +1109,4 @@ void CKLineWidget::keyWizEntered( KeyWizData* pData )
 	}
 
 	return CCoordXBaseWidget::keyWizEntered(pData);
-}
-
-void CKLineWidget::drawExpArgs( QPainter& p,const QRect& rtClient, 
-							   const QString& e,QList<uint>& lsColor )
-{
-	QFontMetrics fm(p.font());
-	int x = rtClient.left()+5;
-	int y = rtClient.top() + fm.height();
-
-	QStringList listExps = e.split("\n");
-	foreach(const QString& _e,listExps)
-	{
-		int _i = _e.indexOf("DrawLine");
-		if(_i>-1)
-		{
-			_i += 9;
-			QString _arg = _e.mid(_i,_e.lastIndexOf(")")-_i);
-			uint clPen = CColorManager::getCommonColor(lsColor.size());
-			lsColor.push_back(clPen);
-			p.setPen(QColor::fromRgb(clPen));
-			p.drawText(x,y,_arg+";");
-			x += (fm.width(_arg)+20);
-		}
-	}
 }
