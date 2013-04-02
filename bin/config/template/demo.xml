@@ -71,7 +71,7 @@
      </Liner>
     </liners>
    </widget>
-   <widget circle="60" CBHeight="40" CBWidth="20">
+   <widget circle="60" CBHeight="36" CBWidth="20">
     <name></name>
     <type>3</type>
     <relate>0</relate>
