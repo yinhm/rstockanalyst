@@ -4,6 +4,7 @@
 #include "StockInfoItem.h"
 #include "BlockInfoItem.h"
 #include "rsd_global.h"
+#include "RStockFunc.h"
 
 #define	R_TIME_ZONE	8
 
@@ -44,6 +45,8 @@ public:
 	static int exportReportsInfo(const QString& qsFile);
 	/*导出分笔数据*/
 	static int exportFenBisData(const QString& qsFile);
+	/*收盘后数据整理*/
+	static int exportCloseData();
 
 public:
 	static bool isStockOpenDay(time_t tmDay);	//判断tmDay是否开市（某天的日期，不含时间）
@@ -52,6 +55,8 @@ public:
 	static time_t getOpenSeconds(time_t tmTime);//获取当天相对于tmTime的开市时间（秒）
 	static time_t getCurrentTime();				//获取最后一个report数据的时间
 	static void setCurrentTime(const time_t& t);//设置最后一个report数据的时间
+
+	static QMap<time_t,int> getTodayTimeMap(RStockCircle _c);	//获取当天的时间轴
 
 public:
 	QString getStockBlockDir() const{ return m_qsBlocksDir; }

@@ -27,6 +27,8 @@ protected slots:
 	void onSaveTemplate();			//保存所有版面
 	void onRemoveTemplate();		//删除版面
 	void onShowFuncHelper();		//显示函数帮助窗口
+	//
+	void onSaveDataEngine();		//收盘后数据重新整理
 
 protected:
 	virtual bool winEvent( MSG* message, long* result );
