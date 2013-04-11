@@ -6,6 +6,7 @@
 	3 连接数据库失败
 	*/
 	//http://mhchina.a24.cc/api/v1/getstuff/
+	header("Content-type: text/html; charset=utf-8");
 	require_once("chinese_conversion/convert.php");
 	if(array_key_exists("date",$_GET)==false)
 	{
