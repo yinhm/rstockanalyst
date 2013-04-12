@@ -6,6 +6,8 @@
 	3 连接数据库失败
 	*/
 	//http://mhchina.a24.cc/api/v1/getstuff/
+	header("Cache-Control: no-cache, must-revalidate");
+	header("Pragma: no-cache");
 	header("Content-type: text/html; charset=utf-8");
 	require_once("chinese_conversion/convert.php");
 	$isjson = true;
