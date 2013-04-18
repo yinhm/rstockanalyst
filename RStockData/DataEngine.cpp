@@ -593,10 +593,10 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 int CDataEngine::exportCloseData()
 {
 	QString qsDir = QString("%1/data/5min").arg(qApp->applicationDirPath());
-	QDir::mkpath(qsDir);
+	QDir().mkpath(qsDir);
 	QMap<time_t,int> mapTimes = getTodayTimeMap(Min5);
 
-	QList<CStockInfoItem*> listStocks = CDataEngine::getStockInfoList();
+	QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
 	foreach(CStockInfoItem* pItem,listStocks)
 	{
 		//导出5分钟数据，对于非今日的数据只以5min为最小单位存储
