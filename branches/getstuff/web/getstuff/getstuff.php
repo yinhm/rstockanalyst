@@ -12,10 +12,15 @@
 	require_once("chinese_conversion/convert.php");
 	$isjson = true;
 	$errorcode = 1;
+	$mode="";
 	if(array_key_exists("type",$_GET))
 	{
 		if($_GET["type"]=="xml")
 			$isjson = false;
+	}
+	if(array_key_exists("mode",$_GET))
+	{
+		$mode = $_GET["mode"];
 	}
 	
 	if(array_key_exists("date",$_GET)==false)
@@ -189,9 +194,21 @@ END:
 		$ret = '<mass>'.htmlspecialchars($stuff_mass, ENT_QUOTES).'</mass><med>'.htmlspecialchars($stuff_med, ENT_QUOTES).'</med><comp>'
 		.htmlspecialchars($stuff_comp, ENT_QUOTES).'</comp><let>'.htmlspecialchars($stuff_let, ENT_QUOTES)
 		.'<let><lod>'.htmlspecialchars($stuff_lod, ENT_QUOTES).'</lod><thought>'.htmlspecialchars($stuff_thought, ENT_QUOTES).'</thought><ordo>'
-		.htmlspecialchars($stuff_ordo, ENT_QUOTES).'</ordo><ves>'.htmlspecialchars($stuff_ves, ENT_QUOTES).'</ves><saint>'.htmlspecialchars($stuff_saint, ENT_QUOTES).'</saint>';		
+		.htmlspecialchars($stuff_ordo, ENT_QUOTES).'</ordo><ves>'.htmlspecialchars($stuff_ves, ENT_QUOTES).'</ves><saint>'.htmlspecialchars($stuff_saint, ENT_QUOTES).'</saint>';
 	}
-	echo $ret;
+	if($mode!="")
+	{
+		$json = json_decode($ret,true);
+		echo'<head>
+		<meta name="viewport" content="user-scalable=no, width=device-width" />  
+		</head><html>';
+		echo $json[$mode];
+		echo "</html>";
+	}
+	else
+	{
+		echo $ret;
+	}
 	return;
 //	echo json_encode($retArray,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 ?>

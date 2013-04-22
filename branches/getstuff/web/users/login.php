@@ -17,6 +17,7 @@ if(!$conn)
 	$errorcode = 3;
 	die("connect db error!");
 }
+
 mysql_select_db("liyake",$conn);
 
 //检测用户名及密码是否正确
