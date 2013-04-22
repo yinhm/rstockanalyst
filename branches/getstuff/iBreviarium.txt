@@ -1,8 +1,0 @@
-祈祷意向：
-http://mhchina.a24.cc/media/prayers_mobile.html
-
-每日内容
-http://mhchina.a24.cc/api/v1/getstuff/
-
-每日颂赞
-http://mhchina.a24.cc/api/v1/popeintent/201304
