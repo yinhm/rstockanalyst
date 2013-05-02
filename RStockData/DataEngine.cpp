@@ -111,6 +111,72 @@ int getYearMapByHistory(QMap<time_t,int>& mapTimes,time_t& _tmBegin, time_t& _tm
 	return 1;
 }
 
+/*通过分钟数据获取指定周期内的数据*/
+RStockData* getColorBlockItemByMins(const QList<qRcvFenBiData*>& list, qRcvFenBiData* pLastFenbi)
+{
+	if(list.size()<1)
+		return NULL;
+
+	RStockData* pData = new RStockData;
+	//	qRcvFenBiData* pBegin = list.first();
+	qRcvFenBiData* pLast = list.last();
+	qRcvFenBiData* pFirst = list.first();
+	pData->tmTime = pFirst->tmTime;
+	pData->fOpen = pFirst->fPrice;
+	pData->fClose = pLast->fPrice;
+	pData->fHigh = pFirst->fPrice;
+	pData->fLow = pFirst->fPrice;
+
+	if(pLastFenbi)
+	{
+		pData->fAmount = pLast->fAmount-pLastFenbi->fAmount;
+		pData->fVolume = pLast->fVolume-pLastFenbi->fVolume;
+	}
+	else
+	{
+		pData->fAmount = pLast->fAmount;
+		pData->fVolume = pLast->fVolume;
+	}
+
+	foreach(qRcvFenBiData* p,list)
+	{
+		if(pData->fLow>p->fPrice)
+			pData->fLow = p->fPrice;
+		if(pData->fHigh<p->fPrice)
+			pData->fHigh = p->fPrice;
+	}
+	return pData;
+}
+
+/*通过多天数据获取一个周期内的数据*/
+RStockData* getColorBlockItemByDays(const QList<qRcvHistoryData*>& list)
+{
+	if(list.size()<1)
+		return NULL;
+	RStockData* pData = new RStockData();
+
+	qRcvHistoryData* pFirst = list.first();
+	qRcvHistoryData* pLast = list.last();
+	pData->tmTime = pFirst->time;
+	pData->fOpen = pFirst->fOpen;
+	pData->fClose = pLast->fClose;
+
+
+	pData->fLow = pFirst->fLow;
+	pData->fHigh = pFirst->fHigh;
+	pData->fAmount = 0;
+	pData->fVolume = 0;
+	foreach(qRcvHistoryData* p,list)
+	{
+		if(pData->fLow>p->fLow)
+			pData->fLow = p->fLow;
+		if(pData->fHigh<p->fHigh)
+			pData->fHigh = p->fHigh;
+		pData->fAmount+=p->fAmount;
+		pData->fVolume+=p->fVolume;
+	}
+	return pData;
+}
 
 CDataEngine* CDataEngine::m_pDataEngine = 0;
 
@@ -600,10 +666,115 @@ int CDataEngine::exportCloseData()
 	foreach(CStockInfoItem* pItem,listStocks)
 	{
 		//导出5分钟数据，对于非今日的数据只以5min为最小单位存储
-
-
-		//将今天的数据追加到日线数据中
+		//60*sizeof(RStockData)
+		int iSizeOfStruct = sizeof(RStockData);
+		int iSizeOfTime = sizeof(time_t);
+		int iCountOfDay = 60;			//规定每日最多为60个5分钟数据块
+		int iSizeOfDay = iSizeOfStruct*iCountOfDay;
+		int iTotalCount = 10;
+		int iOffsetBegin = 0;
 		qRcvReportData* pReport = pItem->getCurrentReport();
+		if(pReport->tmTime<1)
+			continue;
+
+		time_t tmDate = QDateTime(QDateTime::fromTime_t(pReport->tmTime).date()).toTime_t();
+
+
+		QString qsFileName = QString("%1/%2").arg(qsDir).arg(pItem->getCode());
+		QFile file(qsFileName);
+		if(!file.open(QFile::ReadWrite))
+		{
+			qDebug()<<"Open file\""<<qsFileName<<"\" error!";
+			return -1;
+		}
+
+		QDataStream out(&file);
+		int iHeaderSize = iTotalCount*iSizeOfTime;
+
+		//获取本日数据的存储位置
+		if(file.size()<iHeaderSize)
+		{
+			file.seek(0);
+			out.writeRawData((char*)&tmDate,iSizeOfTime);
+			for (int i=1;i<iTotalCount;++i)
+			{
+				out<<(time_t)0;
+			}
+			iOffsetBegin = iHeaderSize;
+		}
+		else
+		{
+			file.seek(0);
+			QMap<time_t,int> mapDates;
+			for (int i=0;i<iTotalCount;++i)
+			{
+				time_t tmpDate = 0;
+				out.readRawData((char*)(&tmpDate),iSizeOfTime);
+				if(tmpDate==0)
+					break;
+				mapDates[tmpDate] = i;
+			}
+
+			if(mapDates.contains(tmDate))
+			{
+				iOffsetBegin = iHeaderSize+mapDates[tmDate]*iSizeOfDay;
+			}
+			else
+			{
+				int iIndexOfLast = mapDates.value(mapDates.keys().last());
+				if(iIndexOfLast<0)
+				{
+					qDebug()<<"Can not export 5min data";
+					file.close();
+					return -1;
+				}
+				else
+				{
+					iIndexOfLast = (iIndexOfLast+1)%iTotalCount;
+					file.seek(iIndexOfLast*iSizeOfTime);
+					out.writeRawData((char*)&tmDate,iSizeOfTime);
+					iOffsetBegin = iHeaderSize+iIndexOfLast*iSizeOfDay;
+				}
+			}
+		}
+
+
+		file.seek(iOffsetBegin);
+		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
+		QMap<time_t,RStockData*>* pMap = CDataEngine::getColorBlockItems(mapTimes,FenBis);
+		if(!pMap)
+		{
+			qDebug()<<"Can not get 5min data";
+			file.close();
+			return -1;
+		}
+
+
+		QMap<time_t,RStockData*>::iterator iter = pMap->begin();
+		int iCount = 0;
+		while(iter!=pMap->end())
+		{
+			RStockData* pData = iter.value();
+			if(pData)
+			{
+				out.writeRawData((char*)pData,iSizeOfStruct);
+				delete pData;
+				++iCount;
+			}
+			++iter;
+		}
+		RStockData dataNull;
+		while(iCount<iCountOfDay)
+		{
+			out.writeRawData((char*)&dataNull,iSizeOfStruct);
+			++iCount;
+		}
+
+		delete pMap;
+		file.close();
+
+
+		//
 	}
 
 	return -1;
@@ -746,6 +917,195 @@ QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
 	}
 
 	return mapTimes;
+}
+
+QMap<time_t,RStockData*>* CDataEngine::getColorBlockItems( QMap<time_t,int>& mapTimes, const QList<qRcvFenBiData*>& minutes )
+{
+	QMap<time_t,RStockData*>* pMap = new QMap<time_t,RStockData*>();
+	if(mapTimes.size()<1)
+	{
+		return pMap;
+	}
+
+	QMap<time_t,int>::iterator iter = mapTimes.begin();
+
+	time_t tmBegin = iter.key();
+	if(mapTimes.size()<2)
+	{
+		QList<qRcvFenBiData*> listFenBi;
+		foreach(qRcvFenBiData* pFenBi,minutes)
+		{
+			if(pFenBi->tmTime>tmBegin)
+				listFenBi.push_back(pFenBi);
+		}
+		pMap->insert(tmBegin,getColorBlockItemByMins(listFenBi,NULL));
+		return pMap;
+	}
+
+	time_t tmEnd = (iter+1).key();
+
+	QList<qRcvFenBiData*> listPer;
+	qRcvFenBiData* pLastFenBi = NULL;
+	foreach(qRcvFenBiData* pFenBi,minutes)
+	{
+		if(pFenBi->tmTime<tmBegin)
+		{
+			pLastFenBi = pFenBi;
+			continue;
+		}
+		else if(pFenBi->tmTime>=tmBegin&&pFenBi->tmTime<=tmEnd)
+		{
+			listPer.push_back(pFenBi);
+		}
+		else
+		{
+			pMap->insert(tmBegin,getColorBlockItemByMins(listPer,pLastFenBi));
+			if(listPer.size()>0)
+				pLastFenBi = listPer.last();
+			listPer.clear();
+
+			++iter;
+			while (iter!=mapTimes.end())
+			{
+				tmBegin = iter.key();
+				if(iter!=mapTimes.end())
+					tmEnd = (iter+1).key();
+				else
+					tmEnd = tmBegin+3600*24*1000;		//加1000天的时间
+
+				if(pFenBi->tmTime>=tmBegin&&pFenBi->tmTime<=tmEnd)
+				{
+					listPer.push_back(pFenBi);
+					break;
+				}
+				else
+				{
+					pMap->insert(tmBegin,NULL);
+				}
+				++iter;
+			}
+
+			if(iter==mapTimes.end())
+				break;
+		}
+	}
+
+	//获取最后一个数据块，并进行计算
+	RStockData* pLastData = getColorBlockItemByMins(listPer,pLastFenBi);
+	while(iter!=mapTimes.end())
+	{
+		tmBegin = iter.key();
+		if(pLastData && pLastData->tmTime>=tmBegin)
+		{
+			pMap->insert(tmBegin,pLastData);
+			pLastData = NULL;
+		}
+		else
+		{
+			pMap->insert(tmBegin,NULL);
+		}
+		++iter;
+	}
+	delete pLastData;
+
+	if(pMap->size()!=mapTimes.size())
+	{
+		qDebug()<<"FenBi Map is not enouph";
+	}
+
+	return pMap;
+}
+
+QMap<time_t,RStockData*>* CDataEngine::getColorBlockItems( QMap<time_t,int>& mapTimes, const QList<qRcvHistoryData*>& minutes )
+{
+	QMap<time_t,RStockData*>* pMap = new QMap<time_t,RStockData*>();
+	if(mapTimes.size()<1)
+		return pMap;
+
+	QMap<time_t,int>::iterator iter = mapTimes.begin();
+
+	time_t tmBegin = iter.key();
+	if(mapTimes.size()<2)
+	{
+		QList<qRcvHistoryData*> listFenBi;
+		foreach(qRcvHistoryData* pFenBi,minutes)
+		{
+			if(pFenBi->time>tmBegin)
+				listFenBi.push_back(pFenBi);
+		}
+		pMap->insert(tmBegin,getColorBlockItemByDays(listFenBi));
+		return pMap;
+	}
+
+	time_t tmEnd = (iter+1).key();
+
+	QList<qRcvHistoryData*> listPer;
+	qRcvHistoryData* pLastFenBi = NULL;
+	foreach(qRcvHistoryData* pFenBi,minutes)
+	{
+		if(pFenBi->time<tmBegin)
+		{
+			pLastFenBi = pFenBi;
+			continue;
+		}
+		else if(pFenBi->time>=tmBegin&&pFenBi->time<=tmEnd)
+			listPer.push_back(pFenBi);
+		else
+		{
+			if(listPer.size()>0)
+				pLastFenBi = listPer.last();
+			pMap->insert(tmBegin,getColorBlockItemByDays(listPer));
+			listPer.clear();
+
+			++iter;
+			while (iter!=mapTimes.end())
+			{
+				tmBegin = iter.key();
+				if(iter!=mapTimes.end())
+					tmEnd = (iter+1).key();
+				else
+					tmEnd = tmBegin+3600*24*1000;		//加1000天的时间
+
+				if(pFenBi->time>=tmBegin&&pFenBi->time<=tmEnd)
+				{
+					listPer.push_back(pFenBi);
+					break;
+				}
+				else
+				{
+					pMap->insert(tmBegin,NULL);
+				}
+				++iter;
+			}
+
+			if(iter==mapTimes.end())
+				break;
+		}
+	}
+
+	//获取最后一个数据块，并进行计算
+	RStockData* pLastData = getColorBlockItemByDays(listPer);
+	while(iter!=mapTimes.end())
+	{
+		tmBegin = iter.key();
+		if(pLastData && pLastData->tmTime>=tmBegin)
+		{
+			pMap->insert(tmBegin,pLastData);
+			pLastData = NULL;
+		}
+		else
+		{
+			pMap->insert(tmBegin,NULL);
+		}
+		++iter;
+	}
+	delete pLastData;
+
+	if(pMap->size()!=mapTimes.size())
+	{
+		qDebug()<<"Day Map is not enouph";
+	}
+	return pMap;
 }
 
 

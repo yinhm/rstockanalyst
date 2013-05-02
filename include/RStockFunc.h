@@ -11,6 +11,7 @@ RStockAnalyst的扩展函数定义
 */
 
 
+#pragma   pack(push,1)					//设置内存对齐方式为 1字节
 // 分析周期
 enum RStockCircle			//分析周期
 {
@@ -150,5 +151,7 @@ typedef struct tagRDrawInfo
 		fMax = -1.0;
 	}
 } RDrawInfo;
+
+#pragma   pack(pop)					//去除内存对齐方式设置
 
 #endif	//_RSTOCK_FUNC_H_
