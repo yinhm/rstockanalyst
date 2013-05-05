@@ -15,6 +15,7 @@ RStockAnalyst的扩展函数定义
 // 分析周期
 enum RStockCircle			//分析周期
 {
+	AutoCircle = 0,			//自动模式
 	FenShi = 1,				//分时模式（直接连线）
 	Sec10 = 10,				//10秒
 	Sec30 = 30,				//30秒

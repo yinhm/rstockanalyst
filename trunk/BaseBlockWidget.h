@@ -15,11 +15,6 @@ class CBaseBlockWidget : public CCoordXBaseWidget
 {
 	Q_OBJECT
 public:
-	enum BlockMode
-	{
-		BlockCircle = 1,		//圆形
-		BlockRect,				//方块
-	};
 	enum RSortType
 	{
 		SortByCode = 1,		//按股票代码排序
@@ -55,13 +50,12 @@ protected:
 
 protected:
 	//绘制色块
-	void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue);
+	virtual void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue);
 
 protected slots:
 	void setColorMode(const QString& mode);					//设置颜色模式
 
 	void onSetColorMode();									//点击设置颜色模式
-	void onSetBlockMode();									//设置当前的显示模式
 	void onSetBlockSize();									//设置色块的大小
 
 	void onSetSortMode();									//菜单，设置当前的排序方式
@@ -71,12 +65,10 @@ protected:
 
 protected:
 	QMenu* m_pMenuColorMode;				//颜色模式菜单
-	QMenu* m_pMenuBlockMode;				//显示模式菜单
 	QMenu* m_pMenuSortMode;					//排序方式菜单
 
 	QString m_qsColorMode;					//当前颜色模式
 protected:
-	BlockMode m_typeBlock;					//block显示形状
 	int m_iCBHeight;						//单个色块的高度
 	int m_iCBWidth;							//单个色块的宽度
 

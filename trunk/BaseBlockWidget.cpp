@@ -16,9 +16,7 @@
 
 CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= CBaseWidget::Basic*/ )
 	: CCoordXBaseWidget(parent,type)
-	, m_typeBlock(BlockCircle)
 	, m_pMenuColorMode(0)
-	, m_pMenuBlockMode(0)
 	, m_iCBHeight(16)
 	, m_iCBWidth(16)
 	, m_qsColorMode("")
@@ -38,10 +36,6 @@ CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType typ
 	{
 		//颜色显示模式菜单
 		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色模式");
-		//设置显示方式（圆形/方块）
-		m_pMenuBlockMode = m_pMenuCustom->addMenu("设置显示形状");
-		m_pMenuBlockMode->addAction("圆形",this,SLOT(onSetBlockMode()))->setData(BlockCircle);
-		m_pMenuBlockMode->addAction("方形",this,SLOT(onSetBlockMode()))->setData(BlockRect);
 		//设置色块的大小
 		m_pMenuCustom->addAction(tr("设置色块大小"),this,SLOT(onSetBlockSize()));
 
@@ -86,14 +80,6 @@ bool CBaseBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	{
 		m_qsColorMode = eleColorMode.text();
 	}
-
-
-	//当前的显示形状模式
-	QDomElement eleBlockMode = eleWidget.firstChildElement("mode");
-	if(eleBlockMode.isElement())
-	{
-		m_typeBlock = static_cast<CBaseBlockWidget::BlockMode>(eleBlockMode.text().toInt());
-	}
 	
 	return true;
 }
@@ -110,11 +96,6 @@ bool CBaseBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	QDomElement eleColorMode = doc.createElement("color");
 	eleColorMode.appendChild(doc.createTextNode(m_qsColorMode));
 	eleWidget.appendChild(eleColorMode);
-
-	//当前的显示形状模式
-	QDomElement eleBlockMode = doc.createElement("mode");
-	eleBlockMode.appendChild(doc.createTextNode(QString("%1").arg(m_typeBlock)));
-	eleWidget.appendChild(eleBlockMode);
 
 	return true;
 }
@@ -146,14 +127,6 @@ void CBaseBlockWidget::onSetColorMode()
 {
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 	setColorMode(pAct->data().toString());
-}
-
-void CBaseBlockWidget::onSetBlockMode()
-{
-	//设置当前的显示周期
-	QAction* pAct = reinterpret_cast<QAction*>(sender());
-	m_typeBlock = static_cast<BlockMode>(pAct->data().toInt());
-	update();
 }
 
 void CBaseBlockWidget::onSetSortMode()
@@ -248,15 +221,6 @@ QMenu* CBaseBlockWidget::getCustomMenu()
 	}
 
 	{
-		//设置当前选中的色块形状
-		QList<QAction*> listAct = m_pMenuBlockMode->actions();
-		foreach(QAction* pAct,listAct)
-		{
-			pAct->setCheckable(true);
-			pAct->setChecked(pAct->data().toInt() == m_typeBlock);
-		}
-	}
-	{
 		//设置当前选中的排序方式
 		QList<QAction*> listAct = m_pMenuSortMode->actions();
 		foreach(QAction* pAct,listAct)
@@ -289,22 +253,8 @@ void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 		if(m_mapTimes.contains(iter.key()))
 		{
 			float f = vValue[iMapSize - m_mapTimes[iter.key()]];
-			switch(m_typeBlock)
-			{
-			case BlockRect:
-				{
-					rtCB.adjust(1,1,-1,-1);
-					p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*nTimes)));
-				}
-				break;
-			case BlockCircle:
-				{
-					QPainterPath path;
-					path.addEllipse(rtCB);
-					p.fillPath(path,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f)));
-				}
-				break;
-			}
+			rtCB.adjust(1,1,-1,-1);
+			p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*nTimes)));
 		}
 		++iter;
 	}
