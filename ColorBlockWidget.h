@@ -56,6 +56,9 @@ protected:
 	virtual void wheelEvent(QWheelEvent* e);				//鼠标中键滚动事件
 	virtual void keyPressEvent(QKeyEvent* e);				//键盘操作
 
+	//绘制色块
+	virtual void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue);
+
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
