@@ -477,11 +477,22 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	}
 
 	{
-		luaL_dostring(m_pL,"p1 = (CLOSE-REF(CLOSE,1))/CLOSE");
-//		luaL_dostring(m_pL,"p1 = CLOSE-REFX(CLOSE,1)");
-		QVector<float> _vv;
-		RLuaEx::LuaPopArray(m_pL,"p1",_vv);
-		drawColocBlock(p,rtCB.top(),_vv,_vv,_vv);
+		QVector<float> _vColor,_vHeight,_vWidth;
+
+		//获取颜色值
+		luaL_dostring(m_pL,"return (CLOSE-REF(CLOSE,1))/CLOSE");
+		RLuaEx::LuaRetArray(m_pL,_vColor);
+
+		//获取高度值
+		luaL_dostring(m_pL,"return (CLOSE-REF(CLOSE,1))/CLOSE");
+		RLuaEx::LuaRetArray(m_pL,_vHeight);
+
+		//获取宽度值
+		luaL_dostring(m_pL,"return (CLOSE-REF(CLOSE,1))/CLOSE");
+		RLuaEx::LuaRetArray(m_pL,_vWidth);
+
+		//绘制
+		drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
 	}
 }
 
@@ -644,13 +655,13 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 
 void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth )
 {
-	int nTimes = 1;
-	if(m_typeCircle<=Min60)
-		nTimes = 10;
-	else if(m_typeCircle<=Week)
-		nTimes = 1;
-	else
-		nTimes = 0.1;
+	float fTimes = 1;			//扩大或缩小倍数
+	if(m_typeCircle<=Min60)		//小于小时的周期则扩大十倍
+		fTimes = 10;
+	else if(m_typeCircle<=Week)	//正常周期
+		fTimes = 1;
+	else						//大于周线的缩小十倍
+		fTimes = static_cast<float>(0.1);
 
 	QMap<time_t,float>::iterator iter = m_mapShowTimes.begin();
 
@@ -660,9 +671,24 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 		QRectF rtCB = QRectF(iter.value(),iY,m_iCBWidth,m_iCBHeight);
 		if(m_mapTimes.contains(iter.key()))
 		{
-			float f = vColor[iMapSize - m_mapTimes[iter.key()]];
+			int iIndex = iMapSize - m_mapTimes[iter.key()];
+			float f = vColor[iIndex];
+			float fH = vHeight[iIndex]*fTimes;
+			float fW = vWidth[iIndex]*fTimes;
+			if(fH<0)
+				fH = 0;
+			else if(fH>1)
+				fH = 1;
+
+			if(fW<0)
+				fW = 0;
+			else if(fW>1)
+				fW = 1;
+
 			rtCB.adjust(1,1,-1,-1);
-			p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*nTimes)));
+			rtCB.setHeight(rtCB.height()*fH);
+			rtCB.setWidth(rtCB.width()*fW);
+			p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*fTimes)));
 		}
 		++iter;
 	}
