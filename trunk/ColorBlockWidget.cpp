@@ -481,7 +481,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 //		luaL_dostring(m_pL,"p1 = CLOSE-REFX(CLOSE,1)");
 		QVector<float> _vv;
 		RLuaEx::LuaPopArray(m_pL,"p1",_vv);
-		drawColocBlock(p,rtCB.top(),_vv);
+		drawColocBlock(p,rtCB.top(),_vv,_vv,_vv);
 	}
 }
 
@@ -640,6 +640,33 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 	}
 
 	return CBaseWidget::keyPressEvent(e);
+}
+
+void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth )
+{
+	int nTimes = 1;
+	if(m_typeCircle<=Min60)
+		nTimes = 10;
+	else if(m_typeCircle<=Week)
+		nTimes = 1;
+	else
+		nTimes = 0.1;
+
+	QMap<time_t,float>::iterator iter = m_mapShowTimes.begin();
+
+	int iMapSize = m_mapTimes.size()-1;
+	while(iter!=m_mapShowTimes.end())
+	{
+		QRectF rtCB = QRectF(iter.value(),iY,m_iCBWidth,m_iCBHeight);
+		if(m_mapTimes.contains(iter.key()))
+		{
+			float f = vColor[iMapSize - m_mapTimes[iter.key()]];
+			rtCB.adjust(1,1,-1,-1);
+			p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*nTimes)));
+		}
+		++iter;
+	}
+	return;
 }
 
 QMenu* CColorBlockWidget::getCustomMenu()
