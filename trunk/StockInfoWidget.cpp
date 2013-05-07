@@ -405,6 +405,22 @@ void CStockInfoWidget::paintEvent( QPaintEvent* )
 	}
 }
 
+void CStockInfoWidget::keyPressEvent( QKeyEvent* e )
+{
+	int iKey = e->key();
+	if(Qt::Key_F10 == iKey)
+	{
+		//F10数据
+		if(m_pStockItem)
+		{
+			if(!CDataEngine::getDataEngine()->showF10Data(m_pStockItem->getCode()))
+			{
+				//未打开F10数据 do something
+			}
+		}
+	}
+}
+
 QMenu* CStockInfoWidget::getCustomMenu()
 {
 	QAction* pAction = m_pMenu->menuAction();

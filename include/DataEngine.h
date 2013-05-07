@@ -78,6 +78,8 @@ public:
 	void appendNews(const QString& title, const QString& content);		//添加新闻
 	//F10数据
 	void appendF10(const QString& title, const QString& content);		//添加F10数据
+	//显示F10数据
+	bool showF10Data(const QString& code);
 
 	//获取基本行情数据
 	QList<CStockInfoItem*> getStockInfoList();

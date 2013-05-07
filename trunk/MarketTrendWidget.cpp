@@ -412,17 +412,18 @@ void CMarketTrendWidget::wheelEvent( QWheelEvent* e )
 
 void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 {
-	if(Qt::Key_Left == e->key())
+	int iKey = e->key();
+	if(Qt::Key_Left == iKey)
 	{
 		e->accept();
 		return offsetShowHeaderIndex(-1);
 	}
-	else if(Qt::Key_Right == e->key())
+	else if(Qt::Key_Right == iKey)
 	{
 		e->accept();
 		return offsetShowHeaderIndex(1);
 	}
-	else if(Qt::Key_Down == e->key())
+	else if(Qt::Key_Down == iKey)
 	{
 		int iCurIndex = m_mapStockIndex[m_pSelectedStock];
 		if(m_listStocks.size()>(iCurIndex+1))
@@ -441,7 +442,7 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 		}
 		e->accept();
 	}
-	else if(Qt::Key_Up == e->key())
+	else if(Qt::Key_Up == iKey)
 	{
 		int iCurIndex = m_mapStockIndex[m_pSelectedStock];
 		if(iCurIndex>0)
@@ -457,7 +458,7 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 		}
 		e->accept();
 	}
-	else if(Qt::Key_PageDown == e->key())
+	else if(Qt::Key_PageDown == iKey)
 	{
 		int iShowCount = m_rtClient.height()/m_iStockHeight;
 		if(iShowCount<1)
@@ -469,7 +470,7 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 		}
 		e->accept();
 	}
-	else if(Qt::Key_PageUp == e->key())
+	else if(Qt::Key_PageUp == iKey)
 	{
 		int iShowCount = m_rtClient.height()/m_iStockHeight;
 		if(iShowCount<1)
@@ -478,6 +479,17 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 		update(m_rtClient);
 
 		e->accept();
+	}
+	else if(Qt::Key_F10 == iKey)
+	{
+		//F10数据
+		if(m_pSelectedStock)
+		{
+			if(!CDataEngine::getDataEngine()->showF10Data(m_pSelectedStock->getCode()))
+			{
+				//未打开F10数据 do something
+			}
+		}
 	}
 	else
 	{

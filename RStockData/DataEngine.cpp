@@ -1243,6 +1243,16 @@ void CDataEngine::appendF10( const QString& title, const QString& content )
 	file.close();
 }
 
+bool CDataEngine::showF10Data( const QString& code )
+{
+	/*ÏÔÊ¾F10Êý¾Ý*/
+	QString qsF10Path = QString("%1%2.txt").arg(m_qsF10Dir).arg(code);
+	if(QFile::exists(qsF10Path))
+	{
+		return QProcess::startDetached("notepad.exe",QStringList()<<qsF10Path);
+	}
+	return false;
+}
 
 QList<CStockInfoItem*> CDataEngine::getStockInfoList()
 {
@@ -1408,3 +1418,4 @@ bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, con
 	file.close();
 	return true;
 }
+
