@@ -42,6 +42,7 @@ public slots:
 
 protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
+	void onSetExpression();									//设置当前显示的表达式
 	void updateColorBlockData();							//更新当前需要显示的数据
 	void updateShowMap();									//更新要显示的数据，不删除之前的
 
@@ -98,6 +99,10 @@ private:
 	QRect m_rtBottom;						//底部区域，用于鼠标操作等信息
 
 	QTimer m_timerUpdateUI;					//界面更新的timer
+
+	QString m_qsExpColor;					//颜色表达式
+	QString m_qsExpHeight;					//高度表达式
+	QString m_qsExpWidth;					//宽度表达式
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H

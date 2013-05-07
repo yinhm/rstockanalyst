@@ -32,7 +32,14 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, showStockIndex(0)
 	, m_pSelectedStock(0)
 	, m_pBlock(0)
+	, m_qsExpColor("(CLOSE-REF(CLOSE,1))/CLOSE")
+	, m_qsExpHeight("CLOSE")
+	, m_qsExpWidth("CLOSE")
 {
+	//设置当前的表达式
+	m_pMenuCustom->addAction(tr("设置当前的表达式"),
+		this,SLOT(onSetExpression()));
+
 	//设置当前显示的板块
 	m_pMenuBlockList = m_pMenuCustom->addMenu(tr("设置当前板块"));
 
@@ -58,6 +65,21 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 		setBlock(eleBlock.text());
 	}
 
+	//当前的表达式
+	QDomElement eleExps = eleWidget.firstChildElement("exps");
+	if(eleExps.isElement())
+	{
+		//子节点
+		QDomElement eleColor = eleExps.firstChildElement("color");
+		if(eleColor.isElement())
+			m_qsExpColor = eleColor.text();
+		QDomElement eleHeight = eleExps.firstChildElement("height");
+		if(eleHeight.isElement())
+			m_qsExpHeight = eleHeight.text();
+		QDomElement eleWidth = eleExps.firstChildElement("width");
+		if(eleWidth.isElement())
+			m_qsExpWidth = eleWidth.text();
+	}
 	return true;
 }
 
@@ -70,6 +92,23 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	QDomElement eleBlock = doc.createElement("block");
 	eleBlock.appendChild(doc.createTextNode(m_pBlock->getBlockName()));
 	eleWidget.appendChild(eleBlock);
+
+
+	//当前的表达式
+	QDomElement eleExps = doc.createElement("exps");
+	{
+		//子节点
+		QDomElement eleColor = doc.createElement("color");
+		QDomElement eleHeight = doc.createElement("height");
+		QDomElement eleWidth = doc.createElement("width");
+		eleColor.appendChild(doc.createTextNode(m_qsExpColor));
+		eleHeight.appendChild(doc.createTextNode(m_qsExpHeight));
+		eleWidth.appendChild(doc.createTextNode(m_qsExpWidth));
+		eleExps.appendChild(eleColor);
+		eleExps.appendChild(eleHeight);
+		eleExps.appendChild(eleWidth);
+	}
+	eleWidget.appendChild(eleExps);
 
 	return true;
 }
@@ -144,6 +183,42 @@ void CColorBlockWidget::onSetCurrentBlock()
 {
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 	setBlock(pAct->data().toString());
+}
+
+void CColorBlockWidget::onSetExpression()
+{
+	//弹出设置色块大小的对话框，用来设置色块的大小
+	QDialog dlg(this);
+	QGridLayout layout(&dlg);
+	QLabel label1(tr("颜色"),&dlg);
+	QLabel label2(tr("高度"),&dlg);
+	QLabel label3(tr("宽度"),&dlg);
+	QLineEdit editC(&dlg);
+	QLineEdit editH(&dlg);
+	QLineEdit editW(&dlg);
+	QPushButton btnOk(&dlg);
+	dlg.setLayout(&layout);
+	layout.addWidget(&label1,0,0,1,1);
+	layout.addWidget(&label2,1,0,1,1);
+	layout.addWidget(&label3,2,0,1,1);
+	layout.addWidget(&editC,0,1,1,1);
+	layout.addWidget(&editH,1,1,1,1);
+	layout.addWidget(&editW,2,1,1,1);
+	layout.addWidget(&btnOk,3,0,1,2);
+	btnOk.setText(tr("确定"));
+	editC.setText(m_qsExpColor);
+	editH.setText(m_qsExpHeight);
+	editW.setText(m_qsExpWidth);
+
+	dlg.setWindowTitle(tr("表达式设置"));
+
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	m_qsExpColor = editC.text().trimmed();
+	m_qsExpHeight = editH.text().trimmed();
+	m_qsExpWidth = editW.text().trimmed();
 }
 
 void CColorBlockWidget::updateColorBlockData()
@@ -480,15 +555,15 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		QVector<float> _vColor,_vHeight,_vWidth;
 
 		//获取颜色值
-		luaL_dostring(m_pL,"return (CLOSE-REF(CLOSE,1))/CLOSE");
+		luaL_dostring(m_pL,QString("return %1").arg(m_qsExpColor).toStdString().c_str());
 		RLuaEx::LuaRetArray(m_pL,_vColor);
 
 		//获取高度值
-		luaL_dostring(m_pL,"return (CLOSE-REF(CLOSE,1))/CLOSE");
+		luaL_dostring(m_pL,QString("return %1").arg(m_qsExpHeight).toStdString().c_str());
 		RLuaEx::LuaRetArray(m_pL,_vHeight);
 
 		//获取宽度值
-		luaL_dostring(m_pL,"return (CLOSE-REF(CLOSE,1))/CLOSE");
+		luaL_dostring(m_pL,QString("return %1").arg(m_qsExpWidth).toStdString().c_str());
 		RLuaEx::LuaRetArray(m_pL,_vWidth);
 
 		//绘制
@@ -672,9 +747,9 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 		if(m_mapTimes.contains(iter.key()))
 		{
 			int iIndex = iMapSize - m_mapTimes[iter.key()];
-			float f = vColor[iIndex];
-			float fH = vHeight[iIndex]*fTimes;
-			float fW = vWidth[iIndex]*fTimes;
+			float f = vColor.size()>iIndex ? vColor[iIndex] : 1;
+			float fH = vHeight.size()>iIndex ? vHeight[iIndex]*fTimes : 1;
+			float fW = vWidth.size()> iIndex ? vWidth[iIndex]*fTimes : 1;
 			if(fH<0)
 				fH = 0;
 			else if(fH>1)
