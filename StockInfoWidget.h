@@ -37,6 +37,7 @@ protected:
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
+	virtual void keyPressEvent(QKeyEvent* e);				//键盘操作
 
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
