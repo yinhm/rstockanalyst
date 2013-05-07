@@ -8,7 +8,7 @@
 
 
 //计算分时数据的横坐标时间
-int getTimeMapByMin(QMap<time_t,int>& mapTimes,time_t& tmBegin, time_t& tmEnd, int iSize = 60/*second*/)
+int getTimeMapBySec(QMap<time_t,int>& mapTimes,const time_t& tmBegin, const time_t& tmEnd, int iSize = 60/*second*/)
 {
 	if(tmBegin>tmEnd)
 		return 0;
@@ -851,7 +851,83 @@ QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
 {
 //	int iCount = 1024;				//计算1024个时间
 	QMap<time_t,int> mapTimes;
-	if(_c<Day)
+	if(AutoCircle == _c)
+	{
+		/*
+		2分钟的10s周期（6*2=12）
+		10分钟的1m周期（10）
+		其余为5m周期
+		*/
+		time_t tmCur = CDataEngine::getCurrentTime();
+		time_t tmLast = ((tmCur/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
+		time_t tmCurrent = (tmCur+Sec10)/Sec10*Sec10;//向上对分钟取整
+		time_t tmNoon1 = ((tmCur/(3600*24))*3600*24)+3600*(11-8)+60*30;
+		time_t tmNoon2 = ((tmCur/(3600*24))*3600*24)+3600*(13-8);
+
+		if((tmCurrent%(3600*24))>3600*7)
+		{
+			tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7 + Sec10;		//3点收盘(多加一个周期)
+		}
+
+		/*需向上和向下多计算一个周期*/
+		if(tmCurrent>tmNoon2)
+		{
+			time_t tmTmp = tmCurrent;
+			if((tmTmp-tmNoon2)>=120)
+			{
+				//10s数据
+				getTimeMapBySec(mapTimes,tmTmp-120,tmTmp,Sec10);
+				tmTmp = tmTmp - 120;
+				if((tmTmp-tmNoon2)>=600)
+				{
+					//1min数据
+					getTimeMapBySec(mapTimes,tmTmp-600,tmTmp,Min1);
+					tmTmp = tmTmp - 600;
+					//5min数据
+					getTimeMapBySec(mapTimes,tmNoon2-Min5,tmTmp,Min5);
+					getTimeMapBySec(mapTimes,tmLast-Min5,tmNoon1+Min5,Min5);
+				}
+				else
+				{
+					//1min数据
+					getTimeMapBySec(mapTimes,tmNoon2-Min1,tmTmp,Min1);
+					//5min数据
+					getTimeMapBySec(mapTimes,tmLast-Min5,tmNoon1+Min5,Min5);
+				}
+			}
+			else
+			{
+				//10s数据
+				getTimeMapBySec(mapTimes,tmNoon2-Sec10,tmTmp,Sec10);
+				//1min数据
+				getTimeMapBySec(mapTimes,tmNoon1-540,tmNoon1+Min1,Min1);
+				//5min数据
+				getTimeMapBySec(mapTimes,tmLast-Min5,tmNoon1-540,Min5);
+
+			}
+		}
+		else
+		{
+			time_t tmTmp = tmCurrent;
+			if(tmCurrent>tmNoon1)
+				tmTmp = tmNoon1+Sec10;
+			//10s数据
+			if((tmTmp-tmLast)>120)
+				getTimeMapBySec(mapTimes,tmTmp-120,tmTmp,Sec10);
+			else
+				getTimeMapBySec(mapTimes,tmLast,tmTmp,Sec10);
+			tmTmp = tmTmp-120;
+			//1min数据
+			if((tmTmp-tmLast)>600)
+				getTimeMapBySec(mapTimes,tmTmp-600,tmTmp,Min1);
+			else
+				getTimeMapBySec(mapTimes,tmLast,tmTmp,Min1);
+			tmTmp = tmTmp-600;
+			//5min数据
+			getTimeMapBySec(mapTimes,tmLast,tmTmp,Min5);
+		}
+	}
+	else if(_c<Day)
 	{
 		time_t tmCur = CDataEngine::getCurrentTime();
 		time_t tmLast = ((tmCur/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
@@ -869,20 +945,20 @@ QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
 		{
 			time_t tmBegin = tmNoon2-_c;
 			//time_t tmEnd = tmCurrent+m_typeCircle*2;
-			getTimeMapByMin(mapTimes,tmBegin,tmCurrent,_c);
+			getTimeMapBySec(mapTimes,tmBegin,tmCurrent,_c);
 		}
 
 		if(tmCurrent>tmNoon1)
 		{
 			time_t tmBegin = tmLast-_c;
 			time_t tmEnd = tmNoon1+_c;
-			getTimeMapByMin(mapTimes,tmBegin,tmEnd,_c);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,_c);
 		}
 		else if(tmCurrent>tmLast)
 		{
 			time_t tmBegin = tmLast-_c;
 			time_t tmEnd = tmCurrent;
-			getTimeMapByMin(mapTimes,tmBegin,tmEnd,_c);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,_c);
 		}
 	}
 	else

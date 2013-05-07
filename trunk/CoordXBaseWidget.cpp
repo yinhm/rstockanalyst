@@ -31,6 +31,7 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 	}
 	{
 		//初始化显示周期的快速查找表
+		m_listCircle.push_back(RWidgetOpData(AutoCircle,".auto","自动分时图"));
 		m_listCircle.push_back(RWidgetOpData(Sec10,".m10","10秒分时图"));
 		m_listCircle.push_back(RWidgetOpData(Sec30,".m30","30秒分时图"));
 		m_listCircle.push_back(RWidgetOpData(Min1,".f1","1分钟分时图"));
