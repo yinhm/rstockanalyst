@@ -299,7 +299,11 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 		QString qsTime;
 		if(m_typeCircle<Day)
 		{
-			qsTime = QDateTime::fromTime_t(pData->tmTime).toString("hh:mm:ss");
+			time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
+			if(pData->tmTime>tmToday)
+				qsTime = QDateTime::fromTime_t(pData->tmTime).toString("hh:mm:ss");
+			else
+				qsTime = QDateTime::fromTime_t(pData->tmTime).toString("MM/dd hh:mm");
 		}
 		else
 		{
@@ -667,17 +671,20 @@ void CKLineWidget::resetTmpData()
 		}
 	}
 	{
-		time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
-		//过去5分钟数据
-		QList<RStockData*> listData = m_pStockItem->get5MinList();
-		int iCount = listData.count();
-		for(int i=(iCount-1);i>=0;--i)
+		if(m_typeCircle<Day)
 		{
-			RStockData* _p = listData[i];
-			if(_p->tmTime<tmToday)
+			time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
+			//过去5分钟数据
+			QList<RStockData*> listData = m_pStockItem->get5MinList();
+			int iCount = listData.count();
+			for(int i=(iCount-1);i>=0;--i)
 			{
-				m_mapData->insert(_p->tmTime,_p);
-				m_mapTimes.insert(_p->tmTime,m_mapTimes.size());
+				RStockData* _p = listData[i];
+				if(_p->tmTime<tmToday)
+				{
+					m_mapData->insert(_p->tmTime,_p);
+					m_mapTimes.insert(_p->tmTime,m_mapTimes.size());
+				}
 			}
 		}
 	}
