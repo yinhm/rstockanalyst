@@ -58,9 +58,9 @@ public:
 
 	static QMap<time_t,int> getTodayTimeMap(RStockCircle _c);	//获取当天的时间轴
 	/*将分笔数据按照时间轴排序*/
-	static QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const QList<qRcvFenBiData*>& minutes);
+	static QMap<time_t,RStockData*>* getColorBlockItems(const QMap<time_t,int>& mapTimes, const QList<qRcvFenBiData*>& minutes);
 	/*将日线按照时间轴排序*/
-	static QMap<time_t,RStockData*>* getColorBlockItems(QMap<time_t,int>& mapTimes, const QList<qRcvHistoryData*>& minutes);
+	static QMap<time_t,RStockData*>* getColorBlockItems(const QMap<time_t,int>& mapTimes, const QList<qRcvHistoryData*>& minutes);
 
 public:
 	QString getStockBlockDir() const{ return m_qsBlocksDir; }
@@ -94,6 +94,12 @@ public:
 	/*获取某只股票最近count条的日线数据*/
 	QList<qRcvHistoryData*> getHistoryList(const QString& code, int count);
 
+	/*导出收盘后当天5分钟数据*/
+	bool export5MinData(const QString& qsCode, const QMap<time_t,int>& mapTimes);
+	/*获取5分钟数据*/
+	QMap<time_t,RStockData*>* get5MinData(const QString& qsCode);
+
+
 	/*导出分笔数据*/
 	bool exportFenBiData(const QString& qsCode, const long& lDate, const QList<qRcvFenBiData*>& list);
 
@@ -110,6 +116,7 @@ private:
 	QString m_qsCommonBlocks;					//常用板块列表配置文件的存储路径 AppDir/data/CommonBlocks.xml
 	QString m_qsNewsDir;						//新闻数据的存储路径 AppDir/data/news/...
 	QString m_qsF10Dir;							//F10数据的存储路径 AppDir/data/F10/...
+	QString m_qs5Min;							//5分钟数据的存储路径 AppDir/data/5Min/...
 	QString m_qsFenBiDir;						//分笔数据的存储路径 AppDir/data/FenBi/Date/...
 };
 
