@@ -553,7 +553,9 @@ void CKLineWidget::onSetSizes()
 void CKLineWidget::setShowCount(int _iShow)
 {
 	if(_iShow>m_mapData->size())
+	{
 		m_iShowCount = m_mapData->size();
+	}
 	else if(_iShow<1)
 		m_iShowCount = 1;
 	else
@@ -621,12 +623,14 @@ void CKLineWidget::clearTmpData()
 {
 	//foreach(stLinerItem* p,listItems)
 	//	delete p;
+	time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
 	if(m_mapData)
 	{
 		QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
 		while(iter!=m_mapData->end())
 		{
-			delete iter.value();
+			if((*iter)->tmTime>tmToday)
+				delete iter.value();
 			++iter;
 		}
 		m_mapData->clear();
@@ -643,28 +647,45 @@ void CKLineWidget::resetTmpData()
 
 	m_mapData = getColorBlockMap(m_pStockItem);
 
-	//去除空值
-	QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
-	while(iter != m_mapData->end())
 	{
-		time_t tmRemove = 0;
-		if(iter.value()==NULL)
+		//对于K线图需去除空值
+		QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+		while(iter != m_mapData->end())
 		{
-			tmRemove = iter.key();
-		}
-		++iter;
+			time_t tmRemove = 0;
+			if(iter.value()==NULL)
+			{
+				tmRemove = iter.key();
+			}
+			++iter;
 
-		if(tmRemove!=0)
-		{
-			m_mapData->remove(tmRemove);
-			m_mapTimes.remove(tmRemove);
+			if(tmRemove!=0)
+			{
+				m_mapData->remove(tmRemove);
+				m_mapTimes.remove(tmRemove);
+			}
 		}
 	}
+	{
+		time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
+		//过去5分钟数据
+		QList<RStockData*> listData = m_pStockItem->get5MinList();
+		int iCount = listData.count();
+		for(int i=(iCount-1);i>=0;--i)
+		{
+			RStockData* _p = listData[i];
+			if(_p->tmTime<tmToday)
+			{
+				m_mapData->insert(_p->tmTime,_p);
+				m_mapTimes.insert(_p->tmTime,m_mapTimes.size());
+			}
+		}
+	}
+
 	if(m_mapData->size()!=m_mapTimes.size())
 	{
 		qDebug()<<"Something wrong in 'CKLineWidget::resetTmpData()'!";
 	}
-	
 	QTime tmNow = QTime::currentTime();
 	/*将更新后的数据设置到脚本引擎中*/
 	{
