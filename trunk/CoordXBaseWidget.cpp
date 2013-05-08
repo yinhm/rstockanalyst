@@ -139,21 +139,41 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 	int iCount = listTimes.size()-1;
 
 	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
-	while(fCurX>fEndX && iCount>=0)
+	if(m_typeCircle<Day)
 	{
-		if(m_typeCircle<Day)
+		time_t tmCurDate = QDateTime(QDateTime::fromTime_t(listTimes[iCount]).date()).toTime_t();
+		while(fCurX>fEndX && iCount>=0)
 		{
-			if((fLastX-fCurX)>30)
+			time_t tmTime = listTimes[iCount];
+			if(tmTime<tmCurDate)
+			{
+				p.setPen(QColor(255,255,255));
+				p.fillRect(fLastX-14,rtCoordX.top(),30,rtCoordX.height(),QColor(0,0,0));
+				p.drawLine(fCurX+fItemWidth,rtCoordX.top(),fCurX+fItemWidth,rtCoordX.top()+2);
+				p.drawText(fCurX+fItemWidth-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+					Qt::AlignCenter,QDateTime::fromTime_t(tmCurDate).toString("MM/dd"));
+
+				tmCurDate = QDateTime(QDateTime::fromTime_t(tmTime).date()).toTime_t();
+				fLastX = fCurX;
+				++iTimeCount;
+			}
+			else if((fLastX-fCurX)>30)
 			{
 				p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
 				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
 				p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
-					Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("hh:mm"));
+					Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
 				fLastX = fCurX;
 				++iTimeCount;
 			}
+
+			--iCount;
+			fCurX = fCurX- fItemWidth;
 		}
-		else
+	}
+	else
+	{
+		while(fCurX>fEndX && iCount>=0)
 		{
 			if((fLastX-fCurX)>80)
 			{
@@ -197,10 +217,10 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 				fLastX = fCurX;
 				++iTimeCount;
 			}
-		}
 
-		--iCount;
-		fCurX = fCurX- fItemWidth;
+			--iCount;
+			fCurX = fCurX- fItemWidth;
+		}
 	}
 	return;
 }
