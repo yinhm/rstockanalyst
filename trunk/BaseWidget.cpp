@@ -302,6 +302,11 @@ void CBaseWidget::setBlock( const QString& block )
 	}
 }
 
+void CBaseWidget::onBlockClicked( CBlockInfoItem* pBlock,int iCmd )
+{
+
+}
+
 void CBaseWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);

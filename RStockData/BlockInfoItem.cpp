@@ -110,6 +110,11 @@ QList<CBlockInfoItem*> CBlockInfoItem::getBlockList()
 	return blocksInBlock.values();
 }
 
+bool CBlockInfoItem::hasBlocks()
+{
+	return blocksInBlock.size()>0 ? true : false;
+}
+
 bool CBlockInfoItem::appendStocks( QList<CStockInfoItem*> list )
 {
 	QStringList listCodes;
