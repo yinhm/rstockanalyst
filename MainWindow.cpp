@@ -21,6 +21,8 @@ CMainWindow* CMainWindow::getMainWindow()
 
 CMainWindow::CMainWindow()
 	: QMainWindow()
+	, m_pBlockMenuWidget(0)
+	, m_iBlockMenuCmd(0)
 {
 	setWindowIcon(QIcon(":/res/icon.png"));
 	m_pTabWidget = new QTabWidget();
@@ -444,4 +446,59 @@ CBaseWidget* CMainWindow::getSubWindows( const QString& title )
 	}
 
 	return 0;
+}
+
+void CMainWindow::initBlockMenus()
+{
+	m_menuBlocks.setTitle("°å¿é²Ëµ¥");
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	foreach(CBlockInfoItem* _block,listBlocks)
+	{
+		QAction* pActBlock = 0;
+		if(_block->hasBlocks())
+		{
+			QMenu* pMenuBlock = new QMenu(_block->getBlockName());
+			pActBlock = m_menuBlocks.addMenu(pMenuBlock);
+			CreateSubBlockMenu(pMenuBlock,_block);
+		}
+		else
+		{
+			pActBlock = m_menuBlocks.addAction(_block->getBlockName());
+		}
+		pActBlock->setData((uint)_block);
+		connect(pActBlock,SIGNAL(triggered()),this,SLOT(onBlockActClicked()));
+		mapBlockMenus[_block] = pActBlock;
+	}
+}
+
+void CMainWindow::onBlockActClicked()
+{
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	CBlockInfoItem* pBlock = reinterpret_cast<CBlockInfoItem*>(pAct->data().toUInt());
+	if(m_pBlockMenuWidget)
+	{
+		m_pBlockMenuWidget->onBlockClicked(pBlock,m_iBlockMenuCmd);
+	}
+}
+
+void CMainWindow::CreateSubBlockMenu( QMenu* pMenuParent,CBlockInfoItem* pBlockParent )
+{
+	QList<CBlockInfoItem*> listBlocks = pBlockParent->getBlockList();
+	foreach(CBlockInfoItem* _block,listBlocks)
+	{
+		QAction* pActBlock = 0;
+		if(_block->hasBlocks())
+		{
+			QMenu* pMenuBlock = new QMenu(_block->getBlockName());
+			pActBlock = pMenuParent->addMenu(pMenuBlock);
+			CreateSubBlockMenu(pMenuBlock,_block);
+		}
+		else
+		{
+			pActBlock = pMenuParent->addAction(_block->getBlockName());
+		}
+		pActBlock->setData((uint)_block);
+		connect(pActBlock,SIGNAL(triggered()),this,SLOT(onBlockActClicked()));
+		mapBlockMenus[_block] = pActBlock;
+	}
 }

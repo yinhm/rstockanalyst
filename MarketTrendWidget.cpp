@@ -6,6 +6,7 @@
 
 #define	GetColorByFloat(x)	(((x)==0.0) ? QColor(191,191,191) : (((x)>0.0) ? QColor(255,80,80) : QColor(0,255,255)))
 
+#define BLOCK_CMD_SHOW	1
 
 CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,WidgetMarketTrend)
@@ -508,6 +509,7 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 		m_pMenuCustom->addMenu(m_pMenu);
 
 	m_pMenuToBlock->clear();
+
 	QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getStockBlocks();
 	foreach(CBlockInfoItem* block,list)
 	{
@@ -518,6 +520,9 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 	}
 	m_pMenuToBlock->addSeparator();
 	m_pMenuToBlock->addAction(tr("ÐÂ½¨°å¿é"),this,SLOT(onAddToNewBlock()));
+
+	QMenu* pBlockMenu = CMainWindow::getMainWindow()->getBlockMenu(this,BLOCK_CMD_SHOW);
+	m_pMenuCustom->addMenu(pBlockMenu);
 
 	return m_pMenuCustom;
 }
@@ -1084,4 +1089,14 @@ void CMarketTrendWidget::keyWizEntered( KeyWizData* pData )
 	}
 
 	return CBaseWidget::keyWizEntered(pData);
+}
+
+void CMarketTrendWidget::onBlockClicked( CBlockInfoItem* pBlock,int iCmd )
+{
+	if(!pBlock)
+		return;
+	if(iCmd == BLOCK_CMD_SHOW)
+	{
+		clickedBlock(pBlock);
+	}
 }

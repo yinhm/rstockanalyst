@@ -9,6 +9,7 @@
 #include <QtGui>
 #include <QtXml>
 #include "RStockFunc.h"
+#include "BlockInfoItem.h"
 
 typedef struct tagKeyWizData
 {
@@ -95,6 +96,11 @@ public slots:
 		虚函数，派生类中需重载此函数以进行相应操作
 	*/
 	virtual void setBlock(const QString& block);
+
+	/*
+		虚函数，派生类中需重载此函数以进行相应操作
+	*/
+	virtual void onBlockClicked(CBlockInfoItem* pBlock,int iCmd);
 
 protected slots:
 	/*右键菜单操作*/

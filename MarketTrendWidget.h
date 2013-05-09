@@ -61,6 +61,8 @@ protected:
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
+	virtual void onBlockClicked(CBlockInfoItem* pBlock,int iCmd);
+
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
 	QMenu* m_pMenuToBlock;					//添加到板块的菜单

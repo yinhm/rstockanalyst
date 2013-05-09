@@ -109,6 +109,7 @@ int main(int argc, char *argv[])
 
 	//初始化主窗口
 	CMainWindow::getMainWindow()->initTemplates();	//初始化模板
+	CMainWindow::getMainWindow()->initBlockMenus();	//初始化板块菜单
 
 	splash.showMessage(QObject::tr("正在启动..."),99);
 	CMainWindow::getMainWindow()->showMaximized();
