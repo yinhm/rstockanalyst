@@ -21,6 +21,7 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pSelectedStock(0)
 	, m_iSortColumn(0)
 	, m_sortOrder(Qt::AscendingOrder)
+	, m_pSelectedBlock(0)
 {
 	m_listHeader << tr("索引") << tr("代码") << tr("名称")
 		<< tr("涨幅") << tr("量比") << tr("换手率（仓差）") << tr("前收") << tr("今开")
@@ -66,7 +67,7 @@ bool CMarketTrendWidget::loadPanelInfo( const QDomElement& eleWidget )
 	QDomElement eleBlock = eleWidget.firstChildElement("block");
 	if(eleBlock.isElement())
 	{
-		clickedBlock(eleBlock.text());
+		clickedBlock(CDataEngine::getDataEngine()->getStockBlock(eleBlock.text()));
 	}
 
 	//设置当前选中的股票
@@ -87,9 +88,12 @@ bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 		return false;
 
 	//当前的板块名称
-	QDomElement eleBlock = doc.createElement("block");
-	eleBlock.appendChild(doc.createTextNode(m_qsSelectedBlock));
-	eleWidget.appendChild(eleBlock);
+	if(m_pSelectedBlock)
+	{
+		QDomElement eleBlock = doc.createElement("block");
+		eleBlock.appendChild(doc.createTextNode(m_pSelectedBlock->getAbsPath()));
+		eleWidget.appendChild(eleBlock);
+	}
 
 	//当前股票代码
 	if(m_pSelectedStock)
@@ -151,13 +155,13 @@ void CMarketTrendWidget::onRefresh()
 	{
 		foreach(CBlockInfoItem* b,listBlocks)
 		{
-			m_listBlocks.push_back(QPair<QString,QRect>(b->getBlockName(),QRect()));
+			m_listBlocks.push_back(QPair<CBlockInfoItem*,QRect>(b,QRect()));
 		}
 		updateBlockRect();
-		if(m_qsSelectedBlock.isEmpty())
-			clickedBlock(listBlocks.first()->getBlockName());
+		if(m_pSelectedBlock == 0)
+			clickedBlock(listBlocks.first());
 		else
-			clickedBlock(m_qsSelectedBlock);
+			clickedBlock(m_pSelectedBlock);
 	}
 }
 
@@ -209,11 +213,10 @@ void CMarketTrendWidget::onRemoveStock()
 {
 	if(m_pSelectedStock)
 	{
-		CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(m_qsSelectedBlock);
-		if(pBlock)
+		if(m_pSelectedBlock)
 		{
-			if(pBlock->removeStocks(QList<CStockInfoItem*>()<<m_pSelectedStock))
-				clickedBlock(m_qsSelectedBlock);
+			if(m_pSelectedBlock->removeStocks(QList<CStockInfoItem*>()<<m_pSelectedStock))
+				clickedBlock(m_pSelectedBlock);
 		}
 	}
 }
@@ -286,15 +289,15 @@ void CMarketTrendWidget::offsetShowHeaderIndex( int offset )
 	}
 }
 
-void CMarketTrendWidget::clickedBlock( const QString& block )
+void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 {
-	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	CBlockInfoItem* pBlock = block;
 	if(!pBlock)
 		return;
-	if(m_qsSelectedBlock == block)
+	if(m_pSelectedBlock == pBlock)
 	{
 		setStocks(pBlock->getStockList());
-		CMainWindow::getMainWindow()->clickedBlock(block);
+		CMainWindow::getMainWindow()->clickedBlock(pBlock->getAbsPath());
 		resortStocks();
 		update();
 		return;
@@ -302,8 +305,8 @@ void CMarketTrendWidget::clickedBlock( const QString& block )
 
 	{
 		setStocks(pBlock->getStockList());
-		CMainWindow::getMainWindow()->clickedBlock(block);
-		m_qsSelectedBlock = block;
+		CMainWindow::getMainWindow()->clickedBlock(pBlock->getAbsPath());
+		m_pSelectedBlock = block;
 		{
 			//设置排序方式
 //			m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
@@ -379,7 +382,7 @@ void CMarketTrendWidget::mousePressEvent( QMouseEvent* e )
 		}
 		else
 		{
-			QList<QPair<QString,QRect>>::iterator iter = m_listBlocks.begin();
+			QList<QPair<CBlockInfoItem*,QRect>>::iterator iter = m_listBlocks.begin();
 			while(iter!=m_listBlocks.end())
 			{
 				if(iter->second.contains(ptCur))
@@ -508,7 +511,7 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 	QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getStockBlocks();
 	foreach(CBlockInfoItem* block,list)
 	{
-		if(block->getBlockName() == m_qsSelectedBlock)
+		if(block == m_pSelectedBlock)
 			continue;
 		QAction* pAct = m_pMenuToBlock->addAction(block->getBlockName(),this,SLOT(onAddToBlock()));
 		pAct->setData(block->getBlockName());
@@ -546,7 +549,7 @@ void CMarketTrendWidget::updateBlockRect()
 	int iCurX = m_rtBottom.left();
 	for (int i=showBlockIndex;i<m_listBlocks.size();++i)
 	{
-		int iWidth = m.width(m_listBlocks[i].first) + 16;
+		int iWidth = m.width(m_listBlocks[i].first->getBlockName()) + 16;
 		QRect rtEntity = QRect(iCurX,m_rtBottom.top(),iWidth,m_rtBottom.height());
 		m_listBlocks[i].second = rtEntity;
 
@@ -985,16 +988,16 @@ void CMarketTrendWidget::drawBottom( QPainter& p )
 
 	p.setPen(QColor(255,255,255));
 
-	QList<QPair<QString,QRect>>::iterator iter = m_listBlocks.begin();
+	QList<QPair<CBlockInfoItem*,QRect>>::iterator iter = m_listBlocks.begin();
 	while(iter!=m_listBlocks.end())
 	{
 		QRect rtBlock = iter->second;
 		if(rtBlock.isValid())
 		{
 			p.drawRect(rtBlock);
-			if(iter->first==m_qsSelectedBlock)
+			if(iter->first==m_pSelectedBlock)
 				p.fillRect(rtBlock,QColor(127,127,127));
-			p.drawText(rtBlock,Qt::AlignCenter,iter->first);
+			p.drawText(rtBlock,Qt::AlignCenter,iter->first->getBlockName());
 		}
 
 		++iter;
