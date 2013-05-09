@@ -481,53 +481,12 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 
 int CDataEngine::importBlocksData( const QString& /*qsPath*/ )
 {
-	QDomDocument doc("CommonBlocks");
-	QFile file(CDataEngine::getDataEngine()->getCommStockBlockFile());
-	if (!file.open(QIODevice::ReadOnly))
-		return 0;
-	if (!doc.setContent(&file)) {
-		file.close();
-		return 0;
-	}
-	file.close();
-
-	QDomElement eleRoot = doc.documentElement();
-	if(eleRoot.isNull())
-		return 0;
-	QDomElement eleNode = eleRoot.firstChildElement("block");
-	while(!eleNode.isNull())
-	{
-		QString qsName = eleNode.attribute("name");
-		if(!(qsName.isEmpty()))
-		{
-			QString qsRegexp = eleNode.text();
-			if(!qsRegexp.isEmpty())
-			{
-				QRegExp r(qsRegexp);
-				if(eleNode.hasAttribute("RegType"))
-				{
-					r.setPatternSyntax(static_cast<QRegExp::PatternSyntax>(eleNode.attribute("RegType").toInt()));
-				}
-				if(!CDataEngine::getDataEngine()->isHadBlock(qsName))
-				{
-					CDataEngine::getDataEngine()->setBlockInfoItem(new CBlockInfoItem(qsName,r));
-				}
-			}
-		}
-		eleNode = eleNode.nextSiblingElement("block");
-	}
-
-	QList<QString> listBlocks;
 	QDir dir(CDataEngine::getDataEngine()->getStockBlockDir());
-	QStringList listEntity = dir.entryList(QDir::Files);
-	foreach(const QString& qsName,listEntity)
+	QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot,QDir::DirsLast);
+	foreach(const QFileInfo& _f,listEntity)
 	{
-		if(!CDataEngine::getDataEngine()->isHadBlock(qsName))
-		{
-			CDataEngine::getDataEngine()->setBlockInfoItem(new CBlockInfoItem(qsName));
-		}
+		CDataEngine::getDataEngine()->setBlockInfoItem(new CBlockInfoItem(_f.absoluteFilePath(),""));
 	}
-
 	return CDataEngine::getDataEngine()->getStockBlocks().size();
 }
 
@@ -1126,8 +1085,21 @@ QList<CBlockInfoItem*> CDataEngine::getStockBlocks()
 
 CBlockInfoItem* CDataEngine::getStockBlock( const QString& block )
 {
-	if(m_mapBlockInfos.contains(block))
-		return m_mapBlockInfos[block];
+	QStringList listBlocks = block.split("|");
+	if(listBlocks.size()<0)
+		return 0;
+
+	if(m_mapBlockInfos.contains(listBlocks[0]))
+	{
+		CBlockInfoItem* pBlockItem = m_mapBlockInfos[listBlocks[0]];
+		if(listBlocks.size()==1)
+			return pBlockItem;
+		else
+		{
+			listBlocks.removeAt(0);
+			return pBlockItem->querySubBlock(listBlocks);
+		}
+	}
 	return 0;
 }
 

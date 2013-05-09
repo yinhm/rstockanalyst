@@ -9,6 +9,7 @@
 #define	MARKET_TREND_WIDGET_H
 #include "BaseWidget.h"
 #include "StockInfoItem.h"
+#include "BlockInfoItem.h"
 
 class CMarketTrendWidget : public CBaseWidget
 {
@@ -46,7 +47,7 @@ private:
 	void clickedHeader(int column);				//当点击头部时触发
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
 	void offsetShowHeaderIndex(int offset);		//改变当前头部显示的开始位置
-	void clickedBlock(const QString& block);	//点击板块时触发
+	void clickedBlock(CBlockInfoItem* block);	//点击板块时触发
 
 	void setStocks(const QList<CStockInfoItem*>& list);		//设置要显示的股票列表
 
@@ -106,8 +107,8 @@ private:
 	int showStockIndex;						//开始显示的股票索引-纵向
 	int showBlockIndex;						//开始显示的板块索引-底部横向
 	QList<int> m_listItemWidth;				//各个item的宽度。
-	QList<QPair<QString,QRect>> m_listBlocks;	//各个分类所在的矩形
-	QString m_qsSelectedBlock;				//当前选中的板块
+	QList<QPair<CBlockInfoItem*,QRect>> m_listBlocks;	//各个分类所在的矩形
+	CBlockInfoItem* m_pSelectedBlock;					//当前选中的板块
 };
 
 

@@ -89,10 +89,12 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 		return false;
 
 	//当前的板块名称
-	QDomElement eleBlock = doc.createElement("block");
-	eleBlock.appendChild(doc.createTextNode(m_pBlock->getBlockName()));
-	eleWidget.appendChild(eleBlock);
-
+	if(m_pBlock)
+	{
+		QDomElement eleBlock = doc.createElement("block");
+		eleBlock.appendChild(doc.createTextNode(m_pBlock->getAbsPath()));
+		eleWidget.appendChild(eleBlock);
+	}
 
 	//当前的表达式
 	QDomElement eleExps = doc.createElement("exps");

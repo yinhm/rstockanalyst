@@ -8,50 +8,106 @@
 #include "BlockInfoItem.h"
 #include "DataEngine.h"
 
-
-CBlockInfoItem::CBlockInfoItem( const QString& _name )
-	: blockName(_name)
+CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 {
-	blockFilePath = CDataEngine::getDataEngine()->getStockBlockDir()+_name;
-	QFile file(blockFilePath);
-	if(file.open(QFile::ReadOnly))
+	QFileInfo _info(_file);
+	if(!_info.exists())
+		return;
+
+	parentName = _parent;
+	blockFilePath = _file;
+	blockName = _info.baseName();
+
+	if(_info.isDir())
 	{
-		while(!file.atEnd())
+		QDir dir(blockFilePath);
+		QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
+		foreach(const QFileInfo& _f,listEntity)
 		{
-			QString code = file.readLine();
-			code = code.trimmed();
-			if(!code.isEmpty())
+			appendBlock(new CBlockInfoItem(_f.absoluteFilePath(),parentName+"|"+blockName));
+		}
+	}
+	else
+	{
+		QFile file(blockFilePath);
+		if(file.open(QFile::ReadOnly))
+		{
+			QString qsType = file.readLine().trimmed();
+			if(qsType == "RegExp")
 			{
-				addStock(CDataEngine::getDataEngine()->getStockInfoItem(code));
+				QString qsExp = file.readLine().trimmed();
+				if(!qsExp.isEmpty())
+				{
+					QRegExp _exp(qsExp);
+					_exp.setPatternSyntax(QRegExp::Wildcard);
+					QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
+					foreach(CStockInfoItem* p,listStocks)
+					{
+						if(_exp.exactMatch(p->getCode()))
+						{
+							addStock(p);
+						}
+					}
+				}
 			}
+			else
+			{
+				file.seek(0);
+				while(!file.atEnd())
+				{
+					QString code = file.readLine();
+					code = code.trimmed();
+					if(!code.isEmpty())
+					{
+						addStock(CDataEngine::getDataEngine()->getStockInfoItem(code));
+					}
+				}
+			}
+			file.close();
 		}
-		file.close();
 	}
 }
-
-CBlockInfoItem::CBlockInfoItem( const QString& _name,const QRegExp& _exp )
-	: blockName(_name)
-	, blockFilePath("")
-{
-	QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
-	foreach(CStockInfoItem* p,listStocks)
-	{
-		if(_exp.exactMatch(p->getCode()))
-		{
-			addStock(p);
-		}
-	}
-}
-
 
 CBlockInfoItem::~CBlockInfoItem(void)
 {
 	clearTmpData();
 }
 
+QString CBlockInfoItem::getAbsPath()
+{
+	if(parentName.isEmpty())
+		return blockName;
+	return parentName+"|"+blockName;
+}
+
+CBlockInfoItem* CBlockInfoItem::querySubBlock( const QStringList& _parent )
+{
+	QStringList listBlocks = _parent;
+	if(listBlocks.size()<0)
+		return 0;
+
+	if(blocksInBlock.contains(listBlocks[0]))
+	{
+		CBlockInfoItem* pBlockItem = blocksInBlock[listBlocks[0]];
+		if(listBlocks.size()==1)
+			return pBlockItem;
+		else
+		{
+			listBlocks.removeAt(0);
+			return pBlockItem->querySubBlock(listBlocks);
+		}
+	}
+	return 0;
+}
+
 QList<CStockInfoItem*> CBlockInfoItem::getStockList()
 {
 	return stocksInBlock;
+}
+
+QList<CBlockInfoItem*> CBlockInfoItem::getBlockList()
+{
+	return blocksInBlock.values();
 }
 
 bool CBlockInfoItem::appendStocks( QList<CStockInfoItem*> list )
@@ -156,6 +212,11 @@ bool CBlockInfoItem::removeStocks( QList<QString> list )
 	return true;
 }
 
+bool CBlockInfoItem::appendBlock( CBlockInfoItem* pBlock )
+{
+	blocksInBlock[pBlock->getBlockName()] = pBlock;
+	return true;
+}
 
 void CBlockInfoItem::stockFenbiChanged( const QString& _code )
 {
