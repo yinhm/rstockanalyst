@@ -133,7 +133,8 @@ int main(int argc, char *argv[])
 	CDataEngine::exportData();				//导出数据
 	splash.showMessage(QObject::tr("导出数据完成..."),99);
 
-	CDataEngine::exportCloseData();
+	//收盘导出存盘
+	//CDataEngine::exportCloseData();
 
 	//释放资源
 	delete CMainWindow::getMainWindow();
