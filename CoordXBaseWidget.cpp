@@ -137,6 +137,8 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 	float fCurX = fBeginX-fItemWidth;
 	float fLastX = fBeginX;
 	int iCount = listTimes.size()-1;
+	if(iCount<0)
+		return;
 
 	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
 	if(m_typeCircle<Day)
