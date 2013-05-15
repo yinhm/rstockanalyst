@@ -9,6 +9,7 @@
 #include "DataEngine.h"
 
 CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
+	: CStockInfoItem("123",1)
 {
 	QFileInfo _info(_file);
 	if(!_info.exists())

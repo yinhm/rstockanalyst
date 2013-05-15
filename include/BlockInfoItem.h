@@ -10,7 +10,7 @@
 #include "StockInfoItem.h"
 #include "rsd_global.h"
 
-class RSDSHARED_EXPORT CBlockInfoItem : public QObject
+class RSDSHARED_EXPORT CBlockInfoItem : public CStockInfoItem
 {
 	Q_OBJECT
 public:

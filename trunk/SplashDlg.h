@@ -13,6 +13,9 @@ class CSplashDlg : public QWidget
 {
 	Q_OBJECT
 public:
+	static CSplashDlg* getSplashDlg();
+
+private:
 	CSplashDlg(QWidget* parent = 0);
 	~CSplashDlg();
 
@@ -23,6 +26,7 @@ protected:
 	virtual void showEvent(QShowEvent* event);
 
 private:
+	static CSplashDlg* m_pSelf;
 	QProgressBar* m_pProgressBar;
 	QLabel* m_pLabel;
 };
