@@ -2,6 +2,15 @@
 #include "SplashDlg.h"
 #include <windows.h>
 
+CSplashDlg* CSplashDlg::m_pSelf = 0;
+CSplashDlg* CSplashDlg::getSplashDlg()
+{
+	if(!m_pSelf)
+		m_pSelf = new CSplashDlg();
+
+	return m_pSelf;
+}
+
 CSplashDlg::CSplashDlg( QWidget* parent /*= 0*/ )
 	: QWidget(parent,Qt::SplashScreen|Qt::WindowStaysOnTopHint)
 {

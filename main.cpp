@@ -81,10 +81,9 @@ int main(int argc, char *argv[])
 	QTextCodec::setCodecForTr(QTextCodec::codecForName("GB2312"));
 	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("GB2312"));
 
-	CSplashDlg splash;
-	splash.show();
+	CSplashDlg::getSplashDlg()->show();
 
-	splash.showMessage(QObject::tr("加载样式表"),10);
+	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("加载样式表"),10);
 	QFile file(":/res/qss/FeiHu.qss");
 	if(file.open(QFile::ReadOnly))
 	{
@@ -95,14 +94,14 @@ int main(int argc, char *argv[])
 	//初始化颜色表
 	CColorManager::initAll();
 
-	splash.showMessage(QObject::tr("安装驱动"),20);
+	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("安装驱动"),20);
 	CSTKDRV::InitStockDrv();
 
 	CMainWindow::getMainWindow()->hide();
 
 
 
-	splash.showMessage(QObject::tr("初始化数据..."),40);
+	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("初始化数据..."),40);
 	app.processEvents();
 	CDataEngine::importData();				//初始化数据
 
@@ -111,28 +110,28 @@ int main(int argc, char *argv[])
 	CMainWindow::getMainWindow()->initTemplates();	//初始化模板
 	CMainWindow::getMainWindow()->initBlockMenus();	//初始化板块菜单
 
-	splash.showMessage(QObject::tr("正在启动..."),99);
+	CSplashDlg::getSplashDlg()->getSplashDlg()->showMessage(QObject::tr("正在启动..."),99);
 	CMainWindow::getMainWindow()->showMaximized();
 
 	//设置银江数据接口
-	splash.showMessage(QObject::tr("设置银江数据接口"),30);
+	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("设置银江数据接口"),30);
 	app.processEvents();
 	if(!CMainWindow::getMainWindow()->setupStockDrv())
 	{
 		return app.exit();
 	}
 
-	splash.hide();
+	CSplashDlg::getSplashDlg()->hide();
 
 	app.exec();
-	splash.show();
+	CSplashDlg::getSplashDlg()->show();
 
-	splash.showMessage(QObject::tr("正在保存配置..."),10);
+	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("正在保存配置..."),10);
 	CMainWindow::getMainWindow()->saveTemplates();	//保存所有模板
-	splash.showMessage(QObject::tr("正在导出数据..."),20);
+	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("正在导出数据..."),20);
 
 	CDataEngine::exportData();				//导出数据
-	splash.showMessage(QObject::tr("导出数据完成..."),99);
+	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("导出数据完成..."),99);
 
 	//收盘导出存盘
 	//CDataEngine::exportCloseData();
