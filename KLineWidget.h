@@ -36,7 +36,8 @@ public:
 
 public slots:
 	virtual void setStockCode(const QString& code);
-	void updateKLine(const QString& code);
+	void updateMinLine(const QString& code);
+	void updateDayLine(const QString& code);
 
 protected:
 	void setStockItem(CStockInfoItem* pItem);

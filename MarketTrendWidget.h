@@ -45,16 +45,17 @@ public slots:
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
 	void clickedHeader(int column);				//当点击头部时触发
-	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
+	void clickedStock(CAbstractStockItem* pItem);	//当点击股票时触发
 	void offsetShowHeaderIndex(int offset);		//改变当前头部显示的开始位置
 	void clickedBlock(CBlockInfoItem* block);	//点击板块时触发
 
-	void setStocks(const QList<CStockInfoItem*>& list);		//设置要显示的股票列表
+	void setStocks(const QList<CAbstractStockItem*>& list);		//设置要显示的股票列表
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
 	virtual void resizeEvent(QResizeEvent* e);				//大小改变的事件
 	virtual void mousePressEvent(QMouseEvent* e);			//鼠标点击事件
+	virtual void mouseDoubleClickEvent(QMouseEvent * e);	//双击事件
 	virtual void wheelEvent(QWheelEvent* e);				//鼠标中键滚动事件
 	virtual void keyPressEvent(QKeyEvent* e);				//键盘操作
 
@@ -67,9 +68,9 @@ private:
 	QMenu* m_pMenuCustom;					//自定义菜单
 	QMenu* m_pMenuToBlock;					//添加到板块的菜单
 	QStringList m_listHeader;				//头部数据
-	QList<CStockInfoItem*> m_listStocks;	//要显示的股票列表
-	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
-	CStockInfoItem* m_pSelectedStock;		//当前选中的股票
+	QList<CAbstractStockItem*> m_listStocks;	//要显示的股票列表
+	QMap<CAbstractStockItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
+	CAbstractStockItem* m_pSelectedStock;		//当前选中的股票
 	int m_iSortColumn;						//当前进行排序的列
 	Qt::SortOrder m_sortOrder;				//当前排序方式
 
@@ -80,7 +81,7 @@ private:
 	void drawHeaders(QPainter& p);			//绘制头部信息
 	void drawStocks(QPainter& p);			//绘制股票信息
 	void drawBottom(QPainter& p);			//绘制底部信息
-	void drawStock(QPainter& p,const QRect& rtStock,CStockInfoItem* pItem);	//绘制单个股票
+	void drawStock(QPainter& p,const QRect& rtStock,CAbstractStockItem* pItem);	//绘制单个股票
 	void drawBottomBtn(QPainter& p);		//绘制底部的两个按钮
 
 	//判断鼠标点击的位置，做出相应的响应
@@ -88,9 +89,9 @@ private:
 
 	void resortStocks();					//重新对股票列表进行排序
 
-	QString dataOfDisplay(CStockInfoItem* itemData,int column);
-	QColor dataOfColor(CStockInfoItem* itemData,int column);
-	QRect rectOfStock(CStockInfoItem* pItem);			//获取某只股票显示的位置
+	QString dataOfDisplay(CAbstractStockItem* itemData,int column);
+	QColor dataOfColor(CAbstractStockItem* itemData,int column);
+	QRect rectOfStock(CAbstractStockItem* pItem);			//获取某只股票显示的位置
 
 	/*用于绘制的成员变量*/
 private:

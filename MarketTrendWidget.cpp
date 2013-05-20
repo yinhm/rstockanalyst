@@ -107,7 +107,7 @@ bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 	return true;
 }
 
-void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
+void CMarketTrendWidget::setStocks( const QList<CAbstractStockItem*>& list )
 {
 	clearTmpData();
 	m_listStocks = list;
@@ -120,7 +120,7 @@ void CMarketTrendWidget::setStocks( const QList<CStockInfoItem*>& list )
 	{
 		m_mapStockIndex[m_listStocks[i]] = i;
 	}
-	foreach(CStockInfoItem* pItem,m_listStocks)
+	foreach(CAbstractStockItem* pItem,m_listStocks)
 	{
 		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
 		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
@@ -179,7 +179,7 @@ void CMarketTrendWidget::onAddToBlock()
 	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
 	if(pBlock)
 	{
-		pBlock->appendStocks(QList<CStockInfoItem*>()<<m_pSelectedStock);
+		pBlock->appendStocks(QList<CStockInfoItem*>()<<reinterpret_cast<CStockInfoItem*>(m_pSelectedStock));
 	}
 }
 
@@ -206,7 +206,7 @@ void CMarketTrendWidget::onAddToNewBlock()
 	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
 	if(pBlock)
 	{
-		pBlock->appendStocks(QList<CStockInfoItem*>()<<m_pSelectedStock);
+		pBlock->appendStocks(QList<CStockInfoItem*>()<<reinterpret_cast<CStockInfoItem*>(m_pSelectedStock));
 	}
 }
 
@@ -216,7 +216,7 @@ void CMarketTrendWidget::onRemoveStock()
 	{
 		if(m_pSelectedBlock)
 		{
-			if(m_pSelectedBlock->removeStocks(QList<CStockInfoItem*>()<<m_pSelectedStock))
+			if(m_pSelectedBlock->removeStocks(QList<CStockInfoItem*>()<<reinterpret_cast<CStockInfoItem*>(m_pSelectedStock)))
 				clickedBlock(m_pSelectedBlock);
 		}
 	}
@@ -225,7 +225,7 @@ void CMarketTrendWidget::onRemoveStock()
 void CMarketTrendWidget::clearTmpData()
 {
 	//disconnect(this,SLOT(stockInfoChanged(const QString&)));
-	foreach(CStockInfoItem* pItem,m_listStocks)
+	foreach(CAbstractStockItem* pItem,m_listStocks)
 	{
 		disconnect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
 		disconnect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockInfoChanged(const QString&)));
@@ -261,7 +261,7 @@ void CMarketTrendWidget::clickedHeader( int column )
 	}
 }
 
-void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )
+void CMarketTrendWidget::clickedStock( CAbstractStockItem* pItem )
 {
 	if(pItem == m_pSelectedStock)
 		return;
@@ -273,11 +273,20 @@ void CMarketTrendWidget::clickedStock( CStockInfoItem* pItem )
 		update(m_rtClient);
 	}
 
-	CStockInfoItem* pPreSelectedStock = m_pSelectedStock;
+	CAbstractStockItem* pPreSelectedStock = m_pSelectedStock;
 	m_pSelectedStock = pItem;
 	update(rectOfStock(pPreSelectedStock));
 	update(rectOfStock(m_pSelectedStock));
-	CMainWindow::getMainWindow()->clickedStock(pItem->getCode());
+	if(pItem->isInstanceOfBlock())
+	{
+		CMainWindow::getMainWindow()->clickedBlock(pItem->getCode());
+	}
+	else if(pItem->isInstanceOfStock())
+	{
+
+		CMainWindow::getMainWindow()->clickedStock(pItem->getCode());
+	}
+
 }
 
 void CMarketTrendWidget::offsetShowHeaderIndex( int offset )
@@ -297,7 +306,7 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 		return;
 	if(m_pSelectedBlock == pBlock)
 	{
-		setStocks(pBlock->getStockList());
+		setStocks(pBlock->getAbsStockList());
 		CMainWindow::getMainWindow()->clickedBlock(pBlock->getAbsPath());
 		resortStocks();
 		update();
@@ -305,7 +314,7 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 	}
 
 	{
-		setStocks(pBlock->getStockList());
+		setStocks(pBlock->getAbsStockList());
 		CMainWindow::getMainWindow()->clickedBlock(pBlock->getAbsPath());
 		m_pSelectedBlock = block;
 		{
@@ -399,6 +408,24 @@ void CMarketTrendWidget::mousePressEvent( QMouseEvent* e )
 	return CBaseWidget::mousePressEvent(e);
 }
 
+void CMarketTrendWidget::mouseDoubleClickEvent( QMouseEvent * e )
+{
+	e->accept();
+	QPoint ptCur = e->pos();
+	if(m_rtClient.contains(ptCur))
+	{
+		int iCurIndex = showStockIndex+(ptCur.y()-m_rtClient.top())/m_iStockHeight;
+		if(iCurIndex>=0&&iCurIndex<m_listStocks.size())
+		{
+			CAbstractStockItem* pItem = m_listStocks[iCurIndex];
+			if(pItem->isInstanceOfBlock())
+				clickedBlock(reinterpret_cast<CBlockInfoItem*>(m_listStocks[iCurIndex]));
+		}
+	}
+
+	return CBaseWidget::mouseDoubleClickEvent(e);
+}
+
 void CMarketTrendWidget::wheelEvent( QWheelEvent* e )
 {
 	int numDegrees = e->delta() / 8;
@@ -432,7 +459,7 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 		int iCurIndex = m_mapStockIndex[m_pSelectedStock];
 		if(m_listStocks.size()>(iCurIndex+1))
 		{
-			CStockInfoItem* pItem = m_listStocks[iCurIndex+1];
+			CAbstractStockItem* pItem = m_listStocks[iCurIndex+1];
 			int iRow = m_mapStockIndex[pItem];
 			int iShowCount = m_rtClient.height()/m_iStockHeight;
 			if(iShowCount<1)
@@ -451,7 +478,7 @@ void CMarketTrendWidget::keyPressEvent( QKeyEvent* e )
 		int iCurIndex = m_mapStockIndex[m_pSelectedStock];
 		if(iCurIndex>0)
 		{
-			CStockInfoItem* pItem = m_listStocks[iCurIndex-1];
+			CAbstractStockItem* pItem = m_listStocks[iCurIndex-1];
 			int iRow = m_mapStockIndex[pItem];
 			if(iRow<showStockIndex)
 			{
@@ -566,8 +593,8 @@ void CMarketTrendWidget::resortStocks()
 {
 	if(m_iSortColumn == 1||m_iSortColumn ==2)
 	{
-		QMultiMap<QString,CStockInfoItem*> mapSort;
-		foreach(CStockInfoItem* pItem,m_listStocks)
+		QMultiMap<QString,CAbstractStockItem*> mapSort;
+		foreach(CAbstractStockItem* pItem,m_listStocks)
 		{
 			mapSort.insert(dataOfDisplay(pItem,m_iSortColumn),pItem);
 		}
@@ -576,8 +603,8 @@ void CMarketTrendWidget::resortStocks()
 			setStocks(mapSort.values());
 		else
 		{
-			QList<CStockInfoItem*> list;
-			QMultiMap<QString,CStockInfoItem*>::iterator iter = mapSort.begin();
+			QList<CAbstractStockItem*> list;
+			QMultiMap<QString,CAbstractStockItem*>::iterator iter = mapSort.begin();
 			while(iter!=mapSort.end())
 			{
 				list.push_front(iter.value());
@@ -588,8 +615,8 @@ void CMarketTrendWidget::resortStocks()
 	}
 	else
 	{
-		QMultiMap<float,CStockInfoItem*> mapSort;
-		foreach(CStockInfoItem* pItem,m_listStocks)
+		QMultiMap<float,CAbstractStockItem*> mapSort;
+		foreach(CAbstractStockItem* pItem,m_listStocks)
 		{
 			QString qsData = dataOfDisplay(pItem,m_iSortColumn);
 			qsData = qsData.replace("%","");
@@ -599,8 +626,8 @@ void CMarketTrendWidget::resortStocks()
 			setStocks(mapSort.values());
 		else
 		{
-			QList<CStockInfoItem*> list;
-			QMultiMap<float,CStockInfoItem*>::iterator iter = mapSort.begin();
+			QList<CAbstractStockItem*> list;
+			QMultiMap<float,CAbstractStockItem*>::iterator iter = mapSort.begin();
 			while(iter!=mapSort.end())
 			{
 				list.push_front(iter.value());
@@ -613,7 +640,7 @@ void CMarketTrendWidget::resortStocks()
 	update(m_rtClient);
 }
 
-QString CMarketTrendWidget::dataOfDisplay( CStockInfoItem* itemData,int column )
+QString CMarketTrendWidget::dataOfDisplay( CAbstractStockItem* itemData,int column )
 {
 	switch(column)
 	{
@@ -845,7 +872,7 @@ QString CMarketTrendWidget::dataOfDisplay( CStockInfoItem* itemData,int column )
 	}
 }
 
-QColor CMarketTrendWidget::dataOfColor( CStockInfoItem* itemData,int column )
+QColor CMarketTrendWidget::dataOfColor( CAbstractStockItem* itemData,int column )
 {
 	if(column == 1)
 		return QColor(127,255,191);
@@ -902,7 +929,7 @@ QColor CMarketTrendWidget::dataOfColor( CStockInfoItem* itemData,int column )
 	return QColor(191,191,191);
 }
 
-QRect CMarketTrendWidget::rectOfStock( CStockInfoItem* pItem )
+QRect CMarketTrendWidget::rectOfStock( CAbstractStockItem* pItem )
 {
 	if(m_mapStockIndex.contains(pItem))
 	{
@@ -974,7 +1001,7 @@ void CMarketTrendWidget::drawStocks( QPainter& p )
 	while(iCurY<m_rtClient.bottom()&&iCurRow<m_listStocks.size())
 	{
 		QRect rtStock = QRect(m_rtClient.left(),iCurY,m_rtClient.width(),m_iStockHeight);
-		CStockInfoItem* pStock = m_listStocks[iCurRow];
+		CAbstractStockItem* pStock = m_listStocks[iCurRow];
 
 		if(m_pSelectedStock == pStock)
 		{
@@ -1000,7 +1027,7 @@ void CMarketTrendWidget::drawBottom( QPainter& p )
 		if(rtBlock.isValid())
 		{
 			p.drawRect(rtBlock);
-			if(iter->first==m_pSelectedBlock)
+			if(m_pSelectedBlock->isChildOf(iter->first))
 				p.fillRect(rtBlock,QColor(127,127,127));
 			p.drawText(rtBlock,Qt::AlignCenter,iter->first->getBlockName());
 		}
@@ -1010,7 +1037,7 @@ void CMarketTrendWidget::drawBottom( QPainter& p )
 	drawBottomBtn(p);
 }
 
-void CMarketTrendWidget::drawStock( QPainter& p,const QRect& rtStock,CStockInfoItem* pItem )
+void CMarketTrendWidget::drawStock( QPainter& p,const QRect& rtStock,CAbstractStockItem* pItem )
 {
 	int iCurX = rtStock.left();
 	int iCurIndex = 0;
@@ -1063,7 +1090,7 @@ void CMarketTrendWidget::drawBottomBtn( QPainter& p )
 
 void CMarketTrendWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
 {
-	foreach(CStockInfoItem* pItem,m_listStocks)
+	foreach(CAbstractStockItem* pItem,m_listStocks)
 	{
 		if(pItem->isMatch(keyword))
 		{
@@ -1084,7 +1111,7 @@ void CMarketTrendWidget::keyWizEntered( KeyWizData* pData )
 {
 	if(pData->cmd == CKeyWizard::CmdStock)
 	{
-		clickedStock(reinterpret_cast<CStockInfoItem*>(pData->arg));
+		clickedStock(reinterpret_cast<CAbstractStockItem*>(pData->arg));
 		return;
 	}
 

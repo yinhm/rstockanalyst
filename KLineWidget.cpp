@@ -140,9 +140,8 @@ void CKLineWidget::setStockItem( CStockInfoItem* pItem )
 		if(m_pStockItem)
 		{
 			//移除所有和 updateKLine关联的 信号/槽
-			disconnect(m_pStockItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-			disconnect(m_pStockItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-			//disconnect(m_pStockItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+			disconnect(m_pStockItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateDayLine(const QString&)));
+			disconnect(m_pStockItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateMinLine(const QString&)));
 		}
 
 		//设置默认显示100个K线
@@ -151,17 +150,28 @@ void CKLineWidget::setStockItem( CStockInfoItem* pItem )
 
 		m_pStockItem = pItem;
 		//建立更新机制
-		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
-		//		connect(pItem,SIGNAL(stockItemReportChanged(const QString&)),this,SLOT(updateKLine(const QString&)));
+		connect(pItem,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(updateDayLine(const QString&)));
+		connect(pItem,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(updateMinLine(const QString&)));
 
 		//更新K线图
 		resetTmpData();
 	}
 }
 
-void CKLineWidget::updateKLine( const QString& code )
+void CKLineWidget::updateMinLine( const QString& code )
 {
+	if(m_typeCircle>=Day)
+		return;
+	if(m_pStockItem&&m_pStockItem->getCode()!=code)
+		return;
+
+	resetTmpData();
+}
+
+void CKLineWidget::updateDayLine( const QString& code )
+{
+	if(m_typeCircle<Day)
+		return;
 	if(m_pStockItem&&m_pStockItem->getCode()!=code)
 		return;
 
@@ -641,7 +651,8 @@ void CKLineWidget::clearTmpData()
 		delete m_mapData;
 		m_mapData = NULL;
 	}
-	disconnect(this,SLOT(updateKLine(const QString&)));
+	disconnect(this,SLOT(updateMinLine(const QString&)));
+	disconnect(this,SLOT(updateDayLine(const QString&)));
 }
 
 void CKLineWidget::resetTmpData()
