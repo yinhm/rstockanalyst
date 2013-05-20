@@ -1,6 +1,6 @@
 /************************************************************************/
 /* 文件名称：StockInfoItem.h
-/* 创建时间：2013-11-08 09:28
+/* 创建时间：2012-11-08 09:28
 /*
 /* 描    述：用于存储单只股票数据
 /************************************************************************/
@@ -10,7 +10,7 @@
 #include "rsd_global.h"
 #include "RStockFunc.h"
 
-class RSDSHARED_EXPORT CStockInfoItem : public QObject
+class RSDSHARED_EXPORT CStockInfoItem : public CAbstractStockItem
 {
 	Q_OBJECT
 public:
@@ -88,11 +88,6 @@ protected:
 	void updateItemInfo();
 	void resetBuySellVOL();		//重新计算内外盘数据
 
-signals:
-	void stockItemReportChanged(const QString&);	//行情数据更新
-	void stockItemHistoryChanged(const QString&);	//历史数据更新
-	void stockItemFenBiChanged(const QString&);		//分笔数据更新
-
 private:
 	QString qsCode;					//代码
 	WORD wMarket;					//市场类型
@@ -100,7 +95,6 @@ private:
 	float fIncrease;				//涨幅
 	float fVolumeRatio;				//量比
 	float fTurnRatio;				//换手率
-
 
 	qRcvReportData* pLastReport;	//最近的Report
 	qRcvReportData* pCurrentReport;	//当前的Report

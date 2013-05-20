@@ -1,6 +1,7 @@
 #ifndef _RSTOCK_FUNC_H_
 #define _RSTOCK_FUNC_H_
 #include <QtCore>
+#include "AbstractStockItem.h"
 
 #ifndef FLOAT_NAN
 #define	FLOAT_NAN	(std::numeric_limits<float>::quiet_NaN())
@@ -9,8 +10,6 @@
 /*
 RStockAnalyst的扩展函数定义
 */
-
-class CStockInfoItem;
 
 #pragma   pack(push,1)					//设置内存对齐方式为 1字节
 // 分析周期
@@ -391,7 +390,7 @@ typedef struct tagRCalcInfo
 {
 	DWORD dwVersion;		//版本
 	RStockCircle emCircle;		//分析周期
-	CStockInfoItem* pItem;
+	CAbstractStockItem* pItem;
 
 	QMap<time_t,RStockData*>* mapData;	//常规数据,可能为NULL
 	QMap<time_t,RStockDataEx*>* mapDataEx;	//扩展数据,分笔成交买卖盘,注意:可能为 NULL

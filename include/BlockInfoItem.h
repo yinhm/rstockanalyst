@@ -10,7 +10,7 @@
 #include "StockInfoItem.h"
 #include "rsd_global.h"
 
-class RSDSHARED_EXPORT CBlockInfoItem : public CStockInfoItem
+class RSDSHARED_EXPORT CBlockInfoItem : public CAbstractStockItem
 {
 	Q_OBJECT
 public:
@@ -20,6 +20,7 @@ public:
 public:
 	QString getBlockName() const{ return blockName; }			//获取板块名称
 	QString getAbsPath();										//获取板块的绝对路径
+	QList<CAbstractStockItem*> getAbsStockList();				//获取全部列表
 	QList<CStockInfoItem*> getStockList();						//获取股票列表
 	QList<CBlockInfoItem*> getBlockList();						//获取板块列表
 
@@ -29,7 +30,46 @@ public:
 	bool removeStocks(QList<CStockInfoItem*> list);		//从板块中删除股票
 
 	CBlockInfoItem* querySubBlock(const QStringList& _parent);	//查找子板块
+	bool isChildOf(CBlockInfoItem* parent);
 
+public:
+	/*属性类字段，只读*/
+	QString getCode() const;		//股票代码
+	WORD getMarket() const;			//股票市场
+	QString getName() const;		//股票名称
+	float getIncrease() const;		//涨幅
+	float getVolumeRatio() const;	//量比
+	float getTurnRatio() const;		//换手率
+	float getLastClose() const;		//上一天收盘价
+	float getOpenPrice() const;		//今日开盘价
+	float getHighPrice() const;		//今日最高价
+	float getLowPrice() const;		//今日最低价
+	float getNewPrice() const;		//最新价
+	float getTotalVolume() const;	//获取总手
+	float getTotalAmount() const;	//获取总量
+	float getNowVolume() const;		//获取现手
+	float getIncSpeed() const;		//涨速
+	float getPriceFluctuate() const;//涨跌，价格波动
+	float getAmplitude() const;		//振幅
+	float getAvePrice() const;		//均价
+	float getPERatio() const;		//市盈率
+	float getLTSZ() const;			//流通市值
+	float getZGB() const;			//总股本
+	float getSellVOL() const;		//外盘量
+	float getBuyVOL() const;		//内盘量
+	float getBIDVOL() const;		//委买量
+	float getASKVOL() const;		//委卖量
+	float getCommRatio() const;		//委比
+	float getCommSent() const;		//委差
+
+	float getLast5Volume();			//获取过去5日的成交量（用于计算量比）
+
+	float getMgjzc();				//每股净资产
+	float getMgsy();				//获取每股收益
+
+
+	/*判断关键词_key是否匹配*/
+	bool isMatch(const QString& _key);
 private:
 	bool appendStocks(QList<QString> list);				//向板块中添加股票
 	bool removeStocks(QList<QString> list);				//从板块中删除股票

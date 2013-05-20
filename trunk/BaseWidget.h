@@ -41,7 +41,7 @@ public:
 	static CBaseWidget* createBaseWidget(CBaseWidget* parent=0, RWidgetType type=WidgetBasic);
 
 public:
-	CBaseWidget(CBaseWidget* parent = 0, RWidgetType type = CBaseWidget::WidgetBasic);
+	CBaseWidget(CBaseWidget* parent = 0, RWidgetType type = WidgetBasic);
 	~CBaseWidget(void);
 
 	void initMenu();				//初始化菜单项

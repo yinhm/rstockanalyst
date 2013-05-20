@@ -35,6 +35,7 @@
 #define		SZ_MARKET_EX			'ZS'		// 深圳
 #define     HK_MARKET_EX            'KH'        //香港市场
 #define     EB_MARKET_EX            'BE'        //深圳二板市场
+#define		BB_MARKET_EX			'BB'		//板块数据
 
 // 文件数据类型
 // 结构数组形式的文件数据

@@ -9,7 +9,6 @@
 #include "DataEngine.h"
 
 CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
-	: CStockInfoItem("123",1)
 {
 	QFileInfo _info(_file);
 	if(!_info.exists())
@@ -99,6 +98,22 @@ CBlockInfoItem* CBlockInfoItem::querySubBlock( const QStringList& _parent )
 		}
 	}
 	return 0;
+}
+
+bool CBlockInfoItem::isChildOf( CBlockInfoItem* parent)
+{
+	return getAbsPath().indexOf(parent->getAbsPath())>-1;
+}
+
+QList<CAbstractStockItem*> CBlockInfoItem::getAbsStockList()
+{
+	QList<CAbstractStockItem*> list;
+	foreach(CBlockInfoItem* _p,blocksInBlock)
+		list.push_back(_p);
+	foreach(CStockInfoItem* _p,stocksInBlock)
+		list.push_back(_p);
+
+	return list;
 }
 
 QList<CStockInfoItem*> CBlockInfoItem::getStockList()
@@ -264,4 +279,188 @@ void CBlockInfoItem::clearTmpData()
 		disconnect(_p,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(stockFenbiChanged(const QString&)));
 	}
 	stocksInBlock.clear();
+}
+
+QString CBlockInfoItem::getCode() const
+{
+	if(parentName.isEmpty())
+		return blockName;
+	return parentName+"|"+blockName;
+}
+
+WORD CBlockInfoItem::getMarket() const
+{
+	return BB_MARKET_EX;
+}
+
+QString CBlockInfoItem::getName() const
+{
+	return blockName;
+}
+
+float CBlockInfoItem::getIncrease() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getVolumeRatio() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getTurnRatio() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getLastClose() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getOpenPrice() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getHighPrice() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getLowPrice() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getNewPrice() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getTotalVolume() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getTotalAmount() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getNowVolume() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getIncSpeed() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getPriceFluctuate() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getAmplitude() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getAvePrice() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getPERatio() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getLTSZ() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getZGB() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getSellVOL() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getBuyVOL() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getBIDVOL() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getASKVOL() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getCommRatio() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getCommSent() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getLast5Volume()
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getMgjzc()
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getMgsy()
+{
+
+	return 0.0;
+}
+
+bool CBlockInfoItem::isMatch( const QString& _key )
+{
+	return true;
 }

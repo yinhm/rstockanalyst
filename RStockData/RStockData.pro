@@ -11,13 +11,14 @@ QT += core xml
 PRECOMPILED_HEADER = StdAfx.h
 
 
-HEADERS += StdAfx.h ../include/StockDrv.h ../include/STKDRV.h\
+HEADERS += StdAfx.h ../include/StockDrv.h ../include/STKDRV.h \
+			../include/AbstractStockItem.h \
 			../include/DataEngine.h ../include/StockInfoItem.h \
 			../include/BlockInfoItem.h ../include/rsd_global.h \
 			../include/ColorManager.h \
 			../include/RLuaEx.h ../include/RStockFunc.h Hz2Py.h
 
-SOURCES += STKDRV.cpp \
+SOURCES += STKDRV.cpp AbstractStockItem.cpp\
 			DataEngine.cpp StockInfoItem.cpp ColorManager.cpp \
 			BlockInfoItem.cpp RLuaEx.cpp Hz2Py.cpp
 
