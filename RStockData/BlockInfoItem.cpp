@@ -32,6 +32,11 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
+	, fLastClose(FLOAT_NAN)
+	, fOpenPrice(FLOAT_NAN)
+	, fNewPrice(FLOAT_NAN)
+	, fLowPrice(FLOAT_NAN)
+	, fHighPrice(FLOAT_NAN)
 {
 	QFileInfo _info(_file);
 	if(!_info.exists())
@@ -103,7 +108,7 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 	blockCode = CBlockCodeManager::getBlockCode(qsAbsPath);
 
 	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
-	timerUpdate.start(60*1000);
+	timerUpdate.start(1*1000);
 }
 
 CBlockInfoItem::~CBlockInfoItem(void)
@@ -295,7 +300,39 @@ void CBlockInfoItem::updateData()
 	*/
 	if(bUpdateMin)
 	{
+//		double dTotalGB = 0.0;		//总股（万）
+		double dLTG = 0.0;			//流通股（万）
+		double dLastClose = 0.0;	//昨日收盘价
+		double dOpen = 0.0;			//今日开盘价
+		double dNew = 0.0;			//最新价
+		double dLow = 0.0;			//最低价
+		double dHigh = 0.0;			//最高价
+		int iCount = stocksInBlock.size();
+		if(iCount>10)
+			iCount = 10;
+		for(int i=0;i<iCount;++i)
+		{
+			CStockInfoItem* pStock = stocksInBlock[i];
+			float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
+//			dTotalGB += pStock->getBaseInfo()->fZgb;
+			dLTG += fLTAG;
+			dLastClose += pStock->getLastClose()*fLTAG;
+			dOpen += pStock->getOpenPrice()*fLTAG;
+			dNew += pStock->getNewPrice()*fLTAG;
+			dLow += pStock->getLowPrice()*fLTAG;
+			dHigh += pStock->getHighPrice()*fLTAG;
+		}
 
+		fLastClose = dLastClose/dLTG;
+		fOpenPrice = dOpen/dLTG;
+		fNewPrice = dNew/dLTG;
+		fLowPrice = dLow/dLTG;
+		fHighPrice = dHigh/dLTG;
+
+
+		//涨幅
+		if(fNewPrice>0.0 && fLastClose>0.0)
+			fIncrease = (fNewPrice-fLastClose)*100.0/fLastClose;
 		bUpdateMin = false;
 	}
 	if(bUpdateDay)
@@ -373,31 +410,31 @@ float CBlockInfoItem::getTurnRatio() const
 float CBlockInfoItem::getLastClose() const
 {
 
-	return 0.0;
+	return fLastClose;
 }
 
 float CBlockInfoItem::getOpenPrice() const
 {
 
-	return 0.0;
+	return fOpenPrice;
 }
 
 float CBlockInfoItem::getHighPrice() const
 {
 
-	return 0.0;
+	return fHighPrice;
 }
 
 float CBlockInfoItem::getLowPrice() const
 {
 
-	return 0.0;
+	return fLowPrice;
 }
 
 float CBlockInfoItem::getNewPrice() const
 {
 
-	return 0.0;
+	return fNewPrice;
 }
 
 float CBlockInfoItem::getTotalVolume() const

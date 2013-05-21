@@ -99,6 +99,12 @@ private:
 	bool bUpdateDay;
 
 private:
+	float fLastClose;				//昨日收盘价
+	float fOpenPrice;				//今日开盘价
+	float fNewPrice;				//最新价
+	float fLowPrice;				//最低价
+	float fHighPrice;				//最高价
+
 	float fIncrease;				//涨幅
 	float fVolumeRatio;				//量比
 	float fTurnRatio;				//换手率
