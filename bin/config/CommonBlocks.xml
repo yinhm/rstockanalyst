@@ -1,8 +1,0 @@
-<root>
-	<block name="所有股票" RegType="1">*</block>
-	<block name="上海A股" RegType="1">60*</block>
-	<block name="上海B股" RegType="1">900*</block>
-	<block name="深圳A股" RegType="1">000*</block>
-	<block name="中小板" RegType="1">002*</block>
-	<block name="创业板" RegType="1">300*</block>
-</root>

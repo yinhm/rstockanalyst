@@ -12,8 +12,8 @@
    <relate>1</relate>
    <align>1</align>
    <size>50</size>
-   <block>所有股票</block>
-   <stock>000047</stock>
+   <block>|概念板块|奢侈品</block>
+   <stock>600086</stock>
   </widget>
   <widget circle="0">
    <name></name>
@@ -21,7 +21,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>49</size>
-   <code>000047</code>
+   <code>600086</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)

@@ -1044,10 +1044,8 @@ CDataEngine::CDataEngine(void)
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);
 
-	m_qsBlocksDir = qApp->applicationDirPath()+"/data/blocks/";
+	m_qsBlocksDir = qApp->applicationDirPath()+"/config/blocks/";
 	QDir().mkpath(m_qsBlocksDir);
-
-	m_qsCommonBlocks = qApp->applicationDirPath()+"/config/CommonBlocks.xml";
 
 	m_qsNewsDir = qApp->applicationDirPath()+"/data/news/";
 	QDir().mkpath(m_qsNewsDir);
@@ -1062,7 +1060,7 @@ CDataEngine::CDataEngine(void)
 	QDir().mkpath(m_qsFenBiDir);
 
 	//导入汉字->拼音对照表
-	CHz2Py::initHz2PyTable(qApp->applicationDirPath()+"/data/PY.hz");
+	CHz2Py::initHz2PyTable(qApp->applicationDirPath()+"/config/PY.hz");
 }
 
 CDataEngine::~CDataEngine(void)
