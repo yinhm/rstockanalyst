@@ -89,6 +89,7 @@ private:
 	QString parentName;							//板块的父板块路径
 	QString blockName;							//板块名称
 	QString blockFilePath;						//板块数据的存储路径
+	QString blockCode;							//板块的代码
 	QList<CStockInfoItem*> stocksInBlock;		//该板块下的股票信息
 	QMap<QString,CBlockInfoItem*> blocksInBlock;		//该板块下的子板块
 };

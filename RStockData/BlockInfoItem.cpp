@@ -7,6 +7,7 @@
 #include "StdAfx.h"
 #include "BlockInfoItem.h"
 #include "DataEngine.h"
+#include "BlockCodeManager.h"
 
 CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 {
@@ -24,7 +25,10 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 		QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
 		foreach(const QFileInfo& _f,listEntity)
 		{
-			appendBlock(new CBlockInfoItem(_f.absoluteFilePath(),parentName+"|"+blockName));
+			if(parentName.isEmpty())
+				appendBlock(new CBlockInfoItem(_f.absoluteFilePath(),blockName));
+			else
+				appendBlock(new CBlockInfoItem(_f.absoluteFilePath(),parentName+"|"+blockName));
 		}
 	}
 	else
@@ -66,6 +70,15 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 			file.close();
 		}
 	}
+
+
+	/*ÉèÖÃ°å¿é´úÂë*/
+	QString qsAbsPath = "";
+	if(parentName.isEmpty())
+		qsAbsPath = blockName;
+	else
+		qsAbsPath = parentName+"|"+blockName;
+	blockCode = CBlockCodeManager::getBlockCode(qsAbsPath);
 }
 
 CBlockInfoItem::~CBlockInfoItem(void)
@@ -283,9 +296,7 @@ void CBlockInfoItem::clearTmpData()
 
 QString CBlockInfoItem::getCode() const
 {
-	if(parentName.isEmpty())
-		return blockName;
-	return parentName+"|"+blockName;
+	return blockCode;
 }
 
 WORD CBlockInfoItem::getMarket() const

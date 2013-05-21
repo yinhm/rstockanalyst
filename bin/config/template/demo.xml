@@ -18,8 +18,8 @@
     <relate>1</relate>
     <align>1</align>
     <size>56</size>
-    <block>所有股票</block>
-    <stock>300300</stock>
+    <block>概念板块|高校背景</block>
+    <stock>300334</stock>
    </widget>
    <widget circle="60">
     <name></name>
@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>27</size>
-    <code>300300</code>
+    <code>300334</code>
     <liners>
      <Liner size="60">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -46,7 +46,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>16</size>
-    <code>300300</code>
+    <code>300334</code>
    </widget>
   </widget>
   <widget>
@@ -74,11 +74,11 @@
    <widget circle="0" CBHeight="36" CBWidth="20">
     <name></name>
     <type>3</type>
-    <relate>0</relate>
+    <relate>1</relate>
     <align>1</align>
     <size>55</size>
     <color>红绿</color>
-    <block>自选</block>
+    <block>概念板块|高校背景</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>
