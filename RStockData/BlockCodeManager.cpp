@@ -17,19 +17,19 @@ QString CBlockCodeManager::getBlockCode( const QString& qsCodePath )
 		m_pRegApp = new QSettings("HKEY_CURRENT_USER\\Software\\RStockAnalyst\\", QSettings::NativeFormat);
 	}
 
-	QString qsCurrentCode = m_pRegApp->value("\\").toString();
-	qsCurrentCode = QString("%1").arg(qsCurrentCode.toInt()+1);
-
 	if(m_pRegApp->contains(qsCodePath))
 	{
 		return m_pRegApp->value(qsCodePath).toString();
 	}
 	else
 	{
+		QString qsCurrentCode = m_pRegApp->value("\\","800000").toString();
+		qsCurrentCode = QString("%1").arg(qsCurrentCode.toInt()+1);
 		m_pRegApp->setValue(qsCodePath,qsCurrentCode);
 		m_pRegApp->setValue("\\",qsCurrentCode);
+		
+		return qsCurrentCode;
 	}
-	return "";
 }
 
 CBlockCodeManager::CBlockCodeManager(void)

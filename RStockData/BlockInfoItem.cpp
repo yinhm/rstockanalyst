@@ -11,6 +11,7 @@
 #include "BlockInfoItem.h"
 #include "DataEngine.h"
 #include "BlockCodeManager.h"
+#include "Hz2Py.h"
 
 CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 	: bUpdateMin(true)
@@ -30,6 +31,9 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 	parentName = _parent;
 	blockFilePath = _file;
 	blockName = _info.baseName();
+
+	//∏¸–¬¥ ø‚±Ì÷–µƒºÚ∆¥
+	shortName = CHz2Py::getHzFirstLetter(blockName);
 
 	if(_info.isDir())
 	{
@@ -534,5 +538,27 @@ float CBlockInfoItem::getMgsy()
 
 bool CBlockInfoItem::isMatch( const QString& _key )
 {
+	//≈–∂œ¥˙¬Î «∑Ò∆•≈‰
+	if(blockCode.indexOf(_key)>-1)
+		return true;
+	
+	//≈–∂œ√˚≥∆ºÚ∆¥ «∑Ò∆•≈‰
+	for (int i = 0; i < _key.size(); ++i)
+	{
+		if(i>=shortName.size())
+			return false;
+		QList<QChar> _l = shortName[i];
+		bool bMatch = false;
+		foreach(const QChar& _c,_l)
+		{
+			if(_c == _key[i])
+			{
+				bMatch = true;
+				break;
+			}
+		}
+		if(!bMatch)
+			return false;
+	}
 	return true;
 }

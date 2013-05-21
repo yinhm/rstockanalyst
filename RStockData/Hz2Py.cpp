@@ -53,12 +53,12 @@ QList<QList<QChar>> CHz2Py::getHzFirstLetter( const QString& qsWord )
 			}
 			else
 			{
-				_chs[_c] = _c;
+				_chs[_c.toLower()] = _c.toLower();
 			}
 		}
 		else
 		{
-			_chs[_c] = _c;
+			_chs[_c.toLower()] = _c.toLower();
 		}
 		listChar.push_back(_chs.keys());
 	}
