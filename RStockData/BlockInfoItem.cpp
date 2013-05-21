@@ -4,7 +4,7 @@
 /*
 /* 描    述：用于管理板块数据
 /*
-/* 更新间隔：暂时定为1分钟更新一次
+/* 更新间隔：暂时定为30秒更新一次
 /* 计算方式：取前十只股票进行加权平均
 /************************************************************************/
 #include "StdAfx.h"
@@ -13,25 +13,10 @@
 #include "BlockCodeManager.h"
 
 CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
-	: bUpdateMin(false)
-	, bUpdateDay(false)
-	, fNowVolume(FLOAT_NAN)
-	, fIncreaseSpeed(FLOAT_NAN)
-	, fBuyVolume(FLOAT_NAN)
-	, fSellVolume(FLOAT_NAN)
+	: bUpdateMin(true)
+	, bUpdateDay(true)
 	, fIncrease(FLOAT_NAN)
-	, fVolumeRatio(FLOAT_NAN)
-	, fTurnRatio(FLOAT_NAN)
-	, fPriceFluctuate(FLOAT_NAN)
-	, fAmplitude(FLOAT_NAN)
-	, fAvePrice(FLOAT_NAN)
-	, fCommRatio(FLOAT_NAN)
-	, fCommSent(FLOAT_NAN)
-	, fPERatio(FLOAT_NAN)
 	, fLTSZ(FLOAT_NAN)
-	, fSellVOL(0.0)
-	, fBuyVOL(0.0)
-	, fLast5Volume(0.0)
 	, fLastClose(FLOAT_NAN)
 	, fOpenPrice(FLOAT_NAN)
 	, fNewPrice(FLOAT_NAN)
@@ -108,7 +93,8 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 	blockCode = CBlockCodeManager::getBlockCode(qsAbsPath);
 
 	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
-	timerUpdate.start(1*1000);
+	timerUpdate.start(30*1000);
+	updateData();
 }
 
 CBlockInfoItem::~CBlockInfoItem(void)
@@ -329,7 +315,7 @@ void CBlockInfoItem::updateData()
 		fLowPrice = dLow/dLTG;
 		fHighPrice = dHigh/dLTG;
 
-
+		fLTSZ = dNew;
 		//涨幅
 		if(fNewPrice>0.0 && fLastClose>0.0)
 			fIncrease = (fNewPrice-fLastClose)*100.0/fLastClose;
@@ -403,19 +389,16 @@ float CBlockInfoItem::getVolumeRatio() const
 
 float CBlockInfoItem::getTurnRatio() const
 {
-
 	return 0.0;
 }
 
 float CBlockInfoItem::getLastClose() const
 {
-
 	return fLastClose;
 }
 
 float CBlockInfoItem::getOpenPrice() const
 {
-
 	return fOpenPrice;
 }
 
@@ -427,13 +410,11 @@ float CBlockInfoItem::getHighPrice() const
 
 float CBlockInfoItem::getLowPrice() const
 {
-
 	return fLowPrice;
 }
 
 float CBlockInfoItem::getNewPrice() const
 {
-
 	return fNewPrice;
 }
 

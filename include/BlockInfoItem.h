@@ -106,27 +106,8 @@ private:
 	float fHighPrice;				//最高价
 
 	float fIncrease;				//涨幅
-	float fVolumeRatio;				//量比
-	float fTurnRatio;				//换手率
 
-	float fNowVolume;				//现手
-	float fIncreaseSpeed;			//增长速度  (NewPrice-OldPrice)/OldPrice
-	float fPriceFluctuate;			//涨跌，价格波动
-	float fAmplitude;				//振幅
-	float fAvePrice;				//均价
-
-	float fPERatio;					//市盈率
 	float fLTSZ;					//流通市值
-	float fZGB;						//总股本
-	float fSellVOL;					//外盘量
-	float fBuyVOL;					//内盘量
-
-	float fBuyVolume;				//委买量
-	float fSellVolume;				//委卖量
-	float fCommRatio;				//委比
-	float fCommSent;				//委差
-
-	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
 
 	QList<QList<QChar>> shortName;	//简拼表
 };
