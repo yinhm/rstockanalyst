@@ -77,16 +77,6 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 			file.close();
 		}
 	}
-
-
-	/*ÉèÖÃ°å¿é´úÂë*/
-	qsCode = CBlockCodeManager::getBlockCode(getAbsPath());
-
-	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
-	timerUpdate.start(UPDATE_BLOCK_TIME);
-	updateData();
-
-	CDataEngine::getDataEngine()->setBlockInfoItem(this);
 }
 
 CBlockInfoItem::~CBlockInfoItem(void)
@@ -108,13 +98,22 @@ void CBlockInfoItem::initChildren()
 		pChild->initChildren();
 		appendBlock(pChild);
 	}
+
+	/*ÉèÖÃ°å¿é´úÂë*/
+	qsCode = CBlockCodeManager::getBlockCode(getAbsPath());
+
+	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
+	timerUpdate.start(UPDATE_BLOCK_TIME);
+	updateData();
+
+	CDataEngine::getDataEngine()->setBlockInfoItem(this);
 }
 
 QString CBlockInfoItem::getAbsPath()
 {
 	if(m_pParent)
 	{
-		m_pParent->getAbsPath()+"|"+blockName;
+		return m_pParent->getAbsPath()+"|"+blockName;
 	}
 	else
 	{

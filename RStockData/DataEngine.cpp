@@ -1108,6 +1108,7 @@ void CDataEngine::setBlockInfoItem( CBlockInfoItem* _p )
 	m_mapBlockInfos[_p->getCode()] = _p;
 }
 
+
 QList<CStockInfoItem*> CDataEngine::getStocksByMarket( WORD wMarket )
 {
 	QList<CStockInfoItem*> listStocks;
@@ -1122,42 +1123,40 @@ QList<CStockInfoItem*> CDataEngine::getStocksByMarket( WORD wMarket )
 	return listStocks;
 }
 
-//QList<CStockInfoItem*> CDataEngine::getStocksByBlock( const QString& block )
-//{
-//	QList<CStockInfoItem*> listStocks;
-//	if(isBlockInCommon(block))
-//	{
-//		QRegExp r = getRegexpByBlock(block);
-//		QMap<QString,CStockInfoItem*>::iterator iter = m_mapStockInfos.begin();
-//		while(iter!=m_mapStockInfos.end())
-//		{
-//			if(r.exactMatch((*iter)->getCode()))
-//			{
-//				listStocks.push_back(*iter);
-//			}
-//			++iter;
-//		}
-//	}
-//	else
-//	{
-//		QFile file(m_qsBlocksDir+block);
-//		if(file.open(QFile::ReadOnly))
-//		{
-//			while(!file.atEnd())
-//			{
-//				QString code = file.readLine();
-//				code = code.trimmed();
-//				if((!code.isEmpty())&&(m_mapStockInfos.contains(code)))
-//				{
-//					listStocks.push_back(m_mapStockInfos[code]);
-//				}
-//			}
-//			file.close();
-//		}
-//	}
-//
-//	return listStocks;
-//}
+QList<CStockInfoItem*> CDataEngine::getStockInfoList()
+{
+	return m_mapStockInfos.values();
+}
+
+CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
+{
+	if(m_mapStockInfos.contains(qsCode))
+	{
+		return m_mapStockInfos[qsCode];
+	}
+	return NULL;
+}
+
+void CDataEngine::setStockInfoItem( CStockInfoItem* p )
+{
+	m_mapStockInfos[p->getCode()] = p;
+}
+
+
+CAbstractStockItem* CDataEngine::getStockItem(const QString& qsCode)
+{
+	if(m_mapStockInfos.contains(qsCode))
+	{
+		return m_mapStockInfos[qsCode];
+	}
+
+	if(m_mapBlockInfos.contains(qsCode))
+	{
+		return m_mapBlockInfos[qsCode];
+	}
+
+	return NULL;
+}
 
 
 void CDataEngine::appendNews( const QString& title, const QString& content )
@@ -1193,25 +1192,6 @@ bool CDataEngine::showF10Data( const QString& code )
 		return QProcess::startDetached("notepad.exe",QStringList()<<qsF10Path);
 	}
 	return false;
-}
-
-QList<CStockInfoItem*> CDataEngine::getStockInfoList()
-{
-	return m_mapStockInfos.values();
-}
-
-CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
-{
-	if(m_mapStockInfos.contains(qsCode))
-	{
-		return m_mapStockInfos[qsCode];
-	}
-	return NULL;
-}
-
-void CDataEngine::setStockInfoItem( CStockInfoItem* p )
-{
-	m_mapStockInfos[p->getCode()] = p;
 }
 
 bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list )

@@ -7,6 +7,7 @@
 #define	GetColorByFloat(x)	(((x)==0.0) ? QColor(191,191,191) : (((x)>0.0) ? QColor(255,80,80) : QColor(0,255,255)))
 
 #define BLOCK_CMD_SHOW	1
+#define BLOCK_CMD_ADD	2
 
 CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent,WidgetMarketTrend)
@@ -42,8 +43,6 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 
 	m_pMenuCustom = new QMenu(tr("市场行情图菜单"));
 	m_pMenuCustom->addAction(tr("刷新"),this,SLOT(onRefresh()));
-	m_pMenuToBlock = new QMenu(tr("添加到板块"));
-	m_pMenuCustom->addMenu(m_pMenuToBlock);
 	m_pMenuCustom->addAction(tr("删除选中股"),this,SLOT(onRemoveStock()));
 	m_pMenuCustom->addSeparator();
 
@@ -535,20 +534,8 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
 		m_pMenuCustom->addMenu(m_pMenu);
 
-	m_pMenuToBlock->clear();
-
-	QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getTopLevelBlocks();
-	foreach(CBlockInfoItem* block,list)
-	{
-		if(block == m_pSelectedBlock)
-			continue;
-		QAction* pAct = m_pMenuToBlock->addAction(block->getBlockName(),this,SLOT(onAddToBlock()));
-		pAct->setData(block->getCode());
-	}
-	m_pMenuToBlock->addSeparator();
-	m_pMenuToBlock->addAction(tr("新建板块"),this,SLOT(onAddToNewBlock()));
-
 	QMenu* pBlockMenu = CMainWindow::getMainWindow()->getBlockMenu(this,BLOCK_CMD_SHOW);
+	pBlockMenu->setTitle(tr("添加到板块"));
 	m_pMenuCustom->addMenu(pBlockMenu);
 
 	return m_pMenuCustom;
@@ -1125,5 +1112,9 @@ void CMarketTrendWidget::onBlockClicked( CBlockInfoItem* pBlock,int iCmd )
 	if(iCmd == BLOCK_CMD_SHOW)
 	{
 		clickedBlock(pBlock);
+	}
+	else if(iCmd == BLOCK_CMD_ADD)
+	{
+
 	}
 }

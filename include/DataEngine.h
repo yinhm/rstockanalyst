@@ -72,7 +72,15 @@ public:
 	CBlockInfoItem* getStockBlock(const QString& qsCode);		//通过板块名称获取板块
 	bool isHadBlock(const QString& block);		//是否存在某板块
 	void setBlockInfoItem(CBlockInfoItem* _p);						//设置板块数据
+
+	//获取单只股票数据
 	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表
+	QList<CStockInfoItem*> getStockInfoList();
+	CStockInfoItem* getStockInfoItem(const QString& qsCode);
+	void setStockInfoItem(CStockInfoItem* p);
+
+	//获取股票（含板块）数据
+	CAbstractStockItem* getStockItem(const QString& qsCode);
 
 	//新闻数据
 	void appendNews(const QString& title, const QString& content);		//添加新闻
@@ -80,11 +88,6 @@ public:
 	void appendF10(const QString& title, const QString& content);		//添加F10数据
 	//显示F10数据
 	bool showF10Data(const QString& code);
-
-	//获取基本行情数据
-	QList<CStockInfoItem*> getStockInfoList();
-	CStockInfoItem* getStockInfoItem(const QString& qsCode);
-	void setStockInfoItem(CStockInfoItem* p);
 
 	/*导出日线数据*/
 	bool exportHistoryData(const QString& qsCode, const QList<qRcvHistoryData*>& list);
