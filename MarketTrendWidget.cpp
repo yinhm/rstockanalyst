@@ -92,7 +92,7 @@ bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 	if(m_pSelectedBlock)
 	{
 		QDomElement eleBlock = doc.createElement("block");
-		eleBlock.appendChild(doc.createTextNode(m_pSelectedBlock->getAbsPath()));
+		eleBlock.appendChild(doc.createTextNode(m_pSelectedBlock->getCode()));
 		eleWidget.appendChild(eleBlock);
 	}
 
@@ -151,7 +151,7 @@ void CMarketTrendWidget::stockInfoChanged( const QString& code )
 void CMarketTrendWidget::onRefresh()
 {
 	m_listBlocks.clear();
-	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getTopLevelBlocks();
 	if(listBlocks.size()>0)
 	{
 		foreach(CBlockInfoItem* b,listBlocks)
@@ -307,7 +307,7 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 	if(m_pSelectedBlock == pBlock)
 	{
 		setStocks(pBlock->getAbsStockList());
-		CMainWindow::getMainWindow()->clickedBlock(pBlock->getAbsPath());
+		CMainWindow::getMainWindow()->clickedBlock(pBlock->getCode());
 		resortStocks();
 		update();
 		return;
@@ -315,7 +315,7 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 
 	{
 		setStocks(pBlock->getAbsStockList());
-		CMainWindow::getMainWindow()->clickedBlock(pBlock->getAbsPath());
+		CMainWindow::getMainWindow()->clickedBlock(pBlock->getCode());
 		m_pSelectedBlock = block;
 		{
 			//设置排序方式
@@ -537,13 +537,13 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 
 	m_pMenuToBlock->clear();
 
-	QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getStockBlocks();
+	QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getTopLevelBlocks();
 	foreach(CBlockInfoItem* block,list)
 	{
 		if(block == m_pSelectedBlock)
 			continue;
 		QAction* pAct = m_pMenuToBlock->addAction(block->getBlockName(),this,SLOT(onAddToBlock()));
-		pAct->setData(block->getBlockName());
+		pAct->setData(block->getCode());
 	}
 	m_pMenuToBlock->addSeparator();
 	m_pMenuToBlock->addAction(tr("新建板块"),this,SLOT(onAddToNewBlock()));
