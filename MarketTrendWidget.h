@@ -66,7 +66,6 @@ protected:
 
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
-	QMenu* m_pMenuToBlock;					//添加到板块的菜单
 	QStringList m_listHeader;				//头部数据
 	QList<CAbstractStockItem*> m_listStocks;	//要显示的股票列表
 	QMap<CAbstractStockItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
