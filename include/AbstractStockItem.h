@@ -9,12 +9,19 @@
 #include <QtCore>
 #include "rsd_global.h"
 
+struct qRcvFenBiData;
+
 class RSDSHARED_EXPORT CAbstractStockItem : public QObject
 {
 	Q_OBJECT
 public:
 	CAbstractStockItem(void);
 	~CAbstractStockItem(void);
+
+public:
+	//补充分笔数据
+	QList<qRcvFenBiData*> getFenBiList();
+	virtual void appendFenBis(const QList<qRcvFenBiData*>& list);
 
 public:
 	/*属性类字段，只读*/
@@ -61,6 +68,11 @@ signals:
 	void stockItemReportChanged(const QString&);	//行情数据更新
 	void stockItemHistoryChanged(const QString&);	//历史数据更新
 	void stockItemFenBiChanged(const QString&);		//分笔数据更新
+
+
+protected:
+	QString qsCode;									//代码
+	QMultiMap<time_t,qRcvFenBiData*> mapFenBis;		//分笔数据
 };
 
 #endif //ABSTRACT_STOCK_ITEM_H

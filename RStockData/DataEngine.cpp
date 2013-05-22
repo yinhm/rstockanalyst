@@ -485,7 +485,8 @@ int CDataEngine::importBlocksData( const QString& /*qsPath*/ )
 	QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot,QDir::DirsLast);
 	foreach(const QFileInfo& _f,listEntity)
 	{
-		CDataEngine::getDataEngine()->setBlockInfoItem(new CBlockInfoItem(_f.absoluteFilePath(),""));
+		CBlockInfoItem* pBlock = new CBlockInfoItem(_f.absoluteFilePath());
+		pBlock->initChildren();
 	}
 	return CDataEngine::getDataEngine()->getStockBlocks().size();
 }
@@ -1076,29 +1077,23 @@ CDataEngine::~CDataEngine(void)
 	m_mapStockInfos.clear();
 }
 
+QList<CBlockInfoItem*> CDataEngine::getTopLevelBlocks()
+{
+	return m_listTopLevelBlocks;
+}
+
 QList<CBlockInfoItem*> CDataEngine::getStockBlocks()
 {
 	return m_mapBlockInfos.values();
 }
 
-CBlockInfoItem* CDataEngine::getStockBlock( const QString& block )
+CBlockInfoItem* CDataEngine::getStockBlock( const QString& qsCode )
 {
-	QStringList listBlocks = block.split("|");
-	if(listBlocks.size()<0)
-		return 0;
-
-	if(m_mapBlockInfos.contains(listBlocks[0]))
+	if(m_mapBlockInfos.contains(qsCode))
 	{
-		CBlockInfoItem* pBlockItem = m_mapBlockInfos[listBlocks[0]];
-		if(listBlocks.size()==1)
-			return pBlockItem;
-		else
-		{
-			listBlocks.removeAt(0);
-			return pBlockItem->querySubBlock(listBlocks);
-		}
+		return m_mapBlockInfos[qsCode];
 	}
-	return 0;
+	return NULL;
 }
 
 bool CDataEngine::isHadBlock( const QString& block )
@@ -1108,7 +1103,9 @@ bool CDataEngine::isHadBlock( const QString& block )
 
 void CDataEngine::setBlockInfoItem( CBlockInfoItem* _p )
 {
-	m_mapBlockInfos[_p->getBlockName()] = _p;
+	if(_p->getAbsPath()==_p->getName())
+		m_listTopLevelBlocks.push_back(_p);
+	m_mapBlockInfos[_p->getCode()] = _p;
 }
 
 QList<CStockInfoItem*> CDataEngine::getStocksByMarket( WORD wMarket )

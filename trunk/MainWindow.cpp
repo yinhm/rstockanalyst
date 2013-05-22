@@ -451,7 +451,7 @@ CBaseWidget* CMainWindow::getSubWindows( const QString& title )
 void CMainWindow::initBlockMenus()
 {
 	m_menuBlocks.setTitle("°å¿é²Ëµ¥");
-	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getTopLevelBlocks();
 	foreach(CBlockInfoItem* _block,listBlocks)
 	{
 		QAction* pActBlock = 0;

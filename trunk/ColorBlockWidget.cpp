@@ -92,7 +92,7 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	if(m_pBlock)
 	{
 		QDomElement eleBlock = doc.createElement("block");
-		eleBlock.appendChild(doc.createTextNode(m_pBlock->getAbsPath()));
+		eleBlock.appendChild(doc.createTextNode(m_pBlock->getCode()));
 		eleWidget.appendChild(eleBlock);
 	}
 
@@ -790,7 +790,7 @@ QMenu* CColorBlockWidget::getCustomMenu()
 	{
 		//设置所有板块的菜单
 		m_pMenuBlockList->clear();
-		QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getStockBlocks();
+		QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getTopLevelBlocks();
 		foreach(const CBlockInfoItem* block,list)
 		{
 			QAction* pAct = m_pMenuBlockList->addAction(block->getBlockName(),this,SLOT(onSetCurrentBlock()));

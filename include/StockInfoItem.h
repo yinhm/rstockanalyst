@@ -37,8 +37,7 @@ public:
 	void appendPowers(const QList<qRcvPowerData*>& list);
 
 	//补充分笔数据
-	QList<qRcvFenBiData*> getFenBiList();
-	void appendFenBis(const QList<qRcvFenBiData*>& list);
+	virtual void appendFenBis(const QList<qRcvFenBiData*>& list);
 
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
@@ -89,7 +88,6 @@ protected:
 	void resetBuySellVOL();		//重新计算内外盘数据
 
 private:
-	QString qsCode;					//代码
 	WORD wMarket;					//市场类型
 	QString qsName;					//股票名称
 	float fIncrease;				//涨幅
@@ -122,7 +120,6 @@ private:
 
 private:
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
-	QMultiMap<long,qRcvFenBiData*> mapFenBis;		//分笔数据
 	QMap<time_t,RStockData*>* pMap5Min;				//最近10天的历史5分钟数据
 	qRcvBaseInfoData baseInfo;
 };

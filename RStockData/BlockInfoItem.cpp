@@ -12,8 +12,10 @@
 #include "DataEngine.h"
 #include "BlockCodeManager.h"
 #include "Hz2Py.h"
+#define	MAX_STOCK_IN_BLOCK	10
+#define UPDATE_BLOCK_TIME	30*1000
 
-CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
+CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*/ )
 	: bUpdateMin(true)
 	, bUpdateDay(true)
 	, fIncrease(FLOAT_NAN)
@@ -23,31 +25,20 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 	, fNewPrice(FLOAT_NAN)
 	, fLowPrice(FLOAT_NAN)
 	, fHighPrice(FLOAT_NAN)
+	, m_pParent(parent)
+	, blockFilePath(_file)
 {
 	QFileInfo _info(_file);
 	if(!_info.exists())
 		return;
 
-	parentName = _parent;
 	blockFilePath = _file;
 	blockName = _info.baseName();
 
 	//更新词库表中的简拼
 	shortName = CHz2Py::getHzFirstLetter(blockName);
 
-	if(_info.isDir())
-	{
-		QDir dir(blockFilePath);
-		QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
-		foreach(const QFileInfo& _f,listEntity)
-		{
-			if(parentName.isEmpty())
-				appendBlock(new CBlockInfoItem(_f.absoluteFilePath(),blockName));
-			else
-				appendBlock(new CBlockInfoItem(_f.absoluteFilePath(),parentName+"|"+blockName));
-		}
-	}
-	else
+	if(_info.isFile())
 	{
 		QFile file(blockFilePath);
 		if(file.open(QFile::ReadOnly))
@@ -89,16 +80,13 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,const QString& _parent )
 
 
 	/*设置板块代码*/
-	QString qsAbsPath = "";
-	if(parentName.isEmpty())
-		qsAbsPath = blockName;
-	else
-		qsAbsPath = parentName+"|"+blockName;
-	blockCode = CBlockCodeManager::getBlockCode(qsAbsPath);
+	qsCode = CBlockCodeManager::getBlockCode(getAbsPath());
 
 	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
-	timerUpdate.start(30*1000);
+	timerUpdate.start(UPDATE_BLOCK_TIME);
 	updateData();
+
+	CDataEngine::getDataEngine()->setBlockInfoItem(this);
 }
 
 CBlockInfoItem::~CBlockInfoItem(void)
@@ -106,11 +94,32 @@ CBlockInfoItem::~CBlockInfoItem(void)
 	clearTmpData();
 }
 
+void CBlockInfoItem::initChildren()
+{
+	QFileInfo _info(blockFilePath);
+	if(!_info.exists())
+		return;
+
+	QDir dir(blockFilePath);
+	QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
+	foreach(const QFileInfo& _f,listEntity)
+	{
+		CBlockInfoItem* pChild = new CBlockInfoItem(_f.absoluteFilePath(),this);
+		pChild->initChildren();
+		appendBlock(pChild);
+	}
+}
+
 QString CBlockInfoItem::getAbsPath()
 {
-	if(parentName.isEmpty())
+	if(m_pParent)
+	{
+		m_pParent->getAbsPath()+"|"+blockName;
+	}
+	else
+	{
 		return blockName;
-	return parentName+"|"+blockName;
+	}
 }
 
 CBlockInfoItem* CBlockInfoItem::querySubBlock( const QStringList& _parent )
@@ -297,9 +306,11 @@ void CBlockInfoItem::updateData()
 		double dNew = 0.0;			//最新价
 		double dLow = 0.0;			//最低价
 		double dHigh = 0.0;			//最高价
+		fVolume = 0.0;				//成交量
+		fAmount = 0.0;				//成交额
 		int iCount = stocksInBlock.size();
-		if(iCount>10)
-			iCount = 10;
+		if(iCount>MAX_STOCK_IN_BLOCK)
+			iCount = MAX_STOCK_IN_BLOCK;
 		for(int i=0;i<iCount;++i)
 		{
 			CStockInfoItem* pStock = stocksInBlock[i];
@@ -311,6 +322,8 @@ void CBlockInfoItem::updateData()
 			dNew += pStock->getNewPrice()*fLTAG;
 			dLow += pStock->getLowPrice()*fLTAG;
 			dHigh += pStock->getHighPrice()*fLTAG;
+			fVolume += pStock->getTotalVolume();
+			fAmount += pStock->getTotalAmount();
 		}
 
 		fLastClose = dLastClose/dLTG;
@@ -323,6 +336,17 @@ void CBlockInfoItem::updateData()
 		//涨幅
 		if(fNewPrice>0.0 && fLastClose>0.0)
 			fIncrease = (fNewPrice-fLastClose)*100.0/fLastClose;
+
+		{
+			//将新数据追加到分笔数据中
+			qRcvFenBiData* pFenbi = new qRcvFenBiData();
+			pFenbi->fAmount = fAmount;
+			pFenbi->fVolume = fVolume;
+			pFenbi->fPrice = fNewPrice;
+			pFenbi->tmTime = QDateTime::currentDateTime().toTime_t();
+			appendFenBis(QList<qRcvFenBiData*>()<<pFenbi);
+		}
+
 		bUpdateMin = false;
 	}
 	if(bUpdateDay)
@@ -366,7 +390,7 @@ void CBlockInfoItem::clearTmpData()
 
 QString CBlockInfoItem::getCode() const
 {
-	return blockCode;
+	return qsCode;
 }
 
 WORD CBlockInfoItem::getMarket() const
@@ -539,7 +563,7 @@ float CBlockInfoItem::getMgsy()
 bool CBlockInfoItem::isMatch( const QString& _key )
 {
 	//判断代码是否匹配
-	if(blockCode.indexOf(_key)>-1)
+	if(qsCode.indexOf(_key)>-1)
 		return true;
 	
 	//判断名称简拼是否匹配

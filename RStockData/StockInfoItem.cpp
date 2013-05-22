@@ -11,8 +11,7 @@
 #include "Hz2Py.h"
 
 CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
-	: qsCode(code)
-	, wMarket(market)
+	: wMarket(market)
 	, fNowVolume(FLOAT_NAN)
 	, pCurrentReport(NULL)
 	, pLastReport(NULL)
@@ -36,11 +35,11 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
+	qsCode = code;
 }
 
 CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
-	: qsCode(QString::fromLocal8Bit(info.code))
-	, wMarket(info.wMarket)
+	: wMarket(info.wMarket)
 	, fNowVolume(FLOAT_NAN)
 	, pCurrentReport(NULL)
 	, pLastReport(NULL)
@@ -66,6 +65,7 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
 
+	qsCode = QString::fromLocal8Bit(info.code);
 	//fLast5Volume = 0.0;
 	//QList<qRcvHistoryData*> list = getLastHistory(5);
 	//foreach(qRcvHistoryData* pHis,list)
@@ -87,16 +87,6 @@ CStockInfoItem::~CStockInfoItem(void)
 			++iter;
 		}
 		mapPowers.clear();
-	}
-
-	{
-		QMultiMap<long,qRcvFenBiData*>::iterator iter = mapFenBis.begin();		//分笔数据
-		while(iter!=mapFenBis.end())
-		{
-			delete iter.value();
-			++iter;
-		}
-		mapFenBis.clear();
 	}
 
 	{
@@ -253,63 +243,11 @@ void CStockInfoItem::appendPowers( const QList<qRcvPowerData*>& list )
 }
 
 
-
-QList<qRcvFenBiData*> CStockInfoItem::getFenBiList()
-{
-	//获取分笔数据，未完工
-	return mapFenBis.values();
-}
-
 void CStockInfoItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 {
-	//追加分笔数据，未完工
-	if(mapFenBis.size()>0&&list.size()>0)
-	{
-		QDate myDate = QDateTime::fromTime_t(mapFenBis.begin().value()->tmTime).date();
-		QDate theDate = QDateTime::fromTime_t(list.first()->tmTime).date();
-		if(theDate>myDate)
-		{
-			//如果新来的数据的时间大于当前的时间，则清空当前的数据
-			foreach(qRcvFenBiData* p,mapFenBis.values())
-				delete p;
-
-			mapFenBis.clear();
-		}
-	}
-
-	foreach(qRcvFenBiData* p,list)
-	{
-		bool bInsert = true;
-		if(mapFenBis.contains(p->tmTime))
-		{
-			QList<qRcvFenBiData*> listV = mapFenBis.values(p->tmTime);
-			foreach(qRcvFenBiData* p1,listV)
-			{
-				if(p1->fVolume == p->fVolume)
-				{
-					if(p1->fBuyPrice[0]>0.0)
-					{
-						//如果之前的数据不包换挂单数据，则删除之前的
-						delete p1;
-						mapFenBis.remove(p->tmTime,p1);
-						break;
-					}
-					else
-					{
-						//删除现在的数据
-						bInsert = false;
-						delete p;
-						break;
-					}
-				}
-			}
-		}
-		if(bInsert)
-			mapFenBis.insert(p->tmTime,p);
-	}
-
+	CAbstractStockItem::appendFenBis(list);
 	resetBuySellVOL();
-	emit stockItemFenBiChanged(qsCode);
+	return;
 //	CDataEngine::getDataEngine()->exportFenBiData(qsCode,mapFenBis.values());
 }
 

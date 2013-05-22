@@ -14,8 +14,11 @@ class RSDSHARED_EXPORT CBlockInfoItem : public CAbstractStockItem
 {
 	Q_OBJECT
 public:
-	CBlockInfoItem(const QString& _file,const QString& _parent);						//构造函数。只传递名称，然后通过名称去获取文件中的列表
+	CBlockInfoItem(const QString& _file,CBlockInfoItem* parent=0);						//构造函数。只传递名称，然后通过名称去获取文件中的列表
 	~CBlockInfoItem(void);
+
+	//初始化子节点
+	void initChildren();
 
 public:
 	QString getBlockName() const{ return blockName; }			//获取板块名称
@@ -87,10 +90,8 @@ private:
 	void clearTmpData();							//清理临时内存。
 
 private:
-	QString parentName;							//板块的父板块路径
 	QString blockName;							//板块名称
 	QString blockFilePath;						//板块数据的存储路径
-	QString blockCode;							//板块的代码
 	QList<CStockInfoItem*> stocksInBlock;		//该板块下的股票信息
 	QMap<QString,CBlockInfoItem*> blocksInBlock;		//该板块下的子板块
 
@@ -98,12 +99,16 @@ private:
 	bool bUpdateMin;
 	bool bUpdateDay;
 
+
+	CBlockInfoItem* m_pParent;
 private:
 	float fLastClose;				//昨日收盘价
 	float fOpenPrice;				//今日开盘价
 	float fNewPrice;				//最新价
 	float fLowPrice;				//最低价
 	float fHighPrice;				//最高价
+	float fVolume;					//成交量
+	float fAmount;					//成交额
 
 	float fIncrease;				//涨幅
 

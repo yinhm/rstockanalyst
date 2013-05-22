@@ -67,8 +67,9 @@ public:
 
 public:
 	//获取板块数据
+	QList<CBlockInfoItem*> getTopLevelBlocks();	//获取顶层板块列表
 	QList<CBlockInfoItem*> getStockBlocks();	//获取所有板块列表
-	CBlockInfoItem* getStockBlock(const QString& block);		//通过板块名称获取板块
+	CBlockInfoItem* getStockBlock(const QString& qsCode);		//通过板块名称获取板块
 	bool isHadBlock(const QString& block);		//是否存在某板块
 	void setBlockInfoItem(CBlockInfoItem* _p);						//设置板块数据
 	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表
@@ -105,6 +106,7 @@ public:
 private:
 	QMap<QString,CStockInfoItem*> m_mapStockInfos;			//股票数据
 	QMap<QString,CBlockInfoItem*> m_mapBlockInfos;			//板块数据
+	QList<CBlockInfoItem*> m_listTopLevelBlocks;			//顶层板块
 
 private:
 	static CDataEngine* m_pDataEngine;
