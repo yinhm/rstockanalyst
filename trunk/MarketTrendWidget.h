@@ -37,10 +37,8 @@ public:
 
 public slots:
 	void stockInfoChanged(const QString& code);				//某只股票的信息发生改变
-	void onRefresh();										//刷新所有
 	void onAddToBlock();									//添加当前选中的股票到板块
 	void onAddToNewBlock();									//添加当前选中的股票到新加板块
-	void onRemoveStock();									//从当前板块中移除当前选中的股票
 
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。

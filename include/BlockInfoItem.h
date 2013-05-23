@@ -17,8 +17,9 @@ public:
 	CBlockInfoItem(const QString& _file,CBlockInfoItem* parent=0);						//构造函数。只传递名称，然后通过名称去获取文件中的列表
 	~CBlockInfoItem(void);
 
+protected:
 	//初始化子节点
-	void initChildren();
+	void initBlock();
 
 public:
 	QString getBlockName() const{ return blockName; }			//获取板块名称
@@ -34,6 +35,8 @@ public:
 
 	CBlockInfoItem* querySubBlock(const QStringList& _parent);	//查找子板块
 	bool isChildOf(CBlockInfoItem* parent);
+
+	CBlockInfoItem* parentBlock(){ return m_pParent;}
 
 public:
 	/*属性类字段，只读*/
@@ -93,7 +96,7 @@ private:
 	QString blockName;							//板块名称
 	QString blockFilePath;						//板块数据的存储路径
 	QList<CStockInfoItem*> stocksInBlock;		//该板块下的股票信息
-	QMap<QString,CBlockInfoItem*> blocksInBlock;		//该板块下的子板块
+	QMap<QString,CBlockInfoItem*> blocksInBlock;//该板块下的子板块
 
 	QTimer timerUpdate;
 	bool bUpdateMin;

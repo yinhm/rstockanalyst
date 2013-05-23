@@ -486,7 +486,6 @@ int CDataEngine::importBlocksData( const QString& /*qsPath*/ )
 	foreach(const QFileInfo& _f,listEntity)
 	{
 		CBlockInfoItem* pBlock = new CBlockInfoItem(_f.absoluteFilePath());
-		pBlock->initChildren();
 	}
 	return CDataEngine::getDataEngine()->getStockBlocks().size();
 }
@@ -1103,9 +1102,16 @@ bool CDataEngine::isHadBlock( const QString& block )
 
 void CDataEngine::setBlockInfoItem( CBlockInfoItem* _p )
 {
-	if(_p->getAbsPath()==_p->getName())
+	if(_p->parentBlock()==0)
 		m_listTopLevelBlocks.push_back(_p);
 	m_mapBlockInfos[_p->getCode()] = _p;
+}
+
+void CDataEngine::removeBlockInfoItem( CBlockInfoItem* _p )
+{
+	if(_p->parentBlock()==0)
+		m_listTopLevelBlocks.removeOne(_p);
+	m_mapBlockInfos.remove(_p->getCode());
 }
 
 

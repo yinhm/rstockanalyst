@@ -28,15 +28,40 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	, m_pParent(parent)
 	, blockFilePath(_file)
 {
-	QFileInfo _info(_file);
+	QFileInfo _info(blockFilePath);
 	if(!_info.exists())
 		return;
-
 	blockFilePath = _file;
 	blockName = _info.baseName();
 
 	//更新词库表中的简拼
 	shortName = CHz2Py::getHzFirstLetter(blockName);
+
+
+	/*设置板块代码*/
+	qsCode = CBlockCodeManager::getBlockCode(getAbsPath());
+
+	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
+	timerUpdate.start(UPDATE_BLOCK_TIME);
+	updateData();
+
+	CDataEngine::getDataEngine()->setBlockInfoItem(this);
+
+	initBlock();
+}
+
+CBlockInfoItem::~CBlockInfoItem(void)
+{
+	CDataEngine::getDataEngine()->removeBlockInfoItem(this);
+	clearTmpData();
+}
+
+void CBlockInfoItem::initBlock()
+{
+	clearTmpData();
+	QFileInfo _info(blockFilePath);
+	if(!_info.exists())
+		return;
 
 	if(_info.isFile())
 	{
@@ -77,36 +102,16 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 			file.close();
 		}
 	}
-}
-
-CBlockInfoItem::~CBlockInfoItem(void)
-{
-	clearTmpData();
-}
-
-void CBlockInfoItem::initChildren()
-{
-	QFileInfo _info(blockFilePath);
-	if(!_info.exists())
-		return;
-
-	QDir dir(blockFilePath);
-	QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
-	foreach(const QFileInfo& _f,listEntity)
+	else if(_info.isDir())
 	{
-		CBlockInfoItem* pChild = new CBlockInfoItem(_f.absoluteFilePath(),this);
-		pChild->initChildren();
-		appendBlock(pChild);
+		QDir dir(blockFilePath);
+		QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
+		foreach(const QFileInfo& _f,listEntity)
+		{
+			CBlockInfoItem* pChild = new CBlockInfoItem(_f.absoluteFilePath(),this);
+			appendBlock(pChild);
+		}
 	}
-
-	/*设置板块代码*/
-	qsCode = CBlockCodeManager::getBlockCode(getAbsPath());
-
-	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
-	timerUpdate.start(UPDATE_BLOCK_TIME);
-	updateData();
-
-	CDataEngine::getDataEngine()->setBlockInfoItem(this);
 }
 
 QString CBlockInfoItem::getAbsPath()
@@ -346,11 +351,14 @@ void CBlockInfoItem::updateData()
 			appendFenBis(QList<qRcvFenBiData*>()<<pFenbi);
 		}
 
+		emit stockItemReportChanged(qsCode);
+		emit stockItemFenBiChanged(qsCode);
 		bUpdateMin = false;
 	}
 	if(bUpdateDay)
 	{
 
+		emit stockItemHistoryChanged(qsCode);
 		bUpdateDay = false;
 	}
 }
@@ -385,6 +393,12 @@ void CBlockInfoItem::clearTmpData()
 		disconnect(_p,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(stockFenbiChanged(const QString&)));
 	}
 	stocksInBlock.clear();
+
+	foreach(CBlockInfoItem* _p,blocksInBlock)
+	{
+		delete _p;
+	}
+	blocksInBlock.clear();
 }
 
 QString CBlockInfoItem::getCode() const

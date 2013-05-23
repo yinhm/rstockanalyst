@@ -72,6 +72,7 @@ public:
 	CBlockInfoItem* getStockBlock(const QString& qsCode);		//通过板块名称获取板块
 	bool isHadBlock(const QString& block);		//是否存在某板块
 	void setBlockInfoItem(CBlockInfoItem* _p);						//设置板块数据
+	void removeBlockInfoItem(CBlockInfoItem* _p);				//删除板块数据
 
 	//获取单只股票数据
 	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表

@@ -18,8 +18,8 @@
     <relate>1</relate>
     <align>1</align>
     <size>56</size>
-    <block>概念板块|高校背景</block>
-    <stock>600846</stock>
+    <block>800109</block>
+    <stock>800010</stock>
    </widget>
    <widget circle="60">
     <name></name>
@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>27</size>
-    <code>600846</code>
+    <code>002535</code>
     <liners>
      <Liner size="60">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -46,7 +46,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>16</size>
-    <code>600846</code>
+    <code>002535</code>
    </widget>
   </widget>
   <widget>
@@ -55,7 +55,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>58</size>
-   <widget circle="60">
+   <widget circle="3602">
     <name></name>
     <type>1</type>
     <relate>0</relate>
@@ -78,7 +78,7 @@
     <align>1</align>
     <size>55</size>
     <color>红绿</color>
-    <block>概念板块|高校背景</block>
+    <block>800106</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>

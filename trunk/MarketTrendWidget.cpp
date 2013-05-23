@@ -42,11 +42,7 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	m_listItemWidth[5] = 100;
 
 	m_pMenuCustom = new QMenu(tr("市场行情图菜单"));
-	m_pMenuCustom->addAction(tr("刷新"),this,SLOT(onRefresh()));
-	m_pMenuCustom->addAction(tr("删除选中股"),this,SLOT(onRemoveStock()));
-	m_pMenuCustom->addSeparator();
 
-	onRefresh();
 //	setMinimumHeight(m_iHeaderHeight+m_iStockHeight+m_iBottomHeight);
 //	setMinimumWidth(200);
 }
@@ -136,8 +132,9 @@ void CMarketTrendWidget::stockInfoChanged( const QString& code )
 {
 	if(m_iSortColumn>2)
 	{
+		//30秒刷新一次
 		static QTime tmLast = QTime::currentTime();
-		if(tmLast.secsTo(QTime::currentTime())>2)
+		if(tmLast.secsTo(QTime::currentTime())>30)
 		{
 			resortStocks();
 			tmLast = QTime::currentTime();
@@ -145,24 +142,6 @@ void CMarketTrendWidget::stockInfoChanged( const QString& code )
 	}
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
 	update(rectOfStock(pItem));
-}
-
-void CMarketTrendWidget::onRefresh()
-{
-	m_listBlocks.clear();
-	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getTopLevelBlocks();
-	if(listBlocks.size()>0)
-	{
-		foreach(CBlockInfoItem* b,listBlocks)
-		{
-			m_listBlocks.push_back(QPair<CBlockInfoItem*,QRect>(b,QRect()));
-		}
-		updateBlockRect();
-		if(m_pSelectedBlock == 0)
-			clickedBlock(listBlocks.first());
-		else
-			clickedBlock(m_pSelectedBlock);
-	}
 }
 
 void CMarketTrendWidget::onAddToBlock()
@@ -206,18 +185,6 @@ void CMarketTrendWidget::onAddToNewBlock()
 	if(pBlock)
 	{
 		pBlock->appendStocks(QList<CStockInfoItem*>()<<reinterpret_cast<CStockInfoItem*>(m_pSelectedStock));
-	}
-}
-
-void CMarketTrendWidget::onRemoveStock()
-{
-	if(m_pSelectedStock)
-	{
-		if(m_pSelectedBlock)
-		{
-			if(m_pSelectedBlock->removeStocks(QList<CStockInfoItem*>()<<reinterpret_cast<CStockInfoItem*>(m_pSelectedStock)))
-				clickedBlock(m_pSelectedBlock);
-		}
 	}
 }
 
@@ -535,7 +502,7 @@ QMenu* CMarketTrendWidget::getCustomMenu()
 		m_pMenuCustom->addMenu(m_pMenu);
 
 	QMenu* pBlockMenu = CMainWindow::getMainWindow()->getBlockMenu(this,BLOCK_CMD_SHOW);
-	pBlockMenu->setTitle(tr("添加到板块"));
+	pBlockMenu->setTitle(tr("切换板块"));
 	m_pMenuCustom->addMenu(pBlockMenu);
 
 	return m_pMenuCustom;
