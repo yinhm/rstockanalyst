@@ -43,6 +43,24 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 
 	m_pMenuCustom = new QMenu(tr("市场行情图菜单"));
 
+
+	{
+		//初始化顶级block
+		QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getTopLevelBlocks();
+		if(listBlocks.size()>0)
+		{
+			foreach(CBlockInfoItem* b,listBlocks)
+			{
+				m_listBlocks.push_back(QPair<CBlockInfoItem*,QRect>(b,QRect()));
+			}
+			updateBlockRect();
+			if(m_pSelectedBlock == 0)
+				clickedBlock(listBlocks.first());
+			else
+				clickedBlock(m_pSelectedBlock);
+		}
+	}
+
 //	setMinimumHeight(m_iHeaderHeight+m_iStockHeight+m_iBottomHeight);
 //	setMinimumWidth(200);
 }
