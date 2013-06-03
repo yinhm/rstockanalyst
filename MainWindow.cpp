@@ -5,6 +5,7 @@
 #include "KLineWidget.h"
 #include "BlockColorSettingDlg.h"
 #include "FuncHelper.h"
+#include "SplashDlg.h"
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
 
@@ -23,6 +24,7 @@ CMainWindow::CMainWindow()
 	: QMainWindow()
 	, m_pBlockMenuWidget(0)
 	, m_iBlockMenuCmd(0)
+	, m_bExportClose(true)
 {
 	setWindowIcon(QIcon(":/res/icon.png"));
 	m_pTabWidget = new QTabWidget();
@@ -439,7 +441,21 @@ void CMainWindow::onMarketClose()
 	QDateTime tmCurrent = QDateTime::currentDateTime();
 	if(tmCurrent.date() == tmDataEngine.date())
 	{
-		if(tmCurrent.time().hour()>15)
+		//15:05后导出收盘后的数据
+		if(tmCurrent.time().hour()>15 || tmCurrent.time().minute()>5)
+		{
+			if(!m_bExportClose)
+			{
+				CSplashDlg::getSplashDlg()->showMessage("Export close data...");
+				CDataEngine::exportCloseData();
+				CSplashDlg::getSplashDlg()->hide();
+				m_bExportClose = true;
+			}
+		}
+		else if(tmCurrent.time().hour()>12&&tmCurrent.time().hour()<15)
+		{
+			m_bExportClose = false;
+		}
 	}
 }
 
