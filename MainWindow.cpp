@@ -48,6 +48,9 @@ CMainWindow::CMainWindow()
 		QMenu* pMenuHelp = m_pMenuBar->addMenu(tr("°ïÖú"));
 		pMenuHelp->addAction(tr("º¯ÊýËµÃ÷"),this,SLOT(onShowFuncHelper()));
 	}
+
+	connect(&m_timerClose,SIGNAL(timeout()),this,SLOT(onMarketClose()));
+	m_timerClose.start(60000);
 }
 
 CMainWindow::~CMainWindow()
@@ -428,6 +431,16 @@ void CMainWindow::onRemoveTemplate()
 void CMainWindow::onSaveDataEngine()
 {
 	CDataEngine::exportCloseData();
+}
+
+void CMainWindow::onMarketClose()
+{
+	QDateTime tmDataEngine = QDateTime::fromTime_t(CDataEngine::getCurrentTime());
+	QDateTime tmCurrent = QDateTime::currentDateTime();
+	if(tmCurrent.date() == tmDataEngine.date())
+	{
+		if(tmCurrent.time().hour()>15)
+	}
 }
 
 void CMainWindow::onShowFuncHelper()

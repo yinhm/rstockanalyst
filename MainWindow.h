@@ -41,6 +41,9 @@ protected slots:
 
 	void onBlockActClicked();		//板块菜单项被点击后触发
 
+
+	void onMarketClose();			//15点后休盘时触发此函数（需在函数中进行检查）
+
 protected:
 	virtual bool winEvent( MSG* message, long* result );
 
@@ -62,6 +65,8 @@ private:
 	int m_iBlockMenuCmd;								//当前BlockMenu对应的操作
 	QMenu m_menuBlocks;									//板块菜单
 	QMap<CBlockInfoItem*,QAction*> mapBlockMenus;		//板块菜单map
+
+	QTimer m_timerClose;								//是否休盘
 };
 
 
