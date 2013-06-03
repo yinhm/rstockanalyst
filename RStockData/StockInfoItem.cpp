@@ -13,7 +13,6 @@
 CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	: wMarket(market)
 	, fNowVolume(FLOAT_NAN)
-	, pCurrentReport(NULL)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)
@@ -41,7 +40,6 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	: wMarket(info.wMarket)
 	, fNowVolume(FLOAT_NAN)
-	, pCurrentReport(NULL)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)
@@ -102,11 +100,6 @@ CStockInfoItem::~CStockInfoItem(void)
 			delete pMap5Min;
 		}
 	}
-}
-
-qRcvReportData* CStockInfoItem::getCurrentReport() const
-{
-	return pCurrentReport;
 }
 
 void CStockInfoItem::setReport( qRcvReportData* p )

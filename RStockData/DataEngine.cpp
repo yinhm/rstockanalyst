@@ -238,6 +238,12 @@ void CDataEngine::importData()
 		else
 			qDebug()<<iCount<<" reports data had been imported.";
 	}
+
+	{
+		//导入板块数据
+		importBlocksData("");
+	}
+
 	{
 		//导入当天的分笔数据
 		QString qsFenBiFile = QString("%1/data/FenBi/%2").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
@@ -258,10 +264,6 @@ void CDataEngine::importData()
 		}
 		else
 			qDebug()<<iCount<<" FenBi data had been imported.";
-	}
-
-	{
-		importBlocksData("");
 	}
 }
 
@@ -450,7 +452,7 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 			break;
 		}
 
-		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(QString::fromLocal8Bit(chCode));
+		CAbstractStockItem* pItem = CDataEngine::getDataEngine()->getStockItem(QString::fromLocal8Bit(chCode));
 		if(!pItem)
 		{
 			delete pFenBiData;
@@ -563,7 +565,7 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 
 int CDataEngine::exportFenBisData( const QString& qsFile )
 {
-	QList<CStockInfoItem*> listItem = CDataEngine::getDataEngine()->getStockInfoList();
+	QList<CAbstractStockItem*> listItem = CDataEngine::getDataEngine()->getStockItems();
 	int iCount = 0;
 
 	if(QFile::exists(qsFile))
@@ -575,7 +577,7 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 	if(!file.open(QFile::WriteOnly))
 		return -1;
 
-	foreach(CStockInfoItem* pItem,listItem)
+	foreach(CAbstractStockItem* pItem,listItem)
 	{
 		//保存当天所有的分钟数据
 		QList<qRcvFenBiData*> listFenBis= pItem->getFenBiList();
@@ -1162,6 +1164,27 @@ CAbstractStockItem* CDataEngine::getStockItem(const QString& qsCode)
 	}
 
 	return NULL;
+}
+
+QList<CAbstractStockItem*> CDataEngine::getStockItems()
+{
+	QMap<QString,CAbstractStockItem*> maps;
+
+	QMap<QString,CStockInfoItem*>::iterator iterStock = m_mapStockInfos.begin();
+	while(iterStock!=m_mapStockInfos.end())
+	{
+		maps.insert(iterStock.key(),iterStock.value());
+		++iterStock;
+	}
+
+	QMap<QString,CBlockInfoItem*>::iterator iterBlock = m_mapBlockInfos.begin();
+	while(iterBlock!=m_mapBlockInfos.end())
+	{
+		maps.insert(iterBlock.key(),iterBlock.value());
+		++iterBlock;
+	}
+
+	return maps.values();
 }
 
 

@@ -28,6 +28,8 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	, m_pParent(parent)
 	, blockFilePath(_file)
 {
+	pCurrentReport = new qRcvReportData;
+
 	QFileInfo _info(blockFilePath);
 	if(!_info.exists())
 		return;
@@ -40,6 +42,10 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 
 	/*设置板块代码*/
 	qsCode = CBlockCodeManager::getBlockCode(getAbsPath());
+
+	pCurrentReport->tmTime = QDateTime::currentDateTime().toTime_t();
+	pCurrentReport->qsCode = qsCode;
+	pCurrentReport->wMarket = BB_MARKET_EX;
 
 	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
 	timerUpdate.start(UPDATE_BLOCK_TIME);
@@ -54,6 +60,7 @@ CBlockInfoItem::~CBlockInfoItem(void)
 {
 	CDataEngine::getDataEngine()->removeBlockInfoItem(this);
 	clearTmpData();
+	delete pCurrentReport;
 }
 
 void CBlockInfoItem::initBlock()
@@ -113,6 +120,18 @@ void CBlockInfoItem::initBlock()
 		}
 	}
 }
+
+
+QList<qRcvHistoryData*> CBlockInfoItem::getHistoryList()
+{
+	return QList<qRcvHistoryData*>();
+}
+
+QList<RStockData*> CBlockInfoItem::get5MinList()
+{
+	return QList<RStockData*>();
+}
+
 
 QString CBlockInfoItem::getAbsPath()
 {
@@ -318,16 +337,23 @@ void CBlockInfoItem::updateData()
 		for(int i=0;i<iCount;++i)
 		{
 			CStockInfoItem* pStock = stocksInBlock[i];
-			float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
-//			dTotalGB += pStock->getBaseInfo()->fZgb;
-			dLTG += fLTAG;
-			dLastClose += pStock->getLastClose()*fLTAG;
-			dOpen += pStock->getOpenPrice()*fLTAG;
-			dNew += pStock->getNewPrice()*fLTAG;
-			dLow += pStock->getLowPrice()*fLTAG;
-			dHigh += pStock->getHighPrice()*fLTAG;
-			fVolume += pStock->getTotalVolume();
-			fAmount += pStock->getTotalAmount();
+			if(pStock->getNewPrice()>0.1)
+			{
+				float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
+	//			dTotalGB += pStock->getBaseInfo()->fZgb;
+				dLTG += fLTAG;
+				dLastClose += pStock->getLastClose()*fLTAG;
+				dOpen += pStock->getOpenPrice()*fLTAG;
+				dNew += pStock->getNewPrice()*fLTAG;
+				dLow += pStock->getLowPrice()*fLTAG;
+				dHigh += pStock->getHighPrice()*fLTAG;
+				fVolume += pStock->getTotalVolume();
+				fAmount += pStock->getTotalAmount();
+			}
+		}
+		if(dLTG<0.1)
+		{
+			return;
 		}
 
 		fLastClose = dLastClose/dLTG;
@@ -351,10 +377,19 @@ void CBlockInfoItem::updateData()
 			appendFenBis(QList<qRcvFenBiData*>()<<pFenbi);
 		}
 
+		pCurrentReport->tmTime = QDateTime::currentDateTime().toTime_t();
+		pCurrentReport->fOpen = fOpenPrice;
+		pCurrentReport->fNewPrice = fNewPrice;
+		pCurrentReport->fLow = fLowPrice;
+		pCurrentReport->fHigh = fHighPrice;
+		pCurrentReport->fAmount = fAmount;
+		pCurrentReport->fVolume = fVolume;
+
 		emit stockItemReportChanged(qsCode);
 		emit stockItemFenBiChanged(qsCode);
 		bUpdateMin = false;
 	}
+
 	if(bUpdateDay)
 	{
 

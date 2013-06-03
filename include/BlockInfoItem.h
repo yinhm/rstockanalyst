@@ -22,6 +22,13 @@ protected:
 	void initBlock();
 
 public:
+	//补充日线数据
+	QList<qRcvHistoryData*> getHistoryList();
+
+	//补充历史5分钟数据
+	QList<RStockData*> get5MinList();
+
+public:
 	QString getBlockName() const{ return blockName; }			//获取板块名称
 	QString getAbsPath();										//获取板块的绝对路径
 	QList<CAbstractStockItem*> getAbsStockList();				//获取全部列表

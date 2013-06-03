@@ -36,11 +36,12 @@ public:
 
 public slots:
 	virtual void setStockCode(const QString& code);
+	virtual void setBlock(const QString& block);
 	void updateMinLine(const QString& code);
 	void updateDayLine(const QString& code);
 
 protected:
-	void setStockItem(CStockInfoItem* pItem);
+	void setStockItem(CAbstractStockItem* pItem);
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
@@ -76,7 +77,7 @@ private:
 	void clearTmpData();					//清理本窗口中创建的内存。
 
 private:
-	CStockInfoItem* m_pStockItem;			//当前K线图的股票数据指针
+	CAbstractStockItem* m_pStockItem;		//当前K线图的股票数据指针
 	QMap<time_t,RStockData*>* m_mapData;	//所有用于显示的数据
 	int m_iShowCount;						//需要显示的数据个数（长度，理论上应小于listItems的size）
 

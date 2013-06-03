@@ -133,7 +133,18 @@ void CKLineWidget::setStockCode( const QString& code )
 	return CBaseWidget::setStockCode(code);
 }
 
-void CKLineWidget::setStockItem( CStockInfoItem* pItem )
+void CKLineWidget::setBlock( const QString& block )
+{
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(pBlock)
+	{
+		setStockItem(pBlock);
+	}
+
+	return CBaseWidget::setBlock(block);
+}
+
+void CKLineWidget::setStockItem( CAbstractStockItem* pItem )
 {
 	if(pItem)
 	{
@@ -223,7 +234,6 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		draw.iEndIndex = m_mapData->size()-1;
 		draw.iCurColor = 0;
 		drawExpArgs(p,rtClient,qsExp,draw.lsColors);
-
 		lua_pushlightuserdata(m_pL,&draw);
 		lua_setglobal(m_pL,"_draw");
 
@@ -254,7 +264,6 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 				draw.iEndIndex = m_mapData->size()-1;
 				draw.iCurColor = 0;
 				drawExpArgs(p,rtArea.toRect(),qsExp,draw.lsColors);
-
 				lua_pushlightuserdata(m_pL,&draw);
 				lua_setglobal(m_pL,"_draw");
 
@@ -640,12 +649,25 @@ void CKLineWidget::clearTmpData()
 	time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
 	if(m_mapData)
 	{
-		QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
-		while(iter!=m_mapData->end())
+		if(m_typeCircle<Day)
 		{
-			if((*iter)->tmTime>tmToday)
+			//非今日的5分钟数据不能delete
+			QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+			while(iter!=m_mapData->end())
+			{
+				if((*iter)->tmTime>tmToday)
+					delete iter.value();
+				++iter;
+			}
+		}
+		else
+		{
+			QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+			while(iter!=m_mapData->end())
+			{
 				delete iter.value();
-			++iter;
+				++iter;
+			}
 		}
 		m_mapData->clear();
 		delete m_mapData;

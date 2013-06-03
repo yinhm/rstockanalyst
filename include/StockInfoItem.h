@@ -22,7 +22,6 @@ public:
 	//补充Report数据
 	void setReport(qRcvReportData* p);
 	void setReport(RCV_REPORT_STRUCTExV3* p);
-	qRcvReportData* getCurrentReport() const;
 
 	//补充日线数据
 	QList<qRcvHistoryData*> getHistoryList();
@@ -95,7 +94,6 @@ private:
 	float fTurnRatio;				//换手率
 
 	qRcvReportData* pLastReport;	//最近的Report
-	qRcvReportData* pCurrentReport;	//当前的Report
 
 	float fNowVolume;				//现手
 	float fIncreaseSpeed;			//增长速度  (NewPrice-OldPrice)/OldPrice

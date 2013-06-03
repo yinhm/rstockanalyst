@@ -5,6 +5,7 @@
 
 
 CAbstractStockItem::CAbstractStockItem(void)
+	: pCurrentReport(NULL)
 {
 
 }
@@ -21,10 +22,25 @@ CAbstractStockItem::~CAbstractStockItem(void)
 	mapFenBis.clear();
 }
 
+qRcvReportData* CAbstractStockItem::getCurrentReport() const
+{
+	return pCurrentReport;
+}
+
 QList<qRcvFenBiData*> CAbstractStockItem::getFenBiList()
 {
 	//获取分笔数据，未完工
 	return mapFenBis.values();
+}
+
+QList<qRcvHistoryData*> CAbstractStockItem::getHistoryList()
+{
+	return QList<qRcvHistoryData*>();
+}
+
+QList<RStockData*> CAbstractStockItem::get5MinList()
+{
+	return QList<RStockData*>();
 }
 
 void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )

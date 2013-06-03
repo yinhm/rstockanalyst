@@ -10,6 +10,9 @@
 #include "rsd_global.h"
 
 struct qRcvFenBiData;
+struct qRcvReportData;
+struct qRcvHistoryData;
+struct tagRStockData;
 
 class RSDSHARED_EXPORT CAbstractStockItem : public QObject
 {
@@ -19,9 +22,18 @@ public:
 	~CAbstractStockItem(void);
 
 public:
+	//补充Report数据
+	virtual qRcvReportData* getCurrentReport() const;
+
 	//补充分笔数据
 	QList<qRcvFenBiData*> getFenBiList();
 	virtual void appendFenBis(const QList<qRcvFenBiData*>& list);
+
+	//补充日线数据
+	virtual QList<qRcvHistoryData*> getHistoryList();
+
+	//补充历史5分钟数据
+	virtual QList<tagRStockData*> get5MinList();
 
 public:
 	/*属性类字段，只读*/
@@ -73,6 +85,7 @@ signals:
 protected:
 	QString qsCode;									//代码
 	QMultiMap<time_t,qRcvFenBiData*> mapFenBis;		//分笔数据
+	qRcvReportData* pCurrentReport;					//当前的Report
 };
 
 #endif //ABSTRACT_STOCK_ITEM_H

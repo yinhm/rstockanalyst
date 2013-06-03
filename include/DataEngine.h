@@ -82,6 +82,7 @@ public:
 
 	//获取股票（含板块）数据
 	CAbstractStockItem* getStockItem(const QString& qsCode);
+	QList<CAbstractStockItem*> getStockItems();
 
 	//新闻数据
 	void appendNews(const QString& title, const QString& content);		//添加新闻

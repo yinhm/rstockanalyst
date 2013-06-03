@@ -152,13 +152,13 @@ void CMarketTrendWidget::stockInfoChanged( const QString& code )
 	{
 		//30秒刷新一次
 		static QTime tmLast = QTime::currentTime();
-		if(tmLast.secsTo(QTime::currentTime())>30)
+		if(tmLast.secsTo(QTime::currentTime())>26)
 		{
 			resortStocks();
 			tmLast = QTime::currentTime();
 		}
 	}
-	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
+	CAbstractStockItem* pItem = CDataEngine::getDataEngine()->getStockItem(code);
 	update(rectOfStock(pItem));
 }
 
@@ -290,16 +290,16 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 		return;
 	if(m_pSelectedBlock == pBlock)
 	{
-		setStocks(pBlock->getAbsStockList());
 		CMainWindow::getMainWindow()->clickedBlock(pBlock->getCode());
+		setStocks(pBlock->getAbsStockList());
 		resortStocks();
 		update();
 		return;
 	}
 
 	{
-		setStocks(pBlock->getAbsStockList());
 		CMainWindow::getMainWindow()->clickedBlock(pBlock->getCode());
+		setStocks(pBlock->getAbsStockList());
 		m_pSelectedBlock = block;
 		{
 			//设置排序方式
