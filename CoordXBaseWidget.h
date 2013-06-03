@@ -33,8 +33,7 @@ protected:
 	void drawCoordY(QPainter& p,const QRectF rtCoordY, float fMax, float fMin);
 
 	//获取数据二维表，通过分析当前的周期。
-	QMap<time_t,RStockData*>* getColorBlockMap(CStockInfoItem* pItem);
-	QMap<time_t,RStockData*>* getColorBlockMap(CBlockInfoItem* pItem);
+	QMap<time_t,RStockData*>* getColorBlockMap(CAbstractStockItem* pItem);
 
 protected slots:
 	void onSetCircle();								//设置当前的显示周期

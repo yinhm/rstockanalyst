@@ -308,7 +308,7 @@ void CCoordXBaseWidget::setCircle( RStockCircle _c )
 	updateData();
 }
 
-QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CStockInfoItem* pItem )
+QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CAbstractStockItem* pItem )
 {
 	if(!pItem)
 		return new QMap<time_t,RStockData*>();
@@ -317,7 +317,6 @@ QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CStockInfoItem* p
 	{
 		//获取分钟数据，进行计算
 		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
-
 		pMap = CDataEngine::getColorBlockItems(m_mapTimes,FenBis);
 	}
 	else
@@ -343,46 +342,6 @@ QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CStockInfoItem* p
 				delete p;
 			historys.clear();
 		}
-	}
-
-	return pMap;
-}
-
-QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CBlockInfoItem* pItem )
-{
-	if(!pItem)
-		return new QMap<time_t,RStockData*>();
-	QMap<time_t,RStockData*>* pMap = NULL;
-	if(m_typeCircle < Day)
-	{
-		//获取分钟数据，进行计算
-		//QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
-
-		//pMap = CDataEngine::getColorBlockItems(m_mapTimes,FenBis);
-	}
-	else
-	{
-		////获取日线数据
-		//QList<qRcvHistoryData*> historys = pItem->getHistoryList();
-		//qRcvReportData* pLastReport = pItem->getCurrentReport();
-		//bool bAppendLast = true;
-		//if(historys.size()>0 && pLastReport)
-		//{
-		//	qRcvHistoryData* pLastHistory = historys.last();
-		//	if(QDateTime::fromTime_t(pLastHistory->time).date() == QDateTime::fromTime_t(pLastReport->tmTime).date())
-		//		bAppendLast = false;
-		//}
-		//if(pLastReport&&bAppendLast)
-		//{
-		//	historys.push_back(new qRcvHistoryData(pLastReport));
-		//}
-		//pMap = CDataEngine::getColorBlockItems(m_mapTimes,historys);
-		//{
-		//	//清除获取的日线数据
-		//	foreach(qRcvHistoryData* p,historys)
-		//		delete p;
-		//	historys.clear();
-		//}
 	}
 
 	return pMap;
