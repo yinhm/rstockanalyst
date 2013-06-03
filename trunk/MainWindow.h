@@ -67,6 +67,8 @@ private:
 	QMap<CBlockInfoItem*,QAction*> mapBlockMenus;		//板块菜单map
 
 	QTimer m_timerClose;								//是否休盘
+
+	bool m_bExportClose;								//是否已经导出休盘数据
 };
 
 
