@@ -623,8 +623,8 @@ int CDataEngine::exportCloseData()
 	QDir().mkpath(qsDir);
 	QMap<time_t,int> mapTimes = getTodayTimeMap(Min5);
 
-	QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
-	foreach(CStockInfoItem* pItem,listStocks)
+	QList<CAbstractStockItem*> listStocks = CDataEngine::getDataEngine()->getStockItems();
+	foreach(CAbstractStockItem* pItem,listStocks)
 	{
 		//导出5min数据
 		CDataEngine::getDataEngine()->export5MinData(pItem->getCode(),mapTimes);
@@ -1343,7 +1343,7 @@ bool CDataEngine::export5MinData( const QString& qsCode, const QMap<time_t,int>&
 {
 	//导出5分钟数据，对于非今日的数据只以5min为最小单位存储
 	//60*sizeof(RStockData)
-	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+	CAbstractStockItem* pItem = CDataEngine::getDataEngine()->getStockItem(qsCode);
 	if(!pItem)
 		return false;
 

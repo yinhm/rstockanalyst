@@ -31,6 +31,8 @@ public:
 
 	//补充日线数据
 	virtual QList<qRcvHistoryData*> getHistoryList();
+	virtual QList<qRcvHistoryData*> getLastHistory(int count);
+	virtual void appendHistorys(const QList<qRcvHistoryData*>& list);
 
 	//补充历史5分钟数据
 	virtual QList<tagRStockData*> get5MinList();

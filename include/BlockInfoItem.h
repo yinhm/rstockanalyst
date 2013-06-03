@@ -23,7 +23,7 @@ protected:
 
 public:
 	//补充日线数据
-	QList<qRcvHistoryData*> getHistoryList();
+	void appendHistorys(const QList<qRcvHistoryData*>& list);
 
 	//补充历史5分钟数据
 	QList<RStockData*> get5MinList();

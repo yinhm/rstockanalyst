@@ -122,9 +122,69 @@ void CBlockInfoItem::initBlock()
 }
 
 
-QList<qRcvHistoryData*> CBlockInfoItem::getHistoryList()
+void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 {
-	return QList<qRcvHistoryData*>();
+	QList<qRcvHistoryData*> listHistory;
+	int iCountFromFile = -1;
+	if(list.size()>130)
+	{
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode);
+	}
+	else
+	{
+		iCountFromFile = list.size();
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode,iCountFromFile);
+	}
+
+	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
+	foreach(qRcvHistoryData* p,listHistory)
+	{
+		if(mapHistorys.contains(p->time))
+		{
+			qRcvHistoryData* pBefore = mapHistorys[p->time];
+			if(pBefore!=p)
+				delete pBefore;
+		}
+		mapHistorys[p->time] = p;
+	}
+	foreach(qRcvHistoryData* p,list)
+	{
+		if(mapHistorys.contains(p->time))
+		{
+			qRcvHistoryData* pBefore = mapHistorys[p->time];
+			if(pBefore!=p)
+				delete pBefore;
+		}
+		mapHistorys[p->time] = p;
+	}
+
+
+	listHistory.clear();
+	listHistory = mapHistorys.values();
+	//{
+	//	//最近5日的全部成交量（用于量比的计算）
+	//	fLast5Volume = 0.0;
+	//	for (int i=1;i<=5;++i)
+	//	{
+	//		int iIndex = listHistory.size()-i;
+	//		if(iIndex<0)
+	//			break;
+	//		fLast5Volume = fLast5Volume + listHistory[iIndex]->fVolume;
+	//	}
+	//	updateItemInfo();
+	//}
+
+	CDataEngine::getDataEngine()->exportHistoryData(qsCode,listHistory,iCountFromFile);
+
+	QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
+	while(iter!=mapHistorys.end())
+	{
+		delete iter.value();
+		++iter;
+	}
+	mapHistorys.clear();
+
+	emit stockItemHistoryChanged(qsCode);
 }
 
 QList<RStockData*> CBlockInfoItem::get5MinList()

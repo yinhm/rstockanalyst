@@ -2,6 +2,7 @@
 #include "AbstractStockItem.h"
 #include "StockInfoItem.h"
 #include "BlockInfoItem.h"
+#include "DataEngine.h"
 
 
 CAbstractStockItem::CAbstractStockItem(void)
@@ -35,8 +36,20 @@ QList<qRcvFenBiData*> CAbstractStockItem::getFenBiList()
 
 QList<qRcvHistoryData*> CAbstractStockItem::getHistoryList()
 {
-	return QList<qRcvHistoryData*>();
+	return CDataEngine::getDataEngine()->getHistoryList(qsCode);
 }
+
+QList<qRcvHistoryData*> CAbstractStockItem::getLastHistory( int count )
+{
+	return CDataEngine::getDataEngine()->getHistoryList(qsCode,count);
+}
+
+void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
+{
+
+}
+
+
 
 QList<RStockData*> CAbstractStockItem::get5MinList()
 {

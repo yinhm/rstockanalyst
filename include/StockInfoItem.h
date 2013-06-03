@@ -24,8 +24,6 @@ public:
 	void setReport(RCV_REPORT_STRUCTExV3* p);
 
 	//补充日线数据
-	QList<qRcvHistoryData*> getHistoryList();
-	QList<qRcvHistoryData*> getLastHistory(int count);
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
 
 	//补充历史5分钟数据
