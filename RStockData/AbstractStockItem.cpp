@@ -7,6 +7,7 @@
 
 CAbstractStockItem::CAbstractStockItem(void)
 	: pCurrentReport(NULL)
+	, pMap5Min(NULL)
 {
 
 }
@@ -21,6 +22,20 @@ CAbstractStockItem::~CAbstractStockItem(void)
 		++iter;
 	}
 	mapFenBis.clear();
+
+	{
+		if(pMap5Min)
+		{
+			QMap<time_t,RStockData*>::iterator iter = pMap5Min->begin();		//5分钟历史数据
+			while(iter!=pMap5Min->end())
+			{
+				delete iter.value();
+				++iter;
+			}
+			pMap5Min->clear();
+			delete pMap5Min;
+		}
+	}
 }
 
 qRcvReportData* CAbstractStockItem::getCurrentReport() const
@@ -53,7 +68,10 @@ void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 
 QList<RStockData*> CAbstractStockItem::get5MinList()
 {
-	return QList<RStockData*>();
+	if(pMap5Min == NULL)
+		pMap5Min = CDataEngine::getDataEngine()->get5MinData(qsCode);
+
+	return pMap5Min->values();
 }
 
 void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )

@@ -17,6 +17,8 @@ protected:
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 	//更新数据
 	virtual void updateData();
+	//清理当前的内存
+	virtual void clearTmpData();
 
 public:
 	//通过查找keyword获取需要在按键精灵上显示的数据

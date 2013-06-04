@@ -27,6 +27,8 @@ public:
 
 	//更新数据
 	virtual void updateData();
+	//清理当前的内存
+	virtual void clearTmpData();
 
 	//更新当前的排序方式
 	virtual void updateSortMode(bool bSelFirst);
@@ -47,7 +49,6 @@ protected slots:
 	void updateShowMap();									//更新要显示的数据，不删除之前的
 
 private:
-	void clearTmpData();						//清理本窗口中创建的内存。
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
 
 protected:

@@ -25,9 +25,6 @@ public:
 	//补充日线数据
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
 
-	//补充历史5分钟数据
-	QList<RStockData*> get5MinList();
-
 public:
 	QString getBlockName() const{ return blockName; }			//获取板块名称
 	QString getAbsPath();										//获取板块的绝对路径

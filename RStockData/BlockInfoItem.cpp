@@ -187,11 +187,6 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	emit stockItemHistoryChanged(qsCode);
 }
 
-QList<RStockData*> CBlockInfoItem::get5MinList()
-{
-	return QList<RStockData*>();
-}
-
 
 QString CBlockInfoItem::getAbsPath()
 {

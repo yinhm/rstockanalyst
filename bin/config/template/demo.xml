@@ -18,16 +18,16 @@
     <relate>1</relate>
     <align>1</align>
     <size>56</size>
-    <block>800001</block>
-    <stock>600000</stock>
+    <block>800009</block>
+    <stock>800015</stock>
    </widget>
-   <widget circle="60">
+   <widget circle="0">
     <name></name>
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
     <size>27</size>
-    <code>600000</code>
+    <code>800015</code>
     <liners>
      <Liner size="60">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -46,7 +46,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>16</size>
-    <code>600000</code>
+    <code>000028</code>
    </widget>
   </widget>
   <widget>
@@ -55,7 +55,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>58</size>
-   <widget circle="3602">
+   <widget circle="0">
     <name></name>
     <type>1</type>
     <relate>0</relate>
@@ -78,7 +78,7 @@
     <align>1</align>
     <size>55</size>
     <color>红绿</color>
-    <block>800001</block>
+    <block>800015</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>

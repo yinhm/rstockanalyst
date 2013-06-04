@@ -26,9 +26,6 @@ public:
 	//补充日线数据
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
 
-	//补充历史5分钟数据
-	QList<RStockData*> get5MinList();
-
 	//补充除权数据
 	QList<qRcvPowerData*> getPowerList();
 	void appendPowers(const QList<qRcvPowerData*>& list);
@@ -116,7 +113,6 @@ private:
 
 private:
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
-	QMap<time_t,RStockData*>* pMap5Min;				//最近10天的历史5分钟数据
 	qRcvBaseInfoData baseInfo;
 };
 

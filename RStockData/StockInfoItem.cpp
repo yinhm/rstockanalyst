@@ -30,7 +30,6 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
-	, pMap5Min(NULL)
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
@@ -57,7 +56,6 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
-	, pMap5Min(NULL)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
@@ -85,20 +83,6 @@ CStockInfoItem::~CStockInfoItem(void)
 			++iter;
 		}
 		mapPowers.clear();
-	}
-
-	{
-		if(pMap5Min)
-		{
-			QMap<time_t,RStockData*>::iterator iter = pMap5Min->begin();		//5分钟历史数据
-			while(iter!=pMap5Min->end())
-			{
-				delete iter.value();
-				++iter;
-			}
-			pMap5Min->clear();
-			delete pMap5Min;
-		}
 	}
 }
 
@@ -195,14 +179,6 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	mapHistorys.clear();
 
 	emit stockItemHistoryChanged(qsCode);
-}
-
-QList<RStockData*> CStockInfoItem::get5MinList()
-{
-	if(pMap5Min == NULL)
-		pMap5Min = CDataEngine::getDataEngine()->get5MinData(qsCode);
-
-	return pMap5Min->values();
 }
 
 
