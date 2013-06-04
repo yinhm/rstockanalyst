@@ -91,7 +91,7 @@ bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	{
 		//当前的股票值
 		QDomElement eleCode = doc.createElement("code");
-		eleCode.appendChild(doc.createTextNode(m_pStockItem->getCode()));
+		eleCode.appendChild(doc.createTextNode(m_pStockItem->getOnly()));
 		eleWidget.appendChild(eleCode);
 
 
@@ -122,15 +122,15 @@ void CKLineWidget::updateData()
 	return /*CCoordXBaseWidget::updateData()*/;
 }
 
-void CKLineWidget::setStockCode( const QString& code )
+void CKLineWidget::setStockCode( const QString& only )
 {
-	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
+	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(only);
 	if(pItem)
 	{
 		setStockItem(pItem);
 	}
 
-	return CBaseWidget::setStockCode(code);
+	return CBaseWidget::setStockCode(only);
 }
 
 void CKLineWidget::setBlock( const QString& block )
@@ -169,21 +169,21 @@ void CKLineWidget::setStockItem( CAbstractStockItem* pItem )
 	}
 }
 
-void CKLineWidget::updateMinLine( const QString& code )
+void CKLineWidget::updateMinLine( const QString& only )
 {
 	if(m_typeCircle>=Day)
 		return;
-	if(m_pStockItem&&m_pStockItem->getCode()!=code)
+	if(m_pStockItem&&m_pStockItem->getOnly()!=only)
 		return;
 
 	resetTmpData();
 }
 
-void CKLineWidget::updateDayLine( const QString& code )
+void CKLineWidget::updateDayLine( const QString& only )
 {
 	if(m_typeCircle<Day)
 		return;
-	if(m_pStockItem&&m_pStockItem->getCode()!=code)
+	if(m_pStockItem&&m_pStockItem->getOnly()!=only)
 		return;
 
 	resetTmpData();
@@ -646,6 +646,9 @@ void CKLineWidget::clearTmpData()
 {
 	//foreach(stLinerItem* p,listItems)
 	//	delete p;
+	if(!m_pStockItem)
+		return;
+
 	time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
 	if(m_mapData)
 	{
@@ -744,7 +747,7 @@ void CKLineWidget::resetTmpData()
 	}
 
 	if(m_pStockItem)
-		qDebug()<<"set "<<m_pStockItem->getCode()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
+		qDebug()<<"set "<<m_pStockItem->getOnly()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
 
 	//更新界面
 	update();

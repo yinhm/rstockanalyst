@@ -55,17 +55,17 @@ bool CStockInfoWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	{
 		//当前的股票值
 		QDomElement eleCode = doc.createElement("code");
-		eleCode.appendChild(doc.createTextNode(m_pStockItem->getCode()));
+		eleCode.appendChild(doc.createTextNode(m_pStockItem->getOnly()));
 		eleWidget.appendChild(eleCode);
 	}
 
 	return true;
 }
 
-void CStockInfoWidget::setStockCode( const QString& code )
+void CStockInfoWidget::setStockCode( const QString& only )
 {
-	setStockItem(CDataEngine::getDataEngine()->getStockInfoItem(code));
-	return CBaseWidget::setStockCode(code);
+	setStockItem(CDataEngine::getDataEngine()->getStockInfoItem(only));
+	return CBaseWidget::setStockCode(only);
 }
 
 void CStockInfoWidget::setStockItem( CStockInfoItem* pItem )
@@ -90,9 +90,9 @@ void CStockInfoWidget::setStockItem( CStockInfoItem* pItem )
 	}
 }
 
-void CStockInfoWidget::updateStockInfo( const QString& code )
+void CStockInfoWidget::updateStockInfo( const QString& only )
 {
-	if(m_pStockItem&&m_pStockItem->getCode()!=code)
+	if(m_pStockItem&&m_pStockItem->getOnly()!=only)
 		return;
 
 	update();

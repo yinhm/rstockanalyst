@@ -29,8 +29,8 @@ public:
 	virtual void keyWizEntered(KeyWizData* pData);
 
 public slots:
-	virtual void setStockCode(const QString& code);
-	void updateStockInfo(const QString& code);
+	virtual void setStockCode(const QString& only);
+	void updateStockInfo(const QString& only);
 
 protected:
 	void setStockItem(CStockInfoItem* pItem);
