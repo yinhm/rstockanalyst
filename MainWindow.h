@@ -37,12 +37,9 @@ protected slots:
 	void onRemoveTemplate();		//删除版面
 	void onShowFuncHelper();		//显示函数帮助窗口
 	//
-	void onSaveDataEngine();		//收盘后数据重新整理
-
+	void onMarketClose();			//收盘后数据重新整理
 	void onBlockActClicked();		//板块菜单项被点击后触发
-
-
-	void onMarketClose();			//15点后休盘时触发此函数（需在函数中进行检查）
+	void onMarketCloseTimer();		//15点后休盘时触发此函数（需在函数中进行检查）
 
 protected:
 	virtual bool winEvent( MSG* message, long* result );
