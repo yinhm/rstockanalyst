@@ -29,7 +29,6 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	, blockFilePath(_file)
 {
 	pCurrentReport = new qRcvReportData;
-
 	QFileInfo _info(blockFilePath);
 	if(!_info.exists())
 		return;
@@ -40,8 +39,11 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	shortName = CHz2Py::getHzFirstLetter(blockName);
 
 
-	/*设置板块代码*/
+	/*设置板块代码、市场类型、唯一标识*/
 	qsCode = CBlockCodeManager::getBlockCode(getAbsPath());
+	wMarket = BB_MARKET_EX;
+	qsMarket = CDataEngine::getMarketStr(wMarket);
+	qsOnly = qsCode+qsMarket;
 
 	pCurrentReport->tmTime = QDateTime::currentDateTime().toTime_t();
 	pCurrentReport->qsCode = qsCode;
@@ -128,12 +130,12 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	int iCountFromFile = -1;
 	if(list.size()>130)
 	{
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode);
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsOnly);
 	}
 	else
 	{
 		iCountFromFile = list.size();
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode,iCountFromFile);
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsOnly,iCountFromFile);
 	}
 
 	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
@@ -174,7 +176,7 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	//	updateItemInfo();
 	//}
 
-	CDataEngine::getDataEngine()->exportHistoryData(qsCode,listHistory,iCountFromFile);
+	CDataEngine::getDataEngine()->exportHistoryData(qsOnly,listHistory,iCountFromFile);
 
 	QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
 	while(iter!=mapHistorys.end())
@@ -184,7 +186,7 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	}
 	mapHistorys.clear();
 
-	emit stockItemHistoryChanged(qsCode);
+	emit stockItemHistoryChanged(qsOnly);
 }
 
 
@@ -255,7 +257,7 @@ bool CBlockInfoItem::appendStocks( QList<CStockInfoItem*> list )
 {
 	QStringList listCodes;
 	foreach(CStockInfoItem* pItem,list)
-		listCodes.push_back(pItem->getCode());
+		listCodes.push_back(pItem->getOnly());
 
 	if(appendStocks(listCodes))
 	{
@@ -291,7 +293,7 @@ bool CBlockInfoItem::removeStocks( QList<CStockInfoItem*> list )
 {
 	QStringList listCodes;
 	foreach(CStockInfoItem* pItem,list)
-		listCodes.push_back(pItem->getCode());
+		listCodes.push_back(pItem->getOnly());
 
 	if(removeStocks(listCodes))
 	{
@@ -440,15 +442,15 @@ void CBlockInfoItem::updateData()
 		pCurrentReport->fAmount = fAmount;
 		pCurrentReport->fVolume = fVolume;
 
-		emit stockItemReportChanged(qsCode);
-		emit stockItemFenBiChanged(qsCode);
+		emit stockItemReportChanged(qsOnly);
+		emit stockItemFenBiChanged(qsOnly);
 		bUpdateMin = false;
 	}
 
 	if(bUpdateDay)
 	{
 
-		emit stockItemHistoryChanged(qsCode);
+		emit stockItemHistoryChanged(qsOnly);
 		bUpdateDay = false;
 	}
 }
@@ -491,15 +493,6 @@ void CBlockInfoItem::clearTmpData()
 	blocksInBlock.clear();
 }
 
-QString CBlockInfoItem::getCode() const
-{
-	return qsCode;
-}
-
-WORD CBlockInfoItem::getMarket() const
-{
-	return BB_MARKET_EX;
-}
 
 QString CBlockInfoItem::getName() const
 {

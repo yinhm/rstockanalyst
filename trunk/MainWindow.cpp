@@ -197,8 +197,9 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 				pReport = (pHeader->m_pReportV3+i);
 
 				QString qsCode = QString::fromLocal8Bit(pReport->m_szLabel);
+				QString qsOnly = qsCode + CDataEngine::getMarketStr(pReport->m_wMarket);
 
-				CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+				CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
 				if(pItem==NULL)
 				{
 					pItem = new CStockInfoItem(qsCode,pReport->m_wMarket);
@@ -217,7 +218,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 				{
 					QTime timeBegin = QTime::currentTime();
 					RCV_HISTORY_STRUCTEx* pHistory = pHeader->m_pDay;
-					QString qsCode;
+					QString qsOnly;
 
 					QList<qRcvHistoryData*> listHistory;
  					for(int i=0;i<pHeader->m_nPacketNum;++i)
@@ -225,7 +226,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 						pHistory = (pHeader->m_pDay+i);
 						if(pHistory->m_head.m_dwHeadTag == EKE_HEAD_TAG)
 						{
-							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
 							if(pItem==NULL)
 							{
 								//É¾³ýÖ¸Õë£¬·ÀÖ¹ÄÚ´æÐ¹Â©
@@ -236,7 +237,8 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 							{
 								pItem->appendHistorys(listHistory);
 							}
-							qsCode = QString::fromLocal8Bit(pHistory->m_head.m_szLabel);
+							qsOnly = QString::fromLocal8Bit(pHistory->m_head.m_szLabel)
+								+ CDataEngine::getMarketStr(pHistory->m_head.m_wMarket);
 							listHistory.clear();
 						}
 						else
@@ -245,7 +247,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 						}
 					}
 
-					CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+					CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
 					if(pItem==NULL)
 					{
 						//É¾³ýÖ¸Õë£¬·ÀÖ¹ÄÚ´æÐ¹Â©
@@ -267,7 +269,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					qDebug()<<"Minute Packet cout:"<<pHeader->m_nPacketNum;
 
 					RCV_MINUTE_STRUCTEx* pMinute = pHeader->m_pMinute;
-					QString qsCode;
+					QString qsOnly;
 
 					QList<qRcvFenBiData*> listFenBis;
 					for(int i=0;i<pHeader->m_nPacketNum;++i)
@@ -276,7 +278,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 						if(pMinute->m_time == EKE_HEAD_TAG)
 						{
-							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
 							if(pItem==NULL)
 							{
 								//É¾³ýÖ¸Õë£¬·ÀÖ¹ÄÚ´æÐ¹Â©
@@ -287,7 +289,8 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 							{
 								pItem->appendFenBis(listFenBis);
 							}
-							qsCode = QString::fromLocal8Bit(pMinute->m_head.m_szLabel);
+							qsOnly = QString::fromLocal8Bit(pMinute->m_head.m_szLabel)
+								+ CDataEngine::getMarketStr(pMinute->m_head.m_wMarket);
 							listFenBis.clear();
 						}
 						else
@@ -320,7 +323,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					qDebug()<<"Power Packet cout:"<<pHeader->m_nPacketNum;
 
 					RCV_POWER_STRUCTEx* pPower = pHeader->m_pPower;
-					QString qsCode;
+					QString qsOnly;
 
 					QList<qRcvPowerData*> listPower;
 					for(int i=0;i<pHeader->m_nPacketNum;++i)
@@ -329,7 +332,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 						if(pPower->m_time == EKE_HEAD_TAG)
 						{
-							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+							CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
 							if(pItem==NULL)
 							{
 								//É¾³ýÖ¸Õë£¬·ÀÖ¹ÄÚ´æÐ¹Â©
@@ -340,7 +343,8 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 							{
 								pItem->appendPowers(listPower);
 							}
-							qsCode = QString::fromLocal8Bit(pPower->m_head.m_szLabel);
+							qsOnly = QString::fromLocal8Bit(pPower->m_head.m_szLabel)
+								+ CDataEngine::getMarketStr(pPower->m_head.m_wMarket);
 							listPower.clear();
 						}
 						else
@@ -364,11 +368,11 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 
 			qDebug()<< "FenBi Packet count:"<<pFb->m_nCount;
 			QDateTime tmNow = QDateTime::currentDateTime();
-			QString qsCode = QString::fromLocal8Bit(pFb->m_szLabel);
+			QString qsOnly = QString::fromLocal8Bit(pFb->m_szLabel) + CDataEngine::getMarketStr(pFb->m_wMarket);
 			int iCount = 0;
 			RCV_FENBI_STRUCTEx* p = pFb->m_Data;
 			QList<qRcvFenBiData*> listFenBis;
-			CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+			CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
 			if(pItem)
 			{
 				while(iCount<pFb->m_nCount)

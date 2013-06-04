@@ -11,8 +11,7 @@
 #include "Hz2Py.h"
 
 CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
-	: wMarket(market)
-	, fNowVolume(FLOAT_NAN)
+	: fNowVolume(FLOAT_NAN)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)
@@ -34,11 +33,13 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
 	qsCode = code;
+	wMarket = market;
+	qsMarket = CDataEngine::getMarketStr(wMarket);
+	qsOnly = qsCode+qsMarket;
 }
 
 CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
-	: wMarket(info.wMarket)
-	, fNowVolume(FLOAT_NAN)
+	: fNowVolume(FLOAT_NAN)
 	, pLastReport(NULL)
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)
@@ -62,6 +63,9 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	pLastReport = new qRcvReportData;
 
 	qsCode = QString::fromLocal8Bit(info.code);
+	wMarket = info.wMarket;
+	qsMarket = CDataEngine::getMarketStr(wMarket);
+	qsOnly = qsCode+qsMarket;
 	//fLast5Volume = 0.0;
 	//QList<qRcvHistoryData*> list = getLastHistory(5);
 	//foreach(qRcvHistoryData* pHis,list)
@@ -122,12 +126,12 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	int iCountFromFile = -1;
 	if(list.size()>130)
 	{
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode);
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsOnly);
 	}
 	else
 	{
 		iCountFromFile = list.size();
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsCode,iCountFromFile);
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsOnly,iCountFromFile);
 	}
 
 	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
@@ -168,7 +172,7 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 		updateItemInfo();
 	}
 
-	CDataEngine::getDataEngine()->exportHistoryData(qsCode,listHistory,iCountFromFile);
+	CDataEngine::getDataEngine()->exportHistoryData(qsOnly,listHistory,iCountFromFile);
 
 	QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
 	while(iter!=mapHistorys.end())
@@ -178,7 +182,7 @@ void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	}
 	mapHistorys.clear();
 
-	emit stockItemHistoryChanged(qsCode);
+	emit stockItemHistoryChanged(qsOnly);
 }
 
 
@@ -224,19 +228,9 @@ void CStockInfoItem::setBaseInfo( const qRcvBaseInfoData& info )
 	if(pCurrentReport&&baseInfo.fLtAg>0)
 		fLTSZ = baseInfo.fLtAg*pCurrentReport->fNewPrice;
 
-	emit stockItemReportChanged(qsCode);
+	emit stockItemReportChanged(qsOnly);
 }
 
-
-QString CStockInfoItem::getCode() const
-{
-	return qsCode;
-}
-
-WORD CStockInfoItem::getMarket() const
-{
-	return wMarket;
-}
 
 QString CStockInfoItem::getName() const
 {
@@ -532,7 +526,7 @@ void CStockInfoItem::updateItemInfo()
 		}
 	}
 
-	emit stockItemReportChanged(qsCode);
+	emit stockItemReportChanged(qsOnly);
 }
 
 void CStockInfoItem::resetBuySellVOL()

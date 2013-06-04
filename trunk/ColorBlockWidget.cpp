@@ -92,7 +92,7 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	if(m_pBlock)
 	{
 		QDomElement eleBlock = doc.createElement("block");
-		eleBlock.appendChild(doc.createTextNode(m_pBlock->getCode()));
+		eleBlock.appendChild(doc.createTextNode(m_pBlock->getOnly()));
 		eleWidget.appendChild(eleBlock);
 	}
 
@@ -232,7 +232,7 @@ void CColorBlockWidget::updateColorBlockData()
 		foreach(CStockInfoItem* pItem,m_listStocks)
 		{
 			if(m_sort == SortByCode)
-				mapSort.insert(pItem->getCode(),pItem);
+				mapSort.insert(pItem->getOnly(),pItem);
 		}
 		if(m_sortOrder==Qt::AscendingOrder)
 			m_listStocks = mapSort.values();

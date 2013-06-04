@@ -39,8 +39,11 @@ public:
 
 public:
 	/*属性类字段，只读*/
-	virtual QString getCode() const = 0;		//股票代码
-	virtual WORD getMarket() const = 0;			//股票市场
+	virtual QString getOnly() const;		//唯一标识 000009SZ
+	virtual QString getCode() const;		//股票代码
+	virtual WORD getMarket() const;			//股票市场
+	virtual QString getMarketName() const;	//股票市场名称
+
 	virtual QString getName() const = 0;		//股票名称
 	virtual float getIncrease() const = 0;		//涨幅
 	virtual float getVolumeRatio() const = 0;	//量比
@@ -85,7 +88,10 @@ signals:
 
 
 protected:
+	QString qsOnly;									//唯一标识
 	QString qsCode;									//代码
+	WORD wMarket;									//市场类型
+	QString qsMarket;								//市场类型名称
 	QMultiMap<time_t,qRcvFenBiData*> mapFenBis;		//分笔数据
 	QMap<time_t,tagRStockData*>* pMap5Min;				//最近10天的历史5分钟数据
 	qRcvReportData* pCurrentReport;					//当前的Report

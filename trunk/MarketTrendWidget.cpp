@@ -105,7 +105,7 @@ bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 	if(m_pSelectedBlock)
 	{
 		QDomElement eleBlock = doc.createElement("block");
-		eleBlock.appendChild(doc.createTextNode(m_pSelectedBlock->getCode()));
+		eleBlock.appendChild(doc.createTextNode(m_pSelectedBlock->getOnly()));
 		eleWidget.appendChild(eleBlock);
 	}
 
@@ -113,7 +113,7 @@ bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 	if(m_pSelectedStock)
 	{
 		QDomElement eleStock = doc.createElement("stock");
-		eleStock.appendChild(doc.createTextNode(m_pSelectedStock->getCode()));
+		eleStock.appendChild(doc.createTextNode(m_pSelectedStock->getOnly()));
 		eleWidget.appendChild(eleStock);
 	}
 	
@@ -263,12 +263,12 @@ void CMarketTrendWidget::clickedStock( CAbstractStockItem* pItem )
 	update(rectOfStock(m_pSelectedStock));
 	if(pItem->isInstanceOfBlock())
 	{
-		CMainWindow::getMainWindow()->clickedBlock(pItem->getCode());
+		CMainWindow::getMainWindow()->clickedBlock(pItem->getOnly());
 	}
 	else if(pItem->isInstanceOfStock())
 	{
 
-		CMainWindow::getMainWindow()->clickedStock(pItem->getCode());
+		CMainWindow::getMainWindow()->clickedStock(pItem->getOnly());
 	}
 
 }
@@ -290,7 +290,7 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 		return;
 	if(m_pSelectedBlock == pBlock)
 	{
-		CMainWindow::getMainWindow()->clickedBlock(pBlock->getCode());
+		CMainWindow::getMainWindow()->clickedBlock(pBlock->getOnly());
 		setStocks(pBlock->getAbsStockList());
 		resortStocks();
 		update();
@@ -298,7 +298,7 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 	}
 
 	{
-		CMainWindow::getMainWindow()->clickedBlock(pBlock->getCode());
+		CMainWindow::getMainWindow()->clickedBlock(pBlock->getOnly());
 		setStocks(pBlock->getAbsStockList());
 		m_pSelectedBlock = block;
 		{

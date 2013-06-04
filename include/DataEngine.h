@@ -18,6 +18,8 @@ public:
 	static void releaseDataEngine();
 
 public:
+	//通过市场类型获取市场名称
+	static QString getMarketStr(WORD wMarket);
 	//程序启动时，数据的初始化
 	static void importData();
 	//程序退出时，数据的自动保存

@@ -42,8 +42,6 @@ public:
 
 public:
 	/*属性类字段，只读*/
-	QString getCode() const;		//股票代码
-	WORD getMarket() const;			//股票市场
 	QString getName() const;		//股票名称
 	float getIncrease() const;	//涨幅
 	float getVolumeRatio() const;	//量比
@@ -82,7 +80,6 @@ protected:
 	void resetBuySellVOL();		//重新计算内外盘数据
 
 private:
-	WORD wMarket;					//市场类型
 	QString qsName;					//股票名称
 	float fIncrease;				//涨幅
 	float fVolumeRatio;				//量比

@@ -37,10 +37,10 @@ public:
 	virtual void keyWizEntered(KeyWizData* pData);
 
 public slots:
-	virtual void setStockCode(const QString& code);
+	virtual void setStockCode(const QString& only);
 	virtual void setBlock(const QString& block);
-	void updateMinLine(const QString& code);
-	void updateDayLine(const QString& code);
+	void updateMinLine(const QString& only);
+	void updateDayLine(const QString& only);
 
 protected:
 	void setStockItem(CAbstractStockItem* pItem);

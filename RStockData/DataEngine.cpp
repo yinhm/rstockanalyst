@@ -599,7 +599,7 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 		//}
 		char chCode[STKLABEL_LEN];
 		memset(chCode,0,STKLABEL_LEN);
-		QByteArray arrCode = pItem->getCode().toLocal8Bit();
+		QByteArray arrCode = pItem->getOnly().toLocal8Bit();
 		memcpy(chCode,arrCode.data(),arrCode.size());
 		file.write(chCode,STKLABEL_LEN);
 		file.write((char*)&iSize,sizeof(int));
@@ -627,7 +627,7 @@ int CDataEngine::exportCloseData()
 	foreach(CAbstractStockItem* pItem,listStocks)
 	{
 		//导出5min数据
-		CDataEngine::getDataEngine()->export5MinData(pItem->getCode(),mapTimes);
+		CDataEngine::getDataEngine()->export5MinData(pItem->getOnly(),mapTimes);
 
 		//将当天的report追加为历史数据
 		pItem->appendHistorys(QList<qRcvHistoryData*>()<<new qRcvHistoryData(pItem->getCurrentReport()));
@@ -1045,6 +1045,11 @@ CDataEngine::CDataEngine(void)
 {
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);
+/*	QDir().mkpath(m_qsHistroyDir+getMarketStr(SH_MARKET_EX));
+	QDir().mkpath(m_qsHistroyDir+getMarketStr(SZ_MARKET_EX));
+	QDir().mkpath(m_qsHistroyDir+getMarketStr(HK_MARKET_EX));
+	QDir().mkpath(m_qsHistroyDir+getMarketStr(EB_MARKET_EX));
+	QDir().mkpath(m_qsHistroyDir+getMarketStr(BB_MARKET_EX));*/
 
 	m_qsBlocksDir = qApp->applicationDirPath()+"/config/blocks/";
 	QDir().mkpath(m_qsBlocksDir);
@@ -1054,12 +1059,23 @@ CDataEngine::CDataEngine(void)
 
 	m_qsF10Dir = qApp->applicationDirPath()+"/data/F10/";
 	QDir().mkpath(m_qsF10Dir);
+/*	QDir().mkpath(m_qsF10Dir+getMarketStr(SH_MARKET_EX));
+	QDir().mkpath(m_qsF10Dir+getMarketStr(SZ_MARKET_EX));
+	QDir().mkpath(m_qsF10Dir+getMarketStr(HK_MARKET_EX));
+	QDir().mkpath(m_qsF10Dir+getMarketStr(EB_MARKET_EX));
+	QDir().mkpath(m_qsF10Dir+getMarketStr(BB_MARKET_EX));*/
 
 	m_qs5Min = qApp->applicationDirPath()+"/data/5min/";
 	QDir().mkpath(m_qs5Min);
+/*	QDir().mkpath(m_qs5Min+getMarketStr(SH_MARKET_EX));
+	QDir().mkpath(m_qs5Min+getMarketStr(SZ_MARKET_EX));
+	QDir().mkpath(m_qs5Min+getMarketStr(HK_MARKET_EX));
+	QDir().mkpath(m_qs5Min+getMarketStr(EB_MARKET_EX));
+	QDir().mkpath(m_qs5Min+getMarketStr(BB_MARKET_EX));*/
 
 	m_qsFenBiDir = qApp->applicationDirPath()+"/data/FenBi/";
 	QDir().mkpath(m_qsFenBiDir);
+
 
 	//导入汉字->拼音对照表
 	CHz2Py::initHz2PyTable(qApp->applicationDirPath()+"/config/PY.hz");
@@ -1106,14 +1122,14 @@ void CDataEngine::setBlockInfoItem( CBlockInfoItem* _p )
 {
 	if(_p->parentBlock()==0)
 		m_listTopLevelBlocks.push_back(_p);
-	m_mapBlockInfos[_p->getCode()] = _p;
+	m_mapBlockInfos[_p->getOnly()] = _p;
 }
 
 void CDataEngine::removeBlockInfoItem( CBlockInfoItem* _p )
 {
 	if(_p->parentBlock()==0)
 		m_listTopLevelBlocks.removeOne(_p);
-	m_mapBlockInfos.remove(_p->getCode());
+	m_mapBlockInfos.remove(_p->getOnly());
 }
 
 
@@ -1147,7 +1163,7 @@ CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
 
 void CDataEngine::setStockInfoItem( CStockInfoItem* p )
 {
-	m_mapStockInfos[p->getCode()] = p;
+	m_mapStockInfos[p->getOnly()] = p;
 }
 
 
@@ -1360,7 +1376,7 @@ bool CDataEngine::export5MinData( const QString& qsCode, const QMap<time_t,int>&
 	time_t tmDate = QDateTime(QDateTime::fromTime_t(pReport->tmTime).date()).toTime_t();
 
 
-	QString qsFileName = QString("%1%2").arg(m_qs5Min).arg(pItem->getCode());
+	QString qsFileName = QString("%1%2").arg(m_qs5Min).arg(pItem->getOnly());
 	QFile file(qsFileName);
 	if(!file.open(QFile::ReadWrite))
 	{
@@ -1551,5 +1567,27 @@ bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, con
 
 	file.close();
 	return true;
+}
+
+
+
+QString CDataEngine::getMarketStr( WORD wMarket )
+{
+	switch(wMarket)
+	{
+	case SH_MARKET_EX:
+		return "SH";
+	case SZ_MARKET_EX:
+		return "SZ";
+	case HK_MARKET_EX:
+		return "HK";
+	case EB_MARKET_EX:
+		return "EB";
+	case BB_MARKET_EX:
+		return "BB";
+	}
+
+	//未知类型
+	return "UN";
 }
 
