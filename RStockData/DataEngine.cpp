@@ -619,8 +619,6 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 //收盘后数据的整理
 int CDataEngine::exportCloseData()
 {
-	QString qsDir = QString("%1/data/5min").arg(qApp->applicationDirPath());
-	QDir().mkpath(qsDir);
 	QMap<time_t,int> mapTimes = getTodayTimeMap(Min5);
 
 	QList<CAbstractStockItem*> listStocks = CDataEngine::getDataEngine()->getStockItems();
