@@ -130,12 +130,12 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	int iCountFromFile = -1;
 	if(list.size()>130)
 	{
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsOnly);
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(this);
 	}
 	else
 	{
 		iCountFromFile = list.size();
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(qsOnly,iCountFromFile);
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(this,iCountFromFile);
 	}
 
 	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
@@ -176,7 +176,7 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	//	updateItemInfo();
 	//}
 
-	CDataEngine::getDataEngine()->exportHistoryData(qsOnly,listHistory,iCountFromFile);
+	CDataEngine::getDataEngine()->exportHistoryData(this,listHistory,iCountFromFile);
 
 	QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
 	while(iter!=mapHistorys.end())

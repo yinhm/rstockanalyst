@@ -51,12 +51,12 @@ QList<qRcvFenBiData*> CAbstractStockItem::getFenBiList()
 
 QList<qRcvHistoryData*> CAbstractStockItem::getHistoryList()
 {
-	return CDataEngine::getDataEngine()->getHistoryList(qsOnly);
+	return CDataEngine::getDataEngine()->getHistoryList(this);
 }
 
 QList<qRcvHistoryData*> CAbstractStockItem::getLastHistory( int count )
 {
-	return CDataEngine::getDataEngine()->getHistoryList(qsOnly,count);
+	return CDataEngine::getDataEngine()->getHistoryList(this,count);
 }
 
 void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
@@ -69,7 +69,7 @@ void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 QList<RStockData*> CAbstractStockItem::get5MinList()
 {
 	if(pMap5Min == NULL)
-		pMap5Min = CDataEngine::getDataEngine()->get5MinData(qsOnly);
+		pMap5Min = CDataEngine::getDataEngine()->get5MinData(this);
 
 	return pMap5Min->values();
 }

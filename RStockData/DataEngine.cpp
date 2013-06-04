@@ -627,7 +627,7 @@ int CDataEngine::exportCloseData()
 	foreach(CAbstractStockItem* pItem,listStocks)
 	{
 		//导出5min数据
-		CDataEngine::getDataEngine()->export5MinData(pItem->getOnly(),mapTimes);
+		CDataEngine::getDataEngine()->export5MinData(pItem,mapTimes);
 
 		//将当天的report追加为历史数据
 		pItem->appendHistorys(QList<qRcvHistoryData*>()<<new qRcvHistoryData(pItem->getCurrentReport()));
@@ -1045,11 +1045,11 @@ CDataEngine::CDataEngine(void)
 {
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);
-/*	QDir().mkpath(m_qsHistroyDir+getMarketStr(SH_MARKET_EX));
+	QDir().mkpath(m_qsHistroyDir+getMarketStr(SH_MARKET_EX));
 	QDir().mkpath(m_qsHistroyDir+getMarketStr(SZ_MARKET_EX));
 	QDir().mkpath(m_qsHistroyDir+getMarketStr(HK_MARKET_EX));
 	QDir().mkpath(m_qsHistroyDir+getMarketStr(EB_MARKET_EX));
-	QDir().mkpath(m_qsHistroyDir+getMarketStr(BB_MARKET_EX));*/
+	QDir().mkpath(m_qsHistroyDir+getMarketStr(BB_MARKET_EX));
 
 	m_qsBlocksDir = qApp->applicationDirPath()+"/config/blocks/";
 	QDir().mkpath(m_qsBlocksDir);
@@ -1067,11 +1067,11 @@ CDataEngine::CDataEngine(void)
 
 	m_qs5Min = qApp->applicationDirPath()+"/data/5min/";
 	QDir().mkpath(m_qs5Min);
-/*	QDir().mkpath(m_qs5Min+getMarketStr(SH_MARKET_EX));
+	QDir().mkpath(m_qs5Min+getMarketStr(SH_MARKET_EX));
 	QDir().mkpath(m_qs5Min+getMarketStr(SZ_MARKET_EX));
 	QDir().mkpath(m_qs5Min+getMarketStr(HK_MARKET_EX));
 	QDir().mkpath(m_qs5Min+getMarketStr(EB_MARKET_EX));
-	QDir().mkpath(m_qs5Min+getMarketStr(BB_MARKET_EX));*/
+	QDir().mkpath(m_qs5Min+getMarketStr(BB_MARKET_EX));
 
 	m_qsFenBiDir = qApp->applicationDirPath()+"/data/FenBi/";
 	QDir().mkpath(m_qsFenBiDir);
@@ -1239,9 +1239,11 @@ bool CDataEngine::showF10Data( const QString& code )
 	return false;
 }
 
-bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list )
+bool CDataEngine::exportHistoryData( CAbstractStockItem* pItem, const QList<qRcvHistoryData*>& list )
 {
-	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(qsCode);
+	if(!pItem)
+		return false;
+	QString qsDayData = QString("%1/%2/%3").arg(m_qsHistroyDir).arg(pItem->getMarketName()).arg(pItem->getCode());
 
 	QFile file(qsDayData);
 	if(!file.open(QFile::WriteOnly|QFile::Truncate))
@@ -1263,9 +1265,11 @@ bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHist
 	return true;
 }
 
-bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHistoryData*>& list, int iOffset )
+bool CDataEngine::exportHistoryData( CAbstractStockItem* pItem, const QList<qRcvHistoryData*>& list, int iOffset )
 {
-	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(qsCode);
+	if(!pItem)
+		return false;
+	QString qsDayData = QString("%1/%2/%3").arg(m_qsHistroyDir).arg(pItem->getMarketName()).arg(pItem->getCode());
 
 	QFile file(qsDayData);
 	if(!file.open(QFile::ReadWrite))
@@ -1298,11 +1302,11 @@ bool CDataEngine::exportHistoryData( const QString& qsCode, const QList<qRcvHist
 	return true;
 }
 
-QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code )
+QList<qRcvHistoryData*> CDataEngine::getHistoryList( CAbstractStockItem* pItem )
 {
 	QList<qRcvHistoryData*> list;
-
-	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(code);
+	
+	QString qsDayData = QString("%1/%2/%3").arg(m_qsHistroyDir).arg(pItem->getMarketName()).arg(pItem->getCode());
 	QFile file(qsDayData);
 	if(!file.open(QFile::ReadOnly))
 		return list;
@@ -1324,11 +1328,11 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code )
 	return list;
 }
 
-QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code, int count )
+QList<qRcvHistoryData*> CDataEngine::getHistoryList( CAbstractStockItem* pItem, int count )
 {
 	QList<qRcvHistoryData*> list;
-
-	QString qsDayData = QString("%1%2").arg(m_qsHistroyDir).arg(code);
+	
+	QString qsDayData = QString("%1/%2/%3").arg(m_qsHistroyDir).arg(pItem->getMarketName()).arg(pItem->getCode());
 	QFile file(qsDayData);
 	if(!file.open(QFile::ReadOnly))
 		return list;
@@ -1355,11 +1359,10 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( const QString& code, int co
 	return list;
 }
 
-bool CDataEngine::export5MinData( const QString& qsCode, const QMap<time_t,int>& mapTimes )
+bool CDataEngine::export5MinData( CAbstractStockItem* pItem, const QMap<time_t,int>& mapTimes )
 {
 	//导出5分钟数据，对于非今日的数据只以5min为最小单位存储
 	//60*sizeof(RStockData)
-	CAbstractStockItem* pItem = CDataEngine::getDataEngine()->getStockItem(qsCode);
 	if(!pItem)
 		return false;
 
@@ -1375,8 +1378,8 @@ bool CDataEngine::export5MinData( const QString& qsCode, const QMap<time_t,int>&
 
 	time_t tmDate = QDateTime(QDateTime::fromTime_t(pReport->tmTime).date()).toTime_t();
 
-
-	QString qsFileName = QString("%1%2").arg(m_qs5Min).arg(pItem->getOnly());
+	
+	QString qsFileName = QString("%1/%2/%3").arg(m_qs5Min).arg(pItem->getMarketName()).arg(pItem->getCode());
 	QFile file(qsFileName);
 	if(!file.open(QFile::ReadWrite))
 	{
@@ -1471,10 +1474,10 @@ bool CDataEngine::export5MinData( const QString& qsCode, const QMap<time_t,int>&
 	return true;
 }
 
-QMap<time_t,RStockData*>* CDataEngine::get5MinData( const QString& qsCode )
+QMap<time_t,RStockData*>* CDataEngine::get5MinData( CAbstractStockItem* pItem )
 {
 	QMap<time_t,RStockData*>* pMapData = new QMap<time_t,RStockData*>;
-	QString qsFileName = QString("%1%2").arg(m_qs5Min).arg(qsCode);
+	QString qsFileName = QString("%1/%2/%3").arg(m_qs5Min).arg(pItem->getMarketName()).arg(pItem->getCode());
 	if(!QFile::exists(qsFileName))
 		return pMapData;
 

@@ -94,17 +94,17 @@ public:
 	bool showF10Data(const QString& code);
 
 	/*导出日线数据*/
-	bool exportHistoryData(const QString& qsCode, const QList<qRcvHistoryData*>& list);
-	bool exportHistoryData(const QString& qsCode, const QList<qRcvHistoryData*>& list, int iOffset);
+	bool exportHistoryData(CAbstractStockItem* pItem, const QList<qRcvHistoryData*>& list);
+	bool exportHistoryData(CAbstractStockItem* pItem, const QList<qRcvHistoryData*>& list, int iOffset);
 	/*获取某只股票的日线数据*/
-	QList<qRcvHistoryData*> getHistoryList(const QString& code);
+	QList<qRcvHistoryData*> getHistoryList(CAbstractStockItem* pItem);
 	/*获取某只股票最近count条的日线数据*/
-	QList<qRcvHistoryData*> getHistoryList(const QString& code, int count);
+	QList<qRcvHistoryData*> getHistoryList(CAbstractStockItem* pItem, int count);
 
 	/*导出收盘后当天5分钟数据*/
-	bool export5MinData(const QString& qsCode, const QMap<time_t,int>& mapTimes);
+	bool export5MinData(CAbstractStockItem* pItem, const QMap<time_t,int>& mapTimes);
 	/*获取5分钟数据*/
-	QMap<time_t,RStockData*>* get5MinData(const QString& qsCode);
+	QMap<time_t,RStockData*>* get5MinData(CAbstractStockItem* pItem);
 
 
 	/*导出分笔数据*/
