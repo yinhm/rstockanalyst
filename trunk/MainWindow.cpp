@@ -44,14 +44,14 @@ CMainWindow::CMainWindow()
 		//设置
 		QMenu* pMenuSettings = m_pMenuBar->addMenu(tr("设置"));
 		pMenuSettings->addAction(tr("设置色块颜色"),CBlockColorSettingDlg::getDialog(),SLOT(exec()));
-		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onSaveDataEngine()));
+		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onMarketClose()));
 
 		//帮助
 		QMenu* pMenuHelp = m_pMenuBar->addMenu(tr("帮助"));
 		pMenuHelp->addAction(tr("函数说明"),this,SLOT(onShowFuncHelper()));
 	}
 
-	connect(&m_timerClose,SIGNAL(timeout()),this,SLOT(onMarketClose()));
+	connect(&m_timerClose,SIGNAL(timeout()),this,SLOT(onMarketCloseTimer()));
 	m_timerClose.start(60000);
 }
 
@@ -434,12 +434,14 @@ void CMainWindow::onRemoveTemplate()
 		m_pTabWidget->removeTab(iCurIndex);
 }
 
-void CMainWindow::onSaveDataEngine()
+void CMainWindow::onMarketClose()
 {
+	CSplashDlg::getSplashDlg()->showMessage("Export close data...");
 	CDataEngine::exportCloseData();
+	CSplashDlg::getSplashDlg()->hide();
 }
 
-void CMainWindow::onMarketClose()
+void CMainWindow::onMarketCloseTimer()
 {
 	QDateTime tmDataEngine = QDateTime::fromTime_t(CDataEngine::getCurrentTime());
 	QDateTime tmCurrent = QDateTime::currentDateTime();
@@ -450,9 +452,7 @@ void CMainWindow::onMarketClose()
 		{
 			if(!m_bExportClose)
 			{
-				CSplashDlg::getSplashDlg()->showMessage("Export close data...");
-				CDataEngine::exportCloseData();
-				CSplashDlg::getSplashDlg()->hide();
+				onMarketClose();
 				m_bExportClose = true;
 			}
 		}

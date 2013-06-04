@@ -79,7 +79,8 @@ public:
 	//获取单只股票数据
 	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表
 	QList<CStockInfoItem*> getStockInfoList();
-	CStockInfoItem* getStockInfoItem(const QString& qsCode);
+	CStockInfoItem* getStockInfoItem(const QString& qsOnly);
+	CStockInfoItem* getStockInfoItemByCode(const QString& qsCode);
 	void setStockInfoItem(CStockInfoItem* p);
 
 	//获取股票（含板块）数据

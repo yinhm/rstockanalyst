@@ -18,8 +18,8 @@
     <relate>1</relate>
     <align>1</align>
     <size>56</size>
-    <block>800001BB</block>
-    <stock>000026SH</stock>
+    <block>800007BB</block>
+    <stock>300171SZ</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>27</size>
-    <code>000026SH</code>
+    <code>300171SZ</code>
     <liners>
      <Liner size="60">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -46,7 +46,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>16</size>
-    <code>000026SH</code>
+    <code>300171SZ</code>
    </widget>
   </widget>
   <widget>
@@ -69,7 +69,7 @@
     <align>1</align>
     <size>55</size>
     <color>红绿</color>
-    <block>800001BB</block>
+    <block>800007BB</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>

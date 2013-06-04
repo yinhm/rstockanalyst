@@ -1150,11 +1150,28 @@ QList<CStockInfoItem*> CDataEngine::getStockInfoList()
 	return m_mapStockInfos.values();
 }
 
-CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsCode )
+CStockInfoItem* CDataEngine::getStockInfoItem( const QString& qsOnly )
 {
-	if(m_mapStockInfos.contains(qsCode))
+	if(m_mapStockInfos.contains(qsOnly))
 	{
-		return m_mapStockInfos[qsCode];
+		return m_mapStockInfos[qsOnly];
+	}
+	return NULL;
+}
+
+CStockInfoItem* CDataEngine::getStockInfoItemByCode( const QString& qsCode )
+{
+	//先从深证查找股票代码
+	QString qsOnly = qsCode+getMarketStr(SZ_MARKET_EX);
+	if(m_mapStockInfos.contains(qsOnly))
+	{
+		return m_mapStockInfos[qsOnly];
+	}
+	//再从上证中查找股票代码
+	qsOnly = qsCode+getMarketStr(SH_MARKET_EX);
+	if(m_mapStockInfos.contains(qsOnly))
+	{
+		return m_mapStockInfos[qsOnly];
 	}
 	return NULL;
 }

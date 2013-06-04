@@ -104,7 +104,7 @@ void CBlockInfoItem::initBlock()
 					code = code.trimmed();
 					if(!code.isEmpty())
 					{
-						addStock(CDataEngine::getDataEngine()->getStockInfoItem(code));
+						addStock(CDataEngine::getDataEngine()->getStockInfoItemByCode(code));
 					}
 				}
 			}
