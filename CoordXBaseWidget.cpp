@@ -94,6 +94,11 @@ void CCoordXBaseWidget::updateData()
 	updateTimesH();
 }
 
+void CCoordXBaseWidget::clearTmpData()
+{
+
+}
+
 void CCoordXBaseWidget::updateTimesH()
 {
 	//更新当前的横坐标数据，从后向前计算时间
@@ -304,6 +309,7 @@ void CCoordXBaseWidget::onSetCircle()
 
 void CCoordXBaseWidget::setCircle( RStockCircle _c )
 {
+	clearTmpData();
 	m_typeCircle = _c;
 	updateData();
 }

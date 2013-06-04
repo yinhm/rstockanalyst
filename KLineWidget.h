@@ -27,6 +27,8 @@ public:
 
 	//更新数据
 	virtual void updateData();
+	//清理当前的内存
+	virtual void clearTmpData();
 
 public:
 	//通过查找keyword获取需要在按键精灵上显示的数据
@@ -74,7 +76,6 @@ private:
 		const QString& e,QList<uint>& lsColor);
 private:
 	void resetTmpData();					//重新计算数据。
-	void clearTmpData();					//清理本窗口中创建的内存。
 
 private:
 	CAbstractStockItem* m_pStockItem;		//当前K线图的股票数据指针
