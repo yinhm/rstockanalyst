@@ -12,8 +12,8 @@
    <relate>1</relate>
    <align>1</align>
    <size>50</size>
-   <block>800005BB</block>
-   <stock>900921SH</stock>
+   <block>800018BB</block>
+   <stock>000525SZ</stock>
   </widget>
   <widget circle="0">
    <name></name>
@@ -21,7 +21,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>49</size>
-   <code>900921SH</code>
+   <code>000605SZ</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)

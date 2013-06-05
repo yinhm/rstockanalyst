@@ -125,6 +125,10 @@ void CKLineWidget::updateData()
 void CKLineWidget::setStockCode( const QString& only )
 {
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(only);
+	if(pItem==NULL)
+	{
+		pItem = CDataEngine::getDataEngine()->getStockInfoItemByCode(only);
+	}
 	if(pItem)
 	{
 		setStockItem(pItem);

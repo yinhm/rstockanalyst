@@ -11,15 +11,15 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>41</size>
+   <size>58</size>
    <widget>
     <name></name>
     <type>2</type>
     <relate>1</relate>
     <align>1</align>
-    <size>56</size>
-    <block>800007BB</block>
-    <stock>300171SZ</stock>
+    <size>54</size>
+    <block>800015BB</block>
+    <stock>000605SZ</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -27,13 +27,14 @@
     <relate>1</relate>
     <align>1</align>
     <size>27</size>
-    <code>300171SZ</code>
+    <code>000605SZ</code>
     <liners>
-     <Liner size="60">
-      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
-     </Liner>
-     <Liner size="20">
-      <exp>DrawLine(CLOSE);</exp>
+     <Liner size="80">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      </Liner>
      <Liner size="20">
       <exp>DrawHist(VOLUME)</exp>
@@ -42,11 +43,25 @@
    </widget>
    <widget>
     <name></name>
-    <type>5</type>
+    <type>0</type>
     <relate>1</relate>
-    <align>1</align>
-    <size>16</size>
-    <code>300171SZ</code>
+    <align>2</align>
+    <size>18</size>
+    <widget>
+     <name></name>
+     <type>5</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>51</size>
+     <code>000605SZ</code>
+    </widget>
+    <widget>
+     <name></name>
+     <type>6</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>48</size>
+    </widget>
    </widget>
   </widget>
   <widget>
@@ -54,13 +69,26 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>58</size>
+   <size>41</size>
    <widget circle="0">
     <name></name>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
     <size>44</size>
+    <code>1A0001SH</code>
+    <liners>
+     <Liner size="80">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+     </Liner>
+     <Liner size="20">
+      <exp>DrawHist(VOLUME)</exp>
+     </Liner>
+    </liners>
    </widget>
    <widget circle="0" CBHeight="36" CBWidth="20">
     <name></name>
@@ -69,7 +97,7 @@
     <align>1</align>
     <size>55</size>
     <color>红绿</color>
-    <block>800007BB</block>
+    <block>800015BB</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>

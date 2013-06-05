@@ -38,10 +38,11 @@ enum RWidgetType
 {
 	WidgetBasic = 0,				//基础图
 	WidgetKLine,					//K线图
-	WidgetMarketTrend,			//市场行情图
-	WidgetSColorBlock,		//股票的色块图
-	WidgetBColorBlock,			//板块的色块图
+	WidgetMarketTrend,				//市场行情图
+	WidgetSColorBlock,				//股票的色块图
+	WidgetBColorBlock,				//板块的色块图
 	WidgetStockInfo,				//单只股票的行情信息
+	WidgetRadar,					//雷达监视图
 };
 
 

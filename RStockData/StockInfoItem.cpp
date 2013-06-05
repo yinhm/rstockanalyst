@@ -601,7 +601,7 @@ void CStockInfoItem::resetBuySellVOL()
 bool CStockInfoItem::isMatch( const QString& _key )
 {
 	//ÅĞ¶Ï´úÂëÊÇ·ñÆ¥Åä
-	if(qsCode.indexOf(_key)>-1)
+	if(qsCode.indexOf(_key,0,Qt::CaseInsensitive)>-1)
 		return true;
 
 	//ÅĞ¶ÏÃû³Æ¼òÆ´ÊÇ·ñÆ¥Åä

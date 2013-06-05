@@ -436,7 +436,7 @@ void CMainWindow::onRemoveTemplate()
 
 void CMainWindow::onMarketClose()
 {
-	CSplashDlg::getSplashDlg()->showMessage("Export close data...");
+	CSplashDlg::getSplashDlg()->showMessage("正在进行收盘后数据整理...");
 	CDataEngine::exportCloseData();
 	CSplashDlg::getSplashDlg()->hide();
 }
@@ -448,7 +448,7 @@ void CMainWindow::onMarketCloseTimer()
 	if(tmCurrent.date() == tmDataEngine.date())
 	{
 		//15:05后导出收盘后的数据
-		if(tmCurrent.time().hour()>15 || tmCurrent.time().minute()>5)
+		if(tmCurrent.time()>QTime(15,5))
 		{
 			if(!m_bExportClose)
 			{

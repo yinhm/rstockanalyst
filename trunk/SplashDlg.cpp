@@ -35,6 +35,7 @@ CSplashDlg::~CSplashDlg()
 
 void CSplashDlg::showMessage( const QString& msg, int iPro /*= 90*/ )
 {
+	show();
 	m_pLabel->setText(msg);
 	m_pProgressBar->setValue(iPro);
 	qApp->processEvents();

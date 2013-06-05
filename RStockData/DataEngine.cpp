@@ -374,7 +374,7 @@ int CDataEngine::importBaseInfo( const QString& qsFile )
 		if(qsCode.isEmpty())
 			return -1;
 
-		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode+getMarketStr(baseInfo.wMarket));
 		if(pItem)
 		{
 			pItem->setBaseInfo(baseInfo);
@@ -414,7 +414,7 @@ int CDataEngine::importReportsInfo( const QString& qsFile )
 		if(iSize!=(sizeof(float)*27))
 			break;
 
-		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(pReport->qsCode);
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(pReport->qsCode+getMarketStr(pReport->wMarket));
 		if(pItem==NULL)
 		{
 			pItem = new CStockInfoItem(pReport->qsCode,pReport->wMarket);

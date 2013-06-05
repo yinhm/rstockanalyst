@@ -16,11 +16,13 @@ HEADERS += StdAfx.h ../include/StockDrv.h ../include/STKDRV.h \
 			../include/DataEngine.h ../include/StockInfoItem.h \
 			../include/BlockInfoItem.h ../include/rsd_global.h \
 			../include/ColorManager.h BlockCodeManager.h \
-			../include/RLuaEx.h ../include/RStockFunc.h Hz2Py.h
+			../include/RLuaEx.h ../include/RStockFunc.h \
+			../include/RadarWatcher.h Hz2Py.h
 
 SOURCES += STKDRV.cpp AbstractStockItem.cpp BlockCodeManager.cpp \
 			DataEngine.cpp StockInfoItem.cpp ColorManager.cpp \
-			BlockInfoItem.cpp RLuaEx.cpp Hz2Py.cpp
+			BlockInfoItem.cpp RLuaEx.cpp RadarWatcher.cpp \
+			Hz2Py.cpp
 
 INCLUDEPATH += "../include/"
 LIBS += -L"../bin/"
