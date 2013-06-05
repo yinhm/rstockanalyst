@@ -25,7 +25,7 @@ HEADERS += StdAfx.h MainWindow.h \
 			BlockColorSettingDlg.h StockInfoWidget.h \
 			SplashDlg.h CoordXBaseWidget.h BColorBlockWidget.h \
 			resource.h BaseBlockWidget.h KeyWizard.h \
-			FuncHelper.h
+			FuncHelper.h RadarWidget.h
 
 SOURCES += main.cpp MainWindow.cpp \
 			BaseWidget.cpp KLineWidget.cpp \
@@ -33,7 +33,7 @@ SOURCES += main.cpp MainWindow.cpp \
 			BlockColorSettingDlg.cpp StockInfoWidget.cpp \
 			SplashDlg.cpp CoordXBaseWidget.cpp BColorBlockWidget.cpp \
 			BaseBlockWidget.cpp KeyWizard.cpp \
-			FuncHelper.cpp
+			FuncHelper.cpp RadarWidget.cpp
 
 
 RESOURCES += RStockAnalyst.qrc
