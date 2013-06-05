@@ -9,6 +9,7 @@
 #include "KLineWidget.h"
 #include "MarketTrendWidget.h"
 #include "ColorBlockWidget.h"
+#include "BColorBlockWidget.h"
 #include "StockInfoWidget.h"
 #include "RadarWidget.h"
 #include "KeyWizard.h"
@@ -28,6 +29,9 @@ CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetTy
 		break;
 	case WidgetSColorBlock:
 		return new CColorBlockWidget(parent);
+		break;
+	case WidgetBColorBlock:
+		return new CBColorBlockWidget(parent);
 		break;
 	case WidgetStockInfo:
 		return new CStockInfoWidget(parent);
@@ -307,7 +311,7 @@ void CBaseWidget::setBlock( const QString& block )
 	}
 }
 
-void CBaseWidget::onBlockClicked( CBlockInfoItem* pBlock,int iCmd )
+void CBaseWidget::onBlockClicked( CBlockInfoItem* /*pBlock*/,int /*iCmd*/ )
 {
 
 }

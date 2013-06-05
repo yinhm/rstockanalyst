@@ -160,26 +160,6 @@ void CColorBlockWidget::setBlock( const QString& block )
 	return CBaseWidget::setBlock(block);
 }
 
-void CColorBlockWidget::updateStock( const QString& /*code*/ )
-{
-	//CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(code);
-
-	//if(mapStockColorBlocks.contains(pItem))
-	//{
-	//	//更新数据
-	//	QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
-	//	mapStockColorBlocks[pItem] = 0;
-	//	{
-	//		//删除之前的资源
-	//		FreeRStockInfoMap(pMap);
-	//		delete pMap;
-	//	}
-	//	mapStockColorBlocks[pItem] = getColorBlockMap(pItem);
-	//	updateTimesH();
-	//}
-	//update(rectOfStock(pItem));
-}
-
 
 void CColorBlockWidget::onSetCurrentBlock()
 {

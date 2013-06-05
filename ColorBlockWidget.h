@@ -40,7 +40,6 @@ public:
 
 public slots:
 	virtual void setBlock(const QString& block);
-	virtual void updateStock(const QString& code);			//更新某只股票的显示
 
 protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
