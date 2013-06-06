@@ -7,6 +7,7 @@
 #include "ColorManager.h"
 #include "KLineWidget.h"
 #include "SplashDlg.h"
+#include "RadarWatcher.h"
 
 luaL_Reg* g_pFuncs = 0;			//所有需要注册的lua函数
 QString g_native = "";			//lua源码
@@ -131,7 +132,9 @@ int main(int argc, char *argv[])
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("正在导出数据..."),20);
 
 	CDataEngine::exportData();				//导出数据
+
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("导出数据完成..."),99);
+
 
 	//收盘导出存盘
 	//CDataEngine::exportCloseData();
