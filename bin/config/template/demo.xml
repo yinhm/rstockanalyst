@@ -76,19 +76,6 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <relate>0</relate>
     <align>1</align>
     <size>44</size>
-    <code>1A0001SH</code>
-    <liners>
-     <Liner size="80">
-      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
-DrawLine(MA(OPEN,10))
-DrawLine(MA(OPEN,5))
-DrawLine(MA(OPEN,3))
-DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
-     </Liner>
-     <Liner size="20">
-      <exp>DrawHist(VOLUME)</exp>
-     </Liner>
-    </liners>
    </widget>
    <widget circle="0" CBHeight="36" CBWidth="20">
     <name></name>

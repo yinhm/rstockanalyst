@@ -5,6 +5,7 @@
 #include "DataEngine.h"
 #include "STKDRV.h"
 #include "Hz2Py.h"
+#include "RadarWatcher.h"
 
 
 //计算分时数据的横坐标时间
@@ -194,6 +195,7 @@ void CDataEngine::releaseDataEngine()
 {
 	if(m_pDataEngine)
 		delete m_pDataEngine;
+	CRadarWatcher::releaseRadars();
 }
 
 void CDataEngine::importData()
@@ -265,6 +267,10 @@ void CDataEngine::importData()
 		else
 			qDebug()<<iCount<<" FenBi data had been imported.";
 	}
+	{
+		//加载监视雷达数据
+		CRadarWatcher::loadRadars();
+	}
 }
 
 void CDataEngine::exportData()
@@ -297,6 +303,11 @@ void CDataEngine::exportData()
 		qDebug()<<"Export FenBis data to "<<qsFenBiDir;
 		int iCount = exportFenBisData(QString("%1/%2").arg(qsFenBiDir).arg(QDateTime::fromTime_t(m_tmCurrent).toString("yyyyMMdd")));
 		qDebug()<<iCount<<" FenBis data had been exported.";
+	}
+
+	{
+		//导出监视雷达数据
+		CRadarWatcher::saveRadars();
 	}
 }
 

@@ -40,7 +40,14 @@ public:
 		_hold 阈值
 	*/
 	static CRadarWatcher* createRadarWatcher(CBlockInfoItem* pBlock,
-		RadarType _t,int iSec,float _hold);
+		RadarType _t,int iSec,float _hold,int iId=-1);
+
+	//加载监视雷达
+	static void loadRadars();
+	//保存监视雷达
+	static void saveRadars();
+	//析构监视雷达
+	static void releaseRadars();
 
 public:
 	CRadarWatcher(int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold);
@@ -49,6 +56,10 @@ public:
 public:
 	//获取该雷达的id
 	int getId(){ return m_id; }
+	RadarType getType(){return m_type;}
+	float getHold(){ return m_fHold; }
+	int getSec(){ return m_iSec; }
+	CBlockInfoItem* getBlock(){ return m_pWatcherBlock; }
 
 signals:
 	void radarAlert(RRadarData* pRadar);

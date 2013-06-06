@@ -2,15 +2,19 @@
 #include "RadarWatcher.h"
 #include "StockInfoItem.h"
 #include "BlockInfoItem.h"
+#include "DataEngine.h"
+#include <QtXml>
 
 
 QMap<int,CRadarWatcher*> CRadarWatcher::m_listWatchers;
 
-CRadarWatcher* CRadarWatcher::createRadarWatcher( CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold)
+CRadarWatcher* CRadarWatcher::createRadarWatcher( CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold,int iId/*=-1*/)
 {
 	QList<int> listKey = m_listWatchers.keys();
-	int iMaxId = 0;
+	int iMaxId = iId;
+	if(iMaxId<0)
 	{
+		iMaxId = 0;
 		//生成最新的id
 		foreach(int i,listKey)
 		{
@@ -66,6 +70,11 @@ CRadarWatcher::CRadarWatcher( int _id,CBlockInfoItem* pBlock,RadarType _t,int iS
 
 CRadarWatcher::~CRadarWatcher(void)
 {
+	foreach(RRadarData* pData, m_listRadar)
+	{
+		delete pData;
+	}
+	m_listRadar.clear();
 }
 
 void CRadarWatcher::appendRadar( RRadarData* pRadar )
@@ -73,6 +82,75 @@ void CRadarWatcher::appendRadar( RRadarData* pRadar )
 	m_listRadar.append(pRadar);
 	emit radarAlert(pRadar);
 }
+
+void CRadarWatcher::loadRadars()
+{
+	QFile file(qApp->applicationDirPath()+"/config/radars.xml");
+	if(!file.open(QFile::ReadOnly))
+		return;
+	QDomDocument doc;
+	doc.setContent(file.readAll());
+	file.close();
+
+	QDomElement eleRoot = doc.firstChildElement("ROOT");
+	if(!eleRoot.isElement())
+		return;
+	QDomElement eleRadar = eleRoot.firstChildElement("radar");
+	while(eleRadar.isElement())
+	{
+		int iId = eleRadar.attribute("id").toInt();
+		RadarType iType = static_cast<RadarType>(eleRadar.attribute("type").toInt());
+		float fHold = eleRadar.attribute("hold").toFloat();
+		int iSec = eleRadar.attribute("sec").toInt();
+		QString qsCode = eleRadar.attribute("block");
+		CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(qsCode);
+
+		createRadarWatcher(pBlock,iType,iSec,fHold,iId);
+
+		eleRadar = eleRadar.nextSiblingElement("radar");
+	}
+}
+
+void CRadarWatcher::saveRadars()
+{
+	QDomDocument doc("template");
+	QDomElement eleRoot = doc.createElement("ROOT");
+	doc.appendChild(eleRoot);
+	QMap<int,CRadarWatcher*>::iterator iter = m_listWatchers.begin();
+	while (iter!=m_listWatchers.end())
+	{
+		CRadarWatcher* pWatcher = iter.value();
+		QDomElement eleRadar = doc.createElement("radar");
+		eleRadar.setAttribute("id",iter.key());
+		eleRadar.setAttribute("type",pWatcher->getType());
+		eleRadar.setAttribute("hold",pWatcher->getHold());
+		eleRadar.setAttribute("sec",pWatcher->getSec());
+		CBlockInfoItem* pBlock = pWatcher->getBlock();
+		eleRadar.setAttribute("block",pBlock==0 ? "" : pBlock->getOnly());
+		eleRoot.appendChild(eleRadar);
+		++iter;
+	}
+
+	QFile file(qApp->applicationDirPath()+"/config/radars.xml");
+	if(!file.open(QFile::Truncate|QFile::WriteOnly))
+	{
+		return;
+	}
+	file.write(doc.toByteArray());
+	file.close();
+}
+
+void CRadarWatcher::releaseRadars()
+{
+	QMap<int,CRadarWatcher*>::iterator iter = m_listWatchers.begin();
+	while (iter!=m_listWatchers.end())
+	{
+		delete iter.value();
+		++iter;
+	}
+	m_listWatchers.clear();
+}
+
 
 CVolumnWatcher::CVolumnWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold )
 	: CRadarWatcher(_id,pBlock,BigVolumn,iSec,_hold)
@@ -82,7 +160,6 @@ CVolumnWatcher::CVolumnWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _h
 
 CVolumnWatcher::~CVolumnWatcher( void )
 {
-
 }
 
 void CVolumnWatcher::onStockReportComing( CStockInfoItem* pItem )
