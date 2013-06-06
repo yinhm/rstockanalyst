@@ -17,8 +17,6 @@ public:
 	//保存该K线图的配置信息
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
-	//更新数据
-	virtual void updateData();
 	//清理当前的内存
 	virtual void clearTmpData();
 
@@ -34,8 +32,7 @@ public slots:
 	virtual void setBlock(const QString& block);
 
 protected slots:
-	void updateColorBlockData();							//更新当前需要显示的数据
-	void updateShowMap();									//更新要显示的数据，不删除之前的
+	void updateUI();							//更新当前需要显示的数据
 
 private:
 	void clickedBlock(CBlockInfoItem* pItem);				//当点击股票时触发
@@ -70,7 +67,11 @@ private:
 	RStockData* hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
 
 private:
-	CBlockInfoItem* m_pSelectedStock;
+	QList<CBlockInfoItem*> m_listBlocks;		//当前显示的所有股票列表
+	QMap<CBlockInfoItem*,int> m_mapBlockIndex;	//用来快速查找某只股票所在的索引
+
+	CBlockInfoItem* m_pSelectedBlock;				//选中的block
+	CBlockInfoItem* m_pCurBlock;					//当前显示的block
 
 	/*用于绘制操作的成员变量*/
 private:
