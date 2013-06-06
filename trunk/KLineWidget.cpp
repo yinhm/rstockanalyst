@@ -652,19 +652,21 @@ void CKLineWidget::clearTmpData()
 	//	delete p;
 	if(!m_pStockItem)
 		return;
-
-	time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
 	if(m_mapData)
 	{
 		if(m_typeCircle<Day)
 		{
-			//非今日的5分钟数据不能delete
-			QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
-			while(iter!=m_mapData->end())
+			if(m_pStockItem->getCurrentReport()->tmTime>0)
 			{
-				if((*iter)->tmTime>tmToday)
-					delete iter.value();
-				++iter;
+				time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
+				//非今日的5分钟数据不能delete
+				QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+				while(iter!=m_mapData->end())
+				{
+					if((*iter)->tmTime>tmToday)
+						delete iter.value();
+					++iter;
+				}
 			}
 		}
 		else

@@ -1,10 +1,16 @@
 #include "StdAfx.h"
 #include "RadarWidget.h"
+#include "RadarWatcher.h"
+#include "DataEngine.h"
 
 CRadarWidget::CRadarWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent, WidgetRadar)
 {
 	m_pMenuCustom = new QMenu(tr("行情信息菜单"));
+	
+	CRadarWatcher::createRadarWatcher(
+		CDataEngine::getDataEngine()->getTopLevelBlocks().first(),
+		BigIncrease,10,0.1);
 }
 
 

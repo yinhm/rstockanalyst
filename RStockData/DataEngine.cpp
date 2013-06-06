@@ -487,7 +487,7 @@ int CDataEngine::importBlocksData( const QString& /*qsPath*/ )
 	QFileInfoList listEntity = dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot,QDir::DirsLast);
 	foreach(const QFileInfo& _f,listEntity)
 	{
-		CBlockInfoItem* pBlock = new CBlockInfoItem(_f.absoluteFilePath());
+		new CBlockInfoItem(_f.absoluteFilePath());
 	}
 	return CDataEngine::getDataEngine()->getStockBlocks().size();
 }

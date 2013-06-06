@@ -298,6 +298,7 @@ void CMarketTrendWidget::clickedBlock( CBlockInfoItem* block )
 	}
 
 	{
+		m_pSelectedStock = 0;
 		CMainWindow::getMainWindow()->clickedBlock(pBlock->getOnly());
 		setStocks(pBlock->getAbsStockList());
 		m_pSelectedBlock = block;

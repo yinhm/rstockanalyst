@@ -418,6 +418,11 @@ void CStockInfoWidget::keyPressEvent( QKeyEvent* e )
 				//未打开F10数据 do something
 			}
 		}
+		e->accept();
+	}
+	else
+	{
+		return CBaseWidget::keyPressEvent(e);
 	}
 }
 

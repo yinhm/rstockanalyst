@@ -12,7 +12,7 @@
 #include "DataEngine.h"
 #include "BlockCodeManager.h"
 #include "Hz2Py.h"
-#define	MAX_STOCK_IN_BLOCK	10
+#define	MAX_STOCK_IN_BLOCK	3000
 #define UPDATE_BLOCK_TIME	30*1000
 
 CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*/ )
@@ -20,6 +20,7 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	, bUpdateDay(true)
 	, fIncrease(FLOAT_NAN)
 	, fLTSZ(FLOAT_NAN)
+	, fLTG(FLOAT_NAN)
 	, fLastClose(FLOAT_NAN)
 	, fOpenPrice(FLOAT_NAN)
 	, fNewPrice(FLOAT_NAN)
@@ -27,6 +28,7 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	, fHighPrice(FLOAT_NAN)
 	, m_pParent(parent)
 	, blockFilePath(_file)
+	, m_pCurFenBi(0)
 {
 	pCurrentReport = new qRcvReportData;
 	QFileInfo _info(blockFilePath);
@@ -123,6 +125,13 @@ void CBlockInfoItem::initBlock()
 	}
 }
 
+QList<qRcvFenBiData*> CBlockInfoItem::getFenBiList()
+{
+	QList<qRcvFenBiData*> list = mapFenBis.values();
+	if(m_pCurFenBi)
+		list.append(m_pCurFenBi);
+	return list;
+}
 
 void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 {
@@ -361,12 +370,12 @@ bool CBlockInfoItem::appendBlock( CBlockInfoItem* pBlock )
 	return true;
 }
 
-void CBlockInfoItem::stockFenbiChanged( const QString& _code )
+void CBlockInfoItem::stockFenbiChanged( const QString& /*_code*/ )
 {
 	bUpdateMin = true;
 }
 
-void CBlockInfoItem::stockHistoryChanged( const QString& _code )
+void CBlockInfoItem::stockHistoryChanged( const QString& /*_code*/ )
 {
 	bUpdateDay = true;
 }
@@ -379,10 +388,39 @@ void CBlockInfoItem::updateData()
 	*/
 	if(bUpdateMin)
 	{
-//		double dTotalGB = 0.0;		//总股（万）
-		double dLTG = 0.0;			//流通股（万）
-		double dLastClose = 0.0;	//昨日收盘价
-		double dOpen = 0.0;			//今日开盘价
+		if(m_pCurFenBi==0)
+		{
+			//一次性计算的值
+			//计算总流通股、昨日收盘价、今日开盘价
+			double dLTG = 0.0;			//流通股（万）
+			double dLastClose = 0.0;	//昨日收盘价
+			double dOpen = 0.0;			//今日开盘价
+
+			int iCount = stocksInBlock.size();
+			if(iCount>MAX_STOCK_IN_BLOCK)
+				iCount = MAX_STOCK_IN_BLOCK;
+			for(int i=0;i<iCount;++i)
+			{
+				CStockInfoItem* pStock = stocksInBlock[i];
+				if(pStock->getNewPrice()>0.1)
+				{
+					float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
+					dLTG += fLTAG;
+					dLastClose += pStock->getLastClose()*fLTAG;
+					dOpen += pStock->getOpenPrice()*fLTAG;
+				}
+			}
+
+			if(dLTG<0.1)
+			{
+				return;
+			}
+
+			fLastClose = dLastClose/dLTG;
+			fOpenPrice = dOpen/dLTG;
+			fLTG = dLTG;
+		}
+
 		double dNew = 0.0;			//最新价
 		double dLow = 0.0;			//最低价
 		double dHigh = 0.0;			//最高价
@@ -397,10 +435,6 @@ void CBlockInfoItem::updateData()
 			if(pStock->getNewPrice()>0.1)
 			{
 				float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
-	//			dTotalGB += pStock->getBaseInfo()->fZgb;
-				dLTG += fLTAG;
-				dLastClose += pStock->getLastClose()*fLTAG;
-				dOpen += pStock->getOpenPrice()*fLTAG;
 				dNew += pStock->getNewPrice()*fLTAG;
 				dLow += pStock->getLowPrice()*fLTAG;
 				dHigh += pStock->getHighPrice()*fLTAG;
@@ -408,18 +442,12 @@ void CBlockInfoItem::updateData()
 				fAmount += pStock->getTotalAmount();
 			}
 		}
-		if(dLTG<0.1)
-		{
-			return;
-		}
 
-		fLastClose = dLastClose/dLTG;
-		fOpenPrice = dOpen/dLTG;
-		fNewPrice = dNew/dLTG;
-		fLowPrice = dLow/dLTG;
-		fHighPrice = dHigh/dLTG;
-
+		fNewPrice = dNew/fLTG;
+		fLowPrice = dLow/fLTG;
+		fHighPrice = dHigh/fLTG;
 		fLTSZ = dNew;
+
 		//涨幅
 		if(fNewPrice>0.0 && fLastClose>0.0)
 			fIncrease = (fNewPrice-fLastClose)*100.0/fLastClose;
@@ -431,7 +459,23 @@ void CBlockInfoItem::updateData()
 			pFenbi->fVolume = fVolume;
 			pFenbi->fPrice = fNewPrice;
 			pFenbi->tmTime = QDateTime::currentDateTime().toTime_t();
-			appendFenBis(QList<qRcvFenBiData*>()<<pFenbi);
+			if(m_pCurFenBi==0)
+			{
+				m_pCurFenBi = pFenbi;
+			}
+			else
+			{
+				if((pFenbi->tmTime/300)>(m_pCurFenBi->tmTime/300))
+				{
+					//只将5分钟的数据加入到历史数据中。
+					appendFenBis(QList<qRcvFenBiData*>()<<m_pCurFenBi);
+				}
+				else
+				{
+					delete m_pCurFenBi;
+					m_pCurFenBi = pFenbi;
+				}
+			}
 		}
 
 		pCurrentReport->tmTime = QDateTime::currentDateTime().toTime_t();

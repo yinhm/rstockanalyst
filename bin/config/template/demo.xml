@@ -18,8 +18,8 @@
     <relate>1</relate>
     <align>1</align>
     <size>54</size>
-    <block>800015BB</block>
-    <stock>000605SZ</stock>
+    <block>800036BB</block>
+    <stock>600663SH</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>27</size>
-    <code>000605SZ</code>
+    <code>600663SH</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -53,7 +53,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>51</size>
-     <code>000605SZ</code>
+     <code>600663SH</code>
     </widget>
     <widget>
      <name></name>
@@ -97,7 +97,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <align>1</align>
     <size>55</size>
     <color>红绿</color>
-    <block>800015BB</block>
+    <block>800036BB</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>

@@ -22,6 +22,9 @@ protected:
 	void initBlock();
 
 public:
+	//补充分笔数据
+	virtual QList<qRcvFenBiData*> getFenBiList();
+
 	//补充日线数据
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
 
@@ -106,6 +109,9 @@ private:
 
 
 	CBlockInfoItem* m_pParent;
+
+
+	qRcvFenBiData* m_pCurFenBi;		//当前的分笔数据
 private:
 	float fLastClose;				//昨日收盘价
 	float fOpenPrice;				//今日开盘价
@@ -118,6 +124,7 @@ private:
 	float fIncrease;				//涨幅
 
 	float fLTSZ;					//流通市值
+	float fLTG;						//总流通股
 
 	QList<QList<QChar>> shortName;	//简拼表
 };

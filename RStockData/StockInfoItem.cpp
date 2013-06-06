@@ -527,6 +527,7 @@ void CStockInfoItem::updateItemInfo()
 	}
 
 	emit stockItemReportChanged(qsOnly);
+	emit stockItemReportComing(this);
 }
 
 void CStockInfoItem::resetBuySellVOL()

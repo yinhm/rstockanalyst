@@ -75,6 +75,10 @@ public:
 
 	/*判断关键词_key是否匹配*/
 	bool isMatch(const QString& _key);
+
+signals:
+	void stockItemReportComing(CStockInfoItem*);//行情数据更新
+
 protected:
 	void updateItemInfo();
 	void resetBuySellVOL();		//重新计算内外盘数据

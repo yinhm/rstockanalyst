@@ -59,7 +59,7 @@ QList<qRcvHistoryData*> CAbstractStockItem::getLastHistory( int count )
 	return CDataEngine::getDataEngine()->getHistoryList(this,count);
 }
 
-void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
+void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& /*list*/ )
 {
 
 }
