@@ -73,6 +73,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 		m_listWidget.push_back(RWidgetOpData(WidgetKLine,"vk","K线图"));
 		m_listWidget.push_back(RWidgetOpData(WidgetMarketTrend,"vm","市场行情图"));
 		m_listWidget.push_back(RWidgetOpData(WidgetSColorBlock,"vs","股票色块图"));
+		m_listWidget.push_back(RWidgetOpData(WidgetBColorBlock,"vl","板块色块图"));
 		m_listWidget.push_back(RWidgetOpData(WidgetStockInfo,"vi","行情信息"));
 		m_listWidget.push_back(RWidgetOpData(WidgetRadar,"vr","雷达监视"));
 	}

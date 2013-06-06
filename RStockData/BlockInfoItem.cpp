@@ -386,6 +386,13 @@ void CBlockInfoItem::updateData()
 	更新间隔：暂时定为1分钟更新一次
 	计算方式：取前十只股票进行加权平均
 	*/
+	if((QDateTime::currentDateTime().toTime_t()-CDataEngine::getDataEngine()->getCurrentTime())>70)
+	{
+		//如果当前时间和最后的时间相差大于70秒，直接忽略
+		bUpdateMin = false;
+		return;
+	}
+
 	if(bUpdateMin)
 	{
 		if(m_pCurFenBi==0)
@@ -409,6 +416,9 @@ void CBlockInfoItem::updateData()
 					dLastClose += pStock->getLastClose()*fLTAG;
 					dOpen += pStock->getOpenPrice()*fLTAG;
 				}
+
+				//设置初始值
+				mapLast5Price[pStock] = pStock->getNewPrice();
 			}
 
 			if(dLTG<0.1)
@@ -426,20 +436,46 @@ void CBlockInfoItem::updateData()
 		double dHigh = 0.0;			//最高价
 		fVolume = 0.0;				//成交量
 		fAmount = 0.0;				//成交额
+		float fInc[20];		//20个增长
+		memset(&fInc,0,sizeof(float)*20);
 		int iCount = stocksInBlock.size();
 		if(iCount>MAX_STOCK_IN_BLOCK)
 			iCount = MAX_STOCK_IN_BLOCK;
 		for(int i=0;i<iCount;++i)
 		{
 			CStockInfoItem* pStock = stocksInBlock[i];
-			if(pStock->getNewPrice()>0.1)
+			float _new = pStock->getNewPrice();
+			float _last = mapLast5Price.value(pStock,0.0);
+			if(_new>0.1)
 			{
 				float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
-				dNew += pStock->getNewPrice()*fLTAG;
+				dNew += _new*fLTAG;
 				dLow += pStock->getLowPrice()*fLTAG;
 				dHigh += pStock->getHighPrice()*fLTAG;
 				fVolume += pStock->getTotalVolume();
 				fAmount += pStock->getTotalAmount();
+				if(_last>0.1)
+				{
+					int _index = (_new-_last)/_last * 100.0;
+					if(_index>9)
+					{
+						++fInc[0];
+					}
+					else if(_index>0)
+					{
+						++fInc[10-_index];
+					}
+					else if(_index<0&&_index>-10)
+					{
+						++fInc[9-_index];
+					}
+					else
+					{
+						++fInc[19];
+					}
+				}
+
+				mapLast5Price[pStock] = _new;
 			}
 		}
 
@@ -459,23 +495,10 @@ void CBlockInfoItem::updateData()
 			pFenbi->fVolume = fVolume;
 			pFenbi->fPrice = fNewPrice;
 			pFenbi->tmTime = QDateTime::currentDateTime().toTime_t();
-			if(m_pCurFenBi==0)
-			{
-				m_pCurFenBi = pFenbi;
-			}
-			else
-			{
-				if((pFenbi->tmTime/300)>(m_pCurFenBi->tmTime/300))
-				{
-					//只将5分钟的数据加入到历史数据中。
-					appendFenBis(QList<qRcvFenBiData*>()<<m_pCurFenBi);
-				}
-				else
-				{
-					delete m_pCurFenBi;
-					m_pCurFenBi = pFenbi;
-				}
-			}
+			memcpy(&pFenbi->fBuyPrice[0],&fInc,sizeof(float)*20);
+
+			m_pCurFenBi = pFenbi;
+			appendFenBis(QList<qRcvFenBiData*>()<<pFenbi);
 		}
 
 		pCurrentReport->tmTime = QDateTime::currentDateTime().toTime_t();

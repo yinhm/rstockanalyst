@@ -112,6 +112,8 @@ private:
 
 
 	qRcvFenBiData* m_pCurFenBi;		//当前的分笔数据
+
+	QMap<CStockInfoItem*,float> mapLast5Price;	//最新的5分钟价格
 private:
 	float fLastClose;				//昨日收盘价
 	float fOpenPrice;				//今日开盘价

@@ -1,0 +1,4 @@
+<!DOCTYPE template>
+<ROOT>
+ <radar block="800001BB" type="2" sec="10" id="1" hold="0.1"/>
+</ROOT>

@@ -1466,7 +1466,11 @@ bool CDataEngine::export5MinData( CAbstractStockItem* pItem, const QMap<time_t,i
 
 	file.seek(iOffsetBegin);
 	QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
-	QMap<time_t,RStockData*>* pMap = CDataEngine::getColorBlockItems(mapTimes,FenBis);
+	QMap<time_t,RStockData*>* pMap = 0;
+	if(pItem->isInstanceOfStock())
+		pMap = CDataEngine::getColorBlockItems(mapTimes,FenBis);
+	else if(pItem->isInstanceOfBlock())
+		pMap = CDataEngine::getColorBlockItems(mapTimes,FenBis);
 	if(!pMap)
 	{
 		qDebug()<<"Can not get 5min data";
