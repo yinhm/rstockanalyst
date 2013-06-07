@@ -3,6 +3,22 @@
 #include "DataEngine.h"
 #include "MainWindow.h"
 
+void CRadarWidget::testRandomRadar()
+{
+	static int i = 1;
+	QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
+	CStockInfoItem* pItem = listStocks[qrand()%listStocks.size()];
+
+	RRadarData* pRadar = new RRadarData;
+	pRadar->pStock = pItem;
+	pRadar->tmTime = QDateTime::currentDateTime().toTime_t();
+	pRadar->tpType = BigVolumn;
+	pRadar->qsDesc = QString("Index:%1").arg(i);
+	pRadar->pWatcher = 0;
+	CRadarManager::getRadarManager()->appendRadar(pRadar);
+	++i;
+}
+
 CRadarWidget::CRadarWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseWidget(parent, WidgetRadar)
 	, m_iItemHeight(16)
@@ -11,7 +27,12 @@ CRadarWidget::CRadarWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iShowIndex(0)
 {
 	m_pMenuCustom = new QMenu(tr("行情信息菜单"));
-	reconnectSignals();
+	connect(CRadarManager::getRadarManager(),SIGNAL(radarAlert(RRadarData*)),this,SLOT(onRadarAlert(RRadarData*)));
+
+	/*临时用于生成监视数据*/
+	QTimer* pTimer = new QTimer();
+	connect(pTimer,SIGNAL(timeout()),this,SLOT(testRandomRadar()));
+	pTimer->start(1000);
 }
 
 
@@ -33,19 +54,6 @@ bool CRadarWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 		return false;
 
 	return true;
-}
-
-void CRadarWidget::reconnectSignals()
-{
-	QList<CRadarWatcher*> list = CRadarWatcher::getRadarWatchers();
-	foreach(CRadarWatcher* pWatcher,list)
-	{
-		disconnect(pWatcher,SIGNAL(radarAlert(RRadarData*)),this,SLOT(onRadarAlert(RRadarData*)));
-		disconnect(pWatcher,SIGNAL(watcherDelete(CRadarWatcher*)),this,SLOT(onWatcherDelete(CRadarWatcher*)));
-
-		connect(pWatcher,SIGNAL(radarAlert(RRadarData*)),this,SLOT(onRadarAlert(RRadarData*)));
-		connect(pWatcher,SIGNAL(watcherDelete(CRadarWatcher*)),this,SLOT(onWatcherDelete(CRadarWatcher*)));
-	}
 }
 
 void CRadarWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
@@ -92,12 +100,6 @@ void CRadarWidget::keyPressEvent( QKeyEvent* e )
 			if(iCurIndex>0)
 			{
 				RRadarData* pRadar = m_listRadars[iCurIndex-1];
-				int iRow = m_mapRadarsIndex[pRadar];
-				if(iRow<m_iShowIndex)
-				{
-					m_iShowIndex = iRow;
-					update(m_rtClient);
-				}
 				clickedRadar(pRadar);
 			}
 		}
@@ -108,60 +110,47 @@ void CRadarWidget::keyPressEvent( QKeyEvent* e )
 		if(m_pSelRadar)
 		{
 			int iCurIndex = m_mapRadarsIndex[m_pSelRadar];
+			if(m_listRadars.size()>(iCurIndex+1))
 			{
-				if(m_listRadars.size()>(iCurIndex+1))
-				{
-					RRadarData* pRadar = m_listRadars[iCurIndex+1];
-					int iRow = m_mapRadarsIndex[pRadar];
-
-					int iShowCount = m_rtClient.height()/m_iItemHeight;
-					if(iShowCount<1)
-						return;
-
-					if((iRow-m_iShowIndex)>=iShowCount)
-					{
-						m_iShowIndex = iRow-iShowCount+1;
-						update(m_rtClient);
-					}
-					clickedRadar(pRadar);
-				}
+				RRadarData* pRadar = m_listRadars[iCurIndex+1];
+				clickedRadar(pRadar);
 			}
 		}
 		e->accept();
 	}
-	//else if(Qt::Key_PageDown == iKey)
-	//{
-	//	int iShowCount = m_rtClient.height()/m_iStockHeight;
-	//	if(iShowCount<1)
-	//		return;
-	//	if((showStockIndex+iShowCount)<m_listStocks.size())
-	//	{
-	//		showStockIndex = showStockIndex+iShowCount;
-	//		update(m_rtClient);
-	//	}
-	//	e->accept();
-	//}
-	//else if(Qt::Key_PageUp == iKey)
-	//{
-	//	int iShowCount = m_rtClient.height()/m_iStockHeight;
-	//	if(iShowCount<1)
-	//		return;
-	//	showStockIndex = (showStockIndex-iShowCount)>0 ? (showStockIndex-iShowCount) : 0;
-	//	update(m_rtClient);
+	else if(Qt::Key_PageDown == iKey)
+	{
+		int iShowCount = m_rtClient.height()/m_iItemHeight;
+		if(iShowCount<1)
+			return;
+		if((m_iShowIndex+iShowCount)<m_listRadars.size())
+		{
+			m_iShowIndex = m_iShowIndex+iShowCount;
+			update(m_rtClient);
+		}
+		e->accept();
+	}
+	else if(Qt::Key_PageUp == iKey)
+	{
+		int iShowCount = m_rtClient.height()/m_iItemHeight;
+		if(iShowCount<1)
+			return;
+		m_iShowIndex = (m_iShowIndex-iShowCount)>0 ? (m_iShowIndex-iShowCount) : 0;
+		update(m_rtClient);
 
-	//	e->accept();
-	//}
-	//else if(Qt::Key_F10 == iKey)
-	//{
-	//	//F10数据
-	//	if(m_pSelectedStock)
-	//	{
-	//		if(!CDataEngine::getDataEngine()->showF10Data(m_pSelectedStock->getCode()))
-	//		{
-	//			//未打开F10数据 do something
-	//		}
-	//	}
-	//}
+		e->accept();
+	}
+	else if(Qt::Key_F10 == iKey)
+	{
+		//F10数据
+		if(m_pSelRadar)
+		{
+			if(!CDataEngine::getDataEngine()->showF10Data(m_pSelRadar->pStock->getCode()))
+			{
+				//未打开F10数据 do something
+			}
+		}
+	}
 	else
 	{
 		return CBaseWidget::keyPressEvent(e);
@@ -186,6 +175,21 @@ void CRadarWidget::mousePressEvent( QMouseEvent* e )
 	}
 }
 
+void CRadarWidget::wheelEvent( QWheelEvent* e )
+{
+	int numDegrees = e->delta() / 8;
+	int numSteps = numDegrees / 15;
+	int iIndex = m_iShowIndex-numSteps*5;
+	if(iIndex<0) {iIndex = 0;}
+	if(iIndex>=0&&iIndex<m_listRadars.size())
+	{
+		e->accept();
+		m_iShowIndex = iIndex;
+		update(m_rtClient);
+	}
+	return CBaseWidget::wheelEvent(e);
+}
+
 QMenu* CRadarWidget::getCustomMenu()
 {
 	QAction* pAction = m_pMenu->menuAction();
@@ -199,25 +203,9 @@ void CRadarWidget::onRadarAlert( RRadarData* pRadar )
 {
 	m_mapRadarsIndex[pRadar] = m_listRadars.size();
 	m_listRadars.append(pRadar);
+	if(m_iShowIndex>0)
+		++m_iShowIndex;
 	update();
-}
-
-void CRadarWidget::onWatcherDelete( CRadarWatcher* pWatcher )
-{
-	m_mapRadarsIndex.clear();
-	QList<RRadarData*> listData;
-	foreach(RRadarData* pData,m_listRadars)
-	{
-		if(pData->pWatcher != pWatcher)
-		{
-			m_mapRadarsIndex[pData] = listData.size();
-			listData.push_back(pData);
-		}
-	}
-
-	m_listRadars = listData;
-	m_pSelRadar = 0;
-	m_iShowIndex = 0;
 }
 
 void CRadarWidget::drawTitle( QPainter& p )
@@ -248,29 +236,51 @@ void CRadarWidget::drawClient( QPainter& p )
 	p.setPen(QColor(255,255,255));
 	for(int i=0;i<iCount;++i)
 	{
-		RRadarData* pData = m_listRadars[iSize-i];
-		QRect rtItem(0,iBeginY+m_iItemHeight*i,m_rtClient.width(),m_iItemHeight);
-
-		if(pData == m_pSelRadar)
+		if(iSize-i>=0&&iSize-i<m_listRadars.size())
 		{
-			p.fillRect(rtItem,QColor(244,0,0));
-		}
+			RRadarData* pData = m_listRadars[iSize-i];
+			QRect rtItem(0,iBeginY+m_iItemHeight*i,m_rtClient.width(),m_iItemHeight);
 
-		QString qsShowText = QString("%1 %2").arg(pData->pStock->getName(),pData->qsDesc);
-		p.drawText(rtItem,qsShowText);
+			if(pData == m_pSelRadar)
+			{
+				p.fillRect(rtItem,QColor(244,0,0));
+			}
+
+			QString qsShowText = QString("%1 %2").arg(pData->pStock->getCode(),pData->qsDesc);
+			p.drawText(rtItem,qsShowText);
+		}
 	}
 }
 
-void CRadarWidget::clickedRadar( RRadarData* pData )
+void CRadarWidget::clickedRadar( RRadarData* pRadar )
 {
-	if(!pData)
+	if(!pRadar)
 		return;
-
-	m_pSelRadar = pData;
-	update();
-	if(pData->pStock)
 	{
-		CMainWindow::getMainWindow()->clickedStock(pData->pStock->getOnly());
+		//设置显示的起始位置
+		int iRow = m_mapRadarsIndex[pRadar];
+
+		int iShowCount = m_rtClient.height()/m_iItemHeight;
+		if(iShowCount<1)
+			return;
+		qDebug()<<"last show index:"<<m_iShowIndex;
+		int iSize = m_listRadars.size();
+
+		if((iSize-m_iShowIndex-iRow)>=iShowCount)
+		{
+			m_iShowIndex = iSize-iRow-iShowCount;
+		}
+		else if(m_iShowIndex+iRow >= iSize)
+		{
+			m_iShowIndex = iSize-iRow-1;
+		}
+	}
+
+	m_pSelRadar = pRadar;
+	update();
+	if(pRadar->pStock)
+	{
+		CMainWindow::getMainWindow()->clickedStock(pRadar->pStock->getOnly());
 	}
 }
 
