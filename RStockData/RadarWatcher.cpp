@@ -5,10 +5,17 @@
 #include "DataEngine.h"
 #include <QtXml>
 
+CRadarManager* CRadarManager::m_pSelf = 0;
 
-QMap<int,CRadarWatcher*> CRadarWatcher::m_listWatchers;
+CRadarManager* CRadarManager::getRadarManager()
+{
+	if(m_pSelf==0)
+		m_pSelf = new CRadarManager();
 
-CRadarWatcher* CRadarWatcher::createRadarWatcher( CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold,int iId/*=-1*/)
+	return m_pSelf;
+}
+
+CRadarWatcher* CRadarManager::createRadarWatcher( CBlockInfoItem* pBlock, RadarType _t,int iSec,float _hold,int iId/*=-1*/ )
 {
 	QList<int> listKey = m_listWatchers.keys();
 	int iMaxId = iId;
@@ -49,7 +56,18 @@ CRadarWatcher* CRadarWatcher::createRadarWatcher( CBlockInfoItem* pBlock,RadarTy
 	return pWatcher;
 }
 
-void CRadarWatcher::loadRadars()
+QList<CRadarWatcher*> CRadarManager::getRadarWatchers()
+{
+	return m_listWatchers.values();
+}
+
+void CRadarManager::appendRadar( RRadarData* pRadar )
+{
+	m_listRadar.append(pRadar);
+	emit radarAlert(pRadar);
+}
+
+void CRadarManager::loadRadars()
 {
 	QFile file(qApp->applicationDirPath()+"/config/radars.xml");
 	if(!file.open(QFile::ReadOnly))
@@ -77,7 +95,7 @@ void CRadarWatcher::loadRadars()
 	}
 }
 
-void CRadarWatcher::saveRadars()
+void CRadarManager::saveRadars()
 {
 	QDomDocument doc("template");
 	QDomElement eleRoot = doc.createElement("ROOT");
@@ -106,7 +124,7 @@ void CRadarWatcher::saveRadars()
 	file.close();
 }
 
-void CRadarWatcher::releaseRadars()
+void CRadarManager::releaseRadars()
 {
 	QMap<int,CRadarWatcher*>::iterator iter = m_listWatchers.begin();
 	while (iter!=m_listWatchers.end())
@@ -115,11 +133,14 @@ void CRadarWatcher::releaseRadars()
 		++iter;
 	}
 	m_listWatchers.clear();
-}
 
-QList<CRadarWatcher*> CRadarWatcher::getRadarWatchers()
-{
-	return m_listWatchers.values();
+	foreach(RRadarData* pData,m_listRadar)
+	{
+		delete pData;
+	}
+	m_listRadar.clear();
+	delete m_pSelf;
+	m_pSelf = NULL;
 }
 
 
@@ -145,19 +166,6 @@ CRadarWatcher::CRadarWatcher( int _id,CBlockInfoItem* pBlock,RadarType _t,int iS
 
 CRadarWatcher::~CRadarWatcher(void)
 {
-	emit watcherDelete(this);
-	foreach(RRadarData* pData, m_listRadar)
-	{
-		delete pData;
-	}
-	m_listRadar.clear();
-}
-
-void CRadarWatcher::appendRadar( RRadarData* pRadar )
-{
-	pRadar->pWatcher = this;
-	m_listRadar.append(pRadar);
-	emit radarAlert(pRadar);
 }
 
 
@@ -202,7 +210,8 @@ void CVolumnWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = BigVolumn;
 				pRadar->qsDesc = QString("大笔成交量出现，超过上一周期:%1").arg((fNewV-fLastV)/fLastV);
-				appendRadar(pRadar);
+				pRadar->pWatcher = this;
+				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 
 			if((pReport->tmTime-pData->tmTime)>m_iSec)
@@ -254,7 +263,8 @@ void CIncreaseWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = BigIncrease;
 				pRadar->qsDesc = QString("大的成交价出现，超过上一周期:%1").arg((pReport->fNewPrice-pData->fMaxPrice)/pData->fMaxPrice);
-				appendRadar(pRadar);
+				pRadar->pWatcher = this;
+				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}
 
@@ -319,7 +329,8 @@ void CMaxPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = MaxPrice;
 				pRadar->qsDesc = QString("创新高，成交价:%1").arg(pReport->fNewPrice);
-				appendRadar(pRadar);
+				pRadar->pWatcher = this;
+				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}
 		if(pReport->fNewPrice>pData->fNewPrice)
@@ -375,7 +386,8 @@ void CMinPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = MinPrice;
 				pRadar->qsDesc = QString("创新高，成交价:%1").arg(pReport->fNewPrice);
-				appendRadar(pRadar);
+				pRadar->pWatcher = this;
+				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}
 		if(pReport->fNewPrice<pData->fNewPrice)

@@ -195,7 +195,7 @@ void CDataEngine::releaseDataEngine()
 {
 	if(m_pDataEngine)
 		delete m_pDataEngine;
-	CRadarWatcher::releaseRadars();
+	CRadarManager::getRadarManager()->releaseRadars();
 }
 
 void CDataEngine::importData()
@@ -269,7 +269,7 @@ void CDataEngine::importData()
 	}
 	{
 		//加载监视雷达数据
-		CRadarWatcher::loadRadars();
+		CRadarManager::getRadarManager()->loadRadars();
 	}
 }
 
@@ -307,7 +307,7 @@ void CDataEngine::exportData()
 
 	{
 		//导出监视雷达数据
-		CRadarWatcher::saveRadars();
+		CRadarManager::getRadarManager()->saveRadars();
 	}
 }
 

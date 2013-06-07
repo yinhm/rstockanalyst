@@ -30,32 +30,10 @@ typedef struct tagRRadarData
 	QString qsDesc;					//描述信息
 } RRadarData;
 
-class RSDSHARED_EXPORT CRadarWatcher : public QObject
+
+class CRadarWatcher : public QObject
 {
 	Q_OBJECT
-public:
-	/*
-		创建雷达监视
-		pBlock 监视的板块
-		_t 雷达类型
-		iSec 监视的时间间隔
-		_hold 阈值
-	*/
-	static CRadarWatcher* createRadarWatcher(CBlockInfoItem* pBlock,
-		RadarType _t,int iSec,float _hold,int iId=-1);
-
-	/*
-		获取所有的监视雷达
-	*/
-	static QList<CRadarWatcher*> getRadarWatchers();
-
-	//加载监视雷达
-	static void loadRadars();
-	//保存监视雷达
-	static void saveRadars();
-	//析构监视雷达
-	static void releaseRadars();
-
 public:
 	CRadarWatcher(int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold);
 	~CRadarWatcher(void);
@@ -68,13 +46,6 @@ public:
 	int getSec(){ return m_iSec; }
 	CBlockInfoItem* getBlock(){ return m_pWatcherBlock; }
 
-signals:
-	void radarAlert(RRadarData* pRadar);
-	void watcherDelete(CRadarWatcher* pWatcher);
-
-protected:
-	void appendRadar(RRadarData* pRadar);
-
 protected slots:
 	virtual void onStockReportComing(CStockInfoItem* pItem) = 0;
 
@@ -83,13 +54,56 @@ protected:
 	float m_fHold;								//阈值
 
 private:
-	QList<RRadarData*> m_listRadar;				//预警雷达数据
 	int m_id;									//雷达id
 	RadarType m_type;							//雷达类型
 	CBlockInfoItem* m_pWatcherBlock;			//监视的板块
+};
+
+class RSDSHARED_EXPORT CRadarManager : public QObject
+{
+	Q_OBJECT
+public:
+	static CRadarManager* getRadarManager();
+	
+public:
+	/*
+		创建雷达监视
+		pBlock 监视的板块
+		_t 雷达类型
+		iSec 监视的时间间隔
+		_hold 阈值
+	*/
+	CRadarWatcher* createRadarWatcher(CBlockInfoItem* pBlock,
+		RadarType _t,int iSec,float _hold,int iId=-1);
+	
+	/*
+		获取所有的监视雷达
+	*/
+	QList<CRadarWatcher*> getRadarWatchers();
+
+	//追加产生的监视信息
+	void appendRadar(RRadarData* pRadar);
+
+	//加载监视雷达
+	void loadRadars();
+	//保存监视雷达
+	void saveRadars();
+	//析构监视雷达
+	void releaseRadars();
+
+signals:
+	void radarAlert(RRadarData* pRadar);
+
+protected:
+	CRadarManager(){};
+	~CRadarManager(){};
 
 private:
-	static QMap<int,CRadarWatcher*> m_listWatchers;		//所有的监视器
+	QMap<int,CRadarWatcher*> m_listWatchers;	//所有的监视器
+	QList<RRadarData*> m_listRadar;				//预警雷达数据
+
+private:
+	static CRadarManager* m_pSelf;
 };
 
 
