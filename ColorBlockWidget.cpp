@@ -741,23 +741,26 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 		if(m_mapTimes.contains(iter.key()))
 		{
 			int iIndex = iMapSize - m_mapTimes[iter.key()];
-			float f = vColor.size()>iIndex ? vColor[iIndex] : 1;
-			float fH = vHeight.size()>iIndex ? vHeight[iIndex]*fTimes : 1;
-			float fW = vWidth.size()> iIndex ? vWidth[iIndex]*fTimes : 1;
-			if(fH<0)
-				fH = 0;
-			else if(fH>1)
-				fH = 1;
+			if(iIndex>-1)
+			{
+				float f = vColor.size()>iIndex ? vColor[iIndex] : 1;
+				float fH = vHeight.size()>iIndex ? vHeight[iIndex]*fTimes : 1;
+				float fW = vWidth.size()> iIndex ? vWidth[iIndex]*fTimes : 1;
+				if(fH<0)
+					fH = 0;
+				else if(fH>1)
+					fH = 1;
 
-			if(fW<0)
-				fW = 0;
-			else if(fW>1)
-				fW = 1;
+				if(fW<0)
+					fW = 0;
+				else if(fW>1)
+					fW = 1;
 
-			rtCB.adjust(1,1,-1,-1);
-			rtCB.setHeight(rtCB.height()*fH);
-			rtCB.setWidth(rtCB.width()*fW);
-			p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*fTimes)));
+				rtCB.adjust(1,1,-1,-1);
+				rtCB.setHeight(rtCB.height()*fH);
+				rtCB.setWidth(rtCB.width()*fW);
+				p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*fTimes)));
+			}
 		}
 		++iter;
 	}

@@ -83,6 +83,8 @@ private:
 	QRect m_rtBottom;						//底部区域，用于鼠标操作等信息
 
 	QTimer m_timerUpdateUI;					//界面更新的timer
+
+	QVector<QRgb> m_clrTable;				//颜色表，12个
 };
 
 #endif // !B_COLOR_BLOCK_WIDGET_H

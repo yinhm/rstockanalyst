@@ -101,7 +101,7 @@ void CBColorBlockWidget::setBlock( const QString& block )
 
 void CBColorBlockWidget::updateUI()
 {
-	m_typeCircle = Min1;
+	m_typeCircle = Sec30;
 	updateTimesH();
 	updateSortMode(false);
 }
@@ -114,6 +114,12 @@ void CBColorBlockWidget::clickedBlock( CBlockInfoItem* pItem )
 
 void CBColorBlockWidget::paintEvent( QPaintEvent* e )
 {
+	m_clrTable.clear();
+	for (int i=0;i<21;++i)
+	{
+		m_clrTable.push_back(CColorManager::getBlockColor(m_qsColorMode,i));
+	}
+
 	QPainter p(this);
 	QRect rtClient = this->rect();
 	m_rtHeader = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
@@ -227,7 +233,7 @@ void CBColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	for(int i=0;i<COLOR_BLOCK_SIZE;++i)
 	{
 		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
-			QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,i)));
+			QColor::fromRgb(m_clrTable[i]));
 	}
 
 	//从右向左绘制横坐标
@@ -269,13 +275,71 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 		return;
 
 	QList<qRcvFenBiData*> listFenBi = pItem->getFenBiList();
-	foreach(qRcvFenBiData* pFenBi,listFenBi)
+	int iSize = listFenBi.size();
+	for (int i = iSize-1;i >= 0; --i)
 	{
+		qRcvFenBiData* pFenBi = listFenBi[i];
+		QString qsTime = QDateTime::fromTime_t(pFenBi->tmTime).toString("hh:mm:ss");
 		QMap<time_t,float>::iterator iter = m_mapShowTimes.lowerBound(pFenBi->tmTime);
-		if(iter!=m_mapShowTimes.end())
+		if(iter==m_mapShowTimes.end())
 		{
+			continue;
+		}
+		else if(iter!=m_mapShowTimes.begin())
+		{
+			if(iter.value()<rtCB.left())
+				break;
+
 			//色块的大小
-			QRectF(iter.value()+m_iCBWidth,rtCB.top(),m_iCBWidth,rtCB.height());
+			float fTop = rtCB.top();
+			float fLeft = iter.value()-m_iCBWidth;
+			float fHeight = rtCB.height()-1;
+
+			float* fCount = &(pFenBi->fBuyPrice[0]);
+			float fTotal = pItem->getStockCount();
+			float fPer = fHeight/fTotal;
+			float fCurY = fTop;
+
+			float fNotEquel = 0;
+			for (int i=0;i<20;++i)
+			{
+				fNotEquel+=fCount[i];
+			}
+
+			for (int j=0;j<10;++j)
+			{
+				//10-1
+				float fPerH = fCount[j]*fPer;
+				p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[20-j]);
+				
+				fCurY+=fPerH;
+			}
+			{
+				//0
+				float fPerH = (fTotal-fNotEquel)*fPer;
+				p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[10]);
+
+				fCurY+=fPerH;
+			}
+
+			for (int j=10;j<20;++j)
+			{
+				float fPerH = fCount[j]*fPer;
+				p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[19-j]);
+
+				fCurY+=fPerH;
+			}
+
+/*
+			QRectF rtBlock = QRectF(iter.value()-m_iCBWidth,fTop,m_iCBWidth,rtCB.height());
+
+			QString qsText = QString("%1 %2").arg(fTotal).arg(pItem->getStockList().size());
+			p.drawText(rtBlock,QDateTime::fromTime_t(pFenBi->tmTime).toString("mm:ss"));*/
+
+		}
+		else
+		{
+			break;
 		}
 	}
 	//绘制
