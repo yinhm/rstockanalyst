@@ -2,6 +2,7 @@
 #include "BColorBlockWidget.h"
 #include "DataEngine.h"
 #include "ColorManager.h"
+#include "KeyWizard.h"
 
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	50
@@ -76,12 +77,32 @@ void CBColorBlockWidget::updateSortMode( bool bSelFirst )
 
 void CBColorBlockWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
 {
+	foreach(CBlockInfoItem* pItem,m_listBlocks)
+	{
+		if(pItem->isMatch(keyword))
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdBlock;
+			pData->arg = pItem;
+			pData->desc = QString("%1 %2").arg(pItem->getCode()).arg(pItem->getName());
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
 
+	return CBaseBlockWidget::getKeyWizData(keyword,listRet);
 }
 
 void CBColorBlockWidget::keyWizEntered( KeyWizData* pData )
 {
+	if(pData->cmd == CKeyWizard::CmdBlock)
+	{
+		clickedBlock(reinterpret_cast<CBlockInfoItem*>(pData->arg));
+		return;
+	}
 
+	return CBaseBlockWidget::keyWizEntered(pData);
 }
 
 void CBColorBlockWidget::setBlock( const QString& block )
@@ -112,7 +133,7 @@ void CBColorBlockWidget::clickedBlock( CBlockInfoItem* pItem )
 
 }
 
-void CBColorBlockWidget::paintEvent( QPaintEvent* e )
+void CBColorBlockWidget::paintEvent( QPaintEvent* /*e*/ )
 {
 	m_clrTable.clear();
 	for (int i=0;i<21;++i)
@@ -150,11 +171,6 @@ void CBColorBlockWidget::wheelEvent( QWheelEvent* e )
 }
 
 void CBColorBlockWidget::keyPressEvent( QKeyEvent* e )
-{
-
-}
-
-void CBColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth )
 {
 
 }

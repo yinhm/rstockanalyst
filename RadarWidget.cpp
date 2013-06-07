@@ -2,6 +2,7 @@
 #include "RadarWidget.h"
 #include "DataEngine.h"
 #include "MainWindow.h"
+#define TIMER_AUTO_SCROLL	30*1000
 
 void CRadarWidget::testRandomRadar()
 {
@@ -28,6 +29,9 @@ CRadarWidget::CRadarWidget( CBaseWidget* parent /*= 0*/ )
 {
 	m_pMenuCustom = new QMenu(tr("行情信息菜单"));
 	connect(CRadarManager::getRadarManager(),SIGNAL(radarAlert(RRadarData*)),this,SLOT(onRadarAlert(RRadarData*)));
+
+	//连接超时自动滚动到顶部的定时器
+	connect(&m_timerAutoScroll,SIGNAL(timeout()),this,SLOT(onAutoScroll()));
 
 	/*临时用于生成监视数据*/
 	QTimer* pTimer = new QTimer();
@@ -59,24 +63,17 @@ bool CRadarWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 void CRadarWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
 {
 
+	return CBaseWidget::getKeyWizData(keyword,listRet);
 }
 
 void CRadarWidget::keyWizEntered( KeyWizData* pData )
 {
 
+	return CBaseWidget::keyWizEntered(pData);
 }
 
-void CRadarWidget::setStockCode( const QString& only )
-{
 
-}
-
-void CRadarWidget::setStockItem( CStockInfoItem* pItem )
-{
-
-}
-
-void CRadarWidget::paintEvent( QPaintEvent* e )
+void CRadarWidget::paintEvent( QPaintEvent* /*e*/ )
 {
 	QPainter p(this);
 	QRect rtClient = this->rect();
@@ -91,6 +88,7 @@ void CRadarWidget::paintEvent( QPaintEvent* e )
 
 void CRadarWidget::keyPressEvent( QKeyEvent* e )
 {
+	m_timerAutoScroll.start(TIMER_AUTO_SCROLL);
 	int iKey = e->key();
 	if(Qt::Key_Down == iKey)
 	{
@@ -159,7 +157,17 @@ void CRadarWidget::keyPressEvent( QKeyEvent* e )
 
 void CRadarWidget::mouseMoveEvent( QMouseEvent* e )
 {
-
+	QPoint ptCur = e->pos();
+	if(m_rtClient.contains(ptCur))
+	{
+		RRadarData* pData = testRadarData(ptCur);
+		if(pData)
+		{
+			//do something;
+		}
+	}
+	e->accept();
+	return CBaseWidget::mouseMoveEvent(e);
 }
 
 void CRadarWidget::mousePressEvent( QMouseEvent* e )
@@ -183,6 +191,7 @@ void CRadarWidget::wheelEvent( QWheelEvent* e )
 	if(iIndex<0) {iIndex = 0;}
 	if(iIndex>=0&&iIndex<m_listRadars.size())
 	{
+		m_timerAutoScroll.start(TIMER_AUTO_SCROLL);
 		e->accept();
 		m_iShowIndex = iIndex;
 		update(m_rtClient);
@@ -204,8 +213,20 @@ void CRadarWidget::onRadarAlert( RRadarData* pRadar )
 	m_mapRadarsIndex[pRadar] = m_listRadars.size();
 	m_listRadars.append(pRadar);
 	if(m_iShowIndex>0)
+	{
 		++m_iShowIndex;
-	update();
+	}
+	else
+	{
+		update(m_rtClient);
+	}
+}
+
+void CRadarWidget::onAutoScroll()
+{
+	m_timerAutoScroll.stop();
+	m_iShowIndex = 0;
+	update(m_rtClient);
 }
 
 void CRadarWidget::drawTitle( QPainter& p )

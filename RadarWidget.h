@@ -29,16 +29,13 @@ public:
 	//键盘精灵窗口确认后触发
 	virtual void keyWizEntered(KeyWizData* pData);
 
-public slots:
-	virtual void setStockCode(const QString& only);
-
 protected slots:
 	//新的数据到来
 	void onRadarAlert(RRadarData* pRadar);
-	void testRandomRadar();			//临时调试使用函数，自动生成雷达数据
+	//自动滚动到顶部
+	void onAutoScroll();
 
-protected:
-	void setStockItem(CStockInfoItem* pItem);
+	void testRandomRadar();			//临时调试使用函数，自动生成雷达数据
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
@@ -65,6 +62,7 @@ private:
 	QRect m_rtTitle;						//标题显示区域
 
 	int m_iShowIndex;						//当前显示的起始位置
+	QTimer m_timerAutoScroll;				//设置超时自动滚动到顶部
 
 private:
 	QMenu* m_pMenuCustom;					//自定义菜单
