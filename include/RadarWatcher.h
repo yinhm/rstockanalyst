@@ -11,6 +11,7 @@
 
 class CStockInfoItem;
 class CBlockInfoItem;
+class CRadarWatcher;
 
 enum RadarType
 {
@@ -24,7 +25,8 @@ typedef struct tagRRadarData
 {
 	RadarType tpType;				//雷达类型
 	time_t tmTime;					//生成时间
-	CStockInfoItem* pStock;		//股票指针
+	CRadarWatcher* pWatcher;		//来源雷达
+	CStockInfoItem* pStock;			//股票指针
 	QString qsDesc;					//描述信息
 } RRadarData;
 
@@ -41,6 +43,11 @@ public:
 	*/
 	static CRadarWatcher* createRadarWatcher(CBlockInfoItem* pBlock,
 		RadarType _t,int iSec,float _hold,int iId=-1);
+
+	/*
+		获取所有的监视雷达
+	*/
+	static QList<CRadarWatcher*> getRadarWatchers();
 
 	//加载监视雷达
 	static void loadRadars();
@@ -63,6 +70,7 @@ public:
 
 signals:
 	void radarAlert(RRadarData* pRadar);
+	void watcherDelete(CRadarWatcher* pWatcher);
 
 protected:
 	void appendRadar(RRadarData* pRadar);

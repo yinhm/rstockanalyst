@@ -11,23 +11,23 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>58</size>
+   <size>55</size>
    <widget>
     <name></name>
     <type>2</type>
     <relate>1</relate>
     <align>1</align>
-    <size>54</size>
-    <block>800108BB</block>
-    <stock>800019BB</stock>
+    <size>55</size>
+    <block>800109BB</block>
+    <stock>800037BB</stock>
    </widget>
    <widget circle="0">
     <name></name>
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
-    <size>27</size>
-    <code>800019BB</code>
+    <size>25</size>
+    <code>800037BB</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -46,14 +46,14 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>2</align>
-    <size>18</size>
+    <size>19</size>
     <widget>
      <name></name>
      <type>5</type>
      <relate>1</relate>
      <align>1</align>
      <size>51</size>
-     <code>600663SH</code>
+     <code>300042SZ</code>
     </widget>
     <widget>
      <name></name>
@@ -69,36 +69,49 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>41</size>
+   <size>44</size>
    <widget circle="0">
     <name></name>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
     <size>29</size>
+    <code>300201SZ</code>
+    <liners>
+     <Liner size="80">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+     </Liner>
+     <Liner size="20">
+      <exp>DrawHist(VOLUME)</exp>
+     </Liner>
+    </liners>
    </widget>
    <widget circle="0" CBHeight="36" CBWidth="20">
     <name></name>
     <type>3</type>
     <relate>1</relate>
     <align>1</align>
-    <size>27</size>
+    <size>37</size>
     <color>红绿</color>
-    <block>800019BB</block>
+    <block>800037BB</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>
      <width>CLOSE</width>
     </exps>
    </widget>
-   <widget circle="60" CBHeight="16" CBWidth="3">
+   <widget circle="30" CBHeight="50" CBWidth="20">
     <name></name>
     <type>4</type>
     <relate>1</relate>
     <align>1</align>
-    <size>43</size>
+    <size>33</size>
     <color></color>
-    <block>800108BB</block>
+    <block>800109BB</block>
    </widget>
   </widget>
  </widget>

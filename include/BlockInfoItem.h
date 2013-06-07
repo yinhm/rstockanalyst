@@ -35,6 +35,8 @@ public:
 	QList<CStockInfoItem*> getStockList();						//获取股票列表
 	QList<CBlockInfoItem*> getBlockList();						//获取板块列表
 
+	int getStockCount() const;										//获取股票的数量
+
 	bool hasBlocks();											//返回该板块是否含有子板块
 
 	bool appendStocks(QList<CStockInfoItem*> list);		//向板块中添加股票
@@ -104,12 +106,9 @@ private:
 	QMap<QString,CBlockInfoItem*> blocksInBlock;//该板块下的子板块
 
 	QTimer timerUpdate;
-	bool bUpdateMin;
-	bool bUpdateDay;
 
 
 	CBlockInfoItem* m_pParent;
-
 
 	qRcvFenBiData* m_pCurFenBi;		//当前的分笔数据
 

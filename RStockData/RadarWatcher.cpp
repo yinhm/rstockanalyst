@@ -49,40 +49,6 @@ CRadarWatcher* CRadarWatcher::createRadarWatcher( CBlockInfoItem* pBlock,RadarTy
 	return pWatcher;
 }
 
-CRadarWatcher::CRadarWatcher( int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold )
-	: m_id(_id)
-	, m_pWatcherBlock(pBlock)
-	, m_type(_t)
-	, m_iSec(iSec)
-	, m_fHold(_hold)
-{
-	if(m_pWatcherBlock)
-	{
-		//设置监视的股票列表
-		QList<CStockInfoItem*> list = m_pWatcherBlock->getStockList();
-		foreach(CStockInfoItem* pItem,list)
-		{
-			connect(pItem,SIGNAL(stockItemReportComing(CStockInfoItem*)),this,SLOT(onStockReportComing(CStockInfoItem*)));
-		}
-	}
-}
-
-
-CRadarWatcher::~CRadarWatcher(void)
-{
-	foreach(RRadarData* pData, m_listRadar)
-	{
-		delete pData;
-	}
-	m_listRadar.clear();
-}
-
-void CRadarWatcher::appendRadar( RRadarData* pRadar )
-{
-	m_listRadar.append(pRadar);
-	emit radarAlert(pRadar);
-}
-
 void CRadarWatcher::loadRadars()
 {
 	QFile file(qApp->applicationDirPath()+"/config/radars.xml");
@@ -149,6 +115,49 @@ void CRadarWatcher::releaseRadars()
 		++iter;
 	}
 	m_listWatchers.clear();
+}
+
+QList<CRadarWatcher*> CRadarWatcher::getRadarWatchers()
+{
+	return m_listWatchers.values();
+}
+
+
+
+CRadarWatcher::CRadarWatcher( int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold )
+	: m_id(_id)
+	, m_pWatcherBlock(pBlock)
+	, m_type(_t)
+	, m_iSec(iSec)
+	, m_fHold(_hold)
+{
+	if(m_pWatcherBlock)
+	{
+		//设置监视的股票列表
+		QList<CStockInfoItem*> list = m_pWatcherBlock->getStockList();
+		foreach(CStockInfoItem* pItem,list)
+		{
+			connect(pItem,SIGNAL(stockItemReportComing(CStockInfoItem*)),this,SLOT(onStockReportComing(CStockInfoItem*)));
+		}
+	}
+}
+
+
+CRadarWatcher::~CRadarWatcher(void)
+{
+	emit watcherDelete(this);
+	foreach(RRadarData* pData, m_listRadar)
+	{
+		delete pData;
+	}
+	m_listRadar.clear();
+}
+
+void CRadarWatcher::appendRadar( RRadarData* pRadar )
+{
+	pRadar->pWatcher = this;
+	m_listRadar.append(pRadar);
+	emit radarAlert(pRadar);
 }
 
 
@@ -235,15 +244,18 @@ void CIncreaseWatcher::onStockReportComing( CStockInfoItem* pItem )
 	if(pData)
 	{
 		//过去一个周期的最高价
-		if((pReport->fNewPrice-pData->fMaxPrice)/pData->fMaxPrice > m_fHold)
+		if(pData->fMaxPrice>0.0)
 		{
-			//超过阈值，进行抛出警报
-			RRadarData* pRadar = new RRadarData;
-			pRadar->pStock = pItem;
-			pRadar->tmTime = pReport->tmTime;
-			pRadar->tpType = BigIncrease;
-			pRadar->qsDesc = QString("大的成交价出现，超过上一周期:%1").arg((pReport->fNewPrice-pData->fMaxPrice)/pData->fMaxPrice);
-			appendRadar(pRadar);
+			if((pReport->fNewPrice-pData->fMaxPrice)/pData->fMaxPrice > m_fHold)
+			{
+				//超过阈值，进行抛出警报
+				RRadarData* pRadar = new RRadarData;
+				pRadar->pStock = pItem;
+				pRadar->tmTime = pReport->tmTime;
+				pRadar->tpType = BigIncrease;
+				pRadar->qsDesc = QString("大的成交价出现，超过上一周期:%1").arg((pReport->fNewPrice-pData->fMaxPrice)/pData->fMaxPrice);
+				appendRadar(pRadar);
+			}
 		}
 
 		if((pReport->tmTime-pData->tmTime)>m_iSec)
@@ -299,7 +311,7 @@ void CMaxPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 		if(!_isnan(pData->fMaxPrice))
 		{
 			//过去一个周期的最高价
-			if(pReport->fNewPrice > pData->fMaxPrice)
+			if(pReport->fNewPrice > pData->fMaxPrice && pReport->fNewPrice > pData->fNewPrice)
 			{
 				//超过阈值，进行抛出警报
 				RRadarData* pRadar = new RRadarData;
@@ -355,7 +367,7 @@ void CMinPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 		if(!_isnan(pData->fMinPrice))
 		{
 			//过去一个周期的最高价
-			if(pReport->fNewPrice < pData->fMinPrice)
+			if((pReport->fNewPrice < pData->fMinPrice) && (pReport->fNewPrice < pData->fNewPrice))
 			{
 				//超过阈值，进行抛出警报
 				RRadarData* pRadar = new RRadarData;
