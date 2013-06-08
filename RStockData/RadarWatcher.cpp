@@ -15,6 +15,27 @@ CRadarManager* CRadarManager::getRadarManager()
 	return m_pSelf;
 }
 
+QString CRadarManager::getTypeName( RadarType _t )
+{
+	switch(_t)
+	{
+	case BigVolumn:		//大成交量
+		return QString("成交量");
+		break;
+	case BigIncrease:	//涨幅
+		return QString("涨幅");
+		break;
+	case MaxPrice:		//创新高
+		return QString("创新高");
+		break;
+	case MinPrice:		//创新低
+		return QString("创新低");
+		break;
+	}
+
+	return QString("未知");
+}
+
 CRadarWatcher* CRadarManager::createRadarWatcher( CBlockInfoItem* pBlock, RadarType _t,int iSec,float _hold,int iId/*=-1*/ )
 {
 	QList<int> listKey = m_listWatchers.keys();
@@ -59,6 +80,27 @@ CRadarWatcher* CRadarManager::createRadarWatcher( CBlockInfoItem* pBlock, RadarT
 QList<CRadarWatcher*> CRadarManager::getRadarWatchers()
 {
 	return m_listWatchers.values();
+}
+
+CRadarWatcher* CRadarManager::getWatcher( const int& _id )
+{
+	if(m_listWatchers.contains(_id))
+		return m_listWatchers[_id];
+
+	return 0;
+}
+
+void CRadarManager::removeWatcher( const int& _id )
+{
+	if(m_listWatchers.contains(_id))
+	{
+		CRadarWatcher* pWatcher = m_listWatchers[_id];
+		m_listWatchers.remove(_id);
+		if(pWatcher)
+		{
+			delete pWatcher;
+		}
+	}
 }
 
 void CRadarManager::appendRadar( RRadarData* pRadar )
@@ -168,6 +210,34 @@ CRadarWatcher::~CRadarWatcher(void)
 {
 }
 
+void CRadarWatcher::setBlock( CBlockInfoItem* _b )
+{
+	if(m_pWatcherBlock==_b)
+		return;
+
+	if(m_pWatcherBlock)
+	{
+		//删除之前监视的股票列表
+		QList<CStockInfoItem*> list = m_pWatcherBlock->getStockList();
+		foreach(CStockInfoItem* pItem,list)
+		{
+			disconnect(pItem,SIGNAL(stockItemReportComing(CStockInfoItem*)),this,SLOT(onStockReportComing(CStockInfoItem*)));
+		}
+	}
+
+	m_pWatcherBlock = _b;
+
+	if(m_pWatcherBlock)
+	{
+		//设置新监视的股票列表
+		QList<CStockInfoItem*> list = m_pWatcherBlock->getStockList();
+		foreach(CStockInfoItem* pItem,list)
+		{
+			connect(pItem,SIGNAL(stockItemReportComing(CStockInfoItem*)),this,SLOT(onStockReportComing(CStockInfoItem*)));
+		}
+	}
+}
+
 
 CVolumnWatcher::CVolumnWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold )
 	: CRadarWatcher(_id,pBlock,BigVolumn,iSec,_hold)
@@ -210,7 +280,7 @@ void CVolumnWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = BigVolumn;
 				pRadar->qsDesc = QString("大笔成交量出现，超过上一周期:%1").arg((fNewV-fLastV)/fLastV);
-				pRadar->pWatcher = this;
+				pRadar->iWatcher = m_id;
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 
@@ -263,7 +333,7 @@ void CIncreaseWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = BigIncrease;
 				pRadar->qsDesc = QString("大的成交价出现，超过上一周期:%1").arg((pReport->fNewPrice-pData->fMaxPrice)/pData->fMaxPrice);
-				pRadar->pWatcher = this;
+				pRadar->iWatcher = m_id;
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}
@@ -329,7 +399,7 @@ void CMaxPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = MaxPrice;
 				pRadar->qsDesc = QString("创新高，成交价:%1").arg(pReport->fNewPrice);
-				pRadar->pWatcher = this;
+				pRadar->iWatcher = m_id;
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}
@@ -386,7 +456,7 @@ void CMinPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tmTime = pReport->tmTime;
 				pRadar->tpType = MinPrice;
 				pRadar->qsDesc = QString("创新高，成交价:%1").arg(pReport->fNewPrice);
-				pRadar->pWatcher = this;
+				pRadar->iWatcher = m_id;
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}

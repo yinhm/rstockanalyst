@@ -16,7 +16,7 @@ class CRadarWatcher;
 enum RadarType
 {
 	BigVolumn = 1,		//大成交量
-	BigIncrease = 2,	//大成交额
+	BigIncrease = 2,	//涨幅
 	MaxPrice = 4,		//创新高
 	MinPrice = 8,		//创新低
 };
@@ -25,13 +25,13 @@ typedef struct tagRRadarData
 {
 	RadarType tpType;				//雷达类型
 	time_t tmTime;					//生成时间
-	CRadarWatcher* pWatcher;		//来源雷达
+	int iWatcher;					//来源雷达ID
 	CStockInfoItem* pStock;			//股票指针
 	QString qsDesc;					//描述信息
 } RRadarData;
 
 
-class CRadarWatcher : public QObject
+class RSDSHARED_EXPORT CRadarWatcher : public QObject
 {
 	Q_OBJECT
 public:
@@ -43,8 +43,11 @@ public:
 	int getId(){ return m_id; }
 	RadarType getType(){return m_type;}
 	float getHold(){ return m_fHold; }
+	void setHold(float _hold){ m_fHold=_hold; }
 	int getSec(){ return m_iSec; }
+	void setSec(int _sec){ m_iSec = _sec; }
 	CBlockInfoItem* getBlock(){ return m_pWatcherBlock; }
+	void setBlock(CBlockInfoItem* _b);
 
 protected slots:
 	virtual void onStockReportComing(CStockInfoItem* pItem) = 0;
@@ -52,9 +55,9 @@ protected slots:
 protected:
 	int m_iSec;									//监视间隔
 	float m_fHold;								//阈值
+	int m_id;									//雷达id
 
 private:
-	int m_id;									//雷达id
 	RadarType m_type;							//雷达类型
 	CBlockInfoItem* m_pWatcherBlock;			//监视的板块
 };
@@ -64,7 +67,8 @@ class RSDSHARED_EXPORT CRadarManager : public QObject
 	Q_OBJECT
 public:
 	static CRadarManager* getRadarManager();
-	
+	static QString getTypeName(RadarType _t);
+
 public:
 	/*
 		创建雷达监视
@@ -76,10 +80,14 @@ public:
 	CRadarWatcher* createRadarWatcher(CBlockInfoItem* pBlock,
 		RadarType _t,int iSec,float _hold,int iId=-1);
 	
-	/*
-		获取所有的监视雷达
-	*/
+	//获取所有的监视雷达
 	QList<CRadarWatcher*> getRadarWatchers();
+
+	//获取指定ID的监视雷达
+	CRadarWatcher* getWatcher(const int& _id);
+
+	//删除指定ID的监视雷达
+	void removeWatcher(const int& _id);
 
 	//追加产生的监视信息
 	void appendRadar(RRadarData* pRadar);

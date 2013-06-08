@@ -15,7 +15,7 @@ void CRadarWidget::testRandomRadar()
 	pRadar->tmTime = QDateTime::currentDateTime().toTime_t();
 	pRadar->tpType = BigVolumn;
 	pRadar->qsDesc = QString("Index:%1").arg(i);
-	pRadar->pWatcher = 0;
+	pRadar->iWatcher = 0;
 	CRadarManager::getRadarManager()->appendRadar(pRadar);
 	++i;
 }
