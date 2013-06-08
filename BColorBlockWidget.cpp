@@ -3,6 +3,7 @@
 #include "DataEngine.h"
 #include "ColorManager.h"
 #include "KeyWizard.h"
+#include "MainWindow.h"
 
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	50
@@ -60,7 +61,21 @@ bool CBColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 
 void CBColorBlockWidget::clearTmpData()
 {
+	{
+		//清理缓存表中的内存
+		QMap<CBlockInfoItem*,QMap<time_t,qRcvFenBiData*>*>::iterator iter = mapBlockColorBlocks.begin();
+		while(iter != mapBlockColorBlocks.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+	}
 
+	m_listBlocks.clear();
+	m_mapBlockIndex.clear();
+	mapBlockColorBlocks.clear();
+	m_pSelectedBlock = 0;
+	m_pCurBlock = 0;
 }
 
 void CBColorBlockWidget::updateSortMode( bool bSelFirst )
@@ -113,7 +128,21 @@ void CBColorBlockWidget::setBlock( const QString& block )
 		QList<CBlockInfoItem*> list = pBlock->getBlockList();
 		if(list.size()>0)
 		{
+			clearTmpData();
 			m_listBlocks = list;
+			for (int i=0;i<m_listBlocks.size();++i)
+			{
+				CBlockInfoItem* pItem = m_listBlocks[i];
+				m_mapBlockIndex[pItem] = i;
+
+				QMap<time_t,qRcvFenBiData*>* pMap = new QMap<time_t,qRcvFenBiData*>;
+				foreach(qRcvFenBiData* pFenBi,pItem->getFenBiList())
+				{
+					pMap->insert(pFenBi->tmTime,pFenBi);
+				}
+				mapBlockColorBlocks[pItem] = pMap;
+
+			}
 			m_pCurBlock = pBlock;
 			updateUI();
 		}
@@ -130,7 +159,24 @@ void CBColorBlockWidget::updateUI()
 
 void CBColorBlockWidget::clickedBlock( CBlockInfoItem* pItem )
 {
+	if(pItem == m_pSelectedBlock)
+		return;
+	int iShowCount = m_rtClient.height()/m_iCBHeight;
+	int iRow = m_mapBlockIndex[pItem];
+	if((iRow<showStockIndex)||(iRow>showStockIndex+iShowCount))
+	{
+		showStockIndex = iRow;
+		update(m_rtClient);
+	}
 
+	CBlockInfoItem* pPreSelectedBlock = m_pSelectedBlock;
+	m_pSelectedBlock = pItem;
+	update(rectOfBlock(pPreSelectedBlock));
+	update(rectOfBlock(m_pSelectedBlock));
+	if(m_pSelectedBlock)
+	{
+		CMainWindow::getMainWindow()->clickedBlock(m_pSelectedBlock->getOnly());
+	}
 }
 
 void CBColorBlockWidget::paintEvent( QPaintEvent* /*e*/ )
@@ -157,22 +203,185 @@ void CBColorBlockWidget::paintEvent( QPaintEvent* /*e*/ )
 
 void CBColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 {
+	CBlockInfoItem* pBlock = hitTestBlock(e->pos());
+	qRcvFenBiData* item = hitTestCBItem(e->pos());
+	if(item == NULL || pBlock==0)
+	{
+		QToolTip::hideText();
+		return CBaseWidget::mouseMoveEvent(e);
+	}
 
+	QString qsTooltip;		//Tips
+	QString qsTime;
+	if(m_typeCircle<Day)
+	{
+		qsTime = QDateTime::fromTime_t(item->tmTime).toString("hh:mm:ss");
+	}
+	else
+	{
+		QDate dtTmp = QDateTime::fromTime_t(item->tmTime).date();
+		if(m_typeCircle == Week)
+			qsTime = QString("%1 %2").arg(dtTmp.year()).arg(dtTmp.weekNumber());
+		else if(m_typeCircle == Month)
+			qsTime = dtTmp.toString("yyyy/MM");
+		else if(m_typeCircle == Month3)
+			qsTime = dtTmp.toString("yyyy/MM");
+		else if(m_typeCircle == Year)
+			qsTime = dtTmp.toString("yyyy");
+		else
+			qsTime = dtTmp.toString("yyyy/MM/dd");
+	}
+
+	qsTooltip = QString("板块名称:%1\r\n时间:%2\r\n当前价:%3\r\n成交量:%4\r\n成交额:%5\r\n涨跌数:")
+		.arg(pBlock->getName()).arg(qsTime).arg(item->fPrice).arg(item->fVolume).arg(item->fAmount);
+
+	float fTotal = 0.0;
+	for(int i=0;i<10;++i)
+	{
+		fTotal+=item->fBuyPrice[i];
+		qsTooltip += QString("(%1 %2)-").arg(10-i).arg((int)(item->fBuyPrice[i]+0.5));
+	}
+
+	for (int i=10;i<20;++i)
+	{
+		fTotal+=item->fBuyPrice[i];
+		qsTooltip += QString("(%1 %2)-").arg(9-i).arg((int)(item->fBuyPrice[i]+0.5));
+	}
+
+	{
+		qsTooltip += QString("(0 %1)").arg(pBlock->getStockCount()-(int)(fTotal+0.5));
+	}
+
+	QToolTip::showText(e->globalPos(),qsTooltip,this);
+	return CBaseBlockWidget::mouseMoveEvent(e);
 }
 
 void CBColorBlockWidget::mousePressEvent( QMouseEvent* e )
 {
+	e->accept();
+	QPoint ptCur = e->pos();
+	if(m_rtHeader.contains(ptCur))
+	{
+		m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
+		updateSortMode(true);
+	}
+	else if(m_rtClient.contains(ptCur))
+	{
+		int iCurIndex = showStockIndex+(ptCur.y()-m_rtClient.top())/m_iCBHeight;
+		if(iCurIndex>=0&&iCurIndex<m_listBlocks.size())
+		{
+			clickedBlock(m_listBlocks[iCurIndex]);
+		}
+	}
+	else if(m_rtBottom.contains(ptCur))
+	{
 
+	}
+
+	return CBaseBlockWidget::mousePressEvent(e);
 }
 
 void CBColorBlockWidget::wheelEvent( QWheelEvent* e )
 {
-
+	int numDegrees = e->delta() / 8;
+	int numSteps = numDegrees / 15;
+	int iIndex = showStockIndex-numSteps*5;
+	if(iIndex<0) {iIndex = 0;}
+	if(iIndex>=0&&iIndex<m_listBlocks.size())
+	{
+		e->accept();
+		showStockIndex = iIndex;
+		updateUI();
+	}
+	return CBaseWidget::wheelEvent(e);
 }
 
 void CBColorBlockWidget::keyPressEvent( QKeyEvent* e )
 {
+	int iKey = e->key();
+	if(Qt::Key_Left == iKey)
+	{
+		e->accept();
+		return;
+	}
+	else if(Qt::Key_Right == iKey)
+	{
+		e->accept();
+		return;
+	}
+	else if(Qt::Key_Down == iKey)
+	{
+		int iCurIndex = m_mapBlockIndex[m_pSelectedBlock];
+		if(m_listBlocks.size()>(iCurIndex+1))
+		{
+			CBlockInfoItem* pItem = m_listBlocks[iCurIndex+1];
+			int iRow = m_mapBlockIndex[pItem];
+			int iShowCount = m_rtClient.height()/m_iCBHeight;
+			if(iShowCount<1)
+				return;
+			if((iRow-showStockIndex)>=iShowCount)
+			{
+				showStockIndex = iRow-iShowCount+1;
+				updateUI();
+			}
+			clickedBlock(m_listBlocks[iCurIndex+1]);
+		}
+		e->accept();
+		return;
+	}
+	else if(Qt::Key_Up == iKey)
+	{
+		int iCurIndex = m_mapBlockIndex[m_pSelectedBlock];
+		if(iCurIndex>0)
+		{
+			CBlockInfoItem* pItem = m_listBlocks[iCurIndex-1];
+			int iRow = m_mapBlockIndex[pItem];
+			if(iRow<showStockIndex)
+			{
+				showStockIndex = iRow;
+				updateUI();
+			}
+			clickedBlock(pItem);
+		}
+		e->accept();
+		return;
+	}
+	else if(Qt::Key_PageDown == iKey)
+	{
+		int iShowCount = m_rtClient.height()/m_iCBHeight;
+		if(iShowCount<1)
+			return;
+		if((showStockIndex+iShowCount)<m_listBlocks.size())
+		{
+			showStockIndex = showStockIndex+iShowCount;
+			updateUI();
+		}
+		e->accept();
+		return;
+	}
+	else if(Qt::Key_PageUp == iKey)
+	{
+		int iShowCount = m_rtClient.height()/m_iCBHeight;
+		if(iShowCount<1)
+			return;
+		showStockIndex = (showStockIndex-iShowCount)>0 ? (showStockIndex-iShowCount) : 0;
+		updateUI();
+		e->accept();
+		return;
+	}
+	else if(Qt::Key_F10 == iKey)
+	{
+		//F10数据
+		if(m_pSelectedBlock)
+		{
+			if(!CDataEngine::getDataEngine()->showF10Data(m_pSelectedBlock->getCode()))
+			{
+				//未打开F10数据 do something
+			}
+		}
+	}
 
+	return CBaseBlockWidget::keyPressEvent(e);
 }
 
 QMenu* CBColorBlockWidget::getCustomMenu()
@@ -290,73 +499,78 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 	if(fCBWidth<0)
 		return;
 
-	QList<qRcvFenBiData*> listFenBi = pItem->getFenBiList();
-	int iSize = listFenBi.size();
-	for (int i = iSize-1;i >= 0; --i)
+	QMap<time_t,qRcvFenBiData*>* pMap = mapBlockColorBlocks[pItem];
+	if(pMap)
 	{
-		qRcvFenBiData* pFenBi = listFenBi[i];
-		QString qsTime = QDateTime::fromTime_t(pFenBi->tmTime).toString("hh:mm:ss");
-		QMap<time_t,float>::iterator iter = m_mapShowTimes.lowerBound(pFenBi->tmTime);
-		if(iter==m_mapShowTimes.end())
+		QMap<time_t,qRcvFenBiData*>::iterator iterFenBi = pMap->end();
+		do
 		{
-			continue;
-		}
-		else if(iter!=m_mapShowTimes.begin())
-		{
-			if(iter.value()<rtCB.left())
-				break;
-
-			//色块的大小
-			float fTop = rtCB.top();
-			float fLeft = iter.value()-m_iCBWidth;
-			float fHeight = rtCB.height()-1;
-
-			float* fCount = &(pFenBi->fBuyPrice[0]);
-			float fTotal = pItem->getStockCount();
-			float fPer = fHeight/fTotal;
-			float fCurY = fTop;
-
-			float fNotEquel = 0;
-			for (int i=0;i<20;++i)
+			--iterFenBi;
+			qRcvFenBiData* pFenBi = iterFenBi.value();
+			QString qsTime = QDateTime::fromTime_t(pFenBi->tmTime).toString("hh:mm:ss");
+			QMap<time_t,float>::iterator iter = m_mapShowTimes.lowerBound(pFenBi->tmTime);
+			if(iter==m_mapShowTimes.end())
 			{
-				fNotEquel+=fCount[i];
+				continue;
 			}
-
-			for (int j=0;j<10;++j)
+			else if(iter!=m_mapShowTimes.begin())
 			{
-				//10-1
-				float fPerH = fCount[j]*fPer;
-				p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[20-j]);
+				if(iter.value()<rtCB.left())
+					break;
+
+				//色块的大小
+				float fTop = rtCB.top();
+				float fLeft = iter.value()-m_iCBWidth;
+				float fHeight = rtCB.height()-1;
+
+				float* fCount = &(pFenBi->fBuyPrice[0]);
+				float fTotal = pItem->getStockCount();
+				float fPer = fHeight/fTotal;
+				float fCurY = fTop;
+
+				float fNotEquel = 0;
+				for (int i=0;i<20;++i)
+				{
+					fNotEquel+=fCount[i];
+				}
+
+				for (int j=0;j<10;++j)
+				{
+					//10-1
+					float fPerH = fCount[j]*fPer;
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[20-j]);
 				
-				fCurY+=fPerH;
+					fCurY+=fPerH;
+				}
+				{
+					//0
+					float fPerH = (fTotal-fNotEquel)*fPer;
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[10]);
+
+					fCurY+=fPerH;
+				}
+
+				for (int j=10;j<20;++j)
+				{
+					float fPerH = fCount[j]*fPer;
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[19-j]);
+
+					fCurY+=fPerH;
+				}
+
+		/*
+				QRectF rtBlock = QRectF(iter.value()-m_iCBWidth,fTop,m_iCBWidth,rtCB.height());
+
+				QString qsText = QString("%1 %2").arg(fTotal).arg(pItem->getStockList().size());
+				p.drawText(rtBlock,QDateTime::fromTime_t(pFenBi->tmTime).toString("mm:ss"));*/
+
 			}
+			else
 			{
-				//0
-				float fPerH = (fTotal-fNotEquel)*fPer;
-				p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[10]);
-
-				fCurY+=fPerH;
+				break;
 			}
-
-			for (int j=10;j<20;++j)
-			{
-				float fPerH = fCount[j]*fPer;
-				p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[19-j]);
-
-				fCurY+=fPerH;
-			}
-
-/*
-			QRectF rtBlock = QRectF(iter.value()-m_iCBWidth,fTop,m_iCBWidth,rtCB.height());
-
-			QString qsText = QString("%1 %2").arg(fTotal).arg(pItem->getStockList().size());
-			p.drawText(rtBlock,QDateTime::fromTime_t(pFenBi->tmTime).toString("mm:ss"));*/
-
 		}
-		else
-		{
-			break;
-		}
+		while(iterFenBi!=pMap->begin());
 	}
 	//绘制
 	//drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
@@ -364,16 +578,50 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 
 QRect CBColorBlockWidget::rectOfBlock( CBlockInfoItem* pItem )
 {
+	if(m_mapBlockIndex.contains(pItem))
+	{
+		int iRow = m_mapBlockIndex[pItem];
+		return QRect(m_rtClient.left(),(m_rtClient.top()+(iRow-showStockIndex)*m_iCBHeight),m_rtClient.width(),m_iCBHeight);
+	}
+
 	return QRect();
 }
 
-CBlockInfoItem* CBColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
+CBlockInfoItem* CBColorBlockWidget::hitTestBlock( const QPoint& ptPoint ) const
 {
+	int iRow = (ptPoint.y()-m_rtClient.top())/m_iCBHeight + showStockIndex;
+	if(iRow<0||iRow>=m_listBlocks.size())
+		return 0;
 
-	return NULL;
+	return m_listBlocks[iRow];
 }
 
-RStockData* CBColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
+qRcvFenBiData* CBColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 {
-	return NULL;
+	CBlockInfoItem* pItem = hitTestBlock(ptPoint);
+
+	qRcvFenBiData* pData = NULL;
+	if(pItem && mapBlockColorBlocks.contains(pItem))
+	{
+		QMap<time_t,qRcvFenBiData*>* pMap = mapBlockColorBlocks[pItem];
+		int iIndex = (m_rtClient.right() - ptPoint.x())/m_iCBWidth;
+		QMap<time_t,int>::iterator iter = m_mapTimes.end();
+		while(iter!=m_mapTimes.begin())
+		{
+			--iter;
+
+			if(iIndex==iter.value())
+			{
+				QMap<time_t,qRcvFenBiData*>::iterator iterFenBi = pMap->lowerBound(iter.key());
+				if(iterFenBi!=pMap->end())
+				{
+					pData = iterFenBi.value();
+					break;
+				}
+			}
+			else if(iIndex<iter.value())
+				break;
+		}
+	}
+	return pData;
 }
