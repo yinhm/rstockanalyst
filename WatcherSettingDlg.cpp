@@ -7,6 +7,22 @@
 
 CWatcherSettingDlg::CWatcherSettingDlg( QWidget* parent /*= NULL*/ )
 	: QDialog(parent)
+	, m_bForSel(false)
+	, m_bInit(true)
+{
+	initDlg();
+}
+
+CWatcherSettingDlg::CWatcherSettingDlg( const QList<int>& listUsed,QWidget* parent/*=NULL*/ )
+	: QDialog(parent)
+	, m_bForSel(true)
+	, m_listSel(listUsed)
+	, m_bInit(true)
+{
+	initDlg();
+}
+
+void CWatcherSettingDlg::initDlg()
 {
 	setMinimumSize(500,200);
 	setWindowTitle(tr("当前监视雷达"));
@@ -41,8 +57,33 @@ CWatcherSettingDlg::~CWatcherSettingDlg(void)
 {
 }
 
+QList<int> CWatcherSettingDlg::getSelIDs()
+{
+	QList<int> listIDs;
+	int iCount = m_listWatchers.topLevelItemCount();
+	for (int i=0;i<iCount;++i)
+	{
+		QTreeWidgetItem* pItem = m_listWatchers.topLevelItem(i);
+		if(Qt::Checked == pItem->checkState(0))
+		{
+			CRadarWatcher* pWatcher = reinterpret_cast<CRadarWatcher*>(pItem->data(0,Qt::UserRole).toUInt());
+			if(pWatcher)
+			{
+				listIDs.push_back(pWatcher->getId());
+			}
+		}
+	}
+
+	return listIDs;
+}
+
+
 void CWatcherSettingDlg::onRefresh()
 {
+	if(!m_bInit)
+	{
+		m_listSel = getSelIDs();
+	}
 	m_listWatchers.clear();
 	QList<CRadarWatcher*> list = CRadarManager::getRadarManager()->getRadarWatchers();
 	foreach(CRadarWatcher* pWatcher,list)
@@ -54,9 +95,18 @@ void CWatcherSettingDlg::onRefresh()
 			<<QString("%1").arg(pWatcher->getSec())
 			<<pWatcher->getBlock()->getName();
 		QTreeWidgetItem* pItem = new QTreeWidgetItem(listValue);
+		if(m_bForSel)
+		{
+			if(m_listSel.contains(pWatcher->getId()))
+				pItem->setCheckState(0,Qt::Checked);
+			else
+				pItem->setCheckState(0,Qt::Unchecked);
+		}
 		pItem->setData(0,Qt::UserRole,reinterpret_cast<uint>(pWatcher));
 		m_listWatchers.addTopLevelItem(pItem);
 	}
+
+	m_bInit = false;
 }
 
 void CWatcherSettingDlg::onAddWatcher()
