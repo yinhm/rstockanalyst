@@ -34,6 +34,8 @@ protected slots:
 	void onRadarAlert(RRadarData* pRadar);
 	//自动滚动到顶部
 	void onAutoScroll();
+	//设置当前的过滤器
+	void onSetFilter();
 
 	void testRandomRadar();			//临时调试使用函数，自动生成雷达数据
 
@@ -69,6 +71,8 @@ private:
 	QList<RRadarData*> m_listRadars;		//显示的数据
 	QMap<RRadarData*,int> m_mapRadarsIndex;	//用来快速查找某只雷达数据所在的索引
 	RRadarData* m_pSelRadar;				//当前选中的数据
+
+	QMap<int,int> m_mapFilter;				//过滤器
 };
 
 #endif	//RADAR_WIDGET_H

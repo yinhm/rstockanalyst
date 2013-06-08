@@ -2,6 +2,7 @@
 #include "RadarWidget.h"
 #include "DataEngine.h"
 #include "MainWindow.h"
+#include "WatcherSettingDlg.h"
 #define TIMER_AUTO_SCROLL	30*1000
 
 void CRadarWidget::testRandomRadar()
@@ -15,7 +16,7 @@ void CRadarWidget::testRandomRadar()
 	pRadar->tmTime = QDateTime::currentDateTime().toTime_t();
 	pRadar->tpType = BigVolumn;
 	pRadar->qsDesc = QString("Index:%1").arg(i);
-	pRadar->iWatcher = 0;
+	pRadar->iWatcher = 2;
 	CRadarManager::getRadarManager()->appendRadar(pRadar);
 	++i;
 }
@@ -27,7 +28,9 @@ CRadarWidget::CRadarWidget( CBaseWidget* parent /*= 0*/ )
 	, m_pSelRadar(0)
 	, m_iShowIndex(0)
 {
-	m_pMenuCustom = new QMenu(tr("行情信息菜单"));
+	m_pMenuCustom = new QMenu(tr("雷达监视菜单"));
+	m_pMenuCustom->addAction(tr("过滤器设置"),this,SLOT(onSetFilter()));
+
 	connect(CRadarManager::getRadarManager(),SIGNAL(radarAlert(RRadarData*)),this,SLOT(onRadarAlert(RRadarData*)));
 
 	//连接超时自动滚动到顶部的定时器
@@ -49,6 +52,23 @@ bool CRadarWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(!CBaseWidget::loadPanelInfo(eleWidget))
 		return false;
 
+	//当前的过滤器
+	QDomElement eleFilters = eleWidget.firstChildElement("Filters");
+	if(eleFilters.isElement())
+	{
+		QDomElement eleFilter = eleFilters.firstChildElement("Filter");
+		while(eleFilter.isElement())
+		{
+			int iFilter = eleFilter.text().toInt();
+			if(CRadarManager::getRadarManager()->getWatcher(iFilter))
+			{
+				m_mapFilter[iFilter] = iFilter;
+			}
+
+			eleFilter = eleFilter.nextSiblingElement("Filter");
+		}
+	}
+
 	return true;
 }
 
@@ -56,6 +76,19 @@ bool CRadarWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 {
 	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
 		return false;
+
+	//当前的表达式
+	QDomElement eleFilters = doc.createElement("Filters");
+	QMap<int,int>::iterator iter = m_mapFilter.begin();
+	while(iter!=m_mapFilter.end())
+	{
+		QDomElement eleFilter = doc.createElement("Filter");
+		eleFilter.appendChild(doc.createTextNode(QString("%1").arg(iter.key())));
+
+		eleFilters.appendChild(eleFilter);
+		++iter;
+	}
+	eleWidget.appendChild(eleFilters);
 
 	return true;
 }
@@ -210,6 +243,9 @@ QMenu* CRadarWidget::getCustomMenu()
 
 void CRadarWidget::onRadarAlert( RRadarData* pRadar )
 {
+	if(!m_mapFilter.contains(pRadar->iWatcher))
+		return;
+
 	m_mapRadarsIndex[pRadar] = m_listRadars.size();
 	m_listRadars.append(pRadar);
 	if(m_iShowIndex>0)
@@ -227,6 +263,19 @@ void CRadarWidget::onAutoScroll()
 	m_timerAutoScroll.stop();
 	m_iShowIndex = 0;
 	update(m_rtClient);
+}
+
+void CRadarWidget::onSetFilter()
+{
+	CWatcherSettingDlg dlg(m_mapFilter.keys(),this);
+	dlg.exec();
+	QList<int> listIDs = dlg.getSelIDs();
+	m_mapFilter.clear();
+
+	foreach(const int& i,listIDs)
+	{
+		m_mapFilter[i] = i;
+	}
 }
 
 void CRadarWidget::drawTitle( QPainter& p )
