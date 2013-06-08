@@ -1,3 +1,4 @@
+/*
 QHeaderView::section
 {
 	height: 18px;
@@ -12,6 +13,7 @@ QTreeView{
 	border:0px;
 	font: 20px;
 }
+
 QTreeView::item{
 	height:20px;
 	border: 1px solid #7f0000;
@@ -24,3 +26,4 @@ QTreeView::item:selected{
 }
 
 QScrollBar:horizontal {min-height: 18px;}
+*/
