@@ -164,14 +164,36 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 				fLastX = fCurX;
 				++iTimeCount;
 			}
-			else if((fLastX-fCurX)>30)
+			else
 			{
-				p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
-				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
-				p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
-					Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
-				fLastX = fCurX;
-				++iTimeCount;
+				if(m_typeCircle<Min1 && m_typeCircle>AutoCircle)
+				{
+					if((fLastX-fCurX)>50)
+					{
+						p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
+						p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+						p.drawText(fCurX-24,rtCoordX.top()+2,50,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm:ss"));
+
+						fLastX = fCurX;
+						++iTimeCount;
+					}
+				}
+				else
+				{
+
+					if((fLastX-fCurX)>30)
+					{
+						p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
+						p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+						p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+
+						fLastX = fCurX;
+						++iTimeCount;
+					}
+				}
+				
 			}
 
 			--iCount;

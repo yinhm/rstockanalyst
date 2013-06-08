@@ -719,7 +719,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 		}
 	}
 
-	return CBaseWidget::keyPressEvent(e);
+	return CBaseBlockWidget::keyPressEvent(e);
 }
 
 void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth )
@@ -812,7 +812,7 @@ CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
 RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 {
 	CStockInfoItem* pItem = hitTestStock(ptPoint);
-	
+
 	RStockData* pData = NULL;
 	if(pItem && mapStockColorBlocks.contains(pItem))
 	{
