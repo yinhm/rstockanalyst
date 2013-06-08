@@ -126,8 +126,8 @@ void CBlockInfoItem::initBlock()
 QList<qRcvFenBiData*> CBlockInfoItem::getFenBiList()
 {
 	QList<qRcvFenBiData*> list = mapFenBis.values();
-	if(m_pCurFenBi)
-		list.append(m_pCurFenBi);
+//	if(m_pCurFenBi)
+//		list.append(m_pCurFenBi);
 	return list;
 }
 
@@ -436,8 +436,10 @@ void CBlockInfoItem::updateData()
 	double dHigh = 0.0;			//最高价
 	fVolume = 0.0;				//成交量
 	fAmount = 0.0;				//成交额
-	float fInc[20];		//20个增长
+	float fInc[20];				//20个增长
+	float fReport[20];			//Report的20个增长
 	memset(&fInc,0,sizeof(float)*20);
+	memset(&fReport,0,sizeof(float)*20);
 	int iCount = stocksInBlock.size();
 	if(iCount>MAX_STOCK_IN_BLOCK)
 		iCount = MAX_STOCK_IN_BLOCK;
@@ -446,6 +448,7 @@ void CBlockInfoItem::updateData()
 		CStockInfoItem* pStock = stocksInBlock[i];
 		float _new = pStock->getNewPrice();
 		float _last = mapLast5Price.value(pStock,0.0);
+		float _close = pStock->getLastClose();
 		if(_new>0.1)
 		{
 			float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
@@ -456,7 +459,7 @@ void CBlockInfoItem::updateData()
 			fAmount += pStock->getTotalAmount();
 			if(_last>0.1)
 			{
-				int _index = float((_new-_last)/_last)*1000.0;
+				int _index = ((float(_new-_last))*1000.0)/_last;
 				if(_index>9)
 				{
 					++fInc[0];
@@ -472,6 +475,27 @@ void CBlockInfoItem::updateData()
 				else
 				{
 					++fInc[19];
+				}
+			}
+			if(_close>0.1)
+			{
+				//计算report的涨跌数据
+				int _index = float((_new-_close)/_close)*100.0;
+				if(_index>9)
+				{
+					++fReport[0];
+				}
+				else if(_index>0)
+				{
+					++fReport[10-_index];
+				}
+				else if(_index<0&&_index>-10)
+				{
+					++fReport[9-_index];
+				}
+				else
+				{
+					++fReport[19];
 				}
 			}
 
@@ -508,6 +532,7 @@ void CBlockInfoItem::updateData()
 	pCurrentReport->fHigh = fHighPrice;
 	pCurrentReport->fAmount = fAmount;
 	pCurrentReport->fVolume = fVolume;
+	memcpy(&pCurrentReport->fBuyPrice[0],&fReport[0],80);
 
 	emit stockItemReportChanged(qsOnly);
 	emit stockItemFenBiChanged(qsOnly);

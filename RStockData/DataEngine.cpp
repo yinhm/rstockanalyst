@@ -550,23 +550,22 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 
 	QDataStream out(&file);
 
-	QList<CStockInfoItem*> listItem = CDataEngine::getDataEngine()->getStockInfoList();
 	int iCount = 0;
-
-	foreach( CStockInfoItem* pItem, listItem)
 	{
-		//保存当天所有的Reports
-		qRcvReportData* pReport = pItem->getCurrentReport();
-		if(pReport&&(!pReport->qsCode.isEmpty()))
+		//导出Report数据
+		QList<CAbstractStockItem*> listItem = CDataEngine::getDataEngine()->getStockItems();
+		foreach( CAbstractStockItem* pItem, listItem)
 		{
-			out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
-			//直接拷贝剩余的所有float数据
-			if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
-				break;
-			//		int iSize = out.writeRawData((char*)pBaseInfo,sizeof(qRcvBaseInfoData));
-			//		if(iSize!=sizeof(qRcvBaseInfoData))
-			//			break;
-			++iCount;
+			//保存当天所有的Reports
+			qRcvReportData* pReport = pItem->getCurrentReport();
+			if(pReport&&(!pReport->qsCode.isEmpty()))
+			{
+				out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
+				//直接拷贝剩余的所有float数据
+				if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
+					break;
+				++iCount;
+			}
 		}
 	}
 
@@ -637,9 +636,28 @@ int CDataEngine::exportCloseData()
 	{
 		//导出5min数据
 		CDataEngine::getDataEngine()->export5MinData(pItem,mapTimes);
+		qRcvReportData* pReport = pItem->getCurrentReport();
+		if(pReport)
+		{
+			qRcvHistoryData* pData = new qRcvHistoryData(pItem->getCurrentReport());
+			if(pItem->isInstanceOfBlock())
+			{
+				float fAdv=0,fDec=0;
+				for (int i=0;i<10;++i)
+				{
+					fAdv += pReport->fBuyPrice[i];
+				}
+				for (int i=10;i<19;++i)
+				{
+					fDec += pReport->fBuyPrice[i];
+				}
+				pData->wAdvance = fAdv + 0.5;
+				pData->wDecline = fDec + 0.5;
+			}
 
-		//将当天的report追加为历史数据
-		pItem->appendHistorys(QList<qRcvHistoryData*>()<<new qRcvHistoryData(pItem->getCurrentReport()));
+			//将当天的report追加为历史数据
+			pItem->appendHistorys(QList<qRcvHistoryData*>()<<pData);
+		}
 	}
 
 	return -1;
