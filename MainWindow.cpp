@@ -6,6 +6,7 @@
 #include "BlockColorSettingDlg.h"
 #include "FuncHelper.h"
 #include "SplashDlg.h"
+#include "WatcherSettingDlg.h"
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
 
@@ -44,6 +45,7 @@ CMainWindow::CMainWindow()
 		//设置
 		QMenu* pMenuSettings = m_pMenuBar->addMenu(tr("设置"));
 		pMenuSettings->addAction(tr("设置色块颜色"),CBlockColorSettingDlg::getDialog(),SLOT(exec()));
+		pMenuSettings->addAction(tr("监视雷达设置"),this,SLOT(onWatcherSetting()));
 		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onMarketClose()));
 
 		//帮助
@@ -466,6 +468,12 @@ void CMainWindow::onMarketCloseTimer()
 void CMainWindow::onShowFuncHelper()
 {
 	CFuncHelper dlg(this);
+	dlg.exec();
+}
+
+void CMainWindow::onWatcherSetting()
+{
+	CWatcherSettingDlg dlg(this);
 	dlg.exec();
 }
 
