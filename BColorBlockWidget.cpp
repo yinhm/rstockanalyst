@@ -17,7 +17,7 @@ CBColorBlockWidget::CBColorBlockWidget(CBaseWidget* parent /*= 0*/ )
 	, m_pCurBlock(0)
 {
 	connect(&m_timerUpdateUI,SIGNAL(timeout()),this,SLOT(updateUI()));
-	m_timerUpdateUI.start(3000);
+//	m_timerUpdateUI.start(3000);
 }
 
 
@@ -84,6 +84,74 @@ void CBColorBlockWidget::updateSortMode( bool bSelFirst )
 	{
 		m_pSelectedBlock = 0;
 		showStockIndex = 0;
+	}
+
+	//进行重新排序
+	if(m_sort<=SortByCode)
+	{
+		QMultiMap<QString,CBlockInfoItem*> mapSort;
+		foreach(CBlockInfoItem* pItem,m_listBlocks)
+		{
+			if(m_sort == SortByCode)
+				mapSort.insert(pItem->getOnly(),pItem);
+		}
+		if(m_sortOrder==Qt::AscendingOrder)
+			m_listBlocks = mapSort.values();
+		else
+		{
+			QList<CBlockInfoItem*> list;
+			QMultiMap<QString,CBlockInfoItem*>::iterator iter = mapSort.begin();
+			while(iter!=mapSort.end())
+			{
+				list.push_front(iter.value());
+				++iter;
+			}
+			m_listBlocks = list;
+		}
+	}
+	else
+	{
+		QMultiMap<float,CBlockInfoItem*> mapSort;
+		foreach(CBlockInfoItem* pItem,m_listBlocks)
+		{
+			float v = 0.0;
+			if(m_sort == SortByIncrease)
+				v = _isnan(pItem->getIncrease()) ? 0.0 : pItem->getIncrease();
+			else if(m_sort == SortByTurnRatio)
+				v = _isnan(pItem->getTurnRatio()) ? 0.0 : pItem->getTurnRatio();
+			else if(m_sort == SortByVolumeRatio)
+				v = _isnan(pItem->getVolumeRatio()) ? 0.0 : pItem->getVolumeRatio();
+			else
+				v = _isnan(pItem->getIncrease()) ? 0.0 : pItem->getIncrease();
+
+			mapSort.insert(v,pItem);
+		}
+		if(m_sortOrder==Qt::AscendingOrder)
+			m_listBlocks = mapSort.values();
+		else
+		{
+			QList<CBlockInfoItem*> list;
+			QMultiMap<float,CBlockInfoItem*>::iterator iter = mapSort.begin();
+			while(iter!=mapSort.end())
+			{
+				list.push_front(iter.value());
+				++iter;
+			}
+			m_listBlocks = list;
+		}
+	}
+
+	m_mapBlockIndex.clear();
+	for(int i=0;i<m_listBlocks.size();++i)
+	{
+		CBlockInfoItem* pItem = m_listBlocks[i];
+		m_mapBlockIndex[pItem] = i;
+		//建立更新机制(目前采用定时刷新，未使用该更新接口)
+	}
+
+	if(m_pSelectedBlock == 0 && m_listBlocks.size()>0)
+	{
+		clickedBlock(m_listBlocks.first());
 	}
 
 	update();
@@ -500,7 +568,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 		return;
 
 	QMap<time_t,qRcvFenBiData*>* pMap = mapBlockColorBlocks[pItem];
-	if(pMap)
+	if(pMap&&pMap->size()>0)
 	{
 		QMap<time_t,qRcvFenBiData*>::iterator iterFenBi = pMap->end();
 		do
