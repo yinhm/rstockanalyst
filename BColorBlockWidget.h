@@ -30,6 +30,7 @@ public:
 
 public slots:
 	virtual void setBlock(const QString& block);
+	virtual void setCircle(RStockCircle /*_c*/){};		//屏蔽设置当前的显示周期
 
 protected slots:
 	void updateUI();							//更新当前需要显示的数据
