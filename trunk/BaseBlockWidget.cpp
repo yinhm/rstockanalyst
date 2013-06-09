@@ -174,6 +174,8 @@ void CBaseBlockWidget::onSetAbnomal()
 	{
 		m_mapAbnomal.clear();
 		m_mapAbnomal = dlg.getAbnomalMap();
+		//¸üĞÂÏÔÊ¾
+		updateSortMode();
 	}
 }
 

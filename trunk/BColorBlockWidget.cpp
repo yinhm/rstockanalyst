@@ -86,6 +86,17 @@ void CBColorBlockWidget::updateSortMode( bool bSelFirst )
 		showStockIndex = 0;
 	}
 
+	if(m_pCurBlock)
+	{
+		m_listBlocks.clear();
+		QList<CBlockInfoItem*> list = m_pCurBlock->getBlockList();
+		foreach (CBlockInfoItem* pItem,list)
+		{
+			if(isMatchAbnomal(pItem))
+				m_listBlocks.append(pItem);
+		}
+	}
+
 	//进行重新排序
 	if(m_sort<=SortByCode)
 	{
@@ -197,7 +208,6 @@ void CBColorBlockWidget::setBlock( const QString& block )
 		if(list.size()>0)
 		{
 			clearTmpData();
-			m_listBlocks = list;
 			for (int i=0;i<m_listBlocks.size();++i)
 			{
 				CBlockInfoItem* pItem = m_listBlocks[i];
@@ -209,8 +219,8 @@ void CBColorBlockWidget::setBlock( const QString& block )
 					pMap->insert(pFenBi->tmTime,pFenBi);
 				}
 				mapBlockColorBlocks[pItem] = pMap;
-
 			}
+
 			m_pCurBlock = pBlock;
 			updateUI();
 		}
