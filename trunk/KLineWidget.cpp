@@ -294,6 +294,8 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 	{
 		return QToolTip::hideText();
 	}
+	if(!m_rtClient.contains(e->pos()))
+		return QToolTip::hideText();
 
 	float fEnd = m_rtClient.right();
 	int iLastN = (fEnd - e->posF().x())/m_fItemWidth;
@@ -391,7 +393,20 @@ void CKLineWidget::mousePressEvent( QMouseEvent* e )
 
 	if(e->button()==Qt::LeftButton)
 	{
-		if(m_rtAddShow.contains(ptCur))
+		if(m_rtTitle.contains(ptCur))
+		{
+			QMap<int,QRect>::iterator iter = m_mapCircles.begin();
+			while(iter!=m_mapCircles.end())
+			{
+				if((*iter).contains(ptCur))
+				{
+					setCircle(static_cast<RStockCircle>(iter.key()));
+					break;
+				}
+				++iter;
+			}
+		}
+		else if(m_rtAddShow.contains(ptCur))
 		{
 			onClickedAddShow();
 		}
@@ -595,6 +610,7 @@ void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )
 	if(!rtTitle.isValid())
 		return;
 
+	m_rtTitle = rtTitle;
 	QRect rtClient = rtTitle.adjusted(2,0,-2,0);
 	QString qsName = m_pStockItem->getName();
 	if(qsName.isEmpty())
@@ -605,6 +621,26 @@ void CKLineWidget::drawTitle( QPainter& p,const QRect& rtTitle )
 
 	p.setPen(QColor(255,255,255));
 	p.drawText(rtClient,Qt::AlignLeft|Qt::AlignVCenter,qsName);
+
+	int iSize = m_listCircle.size();
+	int iRight = rtTitle.right();
+	int iTop = rtTitle.top();
+	for (int i=iSize-1;i>=0;--i)
+	{
+		QRect rtCircle = QRect(iRight-(iSize-i)*16-20,iTop+2,12,12);
+		m_mapCircles[m_listCircle[i].value] = rtCircle;
+		if(m_typeCircle == m_listCircle[i].value)
+		{
+			p.fillRect(rtCircle,QColor(127,127,127));
+		}
+		else
+		{
+			p.setPen(QColor(240,240,240));
+			p.drawRect(rtCircle);
+		}
+		p.setPen(QColor(255,255,255));
+		p.drawText(rtCircle,m_listCircle[i].desc.left(1),QTextOption(Qt::AlignCenter));
+	}
 }
 
 void CKLineWidget::drawShowBtns( QPainter& p,const QRect& rtBtns )

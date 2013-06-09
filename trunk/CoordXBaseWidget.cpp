@@ -34,11 +34,11 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 		m_listCircle.push_back(RWidgetOpData(AutoCircle,".auto","自动分时图"));
 		m_listCircle.push_back(RWidgetOpData(Sec10,".m10","10秒分时图"));
 		m_listCircle.push_back(RWidgetOpData(Sec30,".m30","30秒分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min1,".f1","1分钟分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min5,".f5","5分钟分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min15,".f15","15分钟分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min30,".f30","30分钟分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min60,".f60","60分钟分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min1,".f1","一分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min5,".f5","五分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min15,".f15","刻分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min30,".f30","半小时分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min60,".f60","时分时图"));
 
 		m_listCircle.push_back(RWidgetOpData(Day,".r","日线图"));
 		m_listCircle.push_back(RWidgetOpData(Week,".z","周线图"));

@@ -271,12 +271,19 @@ void CBColorBlockWidget::paintEvent( QPaintEvent* /*e*/ )
 
 void CBColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 {
+	if(!((qApp->mouseButtons())&Qt::LeftButton))
+	{
+		update();
+		QToolTip::hideText();
+		return CBaseBlockWidget::mouseMoveEvent(e);
+	}
+
 	CBlockInfoItem* pBlock = hitTestBlock(e->pos());
 	qRcvFenBiData* item = hitTestCBItem(e->pos());
 	if(item == NULL || pBlock==0)
 	{
 		QToolTip::hideText();
-		return CBaseWidget::mouseMoveEvent(e);
+		return CBaseBlockWidget::mouseMoveEvent(e);
 	}
 
 	QString qsTooltip;		//Tips

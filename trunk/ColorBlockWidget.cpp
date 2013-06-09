@@ -160,6 +160,20 @@ void CColorBlockWidget::setBlock( const QString& block )
 	return CBaseWidget::setBlock(block);
 }
 
+void CColorBlockWidget::setCircle( RStockCircle _c )
+{
+	CBlockInfoItem* pBlock = m_pBlock;
+	clearTmpData();
+
+	m_typeCircle = _c;
+
+	if(!pBlock)
+		return;
+	m_pBlock = pBlock;
+	m_listStocks = pBlock->getStockList();
+	updateSortMode(true);
+}
+
 
 void CColorBlockWidget::onSetCurrentBlock()
 {
@@ -437,6 +451,26 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 	{
 		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("¡ý%1").arg(qsText));
 	}
+
+	int iSize = m_listCircle.size();
+	int iRight = rtHeader.right();
+	int iTop = rtHeader.top();
+	for (int i=iSize-1;i>=0;--i)
+	{
+		QRect rtCircle = QRect(iRight-(iSize-i)*16-20,iTop+2,12,12);
+		m_mapCircles[m_listCircle[i].value] = rtCircle;
+		if(m_typeCircle == m_listCircle[i].value)
+		{
+			p.fillRect(rtCircle,QColor(127,127,127));
+		}
+		else
+		{
+			p.setPen(QColor(240,240,240));
+			p.drawRect(rtCircle);
+		}
+		p.setPen(QColor(255,255,255));
+		p.drawText(rtCircle,m_listCircle[i].desc.left(1),QTextOption(Qt::AlignCenter));
+	}
 }
 
 void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
@@ -556,13 +590,22 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 {
+	if(!((qApp->mouseButtons())&Qt::LeftButton))
+	{
+		update();
+		QToolTip::hideText();
+		return CBaseBlockWidget::mouseMoveEvent(e);
+	}
+
 	CStockInfoItem* pStock = hitTestStock(e->pos());
 	RStockData* item = hitTestCBItem(e->pos());
 	if(item == NULL || pStock==0)
 	{
-		QToolTip::hideText();
-		return CBaseWidget::mouseMoveEvent(e);
+		return QToolTip::hideText();
 	}
+
+	if(!m_rtClient.contains(e->pos()))
+		return QToolTip::hideText();
 
 	QString qsTooltip;		//Tips
 	QString qsTime;
@@ -600,8 +643,22 @@ void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	QPoint ptCur = e->pos();
 	if(m_rtHeader.contains(ptCur))
 	{
-		m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
-		updateSortMode(true);
+		QMap<int,QRect>::iterator iter = m_mapCircles.begin();
+		while(iter!=m_mapCircles.end())
+		{
+			if((*iter).contains(ptCur))
+			{
+				setCircle(static_cast<RStockCircle>(iter.key()));
+				break;
+			}
+			++iter;
+		}
+
+		if(iter==m_mapCircles.end())
+		{
+			m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
+			updateSortMode(true);
+		}
 	}
 	else if(m_rtClient.contains(ptCur))
 	{
