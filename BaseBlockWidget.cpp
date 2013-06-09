@@ -38,6 +38,8 @@ CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType typ
 		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色模式");
 		//设置色块的大小
 		m_pMenuCustom->addAction(tr("设置色块大小"),this,SLOT(onSetBlockSize()));
+		//设置异动过滤器
+		m_pMenuCustom->addAction(tr("设置异动过滤"),this,SLOT(onSetAbnomal()));
 
 		//设置排序方式
 		m_pMenuSortMode = m_pMenuCustom->addMenu("设置排序方式");
@@ -80,6 +82,21 @@ bool CBaseBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	{
 		m_qsColorMode = eleColorMode.text();
 	}
+
+	//当前的异动过滤
+	QDomElement eleAbnomals = eleWidget.firstChildElement("Abnomals");
+	if(eleAbnomals.isElement())
+	{
+		QDomElement eleAbnomal = eleAbnomals.firstChildElement("Abnomal");
+		while (eleAbnomal.isElement())
+		{
+			RAbnomalType _t = static_cast<RAbnomalType>(eleAbnomal.attribute("type").toInt());
+			float _v = eleAbnomal.text().toFloat();
+			m_mapAbnomal[_t] = _v;
+
+			eleAbnomal = eleAbnomal.nextSiblingElement("Abnomal");
+		}
+	}
 	
 	return true;
 }
@@ -96,6 +113,19 @@ bool CBaseBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	QDomElement eleColorMode = doc.createElement("color");
 	eleColorMode.appendChild(doc.createTextNode(m_qsColorMode));
 	eleWidget.appendChild(eleColorMode);
+
+	//当前的异动过滤
+	QDomElement eleAbnomals = doc.createElement("Abnomals");
+	QMap<RAbnomalType,float>::iterator iter = m_mapAbnomal.begin();
+	while (iter!=m_mapAbnomal.end())
+	{
+		QDomElement eleAbnomal = doc.createElement("Abnomal");
+		eleAbnomal.setAttribute("type",iter.key());
+		eleAbnomal.appendChild(doc.createTextNode(QString("%1").arg(iter.value())));
+		eleAbnomals.appendChild(eleAbnomal);
+		++iter;
+	}
+	eleWidget.appendChild(eleAbnomals);
 
 	return true;
 }
@@ -135,6 +165,16 @@ void CBaseBlockWidget::onSetSortMode()
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 	setSortMode(static_cast<RSortType>(pAct->data().toInt()));
 	return;
+}
+
+void CBaseBlockWidget::onSetAbnomal()
+{
+	CAbnomalSettingDlg dlg(m_mapAbnomal);
+	if(QDialog::Accepted == dlg.exec())
+	{
+		m_mapAbnomal.clear();
+		m_mapAbnomal = dlg.getAbnomalMap();
+	}
 }
 
 void CBaseBlockWidget::onSetBlockSize()
@@ -287,4 +327,38 @@ void CBaseBlockWidget::keyWizEntered(KeyWizData* pData)
 	}
 
 	return CCoordXBaseWidget::keyWizEntered(pData);
+}
+
+bool CBaseBlockWidget::isMatchAbnomal( CAbstractStockItem* pItem )
+{
+	QMap<RAbnomalType,float>::iterator iter = m_mapAbnomal.begin();
+	while (iter!=m_mapAbnomal.end())
+	{
+		switch (iter.key())
+		{
+		case HighIncrease:
+			{
+				if(pItem->getIncrease()<iter.value()||_isnan(pItem->getIncrease()))
+					return false;
+			}
+			break;
+		case HighTurnRatio:
+			{
+				if(pItem->getTurnRatio()<iter.value()||_isnan(pItem->getTurnRatio()))
+					return false;
+			}
+			break;
+		case HighVolumeRatio:
+			{
+				if(pItem->getVolumeRatio()<iter.value()||_isnan(pItem->getVolumeRatio()))
+					return false;
+			}
+			break;
+		default:
+			break;
+		}
+		++iter;
+	}
+
+	return true;
 }

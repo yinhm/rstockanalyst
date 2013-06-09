@@ -10,6 +10,7 @@
 #ifndef BASE_BLOCK_WIDGET_H
 #define BASE_BLOCK_WIDGET_H
 #include "CoordXBaseWidget.h"
+#include "AbnomalSettingDlg.h"
 
 class CBaseBlockWidget : public CCoordXBaseWidget
 {
@@ -48,6 +49,9 @@ protected:
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
+	//判断是否匹配异动
+	virtual bool isMatchAbnomal(CAbstractStockItem* pItem);
+
 protected:
 	//绘制色块
 	virtual void drawColocBlock(QPainter& p,int iY,QVector<float>& vValue);
@@ -59,6 +63,8 @@ protected slots:
 	void onSetBlockSize();									//设置色块的大小
 
 	void onSetSortMode();									//菜单，设置当前的排序方式
+
+	void onSetAbnomal();									//设置异动过滤
 
 protected:
 	void setSortMode(RSortType sort);						//设置当前的排序方式
@@ -76,6 +82,9 @@ protected:
 
 	RSortType m_sort;						//当前的排序方式
 	Qt::SortOrder m_sortOrder;				//当前的排序模式（升序，降序）
+
+	QMap<RAbnomalType,float> m_mapAbnomal;	//异常波动过滤器
+
 private:
 	QList<RWidgetOpData> m_listSortOp;		//排序方式列表
 };
