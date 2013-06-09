@@ -196,7 +196,7 @@ void CKLineWidget::updateDayLine( const QString& only )
 void CKLineWidget::paintEvent( QPaintEvent* )
 {
 	QPainter p(this);
-	p.setRenderHints(QPainter::Antialiasing|QPainter::HighQualityAntialiasing,true);
+//	p.setRenderHints(QPainter::Antialiasing|QPainter::HighQualityAntialiasing,true);
 	QRect rtClient = this->rect();
 	p.fillRect(rtClient,QColor(0,0,0));
 	if(!m_pStockItem)

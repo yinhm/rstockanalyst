@@ -155,7 +155,6 @@ void CColorBlockWidget::setBlock( const QString& block )
 	
 	m_pBlock = pBlock;
 
-	m_listStocks = pBlock->getStockList();
 	updateSortMode(true);
 	return CBaseWidget::setBlock(block);
 }
@@ -219,6 +218,17 @@ void CColorBlockWidget::onSetExpression()
 
 void CColorBlockWidget::updateColorBlockData()
 {
+	m_listStocks.clear();
+	if(m_pBlock)
+	{
+		QList<CStockInfoItem*> list = m_pBlock->getStockList();
+		foreach (CStockInfoItem* pItem,list)
+		{
+			if(isMatchAbnomal(pItem))
+				m_listStocks.append(pItem);
+		}
+	}
+
 	//进行重新排序
 	if(m_sort<=SortByCode)
 	{

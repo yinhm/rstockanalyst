@@ -66,12 +66,14 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	wMarket = info.wMarket;
 	qsMarket = CDataEngine::getMarketStr(wMarket);
 	qsOnly = qsCode+qsMarket;
-	//fLast5Volume = 0.0;
-	//QList<qRcvHistoryData*> list = getLastHistory(5);
-	//foreach(qRcvHistoryData* pHis,list)
-	//{
-	//	fLast5Volume = fLast5Volume+pHis->fVolume;
-	//}
+
+
+	//获取过去5日的成交总量，用于计算量比等信息
+	QList<qRcvHistoryData*> list = getLastHistory(5);
+	foreach(qRcvHistoryData* pHis,list)
+	{
+		fLast5Volume = fLast5Volume+pHis->fVolume;
+	}
 }
 
 CStockInfoItem::~CStockInfoItem(void)

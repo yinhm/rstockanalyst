@@ -195,15 +195,21 @@ int my_lua_drawk( lua_State* _L )
 			{
 				//增长，绘制红色色块
 				p.setPen(QColor(255,0,0));
+
+				float fCenterX = fBeginX+fItemWidth/2;
+				p.drawLine(fCenterX,rtClient.bottom()-fHighY,fCenterX,rtClient.bottom()-fLowY);		//画最高价到最低价的线
+
 				if(int(fItemWidth)%2==0)
 				{
 					QRectF rt = QRectF(fBeginX+0.5,rtClient.bottom()-fCloseY,fItemWidth-1.0,fCloseY==fOpenY ? 1.0 : fCloseY-fOpenY);
-					p.fillRect(rt,QColor(255,0,0));
+					p.fillRect(rt,QColor(0,0,0));
+					p.drawRect(rt);
 				}
 				else
 				{
 					QRectF rt = QRectF(fBeginX,rtClient.bottom()-fCloseY,fItemWidth,fCloseY==fOpenY ? 1.0 : fCloseY-fOpenY);
-					p.fillRect(rt,QColor(255,0,0));
+					p.fillRect(rt,QColor(0,0,0));
+					p.drawRect(rt);
 				}
 			}
 			else
@@ -220,10 +226,10 @@ int my_lua_drawk( lua_State* _L )
 					QRectF rt = QRectF(fBeginX,rtClient.bottom()-fOpenY,fItemWidth,fOpenY==fCloseY ? 1.0 : (fOpenY-fCloseY));
 					p.fillRect(rt,QColor(0,255,255));
 				}
-			}
 
-			float fCenterX = fBeginX+fItemWidth/2;
-			p.drawLine(fCenterX,rtClient.bottom()-fHighY,fCenterX,rtClient.bottom()-fLowY);		//画最高价到最低价的线
+				float fCenterX = fBeginX+fItemWidth/2;
+				p.drawLine(fCenterX,rtClient.bottom()-fHighY,fCenterX,rtClient.bottom()-fLowY);		//画最高价到最低价的线
+			}
 
 			--iIndex;
 			fBeginX-=fItemWidth;

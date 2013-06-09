@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>25</size>
-    <code>1B0001SH</code>
+    <code>000999SZ</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -53,7 +53,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>51</size>
-     <code>1B0001SH</code>
+     <code>000999SZ</code>
     </widget>
     <widget>
      <name></name>
@@ -101,7 +101,12 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <align>1</align>
     <size>37</size>
     <color>红绿</color>
-    <block>800037BB</block>
+    <Abnomals>
+     <Abnomal type="1">0.05</Abnomal>
+     <Abnomal type="2">0.05</Abnomal>
+     <Abnomal type="4">0.05</Abnomal>
+    </Abnomals>
+    <block>800003BB</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>
@@ -115,6 +120,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <align>1</align>
     <size>33</size>
     <color></color>
+    <Abnomals/>
     <block>800109BB</block>
    </widget>
   </widget>
