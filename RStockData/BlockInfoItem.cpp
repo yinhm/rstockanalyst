@@ -45,9 +45,18 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	qsMarket = CDataEngine::getMarketStr(wMarket);
 	qsOnly = qsCode+qsMarket;
 
-	pCurrentReport->tmTime = QDateTime::currentDateTime().toTime_t();
-	pCurrentReport->qsCode = qsCode;
-	pCurrentReport->wMarket = BB_MARKET_EX;
+	qRcvReportData* pReport = CDataEngine::getReportForInitBlock(qsOnly);
+	if(pReport)
+	{
+		memcpy(pCurrentReport,pReport,sizeof(qRcvReportData));
+	}
+	else
+	{
+		pCurrentReport->tmTime = CDataEngine::getCurrentTime();
+		pCurrentReport->qsCode = qsCode;
+		pCurrentReport->wMarket = BB_MARKET_EX;
+	}
+
 
 	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
 	timerUpdate.start(UPDATE_BLOCK_TIME);
@@ -525,7 +534,7 @@ void CBlockInfoItem::updateData()
 		appendFenBis(QList<qRcvFenBiData*>()<<pFenbi);
 	}
 
-	pCurrentReport->tmTime = QDateTime::currentDateTime().toTime_t();
+	pCurrentReport->tmTime = CDataEngine::getCurrentTime();
 	pCurrentReport->fOpen = fOpenPrice;
 	pCurrentReport->fNewPrice = fNewPrice;
 	pCurrentReport->fLow = fLowPrice;

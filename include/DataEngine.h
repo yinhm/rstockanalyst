@@ -38,7 +38,8 @@ public:
 	/*导入板块数据*/
 	static int importBlocksData(const QString& qsPath);
 
-
+	//为初始化的板块获取Report
+	static qRcvReportData* getReportForInitBlock(const QString& qsOnly);
 
 	/*数据导出函数*/
 	/*导出基本财务数据，F10数据*/
@@ -126,6 +127,11 @@ private:
 	QString m_qsF10Dir;							//F10数据的存储路径 AppDir/data/F10/...
 	QString m_qs5Min;							//5分钟数据的存储路径 AppDir/data/5Min/...
 	QString m_qsFenBiDir;						//分笔数据的存储路径 AppDir/data/FenBi/Date/...
+
+
+
+	//用于存储初始加载的板块Report数据，板块初始化完成后即删除该数据
+	static QMap<QString,qRcvReportData*> m_mapReportForBlock;
 };
 
 

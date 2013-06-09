@@ -183,6 +183,8 @@ CDataEngine* CDataEngine::m_pDataEngine = 0;
 
 time_t CDataEngine::m_tmCurrentDay = 0;
 time_t CDataEngine::m_tmCurrent = 0;
+QMap<QString,qRcvReportData*> CDataEngine::m_mapReportForBlock;
+
 
 CDataEngine* CDataEngine::getDataEngine()
 {
@@ -244,6 +246,14 @@ void CDataEngine::importData()
 	{
 		//导入板块数据
 		importBlocksData("");
+		//清空 m_mapReportForBlock;
+		QMap<QString,qRcvReportData*>::iterator iter = m_mapReportForBlock.begin();
+		while(iter!=m_mapReportForBlock.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		m_mapReportForBlock.clear();
 	}
 
 	{
@@ -425,14 +435,26 @@ int CDataEngine::importReportsInfo( const QString& qsFile )
 		if(iSize!=(sizeof(float)*27))
 			break;
 
-		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(pReport->qsCode+getMarketStr(pReport->wMarket));
-		if(pItem==NULL)
+		QString qsOnly = pReport->qsCode+getMarketStr(pReport->wMarket);
+		if(pReport->wMarket == BB_MARKET_EX)
 		{
-			pItem = new CStockInfoItem(pReport->qsCode,pReport->wMarket);
-			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
-		}
-		pItem->setReport(pReport);
+			if(m_mapReportForBlock.contains(qsOnly))
+			{
+				delete m_mapReportForBlock[qsOnly];
+			}
 
+			m_mapReportForBlock[qsOnly] = pReport;
+		}
+		else
+		{
+			CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
+			if(pItem==NULL)
+			{
+				pItem = new CStockInfoItem(pReport->qsCode,pReport->wMarket);
+				CDataEngine::getDataEngine()->setStockInfoItem(pItem);
+			}
+			pItem->setReport(pReport);
+		}
 		++iCount;
 	}
 
@@ -501,6 +523,12 @@ int CDataEngine::importBlocksData( const QString& /*qsPath*/ )
 		new CBlockInfoItem(_f.absoluteFilePath());
 	}
 	return CDataEngine::getDataEngine()->getStockBlocks().size();
+}
+
+qRcvReportData* CDataEngine::getReportForInitBlock( const QString& qsOnly )
+{
+	if(m_mapReportForBlock.contains(qsOnly))
+		return m_mapReportForBlock[qsOnly];
 }
 
 

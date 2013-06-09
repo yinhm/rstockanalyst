@@ -26,7 +26,7 @@ HEADERS += StdAfx.h MainWindow.h \
 			SplashDlg.h CoordXBaseWidget.h BColorBlockWidget.h \
 			resource.h BaseBlockWidget.h KeyWizard.h \
 			FuncHelper.h RadarWidget.h WatcherSettingDlg.h \
-			WatcherEditDlg.h
+			WatcherEditDlg.h ConfigSettings.h
 
 SOURCES += main.cpp MainWindow.cpp \
 			BaseWidget.cpp KLineWidget.cpp \
@@ -35,7 +35,7 @@ SOURCES += main.cpp MainWindow.cpp \
 			SplashDlg.cpp CoordXBaseWidget.cpp BColorBlockWidget.cpp \
 			BaseBlockWidget.cpp KeyWizard.cpp \
 			FuncHelper.cpp RadarWidget.cpp WatcherSettingDlg.cpp \
-			WatcherEditDlg.cpp
+			WatcherEditDlg.cpp ConfigSettings.cpp
 
 
 RESOURCES += RStockAnalyst.qrc

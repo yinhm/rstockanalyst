@@ -37,7 +37,8 @@ protected slots:
 	void onRemoveTemplate();		//删除版面
 	void onShowFuncHelper();		//显示函数帮助窗口
 
-	//
+
+	void onMarketCloseSetting();	//设置收盘后数据整理时间
 	void onMarketClose();			//收盘后数据重新整理
 	void onBlockActClicked();		//板块菜单项被点击后触发
 	void onMarketCloseTimer();		//15点后休盘时触发此函数（需在函数中进行检查）
@@ -68,6 +69,7 @@ private:
 	QMap<CBlockInfoItem*,QAction*> mapBlockMenus;		//板块菜单map
 
 	QTimer m_timerClose;								//是否休盘
+	QTime m_tmExportClose;								//导出休盘数据的时间
 
 	bool m_bExportClose;								//是否已经导出休盘数据
 };
