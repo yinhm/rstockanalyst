@@ -48,7 +48,8 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	qRcvReportData* pReport = CDataEngine::getReportForInitBlock(qsOnly);
 	if(pReport)
 	{
-		memcpy(pCurrentReport,pReport,sizeof(qRcvReportData));
+		pCurrentReport->tmTime = pReport->tmTime;
+		memcpy(&(pCurrentReport->fLastClose),&(pReport->fLastClose),sizeof(float)*27);
 	}
 	else
 	{

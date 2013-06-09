@@ -529,6 +529,7 @@ qRcvReportData* CDataEngine::getReportForInitBlock( const QString& qsOnly )
 {
 	if(m_mapReportForBlock.contains(qsOnly))
 		return m_mapReportForBlock[qsOnly];
+	return NULL;
 }
 
 
