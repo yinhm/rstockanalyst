@@ -40,6 +40,7 @@ public:
 
 public slots:
 	virtual void setBlock(const QString& block);
+	virtual void setCircle(RStockCircle _c);		//设置当前的显示周期
 
 protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
@@ -103,6 +104,9 @@ private:
 	QString m_qsExpColor;					//颜色表达式
 	QString m_qsExpHeight;					//高度表达式
 	QString m_qsExpWidth;					//宽度表达式
+
+	//各个周期所在的矩形
+	QMap<int,QRect> m_mapCircles;
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H

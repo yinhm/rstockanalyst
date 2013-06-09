@@ -41,7 +41,7 @@ protected slots:
 	void onSetCircle();								//设置当前的显示周期
 
 protected:
-	void setCircle(RStockCircle _c);				//设置当前的显示周期
+	virtual void setCircle(RStockCircle _c);		//设置当前的显示周期
 
 protected:
 	QMenu* m_pMenuCustom;					//自定义菜单
