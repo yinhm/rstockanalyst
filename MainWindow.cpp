@@ -7,8 +7,11 @@
 #include "FuncHelper.h"
 #include "SplashDlg.h"
 #include "WatcherSettingDlg.h"
+#include "ConfigSettings.h"
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
+#define	EXPORT_TIME_TAG		"ExportTime"
+#define CURRENT_TEMP_TAG	"CurrentTemp"
 
 CMainWindow* CMainWindow::m_pMainWindow = 0;
 
@@ -26,6 +29,7 @@ CMainWindow::CMainWindow()
 	, m_pBlockMenuWidget(0)
 	, m_iBlockMenuCmd(0)
 	, m_bExportClose(true)
+	, m_tmExportClose(15,5)
 {
 	setWindowIcon(QIcon(":/res/icon.png"));
 	m_pTabWidget = new QTabWidget();
@@ -46,7 +50,7 @@ CMainWindow::CMainWindow()
 		QMenu* pMenuSettings = m_pMenuBar->addMenu(tr("设置"));
 		pMenuSettings->addAction(tr("设置色块颜色"),CBlockColorSettingDlg::getDialog(),SLOT(exec()));
 		pMenuSettings->addAction(tr("监视雷达设置"),this,SLOT(onWatcherSetting()));
-		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onMarketClose()));
+		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onMarketCloseSetting()));
 
 		//帮助
 		QMenu* pMenuHelp = m_pMenuBar->addMenu(tr("帮助"));
@@ -55,6 +59,13 @@ CMainWindow::CMainWindow()
 
 	connect(&m_timerClose,SIGNAL(timeout()),this,SLOT(onMarketCloseTimer()));
 	m_timerClose.start(60000);
+
+	//获取导出时间
+	QVariant tmExport = DilideCode::DConfigSettings::getConfigSettings()->getValue(EXPORT_TIME_TAG);
+	if(!tmExport.toString().isEmpty())
+	{
+		m_tmExportClose = tmExport.toTime();
+	}
 }
 
 CMainWindow::~CMainWindow()
@@ -119,6 +130,19 @@ void CMainWindow::initTemplates()
 			m_pTabWidget->addTab(pWidget,qsTitle);
 		}
 	}
+
+	//初始化当前选中的模板
+	QString qsTemp = DilideCode::DConfigSettings::getConfigSettings()->getValue(CURRENT_TEMP_TAG).toString();
+	if(!qsTemp.isEmpty())
+	{
+		for(int i=0;i<m_pTabWidget->count();++i)
+		{
+			if(m_pTabWidget->tabText(i) == qsTemp)
+			{
+				m_pTabWidget->setCurrentIndex(i);
+			}
+		}
+	}
 }
 
 void CMainWindow::saveTemplates()
@@ -143,6 +167,13 @@ void CMainWindow::saveTemplates()
 		}
 		file.write(doc.toByteArray());
 		file.close();
+	}
+
+	//保存当前选中的模板title
+	int iIndex = m_pTabWidget->currentIndex();
+	if(iIndex>-1)
+	{
+		DilideCode::DConfigSettings::getConfigSettings()->setValue(CURRENT_TEMP_TAG,m_pTabWidget->tabText(iIndex));
 	}
 }
 
@@ -436,6 +467,26 @@ void CMainWindow::onRemoveTemplate()
 		m_pTabWidget->removeTab(iCurIndex);
 }
 
+void CMainWindow::onMarketCloseSetting()
+{
+	QDialog dlg(this);
+	QVBoxLayout layout;
+	dlg.setLayout(&layout);
+	QTimeEdit edit;
+	//初始值15:05:00
+	edit.setTime(m_tmExportClose);
+	layout.addWidget(&edit);
+	QPushButton btnOk(tr("确定"));
+	layout.addWidget(&btnOk);
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+
+	if(QDialog::Accepted == dlg.exec())
+	{
+		m_tmExportClose = edit.time();
+		DilideCode::DConfigSettings::getConfigSettings()->setValue(EXPORT_TIME_TAG,m_tmExportClose);
+	}
+}
+
 void CMainWindow::onMarketClose()
 {
 	CSplashDlg::getSplashDlg()->showMessage("正在进行收盘后数据整理...");
@@ -450,7 +501,7 @@ void CMainWindow::onMarketCloseTimer()
 	if(tmCurrent.date() == tmDataEngine.date())
 	{
 		//15:05后导出收盘后的数据
-		if(tmCurrent.time()>QTime(15,5))
+		if(tmCurrent.time()>m_tmExportClose)
 		{
 			if(!m_bExportClose)
 			{
