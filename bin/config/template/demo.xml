@@ -27,6 +27,19 @@
     <relate>1</relate>
     <align>1</align>
     <size>25</size>
+    <code>1B0001SH</code>
+    <liners>
+     <Liner size="80">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+     </Liner>
+     <Liner size="20">
+      <exp>DrawHist(VOLUME)</exp>
+     </Liner>
+    </liners>
    </widget>
    <widget>
     <name></name>
@@ -40,6 +53,7 @@
      <relate>1</relate>
      <align>1</align>
      <size>51</size>
+     <code>1B0001SH</code>
     </widget>
     <widget>
      <name></name>
