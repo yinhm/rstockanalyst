@@ -84,9 +84,9 @@ protected:
 	Qt::SortOrder m_sortOrder;				//当前的排序模式（升序，降序）
 
 	QMap<RAbnomalType,float> m_mapAbnomal;	//异常波动过滤器
+	QList<RWidgetOpData> m_listSortOp;		//排序方式列表
 
 private:
-	QList<RWidgetOpData> m_listSortOp;		//排序方式列表
 };
 
 #endif	//BASE_BLOCK_WIDGET_H
