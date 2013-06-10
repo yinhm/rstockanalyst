@@ -43,6 +43,7 @@ enum RWidgetType
 	WidgetBColorBlock,				//板块的色块图
 	WidgetStockInfo,				//单只股票的行情信息
 	WidgetRadar,					//雷达监视图
+	WidgetStockDeal,				//交易详情图
 };
 
 

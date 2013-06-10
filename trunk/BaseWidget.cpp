@@ -12,6 +12,7 @@
 #include "BColorBlockWidget.h"
 #include "StockInfoWidget.h"
 #include "RadarWidget.h"
+#include "StockDealWidget.h"
 #include "KeyWizard.h"
 
 CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetType type/*=Basic*/ )
@@ -38,6 +39,9 @@ CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetTy
 		break;
 	case WidgetRadar:
 		return new CRadarWidget(parent);
+		break;
+	case WidgetStockDeal:
+		return new CStockDealWidget(parent);
 		break;
 	}
 
@@ -76,6 +80,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 		m_listWidget.push_back(RWidgetOpData(WidgetBColorBlock,"vl","板块色块图"));
 		m_listWidget.push_back(RWidgetOpData(WidgetStockInfo,"vi","行情信息"));
 		m_listWidget.push_back(RWidgetOpData(WidgetRadar,"vr","雷达监视"));
+		m_listWidget.push_back(RWidgetOpData(WidgetStockDeal,"vd","成交详情图"));
 	}
 
 	{
