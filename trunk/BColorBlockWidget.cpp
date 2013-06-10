@@ -208,9 +208,9 @@ void CBColorBlockWidget::setBlock( const QString& block )
 		if(list.size()>0)
 		{
 			clearTmpData();
-			for (int i=0;i<m_listBlocks.size();++i)
+			for (int i=0;i<list.size();++i)
 			{
-				CBlockInfoItem* pItem = m_listBlocks[i];
+				CBlockInfoItem* pItem = list[i];
 				m_mapBlockIndex[pItem] = i;
 
 				QMap<time_t,qRcvFenBiData*>* pMap = new QMap<time_t,qRcvFenBiData*>;
@@ -584,6 +584,9 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 	if(fCBWidth<0)
 		return;
 
+	if(!mapBlockColorBlocks.contains(pItem))
+		return;
+
 	QMap<time_t,qRcvFenBiData*>* pMap = mapBlockColorBlocks[pItem];
 	if(pMap&&pMap->size()>0)
 	{
@@ -592,7 +595,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 		{
 			--iterFenBi;
 			qRcvFenBiData* pFenBi = iterFenBi.value();
-			QString qsTime = QDateTime::fromTime_t(pFenBi->tmTime).toString("hh:mm:ss");
+
 			QMap<time_t,float>::iterator iter = m_mapShowTimes.lowerBound(pFenBi->tmTime);
 			if(iter==m_mapShowTimes.end())
 			{

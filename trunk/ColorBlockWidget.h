@@ -107,6 +107,9 @@ private:
 
 	//各个周期所在的矩形
 	QMap<int,QRect> m_mapCircles;
+
+	//各个周期所在的矩形
+	QMap<int,QRect> m_mapSorts;
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H

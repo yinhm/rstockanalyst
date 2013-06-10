@@ -27,10 +27,10 @@ CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType typ
 	
 	{
 		//初始化排序方式
-		m_listSortOp.push_back(RWidgetOpData(SortByCode,"vsc","按股票代码排序"));
-		m_listSortOp.push_back(RWidgetOpData(SortByIncrease,"vsi","按涨幅排序"));
-		m_listSortOp.push_back(RWidgetOpData(SortByTurnRatio,"vst","按换手率排序"));
-		m_listSortOp.push_back(RWidgetOpData(SortByVolumeRatio,"vsv","按量比排序"));
+		m_listSortOp.push_back(RWidgetOpData(SortByCode,"vsc","代码排序"));
+		m_listSortOp.push_back(RWidgetOpData(SortByIncrease,"vsi","涨幅排序"));
+		m_listSortOp.push_back(RWidgetOpData(SortByTurnRatio,"vst","换手率排序"));
+		m_listSortOp.push_back(RWidgetOpData(SortByVolumeRatio,"vsv","量比排序"));
 	}
 	//初始化菜单
 	{
@@ -226,8 +226,16 @@ void CBaseBlockWidget::onSetBlockSize()
 
 void CBaseBlockWidget::setSortMode(RSortType sort)
 {
-	m_sort = sort;
-	updateSortMode();
+	if(m_sort == sort)
+	{
+		m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
+		updateSortMode(true);
+	}
+	else
+	{
+		m_sort = sort;
+		updateSortMode();
+	}
 	return;
 }
 

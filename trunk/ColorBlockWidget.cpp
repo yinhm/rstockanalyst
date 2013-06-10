@@ -5,6 +5,7 @@
 #include "BlockInfoItem.h"
 #include "RLuaEx.h"
 #include "KeyWizard.h"
+#include "MainWindow.h"
 
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	50
@@ -403,6 +404,10 @@ void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
 	m_pSelectedStock = pItem;
 	update(rectOfStock(pPreSelectedStock));
 	update(rectOfStock(m_pSelectedStock));
+	if(m_pSelectedStock)
+	{
+		CMainWindow::getMainWindow()->clickedStock(m_pSelectedStock->getCode());
+	}
 }
 
 void CColorBlockWidget::paintEvent( QPaintEvent* )
@@ -462,24 +467,53 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↓%1").arg(qsText));
 	}
 
-	int iSize = m_listCircle.size();
-	int iRight = rtHeader.right();
-	int iTop = rtHeader.top();
-	for (int i=iSize-1;i>=0;--i)
 	{
-		QRect rtCircle = QRect(iRight-(iSize-i)*16-20,iTop+2,12,12);
-		m_mapCircles[m_listCircle[i].value] = rtCircle;
-		if(m_typeCircle == m_listCircle[i].value)
+		//绘制周期切换按钮
+		m_mapCircles.clear();
+		int iSize = m_listCircle.size();
+		int iRight = rtHeader.right();
+		int iTop = rtHeader.top();
+		for (int i=iSize-1;i>=0;--i)
 		{
-			p.fillRect(rtCircle,QColor(127,127,127));
+			QRect rtCircle = QRect(iRight-(iSize-i)*16-20,iTop+2,12,12);
+			m_mapCircles[m_listCircle[i].value] = rtCircle;
+			if(m_typeCircle == m_listCircle[i].value)
+			{
+				p.fillRect(rtCircle,QColor(127,127,127));
+			}
+			else
+			{
+				p.setPen(QColor(240,240,240));
+				p.drawRect(rtCircle);
+			}
+			p.setPen(QColor(255,255,255));
+			p.drawText(rtCircle,m_listCircle[i].desc.left(1),QTextOption(Qt::AlignCenter));
 		}
-		else
+	}
+
+	if(rtHeader.width()>250)
+	{
+		//绘制排序方式的按钮
+		m_mapSorts.clear();
+		int iSize = m_listSortOp.size();
+		int iRight = rtHeader.right()-250;
+		int iTop = rtHeader.top();
+		for (int i=iSize-1;i>=0;--i)
 		{
-			p.setPen(QColor(240,240,240));
-			p.drawRect(rtCircle);
+			QRect rtCircle = QRect(iRight-(iSize-i)*16,iTop+2,12,12);
+			m_mapSorts[m_listSortOp[i].value] = rtCircle;
+			if(m_sort == m_listSortOp[i].value)
+			{
+				p.fillRect(rtCircle,QColor(127,127,127));
+			}
+			else
+			{
+				p.setPen(QColor(240,240,240));
+				p.drawRect(rtCircle);
+			}
+			p.setPen(QColor(255,255,255));
+			p.drawText(rtCircle,m_listSortOp[i].desc.left(1),QTextOption(Qt::AlignCenter));
 		}
-		p.setPen(QColor(255,255,255));
-		p.drawText(rtCircle,m_listCircle[i].desc.left(1),QTextOption(Qt::AlignCenter));
 	}
 }
 
@@ -653,22 +687,39 @@ void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	QPoint ptCur = e->pos();
 	if(m_rtHeader.contains(ptCur))
 	{
-		QMap<int,QRect>::iterator iter = m_mapCircles.begin();
-		while(iter!=m_mapCircles.end())
 		{
-			if((*iter).contains(ptCur))
+			//判断是否属于周期设置按钮
+			QMap<int,QRect>::iterator iter = m_mapCircles.begin();
+			while(iter!=m_mapCircles.end())
 			{
-				setCircle(static_cast<RStockCircle>(iter.key()));
-				break;
+				if((*iter).contains(ptCur))
+				{
+					setCircle(static_cast<RStockCircle>(iter.key()));
+					return;
+				}
+				++iter;
 			}
-			++iter;
 		}
 
-		if(iter==m_mapCircles.end())
 		{
-			m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
-			updateSortMode(true);
+			//判断是否属于排序方式按钮
+			QMap<int,QRect>::iterator iter = m_mapSorts.begin();
+			while(iter!=m_mapSorts.end())
+			{
+				if((*iter).contains(ptCur))
+				{
+					setSortMode(static_cast<RSortType>(iter.key()));
+					return;
+				}
+				++iter;
+			}
 		}
+
+
+		m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
+		updateSortMode(true);
+		return;
+
 	}
 	else if(m_rtClient.contains(ptCur))
 	{
