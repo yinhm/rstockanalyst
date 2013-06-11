@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "StockDealWidget.h"
 #include "DataEngine.h"
+#define VOL_SELL	0
+#define VOL_BUY		1
 
 bool getDealKind(QList<qRcvFenBiData*> listFenBi, qRcvFenBiData* pLastFenBi,float* fKind)
 {
