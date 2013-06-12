@@ -19,6 +19,7 @@ public:
 		CmdWidget,			//更换窗口的类型
 		CmdInsert,			//插入窗口
 		CmdSort,			//股票排序方式
+		CmdDealType,		//成绩类型
 	};
 
 public:

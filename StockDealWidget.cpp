@@ -1,8 +1,15 @@
 #include "StdAfx.h"
 #include "StockDealWidget.h"
 #include "DataEngine.h"
-#define VOL_SELL	0
-#define VOL_BUY		1
+#include "ColorManager.h"
+#include "KeyWizard.h"
+#define VOL_BUY			0		//主动买
+#define VOL_SELL		1		//主动卖
+#define VOL_ABBUY		2		//撤买
+#define VOL_ABSELL		3		//撤卖
+#define VOL_ADBUY		4		//增买
+#define VOL_ADSELL		5		//增卖
+#define VOL_CROSS		6		//对敲
 
 bool getDealKind(QList<qRcvFenBiData*> listFenBi, qRcvFenBiData* pLastFenBi,float* fKind)
 {
@@ -12,23 +19,79 @@ bool getDealKind(QList<qRcvFenBiData*> listFenBi, qRcvFenBiData* pLastFenBi,floa
 		if(pLastFenBi)
 		{
 			fVOL = pFenBi->fVolume - pLastFenBi->fVolume;
+
+			//判断买入还是卖出
+			if(pFenBi->fPrice>pFenBi->fBuyPrice[0])
+			{
+				//主动卖
+				fKind[VOL_SELL] += fVOL;
+
+				int iNow=0,iLast=0;
+				while (true)
+				{
+					float fAbs = pFenBi->fSellPrice[iNow] - pLastFenBi->fSellPrice[iLast];
+					if(abs(fAbs)<0.00001)
+					{
+						//相等
+						float fV = pFenBi->fSellVolume[iNow]-pLastFenBi->fSellVolume[iLast];
+						if(fV>0)
+						{
+							fKind[VOL_ADSELL] += fV;
+						}
+						else
+						{
+							fKind[VOL_ABSELL] -= fV;
+						}
+
+						++iNow;
+						++iLast;
+					}
+					else if(fAbs>0.00001)
+					{
+						//大于
+
+
+						++iLast;
+					}
+					else
+					{
+						//小于
+
+						++iNow;
+					}
+
+					if(iNow>4)
+					{
+						break;
+					}
+					else if(iLast>4)
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				//主动买
+				fKind[VOL_BUY] += fVOL;
+			}
+
+			//判断撤买、撤卖
 		}
 		else
 		{
 			fVOL = pFenBi->fVolume;
-		}
 
-		//判断买入还是卖出
-		if(pFenBi->fPrice>pFenBi->fBuyPrice[0])
-		{
-			fKind[0] += fVOL;
+			//判断买入还是卖出
+			if(pFenBi->fPrice>pFenBi->fBuyPrice[0])
+			{
+				fKind[VOL_SELL] += fVOL;
+			}
+			else
+			{
+				fKind[VOL_BUY] += fVOL;
+			}
 		}
-		else
-		{
-			fKind[1] += fVOL;
-		}
-
-
 	}
 
 	return true;
@@ -40,11 +103,26 @@ CStockDealWidget::CStockDealWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iTitleHeight(16)
 	, m_iBottomHeight(16)
 	, m_pCurStock(0)
-	, m_iItemWidth(50)
+	, m_iItemWidth(4)
 	, m_iItemHeight(50)
 	, m_typeWidget(DealKind)
 {
+	{
+		//初始化显示类型表
+		m_listDealType.push_back(RWidgetOpData(DealKind,".kind","类型图"));
+		m_listDealType.push_back(RWidgetOpData(DealIncrese,".price","价位图"));
+		m_listDealType.push_back(RWidgetOpData(DealOrder,".order","挂单图"));
+	}
 
+	{
+		m_pMenuCustom->removeAction(m_pMenuCircle->menuAction());
+		//设置当前图的显示类型
+		m_pMenuDealType = m_pMenuCustom->addMenu(tr("类型设置"));
+		foreach(const RWidgetOpData& _d,m_listDealType)
+		{
+			m_pMenuDealType->addAction(_d.desc,this,SLOT(onSetDealType()))->setData(_d.value);
+		}
+	}
 }
 
 
@@ -52,9 +130,22 @@ CStockDealWidget::~CStockDealWidget(void)
 {
 }
 
+void CStockDealWidget::onSetDealType()
+{
+	//设置当前的显示类型
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	setDealType(static_cast<RDealWidgetType>(pAct->data().toInt()));
+}
+
 void CStockDealWidget::setStockCode( const QString& code )
 {
 	m_pCurStock = CDataEngine::getDataEngine()->getStockInfoItem(code);
+	updateData();
+}
+
+void CStockDealWidget::setDealType( RDealWidgetType _t )
+{
+	m_typeWidget = _t;
 	updateData();
 }
 
@@ -67,6 +158,28 @@ void CStockDealWidget::updateData()
 		m_listFenbi = m_pCurStock->getFenBiList();
 	}
 	update();
+}
+
+void CStockDealWidget::mousePressEvent( QMouseEvent* e )
+{
+	e->accept();
+	QPoint ptCur = e->pos();
+	if(m_rtTitle.contains(ptCur))
+	{
+		{
+			//判断是否属于周期设置按钮
+			QMap<int,QRect>::iterator iter = m_mapDealTypes.begin();
+			while(iter!=m_mapDealTypes.end())
+			{
+				if((*iter).contains(ptCur))
+				{
+					setDealType(static_cast<RDealWidgetType>(iter.key()));
+					return;
+				}
+				++iter;
+			}
+		}
+	}
 }
 
 void CStockDealWidget::paintEvent( QPaintEvent* /*e*/ )
@@ -86,6 +199,25 @@ void CStockDealWidget::paintEvent( QPaintEvent* /*e*/ )
 	drawClient(p);
 }
 
+QMenu* CStockDealWidget::getCustomMenu()
+{
+	QAction* pAction = m_pMenu->menuAction();
+	if(!m_pMenuCustom->actionGeometry(pAction).isValid())
+		m_pMenuCustom->addMenu(m_pMenu);
+
+	{
+		//设置当前选中的显示类型
+		QList<QAction*> listAct = m_pMenuDealType->actions();
+		foreach(QAction* pAct,listAct)
+		{
+			pAct->setCheckable(true);
+			pAct->setChecked(pAct->data().toInt() == m_typeWidget);
+		}
+	}
+
+	return m_pMenuCustom;
+}
+
 void CStockDealWidget::drawTitle( QPainter& p )
 {
 	QRect rtTitle = m_rtTitle.adjusted(1,1,-1,-1);
@@ -98,6 +230,31 @@ void CStockDealWidget::drawTitle( QPainter& p )
 			qsText = m_pCurStock->getCode();
 		p.setPen(QColor(255,255,255));
 		p.drawText(rtTitle,qsText);
+	}
+
+	{
+		//m_mapDealTypes
+		//绘制周期切换按钮
+		m_mapDealTypes.clear();
+		int iSize = m_listDealType.size();
+		int iRight = m_rtTitle.right();
+		int iTop = m_rtTitle.top();
+		for (int i=iSize-1;i>=0;--i)
+		{
+			QRect rtDealType = QRect(iRight-(iSize-i)*16-20,iTop+2,12,12);
+			m_mapDealTypes[m_listDealType[i].value] = rtDealType;
+			if(m_typeWidget == m_listDealType[i].value)
+			{
+				p.fillRect(rtDealType,QColor(127,127,127));
+			}
+			else
+			{
+				p.setPen(QColor(240,240,240));
+				p.drawRect(rtDealType);
+			}
+			p.setPen(QColor(255,255,255));
+			p.drawText(rtDealType,m_listDealType[i].desc.left(1),QTextOption(Qt::AlignCenter));
+		}
 	}
 }
 
@@ -137,7 +294,17 @@ void CStockDealWidget::drawClient( QPainter& p )
 						float fDealKind[7];
 						memset(&fDealKind[0],0,sizeof(float)*6);
 						getDealKind(listFenBi,pFenBi,&fDealKind[0]);
-
+						float fTotal = 0.0;
+						for(int i=0;i<7;++i)
+							fTotal+=fDealKind[i];
+						float fY = rtBlock.top();
+						float fH = rtBlock.height();
+						for(int i=0;i<7;++i)
+						{
+							float fh = (fDealKind[i]/fTotal)*fH;
+							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,CColorManager::getCommonColor(i));
+							fY += fh;
+						}
 					}
 					break;
 				}
@@ -192,4 +359,71 @@ void CStockDealWidget::drawBottom( QPainter& p )
 		iCurX = iCurX- m_iItemWidth;
 	}
 	return;
+}
+
+bool CStockDealWidget::loadPanelInfo( const QDomElement& eleWidget )
+{
+	if(!CBaseWidget::loadPanelInfo(eleWidget))
+		return false;
+
+	//当前显示的周期
+	if(eleWidget.hasAttribute("dealtype"))
+	{
+		m_typeWidget = static_cast<RDealWidgetType>(eleWidget.attribute("dealtype").toInt());
+	}
+
+
+	QDomElement eleCode = eleWidget.firstChildElement("code");
+	if(eleCode.isElement())
+		setStockCode(eleCode.text());
+
+	return true;
+}
+
+bool CStockDealWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
+{
+	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
+		return false;
+
+	//显示的周期
+	eleWidget.setAttribute("dealtype",m_typeWidget);
+	
+	//当前的股票值
+	if(m_pCurStock)
+	{
+		QDomElement eleCode = doc.createElement("code");
+		eleCode.appendChild(doc.createTextNode(m_pCurStock->getOnly()));
+		eleWidget.appendChild(eleCode);
+	}
+
+	return true;
+}
+
+void CStockDealWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
+{
+	foreach(const RWidgetOpData& _d,m_listDealType)
+	{
+		if(_d.key.indexOf(keyword)>-1)
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdDealType;
+			pData->arg = (void*)_d.value;
+			pData->desc = _d.desc;
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+
+	return CBaseWidget::getKeyWizData(keyword,listRet);
+}
+
+void CStockDealWidget::keyWizEntered( KeyWizData* pData )
+{
+	if(pData->cmd == CKeyWizard::CmdDealType)
+	{
+		setDealType(static_cast<RDealWidgetType>((int)(pData->arg)));
+		return;
+	}
+	return CBaseWidget::keyWizEntered(pData);
 }
