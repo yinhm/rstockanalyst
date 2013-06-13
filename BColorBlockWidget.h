@@ -34,6 +34,7 @@ public slots:
 
 protected slots:
 	void updateUI();							//更新当前需要显示的数据
+	void onBlockReportUpdate(const QString& qsOnly);		//当板块数据更新时触发
 
 private:
 	void clickedBlock(CBlockInfoItem* pItem);				//当点击股票时触发

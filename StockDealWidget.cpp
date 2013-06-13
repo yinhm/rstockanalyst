@@ -11,7 +11,7 @@
 #define VOL_ADSELL		5		//增卖
 #define VOL_CROSS		6		//对敲
 
-bool getDealKind(QList<qRcvFenBiData*> listFenBi, qRcvFenBiData* pLastFenBi,float* fKind)
+bool getDealKind( const QList<qRcvFenBiData*>& listFenBi, qRcvFenBiData* pLastFenBi,float* fKind)
 {
 	foreach(qRcvFenBiData* pFenBi,listFenBi)
 	{
@@ -26,47 +26,112 @@ bool getDealKind(QList<qRcvFenBiData*> listFenBi, qRcvFenBiData* pLastFenBi,floa
 				//主动卖
 				fKind[VOL_SELL] += fVOL;
 
-				int iNow=0,iLast=0;
-				while (true)
 				{
-					float fAbs = pFenBi->fSellPrice[iNow] - pLastFenBi->fSellPrice[iLast];
-					if(abs(fAbs)<0.00001)
+					//计算对敲单
+					float fVinM = 0.0;
+					for(int i=0;i<5;++i)
 					{
-						//相等
-						float fV = pFenBi->fSellVolume[iNow]-pLastFenBi->fSellVolume[iLast];
-						if(fV>0)
+						fVinM += pLastFenBi->fSellVolume[i];
+						if(pLastFenBi->fSellPrice[i]>=pFenBi->fPrice)
 						{
-							fKind[VOL_ADSELL] += fV;
+							fKind[VOL_CROSS] += (fVOL-fVinM)>0 ? (fVOL-fVinM) : 0;
+							break;
+						}
+					}
+				}
+
+				{
+					//判断 撤卖、增卖
+					int iNow=0,iLast=0;
+					while (true)
+					{
+						float fAbs = pFenBi->fSellPrice[iNow] - pLastFenBi->fSellPrice[iLast];
+						if(abs(fAbs)<0.00001)
+						{
+							//相等
+							float fV = pFenBi->fSellVolume[iNow]-pLastFenBi->fSellVolume[iLast];
+							if(fV>0)
+							{
+								fKind[VOL_ADSELL] += fV;
+							}
+							else
+							{
+								fKind[VOL_ABSELL] -= fV;
+							}
+
+							++iNow;
+							++iLast;
+						}
+						else if(fAbs>0.00001)
+						{
+							//大于
+							fKind[VOL_ABSELL] += pLastFenBi->fSellVolume[iLast];
+
+							++iLast;
 						}
 						else
 						{
-							fKind[VOL_ABSELL] -= fV;
+							//小于
+							fKind[VOL_ADSELL] += pFenBi->fSellVolume[iLast];
+
+							++iNow;
 						}
 
-						++iNow;
-						++iLast;
+						if(iNow>4)
+						{
+							break;
+						}
+						else if(iLast>4)
+						{
+							break;
+						}
 					}
-					else if(fAbs>0.00001)
+				}
+				{
+					//判断 撤买、增买
+					int iNow=0,iLast=0;
+					while (true)
 					{
-						//大于
+						float fAbs = pFenBi->fBuyPrice[iNow] - pLastFenBi->fBuyPrice[iLast];
+						if(abs(fAbs)<0.00001)
+						{
+							//相等
+							float fV = pFenBi->fBuyVolume[iNow]-pLastFenBi->fBuyVolume[iLast];
+							if(fV>0)
+							{
+								fKind[VOL_ADBUY] += fV;
+							}
+							else
+							{
+								fKind[VOL_ABBUY] -= fV;
+							}
 
+							++iNow;
+							++iLast;
+						}
+						else if(fAbs<0.00001)
+						{
+							//大于
+							fKind[VOL_ABBUY] += pLastFenBi->fBuyVolume[iLast];
 
-						++iLast;
-					}
-					else
-					{
-						//小于
+							++iLast;
+						}
+						else
+						{
+							//小于
+							fKind[VOL_ADBUY] += pFenBi->fBuyVolume[iLast];
 
-						++iNow;
-					}
+							++iNow;
+						}
 
-					if(iNow>4)
-					{
-						break;
-					}
-					else if(iLast>4)
-					{
-						break;
+						if(iNow>4)
+						{
+							break;
+						}
+						else if(iLast>4)
+						{
+							break;
+						}
 					}
 				}
 			}
@@ -74,9 +139,116 @@ bool getDealKind(QList<qRcvFenBiData*> listFenBi, qRcvFenBiData* pLastFenBi,floa
 			{
 				//主动买
 				fKind[VOL_BUY] += fVOL;
-			}
 
-			//判断撤买、撤卖
+				{
+					//计算对敲单
+					float fVinM = 0.0;
+					for(int i=0;i<5;++i)
+					{
+						fVinM += pLastFenBi->fBuyPrice[i];
+						if(pLastFenBi->fBuyPrice[i]<=pFenBi->fPrice)
+						{
+							fKind[VOL_CROSS] += (fVOL-fVinM)>0 ? (fVOL-fVinM) : 0;
+							break;
+						}
+					}
+				}
+
+				{
+					//判断 撤卖、增卖
+					int iNow=0,iLast=0;
+					while (true)
+					{
+						float fAbs = pFenBi->fSellPrice[iNow] - pLastFenBi->fSellPrice[iLast];
+						if(abs(fAbs)<0.00001)
+						{
+							//相等
+							float fV = pFenBi->fSellVolume[iNow]-pLastFenBi->fSellVolume[iLast];
+							if(fV>0)
+							{
+								fKind[VOL_ADSELL] += fV;
+							}
+							else
+							{
+								fKind[VOL_ABSELL] -= fV;
+							}
+
+							++iNow;
+							++iLast;
+						}
+						else if(fAbs>0.00001)
+						{
+							//大于
+							fKind[VOL_ABSELL] += pLastFenBi->fSellVolume[iLast];
+
+							++iLast;
+						}
+						else
+						{
+							//小于
+							fKind[VOL_ADSELL] += pFenBi->fSellVolume[iLast];
+
+							++iNow;
+						}
+
+						if(iNow>4)
+						{
+							break;
+						}
+						else if(iLast>4)
+						{
+							break;
+						}
+					}
+				}
+				{
+					//判断 撤买、增买
+					int iNow=0,iLast=0;
+					while (true)
+					{
+						float fAbs = pFenBi->fBuyPrice[iNow] - pLastFenBi->fBuyPrice[iLast];
+						if(abs(fAbs)<0.00001)
+						{
+							//相等
+							float fV = pFenBi->fBuyVolume[iNow]-pLastFenBi->fBuyVolume[iLast];
+							if(fV>0)
+							{
+								fKind[VOL_ADBUY] += fV;
+							}
+							else
+							{
+								fKind[VOL_ABBUY] -= fV;
+							}
+
+							++iNow;
+							++iLast;
+						}
+						else if(fAbs<0.00001)
+						{
+							//大于
+							fKind[VOL_ABBUY] += pLastFenBi->fBuyVolume[iLast];
+
+							++iLast;
+						}
+						else
+						{
+							//小于
+							fKind[VOL_ADBUY] += pFenBi->fBuyVolume[iLast];
+
+							++iNow;
+						}
+
+						if(iNow>4)
+						{
+							break;
+						}
+						else if(iLast>4)
+						{
+							break;
+						}
+					}
+				}
+			}
 		}
 		else
 		{
@@ -97,6 +269,38 @@ bool getDealKind(QList<qRcvFenBiData*> listFenBi, qRcvFenBiData* pLastFenBi,floa
 	return true;
 }
 
+bool getPriceIncrease( const QList<qRcvFenBiData*>& listFenBi, qRcvFenBiData* pLastFenBi, const float& fLastClose, float* fIncrese)
+{
+	if(fLastClose<0.0001)
+		return false;
+
+	foreach(qRcvFenBiData* pFenBi,listFenBi)
+	{
+		float fV = 0.0;
+		if(pLastFenBi)
+			fV = (pFenBi->fVolume-pLastFenBi->fVolume);
+		else
+			fV = pFenBi->fVolume;
+
+		int iIndex = ((float)(((pFenBi->fPrice-fLastClose)*100.0)/fLastClose) + 0.5);
+		if(iIndex<=-10)
+		{
+			fIncrese[0] += fV;
+		}
+		else if(iIndex>=10)
+		{
+			fIncrese[20] += fV;
+		}
+		else
+		{
+			fIncrese[iIndex+10] += fV;
+		}
+
+		pLastFenBi = pFenBi;
+	}
+
+	return true;
+}
 
 CStockDealWidget::CStockDealWidget( CBaseWidget* parent /*= 0*/ )
 	: CCoordXBaseWidget(parent,WidgetStockDeal)
@@ -122,7 +326,13 @@ CStockDealWidget::CStockDealWidget( CBaseWidget* parent /*= 0*/ )
 		{
 			m_pMenuDealType->addAction(_d.desc,this,SLOT(onSetDealType()))->setData(_d.value);
 		}
+
+		//颜色显示模式菜单
+		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色模式");
 	}
+
+	//初始化颜色表
+	setColorMode("");
 }
 
 
@@ -137,6 +347,12 @@ void CStockDealWidget::onSetDealType()
 	setDealType(static_cast<RDealWidgetType>(pAct->data().toInt()));
 }
 
+void CStockDealWidget::onSetColorMode()
+{
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	setColorMode(pAct->data().toString());
+}
+
 void CStockDealWidget::setStockCode( const QString& code )
 {
 	m_pCurStock = CDataEngine::getDataEngine()->getStockInfoItem(code);
@@ -146,6 +362,17 @@ void CStockDealWidget::setStockCode( const QString& code )
 void CStockDealWidget::setDealType( RDealWidgetType _t )
 {
 	m_typeWidget = _t;
+	updateData();
+}
+
+void CStockDealWidget::setColorMode( const QString& mode )
+{
+	m_vColor.clear();
+	m_qsColorMode = mode;
+	for (int i=0;i<21;++i)
+	{
+		m_vColor.push_back(CColorManager::getBlockColor(mode,i));
+	}
 	updateData();
 }
 
@@ -212,6 +439,20 @@ QMenu* CStockDealWidget::getCustomMenu()
 		{
 			pAct->setCheckable(true);
 			pAct->setChecked(pAct->data().toInt() == m_typeWidget);
+		}
+	}
+
+	{
+		//添加当前所有的支持的颜色模式菜单
+		m_pMenuColorMode->clear();
+		QStringList listColors = CColorManager::getBlockColorList();
+		foreach(const QString& clr,listColors)
+		{
+			QAction* pAct = m_pMenuColorMode->addAction(clr,this,SLOT(onSetColorMode()));
+			pAct->setData(clr);
+			pAct->setCheckable(true);
+			if(clr == m_qsColorMode)
+				pAct->setChecked(true);
 		}
 	}
 
@@ -292,7 +533,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 				case DealKind:
 					{
 						float fDealKind[7];
-						memset(&fDealKind[0],0,sizeof(float)*6);
+						memset(&fDealKind[0],0,sizeof(float)*7);
 						getDealKind(listFenBi,pFenBi,&fDealKind[0]);
 						float fTotal = 0.0;
 						for(int i=0;i<7;++i)
@@ -305,6 +546,32 @@ void CStockDealWidget::drawClient( QPainter& p )
 							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,CColorManager::getCommonColor(i));
 							fY += fh;
 						}
+					}
+					break;
+				case DealIncrese:
+					{
+						float fDealIncrease[21];
+						memset(&fDealIncrease[0],0,sizeof(float)*21);
+						getPriceIncrease(listFenBi,pFenBi,m_pCurStock->getLastClose(),&fDealIncrease[0]);
+						float fTotal = 0.0;
+						for(int i=0;i<21;++i)
+							fTotal+=fDealIncrease[i];
+						if(fTotal>0.0)
+						{
+							float fY = rtBlock.top();
+							float fH = rtBlock.height();
+							for(int i=0;i<21;++i)
+							{
+								float fh = (fDealIncrease[i]/fTotal)*fH;
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[i]);
+								fY += fh;
+							}
+						}
+					}
+					break;
+				case DealOrder:
+					{
+
 					}
 					break;
 				}
@@ -372,6 +639,13 @@ bool CStockDealWidget::loadPanelInfo( const QDomElement& eleWidget )
 		m_typeWidget = static_cast<RDealWidgetType>(eleWidget.attribute("dealtype").toInt());
 	}
 
+	//当前的颜色模式
+	QDomElement eleColorMode = eleWidget.firstChildElement("color");
+	if(eleColorMode.isElement())
+	{
+		QString qsColor = eleColorMode.text();
+		setColorMode(qsColor);
+	}
 
 	QDomElement eleCode = eleWidget.firstChildElement("code");
 	if(eleCode.isElement())
@@ -388,6 +662,11 @@ bool CStockDealWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	//显示的周期
 	eleWidget.setAttribute("dealtype",m_typeWidget);
 	
+	//当前的颜色模式
+	QDomElement eleColorMode = doc.createElement("color");
+	eleColorMode.appendChild(doc.createTextNode(m_qsColorMode));
+	eleWidget.appendChild(eleColorMode);
+
 	//当前的股票值
 	if(m_pCurStock)
 	{

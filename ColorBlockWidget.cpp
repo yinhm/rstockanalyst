@@ -406,7 +406,7 @@ void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
 	update(rectOfStock(m_pSelectedStock));
 	if(m_pSelectedStock)
 	{
-		CMainWindow::getMainWindow()->clickedStock(m_pSelectedStock->getCode());
+		CMainWindow::getMainWindow()->clickedStock(m_pSelectedStock->getOnly());
 	}
 }
 

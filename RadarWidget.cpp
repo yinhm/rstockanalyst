@@ -37,9 +37,9 @@ CRadarWidget::CRadarWidget( CBaseWidget* parent /*= 0*/ )
 	connect(&m_timerAutoScroll,SIGNAL(timeout()),this,SLOT(onAutoScroll()));
 
 	/*临时用于生成监视数据*/
-	QTimer* pTimer = new QTimer();
-	connect(pTimer,SIGNAL(timeout()),this,SLOT(testRandomRadar()));
-	pTimer->start(1000);
+//	QTimer* pTimer = new QTimer();
+//	connect(pTimer,SIGNAL(timeout()),this,SLOT(testRandomRadar()));
+//	pTimer->start(1000);
 }
 
 

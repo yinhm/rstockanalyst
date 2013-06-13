@@ -30,6 +30,7 @@ protected:
 
 protected slots:
 	void onSetDealType();
+	void onSetColorMode();									//点击设置颜色模式
 
 protected:
 	//设置当前显示的股票
@@ -37,6 +38,9 @@ protected:
 
 	//设置显示类型
 	void setDealType(RDealWidgetType _t);
+
+	//设置颜色模式
+	void setColorMode(const QString& mode);
 
 	//更新数据，临时使用
 	virtual void updateData();
@@ -72,8 +76,11 @@ private:
 	//各个周期所在的矩形
 	QMap<int,QRect> m_mapDealTypes;
 
+	QString m_qsColorMode;					//当前颜色模式
+	QVector<QColor> m_vColor;				//当前的颜色
 private:
 	QMenu* m_pMenuDealType;					//成交种类图
+	QMenu* m_pMenuColorMode;				//颜色模式选择菜单
 
 private:
 	CStockInfoItem* m_pCurStock;			//当前的股票

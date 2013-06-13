@@ -6,7 +6,7 @@
 #include "MainWindow.h"
 
 #define	RCB_OFFSET_Y	2
-#define RCB_OFFSET_LEFT	50
+#define RCB_OFFSET_LEFT	0
 
 CBColorBlockWidget::CBColorBlockWidget(CBaseWidget* parent /*= 0*/ )
 	: CBaseBlockWidget(parent,WidgetBColorBlock)
@@ -17,7 +17,7 @@ CBColorBlockWidget::CBColorBlockWidget(CBaseWidget* parent /*= 0*/ )
 	, m_pCurBlock(0)
 {
 	connect(&m_timerUpdateUI,SIGNAL(timeout()),this,SLOT(updateUI()));
-//	m_timerUpdateUI.start(3000);
+	m_timerUpdateUI.start(3000);
 }
 
 
@@ -229,7 +229,23 @@ void CBColorBlockWidget::setBlock( const QString& block )
 
 void CBColorBlockWidget::updateUI()
 {
-	m_typeCircle = Sec30;
+	m_typeCircle = Min1;
+	{
+		//更新数据
+		QMap<CBlockInfoItem*,QMap<time_t,qRcvFenBiData*>*>::iterator iter = mapBlockColorBlocks.begin();
+		while(iter!=mapBlockColorBlocks.end())
+		{
+			QMap<time_t,qRcvFenBiData*>* pMap = iter.value();
+			CBlockInfoItem* pItem = iter.key();
+			pMap->clear();
+
+			foreach(qRcvFenBiData* pFenBi,pItem->getFenBiList())
+			{
+				pMap->insert(pFenBi->tmTime,pFenBi);
+			}
+			++iter;
+		}
+	}
 	updateTimesH();
 	updateSortMode(false);
 }
@@ -537,6 +553,7 @@ void CBColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 {
 	p.fillRect(rtBottom,QColor(0,0,0));
 
+	/*
 	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),50,rtBottom.height());
 	float fColorsWidth = rtColors.width()-5;
 	float fColorWidth = fColorsWidth/COLOR_BLOCK_SIZE;
@@ -545,7 +562,7 @@ void CBColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
 			QColor::fromRgb(m_clrTable[i]));
 	}
-
+	*/
 	//从右向左绘制横坐标
 	drawCoordX(p,QRect(rtBottom.left()+RCB_OFFSET_LEFT,rtBottom.top(),
 		rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,rtBottom.height()),m_iCBWidth);
@@ -557,7 +574,8 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 	{
 		p.fillRect(rtCB,QColor(50,50,50));
 	}
-
+/*
+	不再绘制左侧文字说明
 	{
 		//绘制左侧的标识信息（代码或者名称）
 		p.setPen(QColor(255,255,255));
@@ -576,7 +594,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 		}
 		p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,qsText);
 	}
-
+*/
 	//从右向左绘制横坐标
 	float fBeginX = rtCB.right()-RCB_OFFSET_Y;
 	float fEndX = rtCB.left()+RCB_OFFSET_LEFT;
@@ -626,14 +644,14 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				{
 					//10-1
 					float fPerH = fCount[j]*fPer;
-					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[20-j]);
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[20-j]);
 				
 					fCurY+=fPerH;
 				}
 				{
 					//0
 					float fPerH = (fTotal-fNotEquel)*fPer;
-					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[10]);
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[10]);
 
 					fCurY+=fPerH;
 				}
@@ -641,7 +659,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				for (int j=10;j<20;++j)
 				{
 					float fPerH = fCount[j]*fPer;
-					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth-1,fPerH),m_clrTable[19-j]);
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[19-j]);
 
 					fCurY+=fPerH;
 				}
@@ -712,4 +730,11 @@ qRcvFenBiData* CBColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 		}
 	}
 	return pData;
+}
+
+void CBColorBlockWidget::onBlockReportUpdate( const QString& qsOnly )
+{
+	//未使用
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(qsOnly);
+	update(rectOfBlock(pBlock));
 }
