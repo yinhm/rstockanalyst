@@ -11,7 +11,7 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>39</size>
+   <size>63</size>
    <widget>
     <name></name>
     <type>2</type>
@@ -19,7 +19,7 @@
     <align>1</align>
     <size>55</size>
     <block>800022BB</block>
-    <stock>300002SZ</stock>
+    <stock>600522SH</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -27,7 +27,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>25</size>
-    <code>300002SZ</code>
+    <code>600522SH</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -52,16 +52,17 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <type>5</type>
      <relate>1</relate>
      <align>1</align>
-     <size>78</size>
-     <code>300002SZ</code>
+     <size>65</size>
+     <code>600522SH</code>
     </widget>
-    <widget dealtype="1">
+    <widget dealtype="3">
      <name></name>
      <type>7</type>
      <relate>1</relate>
      <align>1</align>
-     <size>21</size>
-     <code>300002SZ</code>
+     <size>34</size>
+     <color>红绿</color>
+     <code>600522SH</code>
     </widget>
    </widget>
   </widget>
@@ -70,7 +71,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>60</size>
+   <size>36</size>
    <widget circle="0">
     <name></name>
     <type>1</type>
@@ -99,7 +100,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <size>51</size>
     <color>红绿</color>
     <Abnomals/>
-    <block>800012BB</block>
+    <block>800003BB</block>
     <exps>
      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
      <height>CLOSE</height>
