@@ -302,13 +302,44 @@ bool getPriceIncrease( const QList<qRcvFenBiData*>& listFenBi, qRcvFenBiData* pL
 	return true;
 }
 
+//获取挂单分布数据
+bool getOrderData( const QList<qRcvFenBiData*>& listFenBi, QMap<int,float>& mapBuy,QMap<int,float>& mapSell)
+{
+	foreach(qRcvFenBiData* pFenBi,listFenBi)
+	{
+		for (int i=0;i<5;++i)
+		{
+			int iPriceBuy = (int)((pFenBi->fBuyPrice[i]*100.0)+0.5);
+			int iPriceSell = (int)((pFenBi->fSellPrice[i]*100.0)+0.5);
+			if(mapBuy.contains(iPriceBuy))
+			{
+				mapBuy[iPriceBuy]+=pFenBi->fBuyVolume[i];
+			}
+			else
+			{
+				mapBuy[iPriceBuy]=pFenBi->fBuyVolume[i];
+			}
+
+			if(mapSell.contains(iPriceSell))
+			{
+				mapSell[iPriceSell]+=pFenBi->fSellVolume[i];
+			}
+			else
+			{
+				mapSell[iPriceSell]=pFenBi->fSellVolume[i];
+			}
+		}
+	}
+	return true;
+}
+
 CStockDealWidget::CStockDealWidget( CBaseWidget* parent /*= 0*/ )
 	: CCoordXBaseWidget(parent,WidgetStockDeal)
 	, m_iTitleHeight(16)
 	, m_iBottomHeight(16)
 	, m_pCurStock(0)
 	, m_iItemWidth(4)
-	, m_iItemHeight(50)
+	, m_iItemHeight(70)
 	, m_typeWidget(DealKind)
 {
 	{
@@ -540,10 +571,10 @@ void CStockDealWidget::drawClient( QPainter& p )
 							fTotal+=fDealKind[i];
 						float fY = rtBlock.top();
 						float fH = rtBlock.height();
-						for(int i=0;i<7;++i)
+						for(int j=0;j<7;++j)
 						{
-							float fh = (fDealKind[i]/fTotal)*fH;
-							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,CColorManager::getCommonColor(i));
+							float fh = (fDealKind[j]/fTotal)*fH;
+							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,CColorManager::getCommonColor(j));
 							fY += fh;
 						}
 					}
@@ -554,16 +585,16 @@ void CStockDealWidget::drawClient( QPainter& p )
 						memset(&fDealIncrease[0],0,sizeof(float)*21);
 						getPriceIncrease(listFenBi,pFenBi,m_pCurStock->getLastClose(),&fDealIncrease[0]);
 						float fTotal = 0.0;
-						for(int i=0;i<21;++i)
-							fTotal+=fDealIncrease[i];
+						for(int j=0;j<21;++j)
+							fTotal+=fDealIncrease[j];
 						if(fTotal>0.0)
 						{
 							float fY = rtBlock.top();
 							float fH = rtBlock.height();
-							for(int i=0;i<21;++i)
+							for(int j=0;j<21;++j)
 							{
-								float fh = (fDealIncrease[i]/fTotal)*fH;
-								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[i]);
+								float fh = (fDealIncrease[j]/fTotal)*fH;
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[j]);
 								fY += fh;
 							}
 						}
@@ -571,7 +602,63 @@ void CStockDealWidget::drawClient( QPainter& p )
 					break;
 				case DealOrder:
 					{
+						QMap<int,float> mapBuy,mapSell;
+						getOrderData(listFenBi,mapBuy,mapSell);
+						float fTotalBuy = 0.0;
+						float fTotalSell = 0.0;
+						{
+							QMap<int,float>::iterator iter = mapBuy.begin();
+							while (iter!=mapBuy.end())
+							{
+								fTotalBuy+=iter.value();
+								++iter;
+							}
+						}
+						{
+							QMap<int,float>::iterator iter = mapSell.begin();
+							while (iter!=mapSell.end())
+							{
+								fTotalSell+=iter.value();
+								++iter;
+							}
+						}
+						if(fTotalBuy>0.0)
+						{
+							float fY = rtBlock.top();
+							float fH = rtBlock.height()/2;
+							
+							QMap<int,float>::iterator iter = mapBuy.begin();
+							int j = 20;
+							while (iter!=mapBuy.end())
+							{
+								float fh = (iter.value()/fTotalBuy)*fH;
+								if(j<10)
+									j=10;
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[j]);
+								fY += fh;
+								--j;
+								++iter;
+							}
+						}
 
+						if(fTotalSell>0.0)
+						{
+							float fY = rtBlock.center().y();
+							float fH = rtBlock.height()/2;
+
+							QMap<int,float>::iterator iter = mapSell.begin();
+							int j=9;
+							while (iter!=mapSell.end())
+							{
+								float fh = (iter.value()/fTotalSell)*fH;
+								if(j<0)
+									j=0;
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[j]);
+								fY += fh;
+								--j;
+								++iter;
+							}
+						}
 					}
 					break;
 				}
