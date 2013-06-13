@@ -347,6 +347,7 @@ CStockDealWidget::CStockDealWidget( CBaseWidget* parent /*= 0*/ )
 		m_listDealType.push_back(RWidgetOpData(DealKind,".kind","类型图"));
 		m_listDealType.push_back(RWidgetOpData(DealIncrese,".price","价位图"));
 		m_listDealType.push_back(RWidgetOpData(DealOrder,".order","挂单图"));
+		m_listDealType.push_back(RWidgetOpData(DealOrder2,".order2","挂单图2"));
 	}
 
 	{
@@ -657,6 +658,103 @@ void CStockDealWidget::drawClient( QPainter& p )
 								fY += fh;
 								--j;
 								++iter;
+							}
+						}
+					}
+					break;
+				case DealOrder2:
+					{
+						QMap<int,float> mapBuy,mapSell;
+						getOrderData(listFenBi,mapBuy,mapSell);
+						float fTotalBuy = 0.0;
+						float fTotalSell = 0.0;
+						{
+							QMap<int,float>::iterator iter = mapBuy.begin();
+							while (iter!=mapBuy.end())
+							{
+								fTotalBuy+=iter.value();
+								++iter;
+							}
+						}
+						{
+							QMap<int,float>::iterator iter = mapSell.begin();
+							while (iter!=mapSell.end())
+							{
+								fTotalSell+=iter.value();
+								++iter;
+							}
+						}
+						if(fTotalBuy>0.0)
+						{
+							float fY = rtBlock.top();
+							float fH = rtBlock.height()/2;
+							float fPer = fH/10.0;
+							if(mapBuy.size()<10)
+								fPer = fH/mapBuy.size();
+
+							QMap<int,float>::iterator iter = mapBuy.begin();
+							int j = 0;
+							float fV=0;
+							while (iter!=mapBuy.end())
+							{
+								if(j>8)
+								{
+									fV += iter.value();
+								}
+								else
+								{
+									int iIndex = ((iter.value()/fTotalBuy)*100)+0.5;
+									if(iIndex>9)
+										iIndex=9;
+									p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[9-iIndex]);
+									fY += fPer;
+								}
+								++j;
+								++iter;
+							}
+							if(fV>0.1)
+							{
+								int iIndex = ((fV/fTotalBuy)*100)+0.5;
+								if(iIndex>9)
+									iIndex=9;
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[9-iIndex]);
+							}
+						}
+
+						if(fTotalSell>0.0)
+						{
+							float fY = rtBlock.center().y();
+							float fH = rtBlock.height()/2;
+							float fPer = fH/10.0;
+							if(mapSell.size()<10)
+								fPer = fH/mapSell.size();
+
+							QMap<int,float>::iterator iter = mapSell.begin();
+							int j = 0;
+							float fV=0;
+							while (iter!=mapSell.end())
+							{
+								if(j>8)
+								{
+									fV += iter.value();
+								}
+								else
+								{
+									int iIndex = ((iter.value()/fTotalSell)*100)+0.5;
+									if(iIndex>9)
+										iIndex=9;
+									p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[11+iIndex]);
+									fY += fPer;
+								}
+								++j;
+								++iter;
+							}
+							if(fV>0.1)
+							{
+								int iIndex = ((fV/fTotalSell)*100)+0.5;
+								if(iIndex>9)
+									iIndex=9;
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[11+iIndex]);
 							}
 						}
 					}

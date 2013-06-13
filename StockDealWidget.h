@@ -7,6 +7,7 @@ enum RDealWidgetType
 	DealKind = 1,		//类型
 	DealIncrese,		//幅度
 	DealOrder,			//挂单
+	DealOrder2,			//挂单第2种显示方式
 };
 
 class CStockDealWidget : public CCoordXBaseWidget
