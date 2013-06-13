@@ -189,7 +189,7 @@ int my_lua_volume( lua_State* _L )
 			int _i = 1;
 			while(iter!=pCalc->mapData->end())
 			{
-				if((*iter)!=NULL)
+				if((*iter)!=NULL && (*iter)->fVolume>0.0)
 				{
 					lua_pushnumber(_L,(*iter)->fVolume);
 				}

@@ -45,6 +45,7 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	qsMarket = CDataEngine::getMarketStr(wMarket);
 	qsOnly = qsCode+qsMarket;
 
+	//初始化Report数据
 	qRcvReportData* pReport = CDataEngine::getReportForInitBlock(qsOnly);
 	if(pReport)
 	{
@@ -482,7 +483,7 @@ void CBlockInfoItem::updateData()
 				{
 					++fInc[9-_index];
 				}
-				else
+				else if(_index<-9)
 				{
 					++fInc[19];
 				}

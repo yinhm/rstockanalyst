@@ -94,7 +94,7 @@ CStockInfoItem::~CStockInfoItem(void)
 
 void CStockInfoItem::setReport( qRcvReportData* p )
 {
-	if(p->tmTime<=pCurrentReport->tmTime)
+	if(p->tmTime<=pCurrentReport->tmTime || p->fNewPrice<0.01)
 		return;
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
@@ -109,7 +109,7 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 
 void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 {
-	if(p->m_time<=pCurrentReport->tmTime)
+	if(p->m_time<=pCurrentReport->tmTime || p->m_fNewPrice<0.01)
 		return;
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
