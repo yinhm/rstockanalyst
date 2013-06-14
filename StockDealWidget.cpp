@@ -537,7 +537,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 		return;
 
 	int iBeginX = m_rtClient.right();
-	int iEndX = m_rtClient.left();
+//	int iEndX = m_rtClient.left();			//全部显示，暂时不用
 	int iBeginY = m_rtClient.top();
 
 	qRcvFenBiData* pLastFenBi = 0;
