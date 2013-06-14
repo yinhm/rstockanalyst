@@ -50,7 +50,19 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	if(pReport)
 	{
 		pCurrentReport->tmTime = pReport->tmTime;
+		pCurrentReport->qsCode = qsCode;
+		pCurrentReport->wMarket = BB_MARKET_EX;
 		memcpy(&(pCurrentReport->fLastClose),&(pReport->fLastClose),sizeof(float)*27);
+
+		fNewPrice = pCurrentReport->fNewPrice;
+		fOpenPrice = pCurrentReport->fOpen;
+		fHighPrice = pCurrentReport->fHigh;
+		fLowPrice = pCurrentReport->fLow;
+		fLastClose = pCurrentReport->fLastClose;
+		fVolume = pCurrentReport->fVolume;
+		fAmount = pCurrentReport->fAmount;
+		if(fNewPrice>0.0 && fLastClose>0.0)
+			fIncrease = (fNewPrice-fLastClose)*100.0/fLastClose;
 	}
 	else
 	{
@@ -541,6 +553,7 @@ void CBlockInfoItem::updateData()
 	pCurrentReport->fNewPrice = fNewPrice;
 	pCurrentReport->fLow = fLowPrice;
 	pCurrentReport->fHigh = fHighPrice;
+	pCurrentReport->fLastClose = fLastClose;
 	pCurrentReport->fAmount = fAmount;
 	pCurrentReport->fVolume = fVolume;
 	memcpy(&pCurrentReport->fBuyPrice[0],&fReport[0],80);

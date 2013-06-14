@@ -587,12 +587,13 @@ int CDataEngine::exportReportsInfo( const QString& qsFile )
 		{
 			//保存当天所有的Reports
 			qRcvReportData* pReport = pItem->getCurrentReport();
-			if(pReport&&(!pReport->qsCode.isEmpty()))
+			if(pReport&&(!(pReport->qsCode.isEmpty())))
 			{
 				out<<pReport->tmTime<<pReport->wMarket<<pReport->qsCode<<pReport->qsName;
 				//直接拷贝剩余的所有float数据
 				if(out.writeRawData((char*)&pReport->fLastClose,sizeof(float)*27)!=(sizeof(float)*27))
 					break;
+
 				++iCount;
 			}
 		}
