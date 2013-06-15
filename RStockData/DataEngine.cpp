@@ -773,71 +773,66 @@ QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
 		*/
 		time_t tmCur = CDataEngine::getCurrentTime();
 		time_t tmLast = ((tmCur/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
-		time_t tmCurrent = (tmCur+Sec10)/Sec10*Sec10;//向上对分钟取整
+		time_t tmCurrent = (tmCur+Sec3)/Sec3*Sec3;						//向上对周期取整
 		time_t tmNoon1 = ((tmCur/(3600*24))*3600*24)+3600*(11-8)+60*30;
 		time_t tmNoon2 = ((tmCur/(3600*24))*3600*24)+3600*(13-8);
 
-		if((tmCurrent%(3600*24))>3600*7)
-		{
-			tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7 + Sec10;		//3点收盘(多加一个周期)
-		}
 
 		/*需向上和向下多计算一个周期*/
 		if(tmCurrent>tmNoon2)
 		{
-			time_t tmTmp = tmCurrent;
-			if((tmTmp-tmNoon2)>=120)
-			{
-				//10s数据
-				getTimeMapBySec(mapTimes,tmTmp-120,tmTmp,Sec10);
-				tmTmp = tmTmp - 120;
-				if((tmTmp-tmNoon2)>=600)
-				{
-					//1min数据
-					getTimeMapBySec(mapTimes,tmTmp-600,tmTmp,Min1);
-					tmTmp = tmTmp - 600;
-					//5min数据
-					getTimeMapBySec(mapTimes,tmNoon2-Min5,tmTmp,Min5);
-					getTimeMapBySec(mapTimes,tmLast-Min5,tmNoon1+Min5,Min5);
-				}
-				else
-				{
-					//1min数据
-					getTimeMapBySec(mapTimes,tmNoon2-Min1,tmTmp,Min1);
-					//5min数据
-					getTimeMapBySec(mapTimes,tmLast-Min5,tmNoon1+Min5,Min5);
-				}
-			}
-			else
-			{
-				//10s数据
-				getTimeMapBySec(mapTimes,tmNoon2-Sec10,tmTmp,Sec10);
-				//1min数据
-				getTimeMapBySec(mapTimes,tmNoon1-540,tmNoon1+Min1,Min1);
-				//5min数据
-				getTimeMapBySec(mapTimes,tmLast-Min5,tmNoon1-540,Min5);
+			time_t tmC2N = (tmCurrent-tmNoon2+Min5);
+			int iSec3Count = (tmC2N/Sec3 - tmC2N/Sec6*2);
+			int iSec6Count = (tmC2N/Sec6 - tmC2N/Sec12*2);
+			int iSec12Count = (tmC2N/Sec12 - tmC2N/Min1*5);
+			int iMin1Count = (tmC2N/Min1 - tmC2N/Min5*5);
+			int iMin5Count = (tmC2N/Min5);
 
-			}
+			//计算时间轴
+			time_t tmEnd = tmCurrent;
+			time_t tmBegin = tmEnd-(Sec3*iSec3Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Sec3);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Sec6*iSec6Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Sec6);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Sec12*iSec12Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Sec12);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Min1*iMin1Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Min1);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Min5*iMin5Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Min5);
+
+			//计算上午的时间轴
+			getTimeMapBySec(mapTimes,tmLast-Min5,tmNoon1+Min5,Min5);
 		}
 		else
 		{
-			time_t tmTmp = tmCurrent;
-			if(tmCurrent>tmNoon1)
-				tmTmp = tmNoon1+Sec10;
-			//10s数据
-			if((tmTmp-tmLast)>120)
-				getTimeMapBySec(mapTimes,tmTmp-120,tmTmp,Sec10);
-			else
-				getTimeMapBySec(mapTimes,tmLast,tmTmp,Sec10);
-			tmTmp = tmTmp-120;
-			//1min数据
-			if((tmTmp-tmLast)>600)
-				getTimeMapBySec(mapTimes,tmTmp-600,tmTmp,Min1);
-			else
-				getTimeMapBySec(mapTimes,tmLast,tmTmp,Min1);
-			tmTmp = tmTmp-600;
-			//5min数据
-			getTimeMapBySec(mapTimes,tmLast,tmTmp,Min5);
+			time_t tmC2N = (tmCurrent-tmLast+Min5);
+			int iSec3Count = (tmC2N/Sec3 - tmC2N/Sec6*2);
+			int iSec6Count = (tmC2N/Sec6 - tmC2N/Sec12*2);
+			int iSec12Count = (tmC2N/Sec12 - tmC2N/Min1*5);
+			int iMin1Count = (tmC2N/Min1 - tmC2N/Min5*5);
+			int iMin5Count = (tmC2N/Min5);
+
+			//计算时间轴
+			time_t tmEnd = tmCurrent;
+			time_t tmBegin = tmEnd-(Sec3*iSec3Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Sec3);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Sec6*iSec6Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Sec6);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Sec12*iSec12Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Sec12);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Min1*iMin1Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Min1);
+			tmEnd = tmBegin;
+			tmBegin = tmEnd-(Min5*iMin5Count);
+			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Min5);
 		}
 	}
 	else if(_c<Day)

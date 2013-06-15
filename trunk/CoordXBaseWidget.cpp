@@ -32,8 +32,9 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 	{
 		//初始化显示周期的快速查找表
 		m_listCircle.push_back(RWidgetOpData(AutoCircle,".auto","自动分时图"));
-		m_listCircle.push_back(RWidgetOpData(Sec10,".m10","10秒分时图"));
-		m_listCircle.push_back(RWidgetOpData(Sec30,".m30","30秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec3,".m3","3秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec6,".m6","6秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec12,".m12","12秒分时图"));
 		m_listCircle.push_back(RWidgetOpData(Min1,".f1","一分时图"));
 		m_listCircle.push_back(RWidgetOpData(Min5,".f5","五分时图"));
 		m_listCircle.push_back(RWidgetOpData(Min15,".f15","刻分时图"));
@@ -166,14 +167,24 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 			}
 			else
 			{
-				if(m_typeCircle<Min1 && m_typeCircle>AutoCircle)
+				if(m_typeCircle<Min1)
 				{
-					if((fLastX-fCurX)>50)
+					if((fLastX-fCurX)>30)
 					{
-						p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
-						p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
-						p.drawText(fCurX-24,rtCoordX.top()+2,50,rtCoordX.height()-2,
-							Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm:ss"));
+						if(iTimeCount%2)
+						{
+							p.setPen(QColor(255,0,0));
+							p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+							p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+								Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+						}
+						else
+						{
+							p.setPen(QColor(0,255,255));
+							p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+							p.drawText(fCurX-24,rtCoordX.top()+2,50,rtCoordX.height()-2,
+								Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("mm:ss"));
+						}
 
 						fLastX = fCurX;
 						++iTimeCount;
@@ -181,7 +192,6 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 				}
 				else
 				{
-
 					if((fLastX-fCurX)>30)
 					{
 						p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
@@ -193,7 +203,6 @@ void CCoordXBaseWidget::drawCoordX(QPainter& p,const QRectF& rtCoordX,float fIte
 						++iTimeCount;
 					}
 				}
-				
 			}
 
 			--iCount;
