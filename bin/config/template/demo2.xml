@@ -11,13 +11,13 @@
    <type>0</type>
    <relate>1</relate>
    <align>2</align>
-   <size>32</size>
+   <size>30</size>
    <widget circle="3">
     <name></name>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
-    <size>19</size>
+    <size>17</size>
     <code>1A0001SH</code>
     <liners>
      <Liner size="60">
@@ -33,7 +33,7 @@ DrawLine(MA(OPEN,3))</exp>
     <type>3</type>
     <relate>0</relate>
     <align>1</align>
-    <size>22</size>
+    <size>16</size>
     <color>红绿</color>
     <Abnomals/>
     <block>800002BB</block>
@@ -48,21 +48,82 @@ DrawLine(MA(OPEN,3))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
+    <size>20</size>
+    <widget circle="60" CBHeight="16" CBWidth="16">
+     <name></name>
+     <type>3</type>
+     <relate>0</relate>
+     <align>1</align>
+     <size>100</size>
+     <color>红绿</color>
+     <Abnomals/>
+     <block>800022BB</block>
+     <exps>
+      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
+      <height>CLOSE</height>
+      <width>CLOSE</width>
+     </exps>
+    </widget>
+   </widget>
+   <widget>
+    <name></name>
+    <type>0</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>28</size>
+    <widget circle="60">
+     <name></name>
+     <type>1</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>28</size>
+     <code>000021SZ</code>
+     <liners>
+      <Liner size="60">
+       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
+      </Liner>
+     </liners>
+    </widget>
+    <widget circle="60" CBHeight="30" CBWidth="1">
+     <name></name>
+     <type>4</type>
+     <relate>0</relate>
+     <align>1</align>
+     <size>38</size>
+     <color>红绿</color>
+     <Abnomals/>
+     <block>800109BB</block>
+    </widget>
+    <widget circle="0" CBHeight="16" CBWidth="16">
+     <name></name>
+     <type>3</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>33</size>
+     <color>红绿</color>
+     <Abnomals/>
+     <block>800013BB</block>
+     <exps>
+      <color>(CLOSE-OPEN)/OPEN*2</color>
+      <height>CLOSE</height>
+      <width>CLOSE</width>
+     </exps>
+    </widget>
+   </widget>
+   <widget circle="60" CBHeight="16" CBWidth="16">
+    <name></name>
+    <type>3</type>
+    <relate>0</relate>
+    <align>1</align>
     <size>17</size>
-   </widget>
-   <widget>
-    <name></name>
-    <type>0</type>
-    <relate>1</relate>
-    <align>1</align>
-    <size>19</size>
-   </widget>
-   <widget>
-    <name></name>
-    <type>0</type>
-    <relate>1</relate>
-    <align>1</align>
-    <size>19</size>
+    <color>红绿</color>
+    <Abnomals/>
+    <block>800106BB</block>
+    <exps>
+     <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
+     <height>CLOSE</height>
+     <width>CLOSE</width>
+    </exps>
    </widget>
   </widget>
   <widget>
@@ -70,32 +131,34 @@ DrawLine(MA(OPEN,3))</exp>
    <type>0</type>
    <relate>1</relate>
    <align>2</align>
-   <size>67</size>
+   <size>69</size>
    <widget circle="60">
     <name></name>
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
     <size>50</size>
-    <code>000037SH</code>
+    <code>000021SZ</code>
     <liners>
-     <Liner size="60">
-      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
-DrawLine(MA(OPEN,10))
-DrawLine(MA(OPEN,5))
-DrawLine(MA(OPEN,3))
-DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+     <Liner size="20">
+      <exp>DrawLine(CLOSE)</exp>
      </Liner>
     </liners>
    </widget>
-   <widget>
+   <widget circle="0" CBHeight="50" CBWidth="16">
     <name></name>
-    <type>2</type>
+    <type>3</type>
     <relate>1</relate>
     <align>1</align>
     <size>49</size>
-    <block>800001BB</block>
-    <stock>000037SH</stock>
+    <color>红绿</color>
+    <Abnomals/>
+    <block>800013BB</block>
+    <exps>
+     <color>(CLOSE-OPEN)/OPEN</color>
+     <height>VOLUME/MAX(VOLUME)</height>
+     <width>CLOSE</width>
+    </exps>
    </widget>
   </widget>
  </widget>

@@ -630,17 +630,25 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				float fHeight = rtCB.height()-1;
 
 				float* fCount = &(pFenBi->fBuyPrice[0]);
-				float fTotal = pItem->getStockCount();
-				float fPer = fHeight/fTotal;
-				float fCurY = fTop;
 
 				float fNotEquel = 0;
-				for (int i=0;i<20;++i)
+				for (int i=0;i<9;++i)
+				{
+					fNotEquel+=fCount[i];
+				}
+				for (int i=11;i<20;++i)
 				{
 					fNotEquel+=fCount[i];
 				}
 
-				for (int j=0;j<10;++j)
+				float fTotal = fNotEquel;
+				float fPer = fHeight/fTotal;
+				float fCurY = fTop;
+				if(fPer>=fHeight)
+					continue;
+
+
+				for (int j=0;j<9;++j)
 				{
 					//10-1
 					float fPerH = fCount[j]*fPer;
@@ -650,13 +658,13 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				}
 				{
 					//0
-					float fPerH = (fTotal-fNotEquel)*fPer;
-					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[10]);
+//					float fPerH = (fTotal-fNotEquel)*fPer;
+//					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[10]);
 
-					fCurY+=fPerH;
+//					fCurY+=fPerH;
 				}
 
-				for (int j=10;j<20;++j)
+				for (int j=11;j<20;++j)
 				{
 					float fPerH = fCount[j]*fPer;
 					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[19-j]);
