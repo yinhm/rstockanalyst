@@ -220,20 +220,20 @@ end
 --[[
 ]]
 function MAX(op)
-{
 	if(type(op)~="table") then
 		return op;
 	end
 	
 	local m = op[1];
-	local c = #(op1)
+	local c = #(op);
 	for i=1,c do
-		if (c<op[i]) then
+		if (m<op[i]) then
 			m=op[i];
 		end
 	end
 	return m;
-}
+end
+
 function InitValues()
 	CLOSE=RClose();
 	OPEN=ROpen();
