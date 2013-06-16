@@ -1,0 +1,102 @@
+<!DOCTYPE template>
+<ROOT title="demo2">
+ <widget>
+  <name></name>
+  <type>0</type>
+  <relate>1</relate>
+  <align>1</align>
+  <size>100</size>
+  <widget>
+   <name></name>
+   <type>0</type>
+   <relate>1</relate>
+   <align>2</align>
+   <size>32</size>
+   <widget circle="3">
+    <name></name>
+    <type>1</type>
+    <relate>0</relate>
+    <align>1</align>
+    <size>19</size>
+    <code>1A0001SH</code>
+    <liners>
+     <Liner size="60">
+      <exp>DrawLine(CLOSE)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))</exp>
+     </Liner>
+    </liners>
+   </widget>
+   <widget circle="60" CBHeight="16" CBWidth="16">
+    <name></name>
+    <type>3</type>
+    <relate>0</relate>
+    <align>1</align>
+    <size>22</size>
+    <color>红绿</color>
+    <Abnomals/>
+    <block>800002BB</block>
+    <exps>
+     <color>(CLOSE-OPEN)/OPEN*5</color>
+     <height>VOLUME/MAX(VOLUME)</height>
+     <width>CLOSE</width>
+    </exps>
+   </widget>
+   <widget>
+    <name></name>
+    <type>0</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>17</size>
+   </widget>
+   <widget>
+    <name></name>
+    <type>0</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>19</size>
+   </widget>
+   <widget>
+    <name></name>
+    <type>0</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>19</size>
+   </widget>
+  </widget>
+  <widget>
+   <name></name>
+   <type>0</type>
+   <relate>1</relate>
+   <align>2</align>
+   <size>67</size>
+   <widget circle="60">
+    <name></name>
+    <type>1</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>50</size>
+    <code>000037SH</code>
+    <liners>
+     <Liner size="60">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+     </Liner>
+    </liners>
+   </widget>
+   <widget>
+    <name></name>
+    <type>2</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>49</size>
+    <block>800001BB</block>
+    <stock>000037SH</stock>
+   </widget>
+  </widget>
+ </widget>
+</ROOT>
