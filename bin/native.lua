@@ -217,13 +217,31 @@ function MA(op1,op2)
 	return op;
 end
 
-
+--[[
+]]
+function MAX(op)
+{
+	if(type(op)~="table") then
+		return op;
+	end
+	
+	local m = op[1];
+	local c = #(op1)
+	for i=1,c do
+		if (c<op[i]) then
+			m=op[i];
+		end
+	end
+	return m;
+}
 function InitValues()
 	CLOSE=RClose();
 	OPEN=ROpen();
 	HIGH=RHigh();
 	LOW=RLow();
 	VOLUME=RVolume();
+	LASTCLOSE=RLastClose();
+	LTAG=RLtAg();
 end
 
 --a={1.2,23.3,4}

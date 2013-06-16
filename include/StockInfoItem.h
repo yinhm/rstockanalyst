@@ -72,6 +72,7 @@ public:
 
 	float getMgjzc();		//每股净资产
 	float getMgsy();		//获取每股收益
+	float getLtag();		//流通A股
 
 	/*判断关键词_key是否匹配*/
 	bool isMatch(const QString& _key);

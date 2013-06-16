@@ -74,6 +74,7 @@ public:
 
 	virtual float getMgjzc() = 0;				//每股净资产
 	virtual float getMgsy() = 0;				//获取每股收益
+	virtual float getLtag(){ return -1.0; }		//流通A股
 
 
 	/*判断关键词_key是否匹配*/

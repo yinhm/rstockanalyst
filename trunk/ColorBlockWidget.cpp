@@ -8,7 +8,7 @@
 #include "MainWindow.h"
 
 #define	RCB_OFFSET_Y	2
-#define RCB_OFFSET_LEFT	50
+#define RCB_OFFSET_LEFT	0
 
 void FreeRStockInfoMap(QMap<time_t,RStockData*>* pMap)
 {
@@ -558,6 +558,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		p.fillRect(rtCB,QColor(50,50,50));
 	}
 
+	/*
 	{
 		//绘制左侧的标识信息（代码或者名称）
 		p.setPen(QColor(255,255,255));
@@ -576,6 +577,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		}
 		p.drawText(QRect(rtCB.left(),rtCB.top(),RCB_OFFSET_LEFT,m_iCBHeight),Qt::AlignCenter,qsText);
 	}
+	*/
 
 	//从右向左绘制横坐标
 	float fBeginX = rtCB.right()-RCB_OFFSET_Y;
@@ -634,6 +636,18 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 {
+	e->accept();
+	QPoint ptCur = e->pos();
+	if(m_rtClient.contains(ptCur))
+	{
+		int iCurIndex = showStockIndex+(ptCur.y()-m_rtClient.top())/m_iCBHeight;
+		if(iCurIndex>=0&&iCurIndex<m_listStocks.size())
+		{
+			clickedStock(m_listStocks[iCurIndex]);
+		}
+	}
+	return;
+
 	if(!((qApp->mouseButtons())&Qt::LeftButton))
 	{
 		update();

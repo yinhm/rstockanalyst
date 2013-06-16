@@ -9,6 +9,8 @@ QMap<const char*,lua_CFunction>* ExportAllFuncs()
 	pFuncs->insert("ROpen",&my_lua_open);
 	pFuncs->insert("RClose",&my_lua_close);
 	pFuncs->insert("RVolume",&my_lua_volume);
+	pFuncs->insert("RLastClose",&my_lua_lastclose);
+	pFuncs->insert("RLtAg",&my_lua_ltag);
 
 	return pFuncs;
 }
@@ -204,6 +206,32 @@ int my_lua_volume( lua_State* _L )
 		}
 		lua_getglobal(_L,"Array");
 		lua_setmetatable(_L,-2);
+		return 1;
+	}
+	return 0;
+}
+
+int my_lua_lastclose( lua_State* _L )
+{
+	lua_getglobal(_L,"_calc");
+	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
+	lua_pop(_L,1);
+	if(pCalc&&pCalc->pItem)
+	{
+		lua_pushnumber(_L,pCalc->pItem->getLastClose());
+		return 1;
+	}
+	return 0;
+}
+
+int my_lua_ltag( lua_State* _L )
+{
+	lua_getglobal(_L,"_calc");
+	RCalcInfo* pCalc = reinterpret_cast<RCalcInfo*>(lua_touserdata(_L,-1));
+	lua_pop(_L,1);
+	if(pCalc&&pCalc->pItem)
+	{
+		lua_pushnumber(_L,pCalc->pItem->getLtag());
 		return 1;
 	}
 	return 0;

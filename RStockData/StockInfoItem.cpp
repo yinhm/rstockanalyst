@@ -439,8 +439,8 @@ void CStockInfoItem::updateItemInfo()
 		换手率=某一段时期内的成交量/发行总股数*100%
 		（在中国：成交量/流通总股数*100%）
 	*/
-	if(baseInfo.fZgb>0)
-		fTurnRatio = pCurrentReport->fVolume/baseInfo.fZgb*100;
+	if(baseInfo.fLtAg>0)
+		fTurnRatio = pCurrentReport->fVolume/baseInfo.fLtAg*100;
 
 	//市盈率
 	if(baseInfo.fMgsy>0)
@@ -627,5 +627,12 @@ bool CStockInfoItem::isMatch( const QString& _key )
 	}
 
 	return true;
+}
+
+float CStockInfoItem::getLtag()
+{
+	if(baseInfo.fLtAg>0.0)
+		return baseInfo.fLtAg;
+	return -1.0;
 }
 
