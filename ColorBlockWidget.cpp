@@ -857,12 +857,14 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth )
 {
 	float fTimes = 1;			//扩大或缩小倍数
+	/*
 	if(m_typeCircle<=Min60)		//小于小时的周期则扩大十倍
 		fTimes = 10;
 	else if(m_typeCircle<=Week)	//正常周期
 		fTimes = 1;
 	else						//大于周线的缩小十倍
 		fTimes = static_cast<float>(0.1);
+	*/
 
 	QMap<time_t,float>::iterator iter = m_mapShowTimes.begin();
 
