@@ -432,7 +432,7 @@ void CBlockInfoItem::updateData()
 		for(int i=0;i<iCount;++i)
 		{
 			CStockInfoItem* pStock = stocksInBlock[i];
-			if(pStock->getNewPrice()>0.1)
+			if(pStock->getAvePrice()>0.1)
 			{
 				float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
 				dLTG += fLTAG;
@@ -441,7 +441,7 @@ void CBlockInfoItem::updateData()
 			}
 
 			//设置初始值
-			mapLast5Price[pStock] = pStock->getNewPrice();
+			mapLast5Price[pStock] = pStock->getAvePrice();
 		}
 
 		if(dLTG<0.1)
@@ -469,7 +469,7 @@ void CBlockInfoItem::updateData()
 	for(int i=0;i<iCount;++i)
 	{
 		CStockInfoItem* pStock = stocksInBlock[i];
-		float _new = pStock->getNewPrice();
+		float _new = pStock->getAvePrice();
 		float _last = mapLast5Price.value(pStock,0.0);
 		float _close = pStock->getLastClose();
 		if(_new>0.1)
@@ -688,7 +688,7 @@ float CBlockInfoItem::getAmplitude() const
 float CBlockInfoItem::getAvePrice() const
 {
 
-	return 0.0;
+	return fNewPrice;
 }
 
 float CBlockInfoItem::getPERatio() const
