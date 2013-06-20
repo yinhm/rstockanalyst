@@ -464,7 +464,11 @@ void CMainWindow::onRemoveTemplate()
 	int iCurIndex = m_pTabWidget->currentIndex();
 	QString qsText = m_pTabWidget->tabText(iCurIndex);
 	if(QFile::remove(m_qsTemplateDir+qsText+".xml"))
+	{
+		QWidget* pWidget = m_pTabWidget->widget(iCurIndex);
 		m_pTabWidget->removeTab(iCurIndex);
+		delete pWidget;
+	}
 }
 
 void CMainWindow::onMarketCloseSetting()

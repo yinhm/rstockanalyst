@@ -322,11 +322,12 @@ void CColorBlockWidget::updateColorBlockData()
 	while (iter!=mapStockColorBlocks.end())
 	{
 		FreeRStockInfoMap(iter.value());
+		delete iter.value();
 		++iter;
 	}
 	mapStockColorBlocks.clear();
 
-	
+
 	//将需要显示而map中没有的股票加入到map中
 	foreach(CStockInfoItem* p,listShowItems)
 	{

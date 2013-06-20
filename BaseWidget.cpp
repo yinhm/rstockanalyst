@@ -98,6 +98,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 
 CBaseWidget::~CBaseWidget(void)
 {
+	clearChildren();
 	delete m_pActRelate;
 	delete m_pMenu;
 	delete m_pSplitter;
