@@ -412,10 +412,6 @@ void CStockDealWidget::updateData()
 {
 	//更新当前的横坐标数据，从后向前计算时间
 	m_mapTimes = CDataEngine::getTodayTimeMap(Min5);
-	if(m_pCurStock)
-	{
-		m_listFenbi = m_pCurStock->getFenBiList();
-	}
 	update();
 }
 
@@ -542,10 +538,16 @@ void CStockDealWidget::drawClient( QPainter& p )
 
 	qRcvFenBiData* pLastFenBi = 0;
 	int iLastIndex = -1;
-	QList<qRcvFenBiData*> listFenBi;
-	for (int i=m_listFenbi.size()-1;i>=0;--i)
+
+	QList<qRcvFenBiData*> allFenBi;
+	if(m_pCurStock)
 	{
-		qRcvFenBiData* pFenBi = m_listFenbi[i];
+		allFenBi = m_pCurStock->getFenBiList();
+	}
+	QList<qRcvFenBiData*> listFenBi;
+	for (int i=allFenBi.size()-1;i>=0;--i)
+	{
+		qRcvFenBiData* pFenBi = allFenBi[i];
 		QMap<time_t,int>::const_iterator iter = m_mapTimes.lowerBound(pFenBi->tmTime);
 		if(iter==m_mapTimes.end())
 			continue;
