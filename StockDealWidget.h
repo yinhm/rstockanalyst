@@ -85,7 +85,6 @@ private:
 
 private:
 	CStockInfoItem* m_pCurStock;			//当前的股票
-	QList<qRcvFenBiData*> m_listFenbi;		//当前股票的分笔数据
 	QMap<time_t,int> m_mapTimes;			//当前需要显示的所有时间（横向坐标）
 
 
