@@ -33,6 +33,9 @@ public:
 	//补充分笔数据
 	virtual void appendFenBis(const QList<qRcvFenBiData*>& list);
 
+	//补充竞价数据
+	virtual void appendJingJias(qRcvFenBiData* pJingJia);
+
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
 	qRcvBaseInfoData* getBaseInfo(){ return &baseInfo; }
@@ -115,6 +118,7 @@ private:
 
 private:
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
+	QMultiMap<time_t,qRcvFenBiData*> mapJingJias;	//9:25前的竞价数据
 	qRcvBaseInfoData baseInfo;
 };
 

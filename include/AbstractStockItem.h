@@ -94,7 +94,7 @@ protected:
 	WORD wMarket;									//市场类型
 	QString qsMarket;								//市场类型名称
 	QMultiMap<time_t,qRcvFenBiData*> mapFenBis;		//分笔数据
-	QMap<time_t,tagRStockData*>* pMap5Min;				//最近10天的历史5分钟数据
+	QMap<time_t,tagRStockData*>* pMap5Min;			//最近10天的历史5分钟数据
 	qRcvReportData* pCurrentReport;					//当前的Report
 };
 

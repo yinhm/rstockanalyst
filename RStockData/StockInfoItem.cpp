@@ -94,8 +94,11 @@ CStockInfoItem::~CStockInfoItem(void)
 
 void CStockInfoItem::setReport( qRcvReportData* p )
 {
-	if(p->tmTime<=pCurrentReport->tmTime || p->fNewPrice<0.01)
+	if(p->tmTime<=pCurrentReport->tmTime||p->fNewPrice<0.01)
+	{
 		return;
+	}
+
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
 	CDataEngine::setCurrentTime(pCurrentReport->tmTime);
@@ -109,8 +112,27 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 
 void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 {
-	if(p->m_time<=pCurrentReport->tmTime || p->m_fNewPrice<0.01)
+	if(p->m_time<=pCurrentReport->tmTime)
 		return;
+
+	if( ((p->m_time+8*3600)%(3600*24))<(9*3600+26*60) )
+	{
+		//竞价时段
+		pLastReport->resetItem(pCurrentReport);
+		pCurrentReport->resetItem(p);
+		CDataEngine::setCurrentTime(pCurrentReport->tmTime);
+
+		//将新的Report数据添加到竞价数据中
+		qRcvFenBiData* pFenBi = new qRcvFenBiData(pCurrentReport);
+		appendJingJias(pFenBi);
+		updateItemInfo();
+		return;
+	}
+	else if(p->m_fNewPrice<0.01)
+	{
+		return;
+	}
+
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
 	CDataEngine::setCurrentTime(pCurrentReport->tmTime);
@@ -216,6 +238,18 @@ void CStockInfoItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 //	CDataEngine::getDataEngine()->exportFenBiData(qsCode,mapFenBis.values());
 }
 
+void CStockInfoItem::appendJingJias( qRcvFenBiData* pJingJia )
+{
+	if(mapJingJias.contains(pJingJia->tmTime))
+	{
+		delete pJingJia;
+	}
+	else
+	{
+		mapJingJias.insert(pJingJia->tmTime,pJingJia);
+	}
+	return;
+}
 
 void CStockInfoItem::setBaseInfo( const qRcvBaseInfoData& info )
 {
