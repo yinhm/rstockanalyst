@@ -699,8 +699,13 @@ void CKLineWidget::clearTmpData()
 				QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
 				while(iter!=m_mapData->end())
 				{
-					if((*iter)->tmTime>tmToday)
-						delete iter.value();
+					RStockData* pData = iter.value();
+					if(pData && pData->tmTime>tmToday)
+					{
+						delete pData;
+						(*iter) = 0;
+					}
+					pData = iter.value();
 					++iter;
 				}
 			}
