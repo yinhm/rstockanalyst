@@ -333,10 +333,10 @@ struct qRcvFenBiData
 typedef struct tagRStockData
 {
 	time_t	tmTime;			//UCT
-	float	fOpen;			//开盘 注：分时数据中此数据表示最新价
+	float	fOpen;			//开盘 注：分时数据中此数据表示本周期开始价
 	float	fHigh;			//最高
 	float	fLow;				//最低
-	float	fClose;			//收盘 注：分时数据中此数据表示上一周期最后的价格
+	float	fClose;			//收盘 注：分时数据中此数据表示本周期最后的价格
 	float	fVolume;			//量
 	float	fAmount;			//额
 	WORD	wAdvance;			//涨数,仅大盘有效
