@@ -671,8 +671,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 
 					fCurY+=fPerH;
 				}
-
-		/*
+				/*
 				QRectF rtBlock = QRectF(iter.value()-m_iCBWidth,fTop,m_iCBWidth,rtCB.height());
 
 				QString qsText = QString("%1 %2").arg(fTotal).arg(pItem->getStockList().size());
