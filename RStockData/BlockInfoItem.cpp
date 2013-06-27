@@ -469,13 +469,13 @@ void CBlockInfoItem::updateData()
 	for(int i=0;i<iCount;++i)
 	{
 		CStockInfoItem* pStock = stocksInBlock[i];
-		float _new = pStock->getAvePrice();
+		float _new = pStock->getAvePrice();				//采用均价计算涨幅
 		float _last = mapLast5Price.value(pStock,0.0);
 		float _close = pStock->getLastClose();
 		if(_new>0.1)
 		{
 			float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
-			dNew += _new*fLTAG;
+			dNew += pStock->getNewPrice()*fLTAG;
 			dLow += pStock->getLowPrice()*fLTAG;
 			dHigh += pStock->getHighPrice()*fLTAG;
 			fVolume += pStock->getTotalVolume();

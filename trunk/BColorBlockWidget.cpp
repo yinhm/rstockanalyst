@@ -238,8 +238,9 @@ void CBColorBlockWidget::updateUI()
 			QMap<time_t,qRcvFenBiData*>* pMap = iter.value();
 			CBlockInfoItem* pItem = iter.key();
 			pMap->clear();
+			QList<qRcvFenBiData*> listFenBis = pItem->getFenBiList();
 
-			foreach(qRcvFenBiData* pFenBi,pItem->getFenBiList())
+			foreach(qRcvFenBiData* pFenBi,listFenBis)
 			{
 				pMap->insert(pFenBi->tmTime,pFenBi);
 			}

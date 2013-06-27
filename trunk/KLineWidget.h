@@ -102,6 +102,9 @@ private:
 
 	//各个周期所在的矩形
 	QMap<int,QRect> m_mapCircles;
+
+	bool m_bLock;							//用于切换时的加锁
+	QDateTime m_tmLastUpdate;				//最后一次更新的时间
 };
 
 
