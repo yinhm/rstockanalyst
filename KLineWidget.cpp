@@ -3,6 +3,7 @@
 #include "DataEngine.h"
 #include "KeyWizard.h"
 #include "ColorManager.h"
+#include <Windows.h>
 
 #define	KLINE_BORDER	2
 
@@ -17,6 +18,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iCoorXHeight(16)
 	, m_iMainLinerHeight(200)
 	, m_mapData(NULL)
+	, m_bLock(false)
+	, m_tmLastUpdate(QDateTime::currentDateTime())
 {
 	m_typeCircle = Min1;
 
@@ -150,6 +153,17 @@ void CKLineWidget::setBlock( const QString& block )
 
 void CKLineWidget::setStockItem( CAbstractStockItem* pItem )
 {
+	QDateTime tmNow = QDateTime::currentDateTime();
+/*	if(m_tmLastUpdate.msecsTo(tmNow)<100)
+		return;
+	if(m_bLock)
+	{
+		return;
+	}
+*/
+	m_bLock = true;
+	m_tmLastUpdate = tmNow;
+
 	if(pItem)
 	{
 		if(m_pStockItem)
@@ -171,6 +185,7 @@ void CKLineWidget::setStockItem( CAbstractStockItem* pItem )
 		//更新K线图
 		resetTmpData();
 	}
+	m_bLock = false;
 }
 
 void CKLineWidget::updateMinLine( const QString& only )
@@ -692,9 +707,9 @@ void CKLineWidget::clearTmpData()
 	{
 		if(m_typeCircle<Day)
 		{
-			if(m_pStockItem->getCurrentReport()->tmTime>0)
+			if(CDataEngine::getCurrentTime()>0)
 			{
-				time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
+				time_t tmToday = QDateTime(QDateTime::fromTime_t(CDataEngine::getCurrentTime()).date()).toTime_t();
 				//非今日的5分钟数据不能delete
 				QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
 				while(iter!=m_mapData->end())
@@ -756,7 +771,7 @@ void CKLineWidget::resetTmpData()
 	{
 		if(m_typeCircle<Day)
 		{
-			time_t tmToday = QDateTime(QDateTime::fromTime_t(m_pStockItem->getCurrentReport()->tmTime).date()).toTime_t();
+			time_t tmToday = QDateTime(QDateTime::fromTime_t(CDataEngine::getCurrentTime()).date()).toTime_t();
 			//过去5分钟数据
 			QList<RStockData*> listData = m_pStockItem->get5MinList();
 			int iCount = listData.count();
