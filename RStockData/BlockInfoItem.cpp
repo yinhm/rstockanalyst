@@ -432,16 +432,13 @@ void CBlockInfoItem::updateData()
 		for(int i=0;i<iCount;++i)
 		{
 			CStockInfoItem* pStock = stocksInBlock[i];
-			if(pStock->getAvePrice()>0.1)
-			{
-				float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
-				dLTG += fLTAG;
-				dLastClose += pStock->getLastClose()*fLTAG;
-				dOpen += pStock->getOpenPrice()*fLTAG;
-			}
+			float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
+			dLTG += fLTAG;
+			dLastClose += pStock->getLastClose()*fLTAG;
+			dOpen += pStock->getOpenPrice()*fLTAG;
 
 			//设置初始值
-			mapLast5Price[pStock] = pStock->getAvePrice();
+			mapLast5Price[pStock] = pStock->getNewPrice();
 		}
 
 		if(dLTG<0.1)

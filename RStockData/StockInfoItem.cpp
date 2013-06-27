@@ -474,7 +474,7 @@ void CStockInfoItem::updateItemInfo()
 		（在中国：成交量/流通总股数*100%）
 	*/
 	if(baseInfo.fLtAg>0)
-		fTurnRatio = pCurrentReport->fVolume/baseInfo.fLtAg*100;
+		fTurnRatio = ((pCurrentReport->fVolume/100)/baseInfo.fLtAg)*100;
 
 	//市盈率
 	if(baseInfo.fMgsy>0)
