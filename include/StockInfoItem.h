@@ -36,6 +36,11 @@ public:
 	//补充竞价数据
 	virtual void appendJingJias(qRcvFenBiData* pJingJia);
 
+	//补充5分钟数据
+	virtual QList<tagRStockData*> get5MinListWithLast();	//追加最后不够5分钟的数据
+	//重新计算当日5Min数据
+	virtual void recalc5MinData();
+
 	//设置F10数据
 	void setBaseInfo(const qRcvBaseInfoData& info);
 	qRcvBaseInfoData* getBaseInfo(){ return &baseInfo; }
@@ -94,6 +99,10 @@ private:
 	float fTurnRatio;				//换手率
 
 	qRcvReportData* pLastReport;	//最近的Report
+	RStockData* pCurrent5Min;		//当前的5分钟数据
+	float fLast5MinVolume;			//最后5分钟数据的成交量
+	float fLast5MinAmount;			//最后5分钟数据的成交额
+
 
 	float fNowVolume;				//现手
 	float fIncreaseSpeed;			//增长速度  (NewPrice-OldPrice)/OldPrice

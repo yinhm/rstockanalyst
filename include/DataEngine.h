@@ -48,6 +48,8 @@ public:
 	static int exportReportsInfo(const QString& qsFile);
 	/*导出分笔数据*/
 	static int exportFenBisData(const QString& qsFile);
+	/*导出5分钟数据*/
+	static int export5MinData();
 	/*收盘后数据整理*/
 	static int exportCloseData();
 
@@ -104,9 +106,9 @@ public:
 	QList<qRcvHistoryData*> getHistoryList(CAbstractStockItem* pItem, int count);
 
 	/*导出收盘后当天5分钟数据*/
-	bool export5MinData(CAbstractStockItem* pItem, const QMap<time_t,int>& mapTimes);
+	bool export5MinData(CAbstractStockItem* pItem);
 	/*获取5分钟数据*/
-	QMap<time_t,RStockData*>* get5MinData(CAbstractStockItem* pItem);
+	void import5MinData(CAbstractStockItem* pItem, QMap<time_t,RStockData*>& mapDatas);
 
 
 	/*导出分笔数据*/

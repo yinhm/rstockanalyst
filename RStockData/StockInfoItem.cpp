@@ -29,13 +29,18 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
+	, fLast5MinVolume(0)
+	, fLast5MinAmount(0)
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
+	pCurrent5Min = new RStockData;
 	qsCode = code;
 	wMarket = market;
 	qsMarket = CDataEngine::getMarketStr(wMarket);
 	qsOnly = qsCode+qsMarket;
+
+	CDataEngine::getDataEngine()->import5MinData(this,map5MinDatas);
 }
 
 CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
@@ -57,10 +62,13 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
 	, fLast5Volume(0.0)
+	, fLast5MinVolume(0)
+	, fLast5MinAmount(0)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
+	pCurrent5Min = new RStockData;
 
 	qsCode = QString::fromLocal8Bit(info.code);
 	wMarket = info.wMarket;
@@ -74,6 +82,8 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	{
 		fLast5Volume = fLast5Volume+pHis->fVolume;
 	}
+
+	CDataEngine::getDataEngine()->import5MinData(this,map5MinDatas);
 }
 
 CStockInfoItem::~CStockInfoItem(void)
@@ -102,12 +112,8 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
 	CDataEngine::setCurrentTime(pCurrentReport->tmTime);
-
-	//将新的Report数据添加到分笔数据中
-	qRcvFenBiData* pFenBi = new qRcvFenBiData(pCurrentReport);
 	
 	updateItemInfo();
-	appendFenBis(QList<qRcvFenBiData*>()<<pFenBi);
 }
 
 void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
@@ -142,6 +148,44 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 
 	updateItemInfo();
 	appendFenBis(QList<qRcvFenBiData*>()<<pFenBi);
+
+	{
+		//计算5分钟数据
+		if(pCurrent5Min->tmTime>0)
+		{
+			if((p->m_time/300) > (pCurrent5Min->tmTime/300))
+			{
+				//追加到5分钟数据中，并重新对当前5分钟数据分配内存
+				append5MinData(pCurrent5Min);			
+				pCurrent5Min = new RStockData;
+				//将最后的5分钟数据进行保存
+				fLast5MinVolume = pLastReport->fVolume;
+				fLast5MinAmount = pLastReport->fAmount;
+			}
+		}
+		//将新数据跟当前的5分钟数据进行整合
+		if(pCurrent5Min->tmTime>0)
+		{
+			pCurrent5Min->tmTime = p->m_time;
+			pCurrent5Min->fClose = p->m_fNewPrice;
+			if(pCurrent5Min->fHigh<p->m_fNewPrice)
+				pCurrent5Min->fHigh = p->m_fNewPrice;
+			if(pCurrent5Min->fLow>p->m_fNewPrice)
+				pCurrent5Min->fLow = p->m_fNewPrice;
+			pCurrent5Min->fAmount = p->m_fAmount - fLast5MinAmount;
+			pCurrent5Min->fVolume = p->m_fVolume - fLast5MinVolume;
+		}
+		else
+		{
+			pCurrent5Min->tmTime = p->m_time;
+			pCurrent5Min->fClose = p->m_fNewPrice;
+			pCurrent5Min->fHigh = p->m_fNewPrice;
+			pCurrent5Min->fLow = p->m_fNewPrice;
+			pCurrent5Min->fOpen = p->m_fNewPrice;
+			pCurrent5Min->fAmount = p->m_fAmount - fLast5MinAmount;
+			pCurrent5Min->fVolume = p->m_fVolume - fLast5MinVolume;
+		}
+	}
 }
 
 void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
@@ -250,6 +294,22 @@ void CStockInfoItem::appendJingJias( qRcvFenBiData* pJingJia )
 	}
 	return;
 }
+
+QList<tagRStockData*> CStockInfoItem::get5MinListWithLast()
+{
+	QList<tagRStockData*> list = map5MinDatas.values();
+	if(pCurrent5Min->tmTime>0)
+	{
+		list.push_back(pCurrent5Min);
+	}
+	return list;
+}
+
+void CStockInfoItem::recalc5MinData()
+{
+
+}
+
 
 void CStockInfoItem::setBaseInfo( const qRcvBaseInfoData& info )
 {

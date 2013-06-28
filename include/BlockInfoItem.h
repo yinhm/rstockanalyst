@@ -22,11 +22,14 @@ protected:
 	void initBlock();
 
 public:
-	//补充分笔数据
-	virtual QList<qRcvFenBiData*> getFenBiList();
-
 	//补充日线数据
 	void appendHistorys(const QList<qRcvHistoryData*>& list);
+
+
+	//补充5分钟数据
+	virtual QList<tagRStockData*> get5MinListWithLast();	//追加最后不够5分钟的数据
+	//重新计算当日5Min数据
+	virtual void recalc5MinData();
 
 public:
 	QString getBlockName() const{ return blockName; }			//获取板块名称
@@ -110,9 +113,12 @@ private:
 
 	CBlockInfoItem* m_pParent;
 
-	qRcvFenBiData* m_pCurFenBi;		//当前的分笔数据
+	RBlockData* pCurrent5Min;		//当前的分笔数据
 
+	QMap<CStockInfoItem*,float> mapLastPrice;	//最后进行比较的数据
 	QMap<CStockInfoItem*,float> mapLast5Price;	//最新的5分钟价格
+	float fLast5MinVolume;						//最后5分钟的成交量
+	float fLast5MinAmount;						//最后5分钟的成交额
 private:
 	float fLastClose;				//昨日收盘价
 	float fOpenPrice;				//今日开盘价

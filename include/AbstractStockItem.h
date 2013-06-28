@@ -35,7 +35,10 @@ public:
 	virtual void appendHistorys(const QList<qRcvHistoryData*>& list);
 
 	//补充历史5分钟数据
+	virtual void append5MinData(tagRStockData* pData);
 	virtual QList<tagRStockData*> get5MinList();
+	virtual QList<tagRStockData*> get5MinListWithLast()=0;	//追加最后不够5分钟的数据
+	virtual void recalc5MinData() = 0;						//重新计算当日5Min数据
 
 public:
 	/*属性类字段，只读*/
@@ -93,8 +96,8 @@ protected:
 	QString qsCode;									//代码
 	WORD wMarket;									//市场类型
 	QString qsMarket;								//市场类型名称
-	QMultiMap<time_t,qRcvFenBiData*> mapFenBis;		//分笔数据
-	QMap<time_t,tagRStockData*>* pMap5Min;			//最近10天的历史5分钟数据
+	QMap<time_t,qRcvFenBiData*> mapFenBis;			//分笔数据
+	QMap<time_t,tagRStockData*> map5MinDatas;			//5分钟历史数据，一般存储10天的
 	qRcvReportData* pCurrentReport;					//当前的Report
 };
 

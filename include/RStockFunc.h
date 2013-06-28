@@ -363,6 +363,16 @@ typedef struct tagRStockData
 } RStockData;
 
 
+//用于板块数据的存放
+typedef struct tagRcvBlockData : public tagRStockData
+{
+	float	fIncrease[21];	//21个涨跌数
+	tagRcvBlockData()
+	{
+		memset(&tmTime,0,sizeof(tagRcvBlockData));
+	}
+} RBlockData;
+
 // 扩展数据,用于描述分笔成交数据的买卖盘
 typedef union tagRStockDataEx
 {

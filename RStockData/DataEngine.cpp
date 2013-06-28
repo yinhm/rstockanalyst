@@ -314,7 +314,10 @@ void CDataEngine::exportData()
 		int iCount = exportFenBisData(QString("%1/%2").arg(qsFenBiDir).arg(QDateTime::fromTime_t(m_tmCurrent).toString("yyyyMMdd")));
 		qDebug()<<iCount<<" FenBis data had been exported.";
 	}
-
+	{
+		//导出5分钟数据
+		export5MinData();
+	}
 	{
 		//导出监视雷达数据
 		CRadarManager::getRadarManager()->saveRadars();
@@ -656,16 +659,26 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 	return iCount;
 }
 
-//收盘后数据的整理
-int CDataEngine::exportCloseData()
+int CDataEngine::export5MinData()
 {
-	QMap<time_t,int> mapTimes = getTodayTimeMap(Min5);
-
 	QList<CAbstractStockItem*> listStocks = CDataEngine::getDataEngine()->getStockItems();
 	foreach(CAbstractStockItem* pItem,listStocks)
 	{
 		//导出5min数据
-		CDataEngine::getDataEngine()->export5MinData(pItem,mapTimes);
+		CDataEngine::getDataEngine()->export5MinData(pItem);
+	}
+	return listStocks.size();
+}
+
+//收盘后数据的整理
+int CDataEngine::exportCloseData()
+{
+	QList<CAbstractStockItem*> listStocks = CDataEngine::getDataEngine()->getStockItems();
+	foreach(CAbstractStockItem* pItem,listStocks)
+	{
+		//导出5min数据
+		pItem->recalc5MinData();
+		CDataEngine::getDataEngine()->export5MinData(pItem);
 		qRcvReportData* pReport = pItem->getCurrentReport();
 		if(pReport)
 		{
@@ -1428,192 +1441,120 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( CAbstractStockItem* pItem, 
 	return list;
 }
 
-bool CDataEngine::export5MinData( CAbstractStockItem* pItem, const QMap<time_t,int>& mapTimes )
+bool CDataEngine::export5MinData( CAbstractStockItem* pItem )
 {
 	//导出5分钟数据，对于非今日的数据只以5min为最小单位存储
 	//60*sizeof(RStockData)
 	if(!pItem)
 		return false;
-
-	int iSizeOfStruct = sizeof(RStockData);
-	int iSizeOfTime = sizeof(time_t);
-	int iCountOfDay = 60;			//规定每日最多为60个5分钟数据块
-	int iSizeOfDay = iSizeOfStruct*iCountOfDay;
-	int iTotalCount = 10;
-	int iOffsetBegin = 0;
 	qRcvReportData* pReport = pItem->getCurrentReport();
 	if(pReport->tmTime<1)
 		return false;
 
 	time_t tmDate = QDateTime(QDateTime::fromTime_t(pReport->tmTime).date()).toTime_t();
+	tmDate = tmDate-3600*24*15;		//15天以前的数据不再保存
 
-	
 	QString qsFileName = QString("%1/%2/%3").arg(m_qs5Min).arg(pItem->getMarketName()).arg(pItem->getCode());
 	QFile file(qsFileName);
-	if(!file.open(QFile::ReadWrite))
+	if(!file.open(QFile::WriteOnly|QFile::Truncate))
 	{
 		qDebug()<<"Open file\""<<qsFileName<<"\" error!";
 		return false;
 	}
 
 	QDataStream out(&file);
-	int iHeaderSize = iTotalCount*iSizeOfTime;
-
-	//获取本日数据的存储位置
-	if(file.size()<iHeaderSize)
+	QList<tagRStockData*> listData = pItem->get5MinList();
+	if(pItem->isInstanceOfBlock())
 	{
-		file.seek(0);
-		out.writeRawData((char*)&tmDate,iSizeOfTime);
-		for (int i=1;i<iTotalCount;++i)
+		int iSizeOfStruct = sizeof(RBlockData);
+		foreach(tagRStockData* pData,listData)
 		{
-			out<<(time_t)0;
+			if(pData->tmTime>tmDate)
+			{
+				if(file.write(reinterpret_cast<char*>(pData),iSizeOfStruct)!=iSizeOfStruct)
+					break;
+			}
 		}
-		iOffsetBegin = iHeaderSize;
 	}
 	else
 	{
-		file.seek(0);
-		QMap<time_t,int> mapDates;
-		for (int i=0;i<iTotalCount;++i)
+		int iSizeOfStruct = sizeof(RStockData);
+		foreach(tagRStockData* pData,listData)
 		{
-			time_t tmpDate = 0;
-			out.readRawData((char*)(&tmpDate),iSizeOfTime);
-			if(tmpDate==0)
-				break;
-			mapDates[tmpDate] = i;
-		}
-
-		if(mapDates.contains(tmDate))
-		{
-			iOffsetBegin = iHeaderSize+mapDates[tmDate]*iSizeOfDay;
-		}
-		else
-		{
-			int iIndexOfLast = mapDates.value(mapDates.keys().last());
-			if(iIndexOfLast<0)
+			if(pData->tmTime>tmDate)
 			{
-				qDebug()<<"Can not export 5min data";
-				file.close();
-				return false;
-			}
-			else
-			{
-				iIndexOfLast = (iIndexOfLast+1)%iTotalCount;
-				file.seek(iIndexOfLast*iSizeOfTime);
-				out.writeRawData((char*)&tmDate,iSizeOfTime);
-				iOffsetBegin = iHeaderSize+iIndexOfLast*iSizeOfDay;
+				if(file.write(reinterpret_cast<char*>(pData),iSizeOfStruct)!=iSizeOfStruct)
+					break;
 			}
 		}
 	}
 
-
-	file.seek(iOffsetBegin);
-	QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
-	QMap<time_t,RStockData*>* pMap = 0;
-	if(pItem->isInstanceOfStock())
-		pMap = CDataEngine::getColorBlockItems(mapTimes,FenBis);
-	else if(pItem->isInstanceOfBlock())
-		pMap = CDataEngine::getColorBlockItems(mapTimes,FenBis);
-	if(!pMap)
-	{
-		qDebug()<<"Can not get 5min data";
-		file.close();
-		return false;
-	}
-
-
-	QMap<time_t,RStockData*>::iterator iter = pMap->begin();
-	int iCount = 0;
-	while(iter!=pMap->end())
-	{
-		RStockData* pData = iter.value();
-		if(pData)
-		{
-			out.writeRawData((char*)pData,iSizeOfStruct);
-			delete pData;
-			++iCount;
-		}
-		++iter;
-	}
-	RStockData dataNull;
-	while(iCount<iCountOfDay)
-	{
-		out.writeRawData((char*)&dataNull,iSizeOfStruct);
-		++iCount;
-	}
-
-	delete pMap;
 	file.close();
 	return true;
 }
 
-QMap<time_t,RStockData*>* CDataEngine::get5MinData( CAbstractStockItem* pItem )
+void CDataEngine::import5MinData( CAbstractStockItem* pItem, QMap<time_t,RStockData*>& mapDatas )
 {
-	QMap<time_t,RStockData*>* pMapData = new QMap<time_t,RStockData*>;
 	QString qsFileName = QString("%1/%2/%3").arg(m_qs5Min).arg(pItem->getMarketName()).arg(pItem->getCode());
 	if(!QFile::exists(qsFileName))
-		return pMapData;
+		return;
 
 	QFile file(qsFileName);
 	if(!file.open(QFile::ReadOnly))
 	{
 		qDebug()<<"Open file\""<<qsFileName<<"\" error!";
-		return pMapData;
+		return;
 	}
 
-	int iSizeOfStruct = sizeof(RStockData);
-	int iSizeOfTime = sizeof(time_t);
-	int iCountOfDay = 60;			//规定每日最多为60个5分钟数据块
-	int iSizeOfDay = iSizeOfStruct*iCountOfDay;
-	int iTotalCount = 10;
-
 	QDataStream out(&file);
-	int iHeaderSize = iTotalCount*iSizeOfTime;
-	//获取本日数据的存储位置
-	if(file.size()<iHeaderSize)
-		return pMapData;
-	int iPos = 0;
-	time_t tmTmp = 0;
-	while(iPos<iTotalCount)
+	if(pItem->isInstanceOfBlock())
 	{
-		file.seek(iPos*iSizeOfTime);
-		if(out.readRawData((char*)(&tmTmp),iSizeOfTime)!=iSizeOfTime)
-			break;
-		if(tmTmp!=0 && iPos<iTotalCount)
+		int iSizeOfStruct = sizeof(RBlockData);
+		while(true)
 		{
-			file.seek(iHeaderSize+iSizeOfDay*iPos);
-			int iIndex = 0;
-			while(iIndex<60)
+			RBlockData* pData = new RBlockData();
+			if(out.readRawData((char*)pData,iSizeOfStruct) == iSizeOfStruct)
 			{
-				RStockData* pData = new RStockData();
-				if(out.readRawData((char*)pData,iSizeOfStruct) == iSizeOfStruct)
+				if(!mapDatas.contains(pData->tmTime))
 				{
-					if(pData->tmTime == 0)
-					{
-						delete pData;
-						break;
-					}
-					if(!pMapData->contains(pData->tmTime))
-					{
-						pMapData->insert(pData->tmTime,pData);
-					}
-					else
-						delete pData;
+					mapDatas.insert(pData->tmTime,pData);
 				}
 				else
-				{
 					delete pData;
-					break;
-				}
+			}
+			else
+			{
+				delete pData;
+				break;
 			}
 		}
-		++iPos;
+	}
+	else
+	{
+		int iSizeOfStruct = sizeof(RStockData);
+		while(true)
+		{
+			RStockData* pData = new RStockData();
+			if(out.readRawData((char*)pData,iSizeOfStruct) == iSizeOfStruct)
+			{
+				if(!mapDatas.contains(pData->tmTime))
+				{
+					mapDatas.insert(pData->tmTime,pData);
+				}
+				else
+					delete pData;
+			}
+			else
+			{
+				delete pData;
+				break;
+			}
+		}
 	}
 
 	file.close();
-	return pMapData;
+	return;
 }
-
 
 bool CDataEngine::exportFenBiData( const QString& qsCode, const long& lDate, const QList<qRcvFenBiData*>& list )
 {

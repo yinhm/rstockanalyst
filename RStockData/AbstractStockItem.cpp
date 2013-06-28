@@ -7,7 +7,6 @@
 
 CAbstractStockItem::CAbstractStockItem(void)
 	: pCurrentReport(NULL)
-	, pMap5Min(NULL)
 {
 
 }
@@ -15,26 +14,26 @@ CAbstractStockItem::CAbstractStockItem(void)
 
 CAbstractStockItem::~CAbstractStockItem(void)
 {
-	QMultiMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.begin();
-	while(iter!=mapFenBis.end())
 	{
-		delete iter.value();
-		++iter;
+		//清空分笔数据
+		QMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.begin();
+		while(iter!=mapFenBis.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		mapFenBis.clear();
 	}
-	mapFenBis.clear();
 
 	{
-		if(pMap5Min)
+		//清空历史5分钟数据
+		QMap<time_t,RStockData*>::iterator iter = map5MinDatas.begin();		//5分钟历史数据
+		while(iter!=map5MinDatas.end())
 		{
-			QMap<time_t,RStockData*>::iterator iter = pMap5Min->begin();		//5分钟历史数据
-			while(iter!=pMap5Min->end())
-			{
-				delete iter.value();
-				++iter;
-			}
-			pMap5Min->clear();
-			delete pMap5Min;
+			delete iter.value();
+			++iter;
 		}
+		map5MinDatas.clear();
 	}
 }
 
@@ -65,13 +64,21 @@ void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& /*list*/
 }
 
 
+void CAbstractStockItem::append5MinData( tagRStockData* pData )
+{
+	if(map5MinDatas.contains(pData->tmTime))
+	{
+		tagRStockData* pBefore = map5MinDatas[pData->tmTime];
+		map5MinDatas.remove(pBefore->tmTime);
+		delete pBefore;
+	}
+	map5MinDatas.insert(pData->tmTime,pData);
+	return;
+}
 
 QList<RStockData*> CAbstractStockItem::get5MinList()
 {
-	if(pMap5Min == NULL)
-		pMap5Min = CDataEngine::getDataEngine()->get5MinData(this);
-
-	return pMap5Min->values();
+	return map5MinDatas.values();
 }
 
 void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
@@ -105,7 +112,7 @@ void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 					{
 						//如果之前的数据不包换挂单数据，则删除之前的
 						delete p1;
-						mapFenBis.remove(p->tmTime,p1);
+						mapFenBis.remove(p->tmTime);
 						break;
 					}
 					else
