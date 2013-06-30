@@ -76,11 +76,6 @@ void CAbstractStockItem::append5MinData( tagRStockData* pData )
 	return;
 }
 
-QList<RStockData*> CAbstractStockItem::get5MinList()
-{
-	return map5MinDatas.values();
-}
-
 void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 {
 	//追加分笔数据，未完工

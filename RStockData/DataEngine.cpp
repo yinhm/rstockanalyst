@@ -673,8 +673,9 @@ int CDataEngine::export5MinData()
 //收盘后数据的整理
 int CDataEngine::exportCloseData()
 {
-	QList<CAbstractStockItem*> listStocks = CDataEngine::getDataEngine()->getStockItems();
-	foreach(CAbstractStockItem* pItem,listStocks)
+	//导出单只股票数据
+	QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
+	foreach(CStockInfoItem* pItem,listStocks)
 	{
 		//导出5min数据
 		pItem->recalc5MinData();
@@ -683,8 +684,25 @@ int CDataEngine::exportCloseData()
 		if(pReport)
 		{
 			qRcvHistoryData* pData = new qRcvHistoryData(pItem->getCurrentReport());
-			if(pItem->isInstanceOfBlock())
+
+			//将当天的report追加为历史数据
+			pItem->appendHistorys(QList<qRcvHistoryData*>()<<pData);
+		}
+	}
+
+	//导出板块数据
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	foreach(CBlockInfoItem* pItem,listBlocks)
+	{
+		//导出5min数据
+		pItem->recalc5MinData();
+		CDataEngine::getDataEngine()->export5MinData(pItem);
+		qRcvReportData* pReport = pItem->getCurrentReport();
+		if(pReport)
+		{
+			qRcvHistoryData* pData = new qRcvHistoryData(pItem->getCurrentReport());
 			{
+				//计算涨跌数
 				float fAdv=0,fDec=0;
 				for (int i=0;i<10;++i)
 				{
@@ -697,7 +715,6 @@ int CDataEngine::exportCloseData()
 				pData->wAdvance = fAdv + 0.5;
 				pData->wDecline = fDec + 0.5;
 			}
-
 			//将当天的report追加为历史数据
 			pItem->appendHistorys(QList<qRcvHistoryData*>()<<pData);
 		}

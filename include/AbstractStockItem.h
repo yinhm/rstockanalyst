@@ -36,8 +36,7 @@ public:
 
 	//补充历史5分钟数据
 	virtual void append5MinData(tagRStockData* pData);
-	virtual QList<tagRStockData*> get5MinList();
-	virtual QList<tagRStockData*> get5MinListWithLast()=0;	//追加最后不够5分钟的数据
+	virtual QList<tagRStockData*> get5MinList() = 0;		//追加最后不够5分钟的数据
 	virtual void recalc5MinData() = 0;						//重新计算当日5Min数据
 
 public:

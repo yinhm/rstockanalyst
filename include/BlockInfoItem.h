@@ -27,7 +27,7 @@ public:
 
 
 	//补充5分钟数据
-	virtual QList<tagRStockData*> get5MinListWithLast();	//追加最后不够5分钟的数据
+	virtual QList<tagRStockData*> get5MinList();	//追加最后不够5分钟的数据
 	//重新计算当日5Min数据
 	virtual void recalc5MinData();
 

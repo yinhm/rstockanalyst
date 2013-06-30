@@ -295,7 +295,7 @@ void CStockInfoItem::appendJingJias( qRcvFenBiData* pJingJia )
 	return;
 }
 
-QList<tagRStockData*> CStockInfoItem::get5MinListWithLast()
+QList<tagRStockData*> CStockInfoItem::get5MinList()
 {
 	QList<tagRStockData*> list = map5MinDatas.values();
 	if(pCurrent5Min->tmTime>0)
@@ -307,7 +307,75 @@ QList<tagRStockData*> CStockInfoItem::get5MinListWithLast()
 
 void CStockInfoItem::recalc5MinData()
 {
+	{
+		//清空当前5分钟数据
+		QMap<time_t,RStockData*>::iterator iter = map5MinDatas.begin();		//5分钟历史数据
+		while(iter!=map5MinDatas.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		map5MinDatas.clear();
+	}
+	//重新计算5分钟数据
+	QMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.begin();
+	RStockData* p5Min = new RStockData();
+	qRcvFenBiData* pLastFenBi = 0;
+	float fLastVolume = 0;
+	float fLastAmount = 0;
+	while (iter!=mapFenBis.end())
+	{
+		qRcvFenBiData* pFenBi = iter.value();
 
+		//计算5分钟数据
+		if(p5Min->tmTime>0)
+		{
+			if((pFenBi->tmTime/300) > (p5Min->tmTime/300))
+			{
+				//追加到5分钟数据中，并重新对当前5分钟数据分配内存
+				append5MinData(p5Min);			
+				p5Min = new RStockData;
+				//将最后的5分钟数据进行保存
+				if(pLastFenBi)
+				{
+					fLastVolume = pLastFenBi->fVolume;
+					fLastAmount = pLastFenBi->fAmount;
+				}
+			}
+		}
+		//将新数据跟当前的5分钟数据进行整合
+		if(p5Min->tmTime>0)
+		{
+			p5Min->tmTime = pFenBi->tmTime;
+			p5Min->fClose = pFenBi->fPrice;
+			if(p5Min->fHigh<pFenBi->fPrice)
+				p5Min->fHigh = pFenBi->fPrice;
+			if(p5Min->fLow>pFenBi->fPrice)
+				p5Min->fLow = pFenBi->fPrice;
+			p5Min->fAmount = pFenBi->fAmount - fLastAmount;
+			p5Min->fVolume = pFenBi->fVolume - fLastVolume;
+		}
+		else
+		{
+			p5Min->tmTime = pFenBi->tmTime;
+			p5Min->fClose = pFenBi->fPrice;
+			p5Min->fHigh = pFenBi->fPrice;
+			p5Min->fLow = pFenBi->fPrice;
+			p5Min->fOpen = pFenBi->fPrice;
+			p5Min->fAmount = pFenBi->fAmount - fLastAmount;
+			p5Min->fVolume = pFenBi->fVolume - fLastVolume;
+		}
+
+		pLastFenBi = pFenBi;
+		++iter;
+	}
+
+	//将最后一笔分笔数据加入到队列中
+	if(p5Min->tmTime>0)
+	{
+		append5MinData(p5Min);
+	}
+	emit stockItemFenBiChanged(qsCode);
 }
 
 
