@@ -166,7 +166,7 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 		//将新数据跟当前的5分钟数据进行整合
 		if(pCurrent5Min->tmTime>0)
 		{
-			pCurrent5Min->tmTime = p->m_time;
+//			pCurrent5Min->tmTime = p->m_time/300*300+299;			//设置为最后一个周期
 			pCurrent5Min->fClose = p->m_fNewPrice;
 			if(pCurrent5Min->fHigh<p->m_fNewPrice)
 				pCurrent5Min->fHigh = p->m_fNewPrice;
@@ -177,7 +177,7 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 		}
 		else
 		{
-			pCurrent5Min->tmTime = p->m_time;
+			pCurrent5Min->tmTime = p->m_time/300*300+299;			//设置为最后一个周期
 			pCurrent5Min->fClose = p->m_fNewPrice;
 			pCurrent5Min->fHigh = p->m_fNewPrice;
 			pCurrent5Min->fLow = p->m_fNewPrice;
@@ -298,11 +298,19 @@ void CStockInfoItem::appendJingJias( qRcvFenBiData* pJingJia )
 QList<tagRStockData*> CStockInfoItem::get5MinList()
 {
 	QList<tagRStockData*> list = map5MinDatas.values();
-	if(pCurrent5Min->tmTime>0)
+	if(!map5MinDatas.contains(pCurrent5Min->tmTime))
 	{
 		list.push_back(pCurrent5Min);
 	}
 	return list;
+}
+
+RStockData* CStockInfoItem::get5MinData( const time_t& tmTime )
+{
+	if(map5MinDatas.contains(tmTime))
+		return map5MinDatas[tmTime];
+
+	return 0;
 }
 
 void CStockInfoItem::recalc5MinData()

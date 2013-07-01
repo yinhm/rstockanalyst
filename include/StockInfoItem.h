@@ -38,6 +38,8 @@ public:
 
 	//补充5分钟数据
 	virtual QList<tagRStockData*> get5MinList();	//追加最后不够5分钟的数据
+	//获取某时间的5分钟数据
+	RStockData* get5MinData(const time_t& tmTime);
 	//重新计算当日5Min数据
 	virtual void recalc5MinData();
 

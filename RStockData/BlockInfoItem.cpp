@@ -218,7 +218,7 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 QList<tagRStockData*> CBlockInfoItem::get5MinList()
 {
 	QList<tagRStockData*> list = map5MinDatas.values();
-	if(pCurrent5Min->tmTime>0)
+	if(!map5MinDatas.contains(pCurrent5Min->tmTime))
 	{
 		list.push_back(pCurrent5Min);
 	}
@@ -262,161 +262,100 @@ void CBlockInfoItem::recalc5MinData()
 
 	//从9点25开始计算
 	time_t tmNow = CDataEngine::getDataEngine()->getCurrentTime();
+	tmNow = tmNow/300*300+300;			//向上取整
 	time_t tmBegin = ((tmNow/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
+	time_t tmCurrent = tmBegin+299;		//计算到09:29:59
 
-/*
-	if(pCurrent5Min->tmTime>0)
+	//上一周期的价格（初始化时用昨日收盘价）
+	QMap<CStockInfoItem*,float> mapLastPrice;
+	foreach(CStockInfoItem* pStock,stocksInBlock)
 	{
-		if((tmNow/300) > (pCurrent5Min->tmTime/300))
-		{
-			//追加到5分钟数据中，并重新对当前5分钟数据分配内存
-			append5MinData(pCurrent5Min);
-			pCurrent5Min = new RBlockData;
-			//将最后的5分钟数据进行保存
-			mapLast5Price = mapLastPrice;
-			fLast5MinVolume = fVolume;
-			fLast5MinAmount = fAmount;
-		}
+		mapLastPrice[pStock] = pStock->getLastClose();
 	}
 
-	double dNew = 0.0;			//最新价
-	double dLow = 0.0;			//最低价
-	double dHigh = 0.0;			//最高价
-	double dLastClose = 0.0;	//昨日收盘价
-	double dOpen = 0.0;			//今日开盘价
-
-	fVolume = 0.0;				//成交量
-	fAmount = 0.0;				//成交额
-	float fReport[20];			//Report的20个增长
-	memset(&fReport,0,sizeof(float)*20);
-	memset(&(pCurrent5Min->fIncrease[0]),0,sizeof(float)*21);
-	pCurrent5Min->wAdvance = 0;
-	pCurrent5Min->wDecline = 0;
-	int iCount = stocksInBlock.size();
-	for(int i=0;i<iCount;++i)
+	while(tmCurrent<tmNow)
 	{
-		CStockInfoItem* pStock = stocksInBlock[i];
-		float _new = pStock->getNewPrice();					//采用最新价计算涨幅
-		float _open = pStock->getOpenPrice();				//获取开盘价
-		float _last = mapLast5Price.value(pStock,_open);	//默认使用开盘价
-		float _close = pStock->getLastClose();
-		if(_new>0.1)
+		if(tmCurrent>(tmBegin+130*60)&&tmCurrent<(tmBegin+340*60))
 		{
-			float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
-			dNew += pStock->getNewPrice()*fLTAG;
-			dLow += pStock->getLowPrice()*fLTAG;
-			dHigh += pStock->getHighPrice()*fLTAG;
-			dLastClose += pStock->getLastClose()*fLTAG;
-			dOpen += _open*fLTAG;
-			fVolume += pStock->getTotalVolume();
-			fAmount += pStock->getTotalAmount();
+			tmCurrent+=300;
+			continue;
+		}
 
-			if(_last>0.1)
+		double dNew = 0.0;			//最新价
+		double dLow = 0.0;			//最低价
+		double dHigh = 0.0;			//最高价
+		double dOpen = 0.0;			//开盘价
+		double dVolume = 0.0;		//成交量
+		double dAmount = 0.0;		//成交价
+
+		RBlockData* pBlockData = new RBlockData();
+		pBlockData->tmTime = tmCurrent;
+
+		//计算此时间内的数据
+		foreach(CStockInfoItem* pStock,stocksInBlock)
+		{
+			RStockData* pData = pStock->get5MinData(tmCurrent);
+			if(pData)
 			{
-				//计算涨跌数据
-				if(_new>_last)
-					++pCurrent5Min->wAdvance;
-				else if(_new<_last)
-					++pCurrent5Min->wDecline;
+				float _new = pData->fClose;							//采用最新价计算涨幅
+				float _last = mapLastPrice.value(pStock,_new);		//默认使用本次价格
 
-				int _index = ((float(_new-_last))*1000.0)/_last + 0.5;
-				if(_index>9)
+				if(_new>0.1)
 				{
-					++(pCurrent5Min->fIncrease[0]);
-				}
-				else if(_index>0)
-				{
-					++(pCurrent5Min->fIncrease[10-_index]);
-				}
-				else if(_index<0&&_index>-10)
-				{
-					++(pCurrent5Min->fIncrease[9-_index]);
-				}
-				else if(_index<-9)
-				{
-					++(pCurrent5Min->fIncrease[19]);
-				}
-				else
-				{
-					++(pCurrent5Min->fIncrease[20]);
+					float fLTAG = pStock->getBaseInfo()->fLtAg;		//流通股
+					dNew += pData->fClose*fLTAG;
+					dLow += pData->fLow*fLTAG;
+					dHigh += pData->fHigh*fLTAG;
+					dOpen += pData->fOpen*fLTAG;
+					fVolume += pData->fVolume;
+					fAmount += pData->fAmount;
+
+					if(_last>0.1)
+					{
+						//计算涨跌数据
+						if(_new>_last)
+							++pBlockData->wAdvance;
+						else if(_new<_last)
+							++pBlockData->wDecline;
+
+						int _index = ((float(_new-_last))*1000.0)/_last + 0.5;
+						if(_index>9)
+						{
+							++(pBlockData->fIncrease[0]);
+						}
+						else if(_index>0)
+						{
+							++(pBlockData->fIncrease[10-_index]);
+						}
+						else if(_index<0&&_index>-10)
+						{
+							++(pBlockData->fIncrease[9-_index]);
+						}
+						else if(_index<-9)
+						{
+							++(pBlockData->fIncrease[19]);
+						}
+						else
+						{
+							++(pBlockData->fIncrease[20]);
+						}
+					}
 				}
 			}
-			if(_close>0.1)
-			{
-				//计算report的涨跌数据
-				int _index = float((_new-_close)/_close)*100.0 + 0.5;
-				if(_index>9)
-				{
-					++fReport[0];
-				}
-				else if(_index>0)
-				{
-					++fReport[10-_index];
-				}
-				else if(_index<0&&_index>-10)
-				{
-					++fReport[9-_index];
-				}
-				else
-				{
-					++fReport[19];
-				}
-			}
-
-			mapLastPrice[pStock] = _new;
 		}
+
+		pBlockData->fAmount = dAmount;
+		pBlockData->fVolume = dVolume;
+		pBlockData->fOpen = dOpen/fLTG;
+		pBlockData->fClose = dNew/fLTG;
+		pBlockData->fHigh = dHigh/fLTG;
+		pBlockData->fLow = dLow/fLTG;
+		map5MinDatas[tmCurrent] = pBlockData;
+
+		//
+		tmCurrent += 300;
 	}
 
-	fNewPrice = dNew/fLTG;
-	fLowPrice = dLow/fLTG;
-	fHighPrice = dHigh/fLTG;
-	fLTSZ = dNew;
-
-	//涨幅
-	if(fNewPrice>0.0 && fLastClose>0.0)
-		fIncrease = (fNewPrice-fLastClose)*100.0/fLastClose;
-	{
-		//将新数据跟当前的5分钟数据进行整合
-		if(pCurrent5Min->tmTime>0)
-		{
-			pCurrent5Min->tmTime = tmNow;
-			pCurrent5Min->fClose = fNewPrice;
-			if(pCurrent5Min->fHigh<fNewPrice)
-				pCurrent5Min->fHigh = fNewPrice;
-			if(pCurrent5Min->fLow>fNewPrice)
-				pCurrent5Min->fLow = fNewPrice;
-			pCurrent5Min->fAmount = fAmount - fLast5MinAmount;
-			pCurrent5Min->fVolume = fVolume - fLast5MinVolume;
-		}
-		else
-		{
-			pCurrent5Min->tmTime = tmNow;
-			pCurrent5Min->fClose = fNewPrice;
-			pCurrent5Min->fHigh = fNewPrice;
-			pCurrent5Min->fLow = fNewPrice;
-			pCurrent5Min->fOpen = fNewPrice;
-			pCurrent5Min->fAmount = fAmount - fLast5MinAmount;
-			pCurrent5Min->fVolume = fVolume - fLast5MinVolume;
-		}
-	}
-
-	pCurrentReport->tmTime = CDataEngine::getCurrentTime();
-	pCurrentReport->fOpen = fOpenPrice;
-	pCurrentReport->fNewPrice = fNewPrice;
-	pCurrentReport->fLow = fLowPrice;
-	pCurrentReport->fHigh = fHighPrice;
-	pCurrentReport->fLastClose = fLastClose;
-	pCurrentReport->fAmount = fAmount;
-	pCurrentReport->fVolume = fVolume;
-	memcpy(&pCurrentReport->fBuyPrice[0],&fReport[0],80);
-
-
-	//将最后一笔分笔数据加入到队列中
-	if(p5Min->tmTime>0)
-	{
-		append5MinData(p5Min);
-	}
-	*/
 	emit stockItemFenBiChanged(qsOnly);
 }
 
@@ -612,6 +551,7 @@ void CBlockInfoItem::updateData()
 {
 	//获取当前时间
 	time_t tmNow = CDataEngine::getDataEngine()->getCurrentTime();
+	tmNow = tmNow/300*300+299;		//将tmNow设置为当前5分钟周期的最后时间
 	/*
 	更新间隔：暂时定为1分钟更新一次
 	计算方式：取前十只股票进行加权平均
@@ -755,7 +695,7 @@ void CBlockInfoItem::updateData()
 		//将新数据跟当前的5分钟数据进行整合
 		if(pCurrent5Min->tmTime>0)
 		{
-			pCurrent5Min->tmTime = tmNow;
+//			pCurrent5Min->tmTime = tmNow;
 			pCurrent5Min->fClose = fNewPrice;
 			if(pCurrent5Min->fHigh<fNewPrice)
 				pCurrent5Min->fHigh = fNewPrice;
