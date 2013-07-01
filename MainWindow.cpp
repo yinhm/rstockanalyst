@@ -51,6 +51,7 @@ CMainWindow::CMainWindow()
 		pMenuSettings->addAction(tr("设置色块颜色"),CBlockColorSettingDlg::getDialog(),SLOT(exec()));
 		pMenuSettings->addAction(tr("监视雷达设置"),this,SLOT(onWatcherSetting()));
 		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onMarketCloseSetting()));
+		pMenuSettings->addAction(tr("收盘后数据整理2"),this,SLOT(onMarketClose()));
 
 		//帮助
 		QMenu* pMenuHelp = m_pMenuBar->addMenu(tr("帮助"));
