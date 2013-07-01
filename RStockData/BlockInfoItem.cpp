@@ -218,7 +218,7 @@ void CBlockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 QList<tagRStockData*> CBlockInfoItem::get5MinList()
 {
 	QList<tagRStockData*> list = map5MinDatas.values();
-	if(!map5MinDatas.contains(pCurrent5Min->tmTime))
+	if(pCurrent5Min->tmTime>0 && (!map5MinDatas.contains(pCurrent5Min->tmTime)))
 	{
 		list.push_back(pCurrent5Min);
 	}
@@ -263,8 +263,8 @@ void CBlockInfoItem::recalc5MinData()
 	//从9点25开始计算
 	time_t tmNow = CDataEngine::getDataEngine()->getCurrentTime();
 	tmNow = tmNow/300*300+300;			//向上取整
-	time_t tmBegin = ((tmNow/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
-	time_t tmCurrent = tmBegin+299;		//计算到09:29:59
+	time_t tmBegin = ((tmNow/(3600*24))*3600*24)+3600*(9-8)+60*30;	//9：30开盘
+	time_t tmCurrent = tmBegin+299;		//计算到09:34:59
 
 	//上一周期的价格（初始化时用昨日收盘价）
 	QMap<CStockInfoItem*,float> mapLastPrice;
@@ -275,7 +275,7 @@ void CBlockInfoItem::recalc5MinData()
 
 	while(tmCurrent<tmNow)
 	{
-		if(tmCurrent>(tmBegin+130*60)&&tmCurrent<(tmBegin+340*60))
+		if(tmCurrent>(tmBegin+120*60)&&tmCurrent<(tmBegin+330*60))
 		{
 			tmCurrent+=300;
 			continue;
@@ -341,6 +341,9 @@ void CBlockInfoItem::recalc5MinData()
 						}
 					}
 				}
+
+				//将新价格放入容器中
+				mapLastPrice[pStock] = _new;
 			}
 		}
 

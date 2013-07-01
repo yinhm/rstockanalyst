@@ -298,7 +298,7 @@ void CStockInfoItem::appendJingJias( qRcvFenBiData* pJingJia )
 QList<tagRStockData*> CStockInfoItem::get5MinList()
 {
 	QList<tagRStockData*> list = map5MinDatas.values();
-	if(!map5MinDatas.contains(pCurrent5Min->tmTime))
+	if(pCurrent5Min->tmTime>0 && (!map5MinDatas.contains(pCurrent5Min->tmTime)))
 	{
 		list.push_back(pCurrent5Min);
 	}
