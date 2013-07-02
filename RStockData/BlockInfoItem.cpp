@@ -264,7 +264,7 @@ void CBlockInfoItem::recalc5MinData()
 
 	while(tmCurrent<tmNow)
 	{
-		if(tmCurrent>(tmBegin+120*60)&&tmCurrent<(tmBegin+330*60))
+		if(tmCurrent>(tmBegin+120*60)&&tmCurrent<(tmBegin+210*60))
 		{
 			tmCurrent+=300;
 			continue;

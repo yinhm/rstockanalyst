@@ -344,7 +344,6 @@ void CStockInfoItem::recalc5MinData()
 		//将新数据跟当前的5分钟数据进行整合
 		if(p5Min->tmTime>0)
 		{
-			p5Min->tmTime = pFenBi->tmTime;
 			p5Min->fClose = pFenBi->fPrice;
 			if(p5Min->fHigh<pFenBi->fPrice)
 				p5Min->fHigh = pFenBi->fPrice;
@@ -355,7 +354,7 @@ void CStockInfoItem::recalc5MinData()
 		}
 		else
 		{
-			p5Min->tmTime = pFenBi->tmTime;
+			p5Min->tmTime = pFenBi->tmTime/300*300+299;
 			p5Min->fClose = pFenBi->fPrice;
 			p5Min->fHigh = pFenBi->fPrice;
 			p5Min->fLow = pFenBi->fPrice;

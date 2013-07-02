@@ -7,66 +7,139 @@
 #include "KeyWizard.h"
 #include "MainWindow.h"
 
+#define BLOCK_CMD_SET	1
+
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	0
 
-QVector<float> getVectorForTime(const QMap<time_t,int>& mapTimes,const QList<RStockData*>& listDatas, CBaseBlockWidget::RShowType _t)
+QVector<float> getVectorForTime(const QMap<time_t,int>& mapTimes,const QList<RStockData*>& listDatas, CColorBlockWidget::RShowType _t, CAbstractStockItem* pStock)
 {
 	QVector<float> vRet;
 
+//	fVolumeRatio = (pCurrentReport->fVolume)/((fLast5Volume/((CDataEngine::getOpenSeconds()/60)*5))*(tmSeconds/60));
+//	((pCurrentReport->fVolume/100)/baseInfo.fLtAg)*100;
+
 	QMap<time_t,int>::const_iterator iter = mapTimes.begin();
 	QList<RStockData*>::const_iterator iterD = listDatas.begin();
-	RStockData* pLastData = 0;
-
-	while(iter!=mapTimes.end())
+	switch(_t)
 	{
-		if(iterD!=listDatas.end())
+	case CColorBlockWidget::ShowIncrease:
 		{
-			uint iT = iter.key()/300;
-			uint iTD = (*iterD)->tmTime/300;
-			if( iT == iTD)
+			RStockData* pLastData = 0;
+
+			while(iter!=mapTimes.end())
 			{
-				//计算
-				if(pLastData)
+				if(iterD!=listDatas.end())
 				{
-					switch(_t)
+					uint iT = iter.key()/300;
+					uint iTD = (*iterD)->tmTime/300;
+					if( iT == iTD)
 					{
-					case CBaseBlockWidget::ShowIncrease:
-						{
-							float fV = (((*iterD)->fClose - pLastData->fClose) / pLastData->fClose);
-							vRet.push_back((((*iterD)->fClose - pLastData->fClose) / pLastData->fClose));
-						}
-						break;
-					default:
+						//计算
+						if(pLastData)
 						{
 							vRet.push_back((((*iterD)->fClose - pLastData->fClose) / pLastData->fClose));
 						}
-						break;
+						else
+						{
+							vRet.push_back(0);
+						}
+						pLastData = *iterD;
+						++iter;
+						++iterD;
+					}
+					else if(iT<iTD)
+					{
+						vRet.push_back(0);
+						++iter;
+					}
+					else
+					{
+						++iterD;
 					}
 				}
 				else
 				{
 					vRet.push_back(0);
+					++iter;
 				}
-				pLastData = *iterD;
-				++iter;
-				++iterD;
-			}
-			else if(iT<iTD)
-			{
-				vRet.push_back(0);
-				++iter;
-			}
-			else
-			{
-				++iterD;
 			}
 		}
-		else
+		break;
+	case CColorBlockWidget::ShowTurnRatio:
 		{
-			vRet.push_back(0);
-			++iter;
+			float fLTAG = pStock->getLtag();
+			if(fLTAG<0.1)
+				break;
+
+			while(iter!=mapTimes.end())
+			{
+				if(iterD!=listDatas.end())
+				{
+					uint iT = iter.key()/300;
+					uint iTD = (*iterD)->tmTime/300;
+					if( iT == iTD)
+					{
+						//计算
+						vRet.push_back((((*iterD)->fVolume) / fLTAG)*10);
+						++iter;
+						++iterD;
+					}
+					else if(iT<iTD)
+					{
+						vRet.push_back(0);
+						++iter;
+					}
+					else
+					{
+						++iterD;
+					}
+				}
+				else
+				{
+					vRet.push_back(0);
+					++iter;
+				}
+			}
 		}
+		break;
+	case CColorBlockWidget::ShowVolumeRatio:
+		{
+			float fLast5Volume = pStock->getLast5Volume();
+			if(fLast5Volume<0.1)
+				break;
+
+			while(iter!=mapTimes.end())
+			{
+				if(iterD!=listDatas.end())
+				{
+					uint iT = iter.key()/300;
+					uint iTD = (*iterD)->tmTime/300;
+					if( iT == iTD)
+					{
+						//计算
+						vRet.push_back((((*iterD)->fVolume) / ((fLast5Volume/((CDataEngine::getOpenSeconds()/60)*5))*(5))));
+						++iter;
+						++iterD;
+					}
+					else if(iT<iTD)
+					{
+						vRet.push_back(0);
+						++iter;
+					}
+					else
+					{
+						++iterD;
+					}
+				}
+				else
+				{
+					vRet.push_back(0);
+					++iter;
+				}
+			}
+		}
+		break;
 	}
 
 	return vRet;
@@ -75,7 +148,6 @@ QVector<float> getVectorForTime(const QMap<time_t,int>& mapTimes,const QList<RSt
 
 CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	: CBaseBlockWidget(parent,WidgetSColorBlock)
-	, m_pMenuBlockList(0)
 	, m_iTitleHeight(16)
 	, m_iBottomHeight(16)
 	, showStockIndex(0)
@@ -84,13 +156,29 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_qsExpColor("(CLOSE-REF(CLOSE,1))/CLOSE")
 	, m_qsExpHeight("CLOSE")
 	, m_qsExpWidth("CLOSE")
+	, m_bShowIncrease(true)
+	, m_bShowTurnRatio(true)
+	, m_bShowVolumeRatio(true)
 {
+	{
+		//初始化显示类型
+		m_listShowOp.push_back(RWidgetOpData(ShowIncrease,"vsc","显示涨幅（颜色）"));
+		m_listShowOp.push_back(RWidgetOpData(ShowTurnRatio,"vsh","显示换手率（高度）"));
+		m_listShowOp.push_back(RWidgetOpData(ShowVolumeRatio,"vsw","显示量比（宽度）"));
+	}
 	//设置当前的表达式
-	m_pMenuCustom->addAction(tr("设置当前的表达式"),
-		this,SLOT(onSetExpression()));
+//	m_pMenuCustom->addAction(tr("设置当前的表达式"),
+//		this,SLOT(onSetExpression()));
 
-	//设置当前显示的板块
-	m_pMenuBlockList = m_pMenuCustom->addMenu(tr("设置当前板块"));
+	//设置显示类型
+	m_pMenuShowType = m_pMenuCustom->addMenu("设置显示类型");
+	{
+		foreach(const RWidgetOpData& _d,m_listShowOp)
+		{
+			m_pMenuShowType->addAction(_d.desc,this,SLOT(onSetShowType()))->setData(_d.value);
+		}
+	}
+
 
 	connect(&m_timerUpdateUI,SIGNAL(timeout()),this,SLOT(updateColorBlockData()));
 	m_timerUpdateUI.start(1000);
@@ -201,6 +289,32 @@ void CColorBlockWidget::onSetCurrentBlock()
 {
 	QAction* pAct = reinterpret_cast<QAction*>(sender());
 	setBlock(pAct->data().toString());
+}
+
+void CColorBlockWidget::setShowType( RShowType _t )
+{
+	switch(_t)
+	{
+	case ShowIncrease:
+		m_bShowIncrease = !m_bShowIncrease;
+		break;
+	case ShowTurnRatio:
+		m_bShowTurnRatio = !m_bShowTurnRatio;
+		break;
+	case ShowVolumeRatio:
+		m_bShowVolumeRatio = !m_bShowVolumeRatio;
+		break;
+	}
+
+	updateColorBlockData();
+}
+
+void CColorBlockWidget::onSetShowType()
+{
+	//设置当前的显示类型
+	QAction* pAct = reinterpret_cast<QAction*>(sender());
+	setShowType(static_cast<RShowType>(pAct->data().toInt()));
+	return;
 }
 
 void CColorBlockWidget::onSetExpression()
@@ -532,9 +646,15 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 	QList<RStockData*> listDatas = pItem->get5MinList();
 
-	QVector<float> _vColor = getVectorForTime(m_mapTimes,listDatas,ShowIncrease);
-	QVector<float> _vHeight = getVectorForTime(m_mapTimes,listDatas,ShowIncrease);
-	QVector<float> _vWidth = getVectorForTime(m_mapTimes,listDatas,ShowIncrease);
+	QVector<float> _vColor;
+	if(m_bShowIncrease)
+		_vColor = getVectorForTime(m_mapTimes,listDatas,ShowIncrease,pItem);
+	QVector<float> _vHeight;
+	if(m_bShowTurnRatio)
+		_vHeight = getVectorForTime(m_mapTimes,listDatas,ShowTurnRatio,pItem);
+	QVector<float> _vWidth;
+	if(m_bShowVolumeRatio)
+		_vWidth = getVectorForTime(m_mapTimes,listDatas,ShowVolumeRatio,pItem);
 	//绘制
 	drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
 }
@@ -553,7 +673,7 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 		}
 	}
 	return;
-
+	
 	if(!((qApp->mouseButtons())&Qt::LeftButton))
 	{
 		update();
@@ -567,6 +687,7 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 	{
 		return QToolTip::hideText();
 	}
+	qDebug()<<QDateTime::fromTime_t(item->tmTime).toString();
 
 	if(!m_rtClient.contains(e->pos()))
 		return QToolTip::hideText();
@@ -756,8 +877,8 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 					fW = 1;
 
 				rtCB.adjust(1,1,-1,-1);
-//				rtCB.setHeight(rtCB.height()*fH*fTimes);
-//				rtCB.setWidth(rtCB.width()*fW*fTimes);
+				rtCB.setHeight(rtCB.height()*fH);
+				rtCB.setWidth(rtCB.width()*fW);
 				p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*fTimes*100)));
 			}
 		}
@@ -771,22 +892,35 @@ QMenu* CColorBlockWidget::getCustomMenu()
 	CBaseBlockWidget::getCustomMenu();
 	{
 		//设置所有板块的菜单
-		m_pMenuBlockList->clear();
-		QList<CBlockInfoItem*> list = CDataEngine::getDataEngine()->getTopLevelBlocks();
-		foreach(const CBlockInfoItem* block,list)
+		QMenu* pBlockMenu = CMainWindow::getMainWindow()->getBlockMenu(this,BLOCK_CMD_SET);
+		pBlockMenu->setTitle(tr("设置当前板块"));
+		m_pMenuCustom->addMenu(pBlockMenu);
+	}
+	{
+		//设置当前的显示类型
+		QList<QAction*> listAct = m_pMenuShowType->actions();
+		foreach(QAction* pAct,listAct)
 		{
-			QAction* pAct = m_pMenuBlockList->addAction(block->getBlockName(),this,SLOT(onSetCurrentBlock()));
-			pAct->setData(block->getBlockName());
-			if(m_pBlock == block)
+			pAct->setCheckable(true);
+			RShowType _t = static_cast<RShowType>(pAct->data().toInt());
+			switch(_t)
 			{
-				pAct->setCheckable(true);
-				pAct->setChecked(true);
+			case ShowIncrease:
+				pAct->setChecked(m_bShowIncrease);
+				break;
+			case ShowTurnRatio:
+				pAct->setChecked(m_bShowTurnRatio);
+				break;
+			case ShowVolumeRatio:
+				pAct->setChecked(m_bShowVolumeRatio);
+				break;
 			}
 		}
 	}
 
 	return m_pMenuCustom;
 }
+
 
 QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
 {
@@ -810,30 +944,29 @@ CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
 
 RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 {
-//	CStockInfoItem* pItem = hitTestStock(ptPoint);
+	CStockInfoItem* pItem = hitTestStock(ptPoint);
 
 	RStockData* pData = NULL;
-	//if(pItem)
-	//{
-	//	QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
-	//	int iIndex = (m_rtClient.right() - ptPoint.x())/m_iCBWidth;
-	//	QMap<time_t,int>::iterator iter = m_mapTimes.end();
-	//	while(iter!=m_mapTimes.begin())
-	//	{
-	//		--iter;
+	if(pItem)
+	{
+		int iIndex = (m_rtClient.right() - ptPoint.x())/m_iCBWidth;
+		QMap<time_t,int>::iterator iter = m_mapTimes.end();
+		while(iter!=m_mapTimes.begin())
+		{
+			--iter;
 
-	//		if(iIndex==iter.value())
-	//		{
-	//			if(pMap->contains(iter.key()))
-	//			{
-	//				pData = pMap->value(iter.key());
-	//				break;
-	//			}
-	//		}
-	//		else if(iIndex<iter.value())
-	//			break;
-	//	}
-	//}
+			if(iIndex==iter.value())
+			{
+				pData = pItem->get5MinData(iter.key()/300*300+299);
+				if(pData)
+				{
+					break;
+				}
+			}
+			else if(iIndex<iter.value())
+				break;
+		}
+	}
 	return pData;
 }
 
@@ -865,5 +998,13 @@ void CColorBlockWidget::keyWizEntered( KeyWizData* pData )
 	}
 
 	return CBaseBlockWidget::keyWizEntered(pData);
+}
+
+void CColorBlockWidget::onBlockClicked( CBlockInfoItem* pBlock,int iCmd )
+{
+	if(iCmd == BLOCK_CMD_SET)
+	{
+		setBlock(pBlock->getOnly());
+	}
 }
 

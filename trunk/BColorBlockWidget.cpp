@@ -61,19 +61,8 @@ bool CBColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 
 void CBColorBlockWidget::clearTmpData()
 {
-	{
-		//清理缓存表中的内存
-		QMap<CBlockInfoItem*,QMap<time_t,qRcvFenBiData*>*>::iterator iter = mapBlockColorBlocks.begin();
-		while(iter != mapBlockColorBlocks.end())
-		{
-			delete iter.value();
-			++iter;
-		}
-	}
-
 	m_listBlocks.clear();
 	m_mapBlockIndex.clear();
-	mapBlockColorBlocks.clear();
 	m_pSelectedBlock = 0;
 	m_pCurBlock = 0;
 }
@@ -212,13 +201,6 @@ void CBColorBlockWidget::setBlock( const QString& block )
 			{
 				CBlockInfoItem* pItem = list[i];
 				m_mapBlockIndex[pItem] = i;
-
-				QMap<time_t,qRcvFenBiData*>* pMap = new QMap<time_t,qRcvFenBiData*>;
-				foreach(qRcvFenBiData* pFenBi,pItem->getFenBiList())
-				{
-					pMap->insert(pFenBi->tmTime,pFenBi);
-				}
-				mapBlockColorBlocks[pItem] = pMap;
 			}
 
 			m_pCurBlock = pBlock;
@@ -229,23 +211,6 @@ void CBColorBlockWidget::setBlock( const QString& block )
 
 void CBColorBlockWidget::updateUI()
 {
-	{
-		//更新数据
-		QMap<CBlockInfoItem*,QMap<time_t,qRcvFenBiData*>*>::iterator iter = mapBlockColorBlocks.begin();
-		while(iter!=mapBlockColorBlocks.end())
-		{
-			QMap<time_t,qRcvFenBiData*>* pMap = iter.value();
-			CBlockInfoItem* pItem = iter.key();
-			pMap->clear();
-			QList<qRcvFenBiData*> listFenBis = pItem->getFenBiList();
-
-			foreach(qRcvFenBiData* pFenBi,listFenBis)
-			{
-				pMap->insert(pFenBi->tmTime,pFenBi);
-			}
-			++iter;
-		}
-	}
 	updateTimesH();
 	updateSortMode(false);
 }
@@ -584,17 +549,14 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 	if(fCBWidth<0)
 		return;
 
-	if(!mapBlockColorBlocks.contains(pItem))
-		return;
-
-	QMap<time_t,qRcvFenBiData*>* pMap = mapBlockColorBlocks[pItem];
-	if(pMap&&pMap->size()>0)
+	QList<RStockData*> listDatas = pItem->get5MinList();
+	if(listDatas.size()>0)
 	{
-		QMap<time_t,qRcvFenBiData*>::iterator iterFenBi = pMap->end();
+		QList<RStockData*>::iterator iterFenBi = listDatas.end();
 		do
 		{
 			--iterFenBi;
-			qRcvFenBiData* pFenBi = iterFenBi.value();
+			RBlockData* pFenBi = reinterpret_cast<RBlockData*>(*iterFenBi);
 
 			QMap<time_t,float>::iterator iter = m_mapShowTimes.lowerBound(pFenBi->tmTime);
 			if(iter==m_mapShowTimes.end())
@@ -611,7 +573,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				float fLeft = iter.value()-m_iCBWidth;
 				float fHeight = rtCB.height()-1;
 
-				float* fCount = &(pFenBi->fBuyPrice[0]);
+				float* fCount = &(pFenBi->fIncrease[0]);
 
 				float fNotEquel = 0;
 				for (int i=0;i<9;++i)
@@ -628,7 +590,6 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				float fCurY = fTop;
 				if(fPer>=fHeight)
 					continue;
-
 
 				for (int j=0;j<9;++j)
 				{
@@ -665,7 +626,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				break;
 			}
 		}
-		while(iterFenBi!=pMap->begin());
+		while(iterFenBi!=listDatas.begin());
 	}
 	//绘制
 	//drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
@@ -696,7 +657,7 @@ qRcvFenBiData* CBColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 	CBlockInfoItem* pItem = hitTestBlock(ptPoint);
 
 	qRcvFenBiData* pData = NULL;
-	if(pItem && mapBlockColorBlocks.contains(pItem))
+/*	if(pItem && mapBlockColorBlocks.contains(pItem))
 	{
 		QMap<time_t,qRcvFenBiData*>* pMap = mapBlockColorBlocks[pItem];
 		int iIndex = (m_rtClient.right() - ptPoint.x())/m_iCBWidth;
@@ -717,7 +678,7 @@ qRcvFenBiData* CBColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 			else if(iIndex<iter.value())
 				break;
 		}
-	}
+	}*/
 	return pData;
 }
 

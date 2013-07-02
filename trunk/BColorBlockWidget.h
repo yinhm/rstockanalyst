@@ -65,9 +65,6 @@ private:
 	QList<CBlockInfoItem*> m_listBlocks;		//当前显示的所有股票列表
 	QMap<CBlockInfoItem*,int> m_mapBlockIndex;	//用来快速查找某只股票所在的索引
 
-	//所有用于显示的ColorBlock数据，为了快速查找和计算
-	QMap<CBlockInfoItem*,QMap<time_t,qRcvFenBiData*>*> mapBlockColorBlocks;
-
 	CBlockInfoItem* m_pSelectedBlock;				//选中的block
 	CBlockInfoItem* m_pCurBlock;					//当前显示的block
 

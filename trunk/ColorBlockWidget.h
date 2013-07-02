@@ -16,6 +16,15 @@ class CColorBlockWidget : public CBaseBlockWidget
 {
 	Q_OBJECT
 public:
+	//显示类型（）
+	enum RShowType
+	{
+		ShowIncrease = 1,	//涨幅
+		ShowTurnRatio,		//换手率
+		ShowVolumeRatio,	//量比
+	};
+
+public:
 	CColorBlockWidget(CBaseWidget* parent = 0);
 	~CColorBlockWidget(void);
 
@@ -47,8 +56,12 @@ public slots:
 
 protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
+	void onSetShowType();									//设置显示类型
 	void onSetExpression();									//设置当前显示的表达式
 	virtual void updateColorBlockData();					//更新当前需要显示的数据
+
+protected:
+	void setShowType(RShowType _t);
 
 private:
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
@@ -70,6 +83,7 @@ protected:
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
 
+	virtual void onBlockClicked(CBlockInfoItem* pBlock,int iCmd);
 	/*相关绘图函数*/
 private:
 	void drawHeader(QPainter& p,const QRect& rtHeader);			//绘制头部信息
@@ -83,7 +97,9 @@ private:
 	RStockData* hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
 
 private:
-	QMenu* m_pMenuBlockList;				//所有板块信息（当前选中的板块上打勾）
+	QMenu* m_pMenuShowType;					//绘制界面中的显示类型
+
+	QList<RWidgetOpData> m_listShowOp;		//显示类型列表
 
 	CBlockInfoItem* m_pBlock;				//当前的板块名称
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
@@ -106,8 +122,12 @@ private:
 	QString m_qsExpHeight;					//高度表达式
 	QString m_qsExpWidth;					//宽度表达式
 
-	//各个周期所在的矩形
+	//各个排序方式所在的矩形
 	QMap<int,QRect> m_mapSorts;
+
+	bool m_bShowIncrease;					//显示涨幅（颜色）
+	bool m_bShowTurnRatio;					//显示换手率（高度）
+	bool m_bShowVolumeRatio;				//显示量比（宽度）
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H
