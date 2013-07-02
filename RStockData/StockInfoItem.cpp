@@ -315,16 +315,6 @@ RStockData* CStockInfoItem::get5MinData( const time_t& tmTime )
 
 void CStockInfoItem::recalc5MinData()
 {
-	{
-		//清空当前5分钟数据
-		QMap<time_t,RStockData*>::iterator iter = map5MinDatas.begin();		//5分钟历史数据
-		while(iter!=map5MinDatas.end())
-		{
-			delete iter.value();
-			++iter;
-		}
-		map5MinDatas.clear();
-	}
 	//重新计算5分钟数据
 	QMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.begin();
 	RStockData* p5Min = new RStockData();

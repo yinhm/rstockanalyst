@@ -13,7 +13,6 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 	: CBaseWidget(parent,type)
 	, m_typeCircle(Min1)
 	, m_pMenuCustom(0)
-
 {
 	{
 		m_pL = luaL_newstate();

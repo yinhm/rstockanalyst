@@ -227,17 +227,6 @@ QList<tagRStockData*> CBlockInfoItem::get5MinList()
 
 void CBlockInfoItem::recalc5MinData()
 {
-	{
-		//清空当前5分钟数据
-		QMap<time_t,RStockData*>::iterator iter = map5MinDatas.begin();		//5分钟历史数据
-		while(iter!=map5MinDatas.end())
-		{
-			delete iter.value();
-			++iter;
-		}
-		map5MinDatas.clear();
-	}
-
 	//重新计算5分钟数据
 	if(_isnan(fLTG) || fLTG<0.01)
 	{
@@ -353,7 +342,7 @@ void CBlockInfoItem::recalc5MinData()
 		pBlockData->fClose = dNew/fLTG;
 		pBlockData->fHigh = dHigh/fLTG;
 		pBlockData->fLow = dLow/fLTG;
-		map5MinDatas[tmCurrent] = pBlockData;
+		append5MinData(pBlockData);
 
 		//
 		tmCurrent += 300;

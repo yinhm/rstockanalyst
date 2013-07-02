@@ -15,16 +15,15 @@
 
 
 CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= CBaseWidget::Basic*/ )
-	: CCoordXBaseWidget(parent,type)
+	: CBaseWidget(parent,type)
 	, m_pMenuColorMode(0)
 	, m_iCBHeight(16)
 	, m_iCBWidth(16)
 	, m_qsColorMode("")
 	, m_sort(SortByCode)
 	, m_sortOrder(Qt::AscendingOrder)
+	, m_pMenuCustom(0)
 {
-	m_typeCircle = Min1;				//设置初始显示周期为1分钟
-	
 	{
 		//初始化排序方式
 		m_listSortOp.push_back(RWidgetOpData(SortByCode,"vsc","代码排序"));
@@ -34,6 +33,8 @@ CBaseBlockWidget::CBaseBlockWidget( CBaseWidget* parent /*= 0*/, RWidgetType typ
 	}
 	//初始化菜单
 	{
+		m_pMenuCustom = new QMenu(tr("色块图菜单"));
+
 		//颜色显示模式菜单
 		m_pMenuColorMode = m_pMenuCustom->addMenu("设置颜色模式");
 		//设置色块的大小
@@ -62,7 +63,7 @@ CBaseBlockWidget::~CBaseBlockWidget(void)
 
 bool CBaseBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 {
-	if(!CCoordXBaseWidget::loadPanelInfo(eleWidget))
+	if(!CBaseWidget::loadPanelInfo(eleWidget))
 		return false;
 
 	//色块的宽度
@@ -103,7 +104,7 @@ bool CBaseBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 
 bool CBaseBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 {
-	if(!CCoordXBaseWidget::savePanelInfo(doc,eleWidget))
+	if(!CBaseWidget::savePanelInfo(doc,eleWidget))
 		return false;
 
 	eleWidget.setAttribute("CBWidth",m_iCBWidth);
@@ -130,9 +131,9 @@ bool CBaseBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	return true;
 }
 
-void CBaseBlockWidget::updateData()
+void CBaseBlockWidget::updateColorBlockData()
 {
-	return CCoordXBaseWidget::updateData();
+
 }
 
 void CBaseBlockWidget::updateSortMode( bool /*bSelFirst = true*/ )
@@ -246,16 +247,6 @@ QMenu* CBaseBlockWidget::getCustomMenu()
 		m_pMenuCustom->addMenu(m_pMenu);
 
 	{
-		//设置当前选中的周期模式
-		QList<QAction*> listAct = m_pMenuCircle->actions();
-		foreach(QAction* pAct,listAct)
-		{
-			pAct->setCheckable(true);
-			pAct->setChecked(pAct->data().toInt() == m_typeCircle);
-		}
-	}
-
-	{
 		//添加当前所有的支持的颜色模式菜单
 		m_pMenuColorMode->clear();
 
@@ -287,12 +278,6 @@ QMenu* CBaseBlockWidget::getCustomMenu()
 void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 {
 	int nTimes = 1;
-	if(m_typeCircle<=Min60)
-		nTimes = 10;
-	else if(m_typeCircle<=Week)
-		nTimes = 1;
-	else
-		nTimes = 0.1;
 
 	QMap<time_t,float>::iterator iter = m_mapShowTimes.begin();
 	
@@ -325,7 +310,7 @@ void CBaseBlockWidget::getKeyWizData(const QString& keyword,QList<KeyWizData*>& 
 				return;
 		}
 	}
-	return CCoordXBaseWidget::getKeyWizData(keyword,listRet);
+	return CBaseWidget::getKeyWizData(keyword,listRet);
 }
 //键盘精灵窗口确认后触发
 void CBaseBlockWidget::keyWizEntered(KeyWizData* pData)
@@ -336,7 +321,7 @@ void CBaseBlockWidget::keyWizEntered(KeyWizData* pData)
 		return;
 	}
 
-	return CCoordXBaseWidget::keyWizEntered(pData);
+	return CBaseWidget::keyWizEntered(pData);
 }
 
 bool CBaseBlockWidget::isMatchAbnomal( CAbstractStockItem* pItem )
@@ -371,4 +356,88 @@ bool CBaseBlockWidget::isMatchAbnomal( CAbstractStockItem* pItem )
 	}
 
 	return true;
+}
+
+void CBaseBlockWidget::updateTimesH()
+{
+	//更新当前的横坐标数据，从后向前计算时间
+	m_mapTimes = CDataEngine::getTodayTimeMap(Min5);
+}
+
+void CBaseBlockWidget::updateShowTimes( const QRectF& rtCoordX,float fItemWidth )
+{
+	m_mapShowTimes.clear();
+	//从右向左绘制横坐标
+	float fBeginX = rtCoordX.right();
+	float fEndX = rtCoordX.left();
+	float fCBWidth = fBeginX-fEndX;
+	if(fCBWidth<0)
+		return;
+
+	QList<time_t> listTimes = m_mapTimes.keys();
+	float fCurX = fBeginX-fItemWidth;
+	int iCount = listTimes.size()-1;
+
+	while(fCurX>fEndX && iCount>=0)
+	{
+		m_mapShowTimes[listTimes[iCount]] = fCurX;
+
+		--iCount;
+		fCurX = fCurX- fItemWidth;
+	}
+	return;
+}
+
+void CBaseBlockWidget::drawCoordX( QPainter& p,const QRectF& rtCoordX,float fItemWidth )
+{
+	//从右向左绘制横坐标
+	float fBeginX = rtCoordX.right();
+	float fEndX = rtCoordX.left();
+	float fCBWidth = fBeginX-fEndX;
+	if(fCBWidth<0)
+		return;
+
+	QList<time_t> listTimes = m_mapTimes.keys();
+	float fCurX = fBeginX-fItemWidth;
+	float fLastX = fBeginX;
+	int iCount = listTimes.size()-1;
+	if(iCount<0)
+		return;
+
+	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
+
+	time_t tmCurDate = QDateTime(QDateTime::fromTime_t(listTimes[iCount]).date()).toTime_t();
+	while(fCurX>fEndX && iCount>=0)
+	{
+		time_t tmTime = listTimes[iCount];
+		if(tmTime<tmCurDate)
+		{
+			p.setPen(QColor(255,255,255));
+			p.fillRect(fLastX-14,rtCoordX.top(),30,rtCoordX.height(),QColor(0,0,0));
+			p.drawLine(fCurX+fItemWidth,rtCoordX.top(),fCurX+fItemWidth,rtCoordX.top()+2);
+			p.drawText(fCurX+fItemWidth-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+				Qt::AlignCenter,QDateTime::fromTime_t(tmCurDate).toString("MM/dd"));
+
+			tmCurDate = QDateTime(QDateTime::fromTime_t(tmTime).date()).toTime_t();
+			fLastX = fCurX;
+			++iTimeCount;
+		}
+		else
+		{
+			if((fLastX-fCurX)>30)
+			{
+				p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
+				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+				p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+					Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+
+				fLastX = fCurX;
+				++iTimeCount;
+			}
+		}
+
+		--iCount;
+		fCurX = fCurX- fItemWidth;
+	}
+	return;
 }

@@ -12,7 +12,7 @@
 #include "CoordXBaseWidget.h"
 #include "AbnomalSettingDlg.h"
 
-class CBaseBlockWidget : public CCoordXBaseWidget
+class CBaseBlockWidget : public CBaseWidget
 {
 	Q_OBJECT
 public:
@@ -22,6 +22,14 @@ public:
 		SortByIncrease,		//按涨幅排序
 		SortByTurnRatio,	//按换手率排序
 		SortByVolumeRatio,	//按量比排序
+	};
+
+	//显示类型（）
+	enum RShowType
+	{
+		ShowIncrease = 1,	//涨幅
+		ShowTurnRatio,		//换手率
+		ShowVolumeRatio,	//量比
 	};
 public:
 	CBaseBlockWidget(CBaseWidget* parent = 0, RWidgetType type = WidgetBasic);
@@ -34,7 +42,7 @@ public:
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
 	//更新数据
-	virtual void updateData();
+	virtual void updateColorBlockData();
 
 	//更新排序方式
 	virtual void updateSortMode(bool bSelFirst = true);
@@ -45,6 +53,13 @@ public:
 	//键盘精灵窗口确认后触发
 	virtual void keyWizEntered(KeyWizData* pData);
 
+protected:
+	//更新当前的横坐标数据
+	virtual void updateTimesH();
+	//更新需要进行绘制的时间轴
+	void updateShowTimes(const QRectF& rtCoordX,float fItemWidth);
+	//绘制X坐标轴
+	void drawCoordX(QPainter& p,const QRectF& rtCoordX,float fItemWidth);
 protected:
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
@@ -73,7 +88,10 @@ protected:
 	QMenu* m_pMenuColorMode;				//颜色模式菜单
 	QMenu* m_pMenuSortMode;					//排序方式菜单
 
+	QMenu* m_pMenuCustom;					//自定义菜单
+
 	QString m_qsColorMode;					//当前颜色模式
+
 protected:
 	int m_iCBHeight;						//单个色块的高度
 	int m_iCBWidth;							//单个色块的宽度
@@ -86,7 +104,8 @@ protected:
 	QMap<RAbnomalType,float> m_mapAbnomal;	//异常波动过滤器
 	QList<RWidgetOpData> m_listSortOp;		//排序方式列表
 
-private:
+	QMap<time_t,int> m_mapTimes;			//当前需要显示的所有时间（横向坐标）
+	QMap<time_t,float> m_mapShowTimes;		//当前已经绘制的时间
 };
 
 #endif	//BASE_BLOCK_WIDGET_H
