@@ -10,18 +10,66 @@
 #define	RCB_OFFSET_Y	2
 #define RCB_OFFSET_LEFT	0
 
-void FreeRStockInfoMap(QMap<time_t,RStockData*>* pMap)
+QVector<float> getVectorForTime(const QMap<time_t,int>& mapTimes,const QList<RStockData*>& listDatas, CBaseBlockWidget::RShowType _t)
 {
-	QMap<time_t,RStockData*>::iterator iter = pMap->begin();
-	QMap<time_t,RStockData*>::iterator iterEnd = pMap->end();
-	while(iter!=iterEnd)
+	QVector<float> vRet;
+
+	QMap<time_t,int>::const_iterator iter = mapTimes.begin();
+	QList<RStockData*>::const_iterator iterD = listDatas.begin();
+	RStockData* pLastData = 0;
+
+	while(iter!=mapTimes.end())
 	{
-		if((*iter)!=NULL)
+		if(iterD!=listDatas.end())
 		{
-			delete (*iter);
+			uint iT = iter.key()/300;
+			uint iTD = (*iterD)->tmTime/300;
+			if( iT == iTD)
+			{
+				//计算
+				if(pLastData)
+				{
+					switch(_t)
+					{
+					case CBaseBlockWidget::ShowIncrease:
+						{
+							float fV = (((*iterD)->fClose - pLastData->fClose) / pLastData->fClose);
+							vRet.push_back((((*iterD)->fClose - pLastData->fClose) / pLastData->fClose));
+						}
+						break;
+					default:
+						{
+							vRet.push_back((((*iterD)->fClose - pLastData->fClose) / pLastData->fClose));
+						}
+						break;
+					}
+				}
+				else
+				{
+					vRet.push_back(0);
+				}
+				pLastData = *iterD;
+				++iter;
+				++iterD;
+			}
+			else if(iT<iTD)
+			{
+				vRet.push_back(0);
+				++iter;
+			}
+			else
+			{
+				++iterD;
+			}
 		}
-		++iter;
+		else
+		{
+			vRet.push_back(0);
+			++iter;
+		}
 	}
+
+	return vRet;
 }
 
 
@@ -58,7 +106,7 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(!CBaseBlockWidget::loadPanelInfo(eleWidget))
 		return false;
 
-	updateData();
+	updateColorBlockData();
 	//当前的板块名称
 	QDomElement eleBlock = eleWidget.firstChildElement("block");
 	if(eleBlock.isElement())
@@ -116,24 +164,6 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	return true;
 }
 
-void CColorBlockWidget::updateData()
-{
-	updateSortMode(false);
-	if(m_typeCircle<Day)
-	{
-		//分笔数据1秒中更新一次
-		m_timerUpdateUI.stop();
-		m_timerUpdateUI.start(1000);
-	}
-	else
-	{
-		//日线数据10秒中更新一次
-		m_timerUpdateUI.stop();
-		m_timerUpdateUI.start(10000);
-	}
-	return/* CBaseBlockWidget::updateData()*/;
-}
-
 void CColorBlockWidget::updateSortMode(bool bSelFirst)
 {
 	if(bSelFirst)
@@ -147,6 +177,12 @@ void CColorBlockWidget::updateSortMode(bool bSelFirst)
 	return;
 }
 
+void CColorBlockWidget::updateTimesH()
+{
+	//更新当前的横坐标数据，从后向前计算时间
+	m_mapTimes = CDataEngine::getTodayTimeMap(Min5);
+}
+
 void CColorBlockWidget::setBlock( const QString& block )
 {
 	clearTmpData();
@@ -158,20 +194,6 @@ void CColorBlockWidget::setBlock( const QString& block )
 
 	updateSortMode(true);
 	return CBaseWidget::setBlock(block);
-}
-
-void CColorBlockWidget::setCircle( RStockCircle _c )
-{
-	CBlockInfoItem* pBlock = m_pBlock;
-	clearTmpData();
-
-	m_typeCircle = _c;
-
-	if(!pBlock)
-		return;
-	m_pBlock = pBlock;
-	m_listStocks = pBlock->getStockList();
-	updateSortMode(true);
 }
 
 
@@ -317,52 +339,6 @@ void CColorBlockWidget::updateColorBlockData()
 		++iIndex;
 	}
 
-	//从map里删除不需要显示的股票
-	QMap<CStockInfoItem*,QMap<time_t,RStockData*>*>::iterator iter = mapStockColorBlocks.begin();
-	while (iter!=mapStockColorBlocks.end())
-	{
-		FreeRStockInfoMap(iter.value());
-		delete iter.value();
-		++iter;
-	}
-	mapStockColorBlocks.clear();
-
-
-	//将需要显示而map中没有的股票加入到map中
-	foreach(CStockInfoItem* p,listShowItems)
-	{
-		mapStockColorBlocks[p] = getColorBlockMap(p);
-	}
-
-	update();
-}
-
-void CColorBlockWidget::updateShowMap()
-{
-	QList<CStockInfoItem*> listShowItems;
-	int iClientHeight = this->rect().height();
-	//获取当前需要显示的股票列表
-	int iIndex = showStockIndex;
-	while (iIndex<m_listStocks.size())
-	{
-		if((iIndex-showStockIndex)*m_iCBHeight<iClientHeight)
-		{
-			listShowItems.push_back(m_listStocks[iIndex]);
-		}
-		else
-		{
-			break;
-		}
-		++iIndex;
-	}
-
-	//将需要显示而map中没有的股票加入到map中
-	foreach(CStockInfoItem* p,listShowItems)
-	{
-		if(!mapStockColorBlocks.contains(p))
-			mapStockColorBlocks[p] = getColorBlockMap(p);
-	}
-
 	update();
 }
 
@@ -377,15 +353,6 @@ void CColorBlockWidget::clearTmpData()
 	m_pSelectedStock = 0;
 	m_listStocks.clear();
 
-	QMap<CStockInfoItem*,QMap<time_t,RStockData*>*>::iterator iter = mapStockColorBlocks.begin();
-	while(iter!=mapStockColorBlocks.end())
-	{
-		FreeRStockInfoMap(*iter);
-		delete iter.value();
-		++iter;
-	}
-
-	mapStockColorBlocks.clear();
 	m_mapStockIndex.clear();
 }
 
@@ -466,30 +433,6 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 	else
 	{
 		p.drawText(rtHeader,Qt::AlignLeft|Qt::AlignVCenter,QString("↓%1").arg(qsText));
-	}
-
-	{
-		//绘制周期切换按钮
-		m_mapCircles.clear();
-		int iSize = m_listCircle.size();
-		int iRight = rtHeader.right();
-		int iTop = rtHeader.top();
-		for (int i=iSize-1;i>=0;--i)
-		{
-			QRect rtCircle = QRect(iRight-(iSize-i)*16-20,iTop+2,12,12);
-			m_mapCircles[m_listCircle[i].value] = rtCircle;
-			if(m_typeCircle == m_listCircle[i].value)
-			{
-				p.fillRect(rtCircle,QColor(127,127,127));
-			}
-			else
-			{
-				p.setPen(QColor(240,240,240));
-				p.drawRect(rtCircle);
-			}
-			p.setPen(QColor(255,255,255));
-			p.drawText(rtCircle,m_listCircle[i].desc.left(1),QTextOption(Qt::AlignCenter));
-		}
 	}
 
 	if(rtHeader.width()>250)
@@ -586,52 +529,14 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	float fCBWidth = fBeginX-fEndX;
 	if(fCBWidth<0)
 		return;
-	if(!mapStockColorBlocks.contains(pItem))
-		return;
 
-	QMap<time_t,RStockData*>* pMapCBs = mapStockColorBlocks[pItem];
-	RCalcInfo calc;
-	RDrawInfo draw;
-	{
-		calc.dwVersion = RSTOCK_VER;
-		calc.emCircle = m_typeCircle;
-		calc.mapData = pMapCBs;
-		calc.mapDataEx = NULL;
-		calc.pItem = pItem;
+	QList<RStockData*> listDatas = pItem->get5MinList();
 
-		draw.dwVersion = RSTOCK_VER;
-		draw.pPainter = &p;
-		draw.rtClient = rtCB;
-	}
-	{
-		lua_pushlightuserdata(m_pL,&calc);
-		lua_setglobal(m_pL,"_calc");
-
-		lua_pushlightuserdata(m_pL,&draw);
-		lua_setglobal(m_pL,"_draw");
-
-		lua_getglobal(m_pL,"InitValues");
-		lua_call(m_pL,0,0);
-	}
-
-	{
-		QVector<float> _vColor,_vHeight,_vWidth;
-
-		//获取颜色值
-		luaL_dostring(m_pL,QString("return %1").arg(m_qsExpColor).toStdString().c_str());
-		RLuaEx::LuaRetArray(m_pL,_vColor);
-
-		//获取高度值
-		luaL_dostring(m_pL,QString("return %1").arg(m_qsExpHeight).toStdString().c_str());
-		RLuaEx::LuaRetArray(m_pL,_vHeight);
-
-		//获取宽度值
-		luaL_dostring(m_pL,QString("return %1").arg(m_qsExpWidth).toStdString().c_str());
-		RLuaEx::LuaRetArray(m_pL,_vWidth);
-
-		//绘制
-		drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
-	}
+	QVector<float> _vColor = getVectorForTime(m_mapTimes,listDatas,ShowIncrease);
+	QVector<float> _vHeight = getVectorForTime(m_mapTimes,listDatas,ShowIncrease);
+	QVector<float> _vWidth = getVectorForTime(m_mapTimes,listDatas,ShowIncrease);
+	//绘制
+	drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
 }
 
 
@@ -667,26 +572,7 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 		return QToolTip::hideText();
 
 	QString qsTooltip;		//Tips
-	QString qsTime;
-	if(m_typeCircle<Day)
-	{
-		qsTime = QDateTime::fromTime_t(item->tmTime).toString("hh:mm:ss");
-	}
-	else
-	{
-		QDate dtTmp = QDateTime::fromTime_t(item->tmTime).date();
-		if(m_typeCircle == Week)
-			qsTime = QString("%1 %2").arg(dtTmp.year()).arg(dtTmp.weekNumber());
-		else if(m_typeCircle == Month)
-			qsTime = dtTmp.toString("yyyy/MM");
-		else if(m_typeCircle == Month3)
-			qsTime = dtTmp.toString("yyyy/MM");
-		else if(m_typeCircle == Year)
-			qsTime = dtTmp.toString("yyyy");
-		else
-			qsTime = dtTmp.toString("yyyy/MM/dd");
-	}
-	
+	QString qsTime = qsTime = QDateTime::fromTime_t(item->tmTime).toString("hh:mm:ss");	
 	qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最新价:%7\r\n最高价:%3\r\n最低价:%4\r\n成交量:%5\r\n成交额:%6")
 		.arg(pStock->getCode()).arg(qsTime).arg(item->fHigh).arg(item->fLow)
 		.arg(item->fVolume).arg(item->fAmount).arg(item->fClose);
@@ -702,20 +588,6 @@ void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	QPoint ptCur = e->pos();
 	if(m_rtHeader.contains(ptCur))
 	{
-		{
-			//判断是否属于周期设置按钮
-			QMap<int,QRect>::iterator iter = m_mapCircles.begin();
-			while(iter!=m_mapCircles.end())
-			{
-				if((*iter).contains(ptCur))
-				{
-					setCircle(static_cast<RStockCircle>(iter.key()));
-					return;
-				}
-				++iter;
-			}
-		}
-
 		{
 			//判断是否属于排序方式按钮
 			QMap<int,QRect>::iterator iter = m_mapSorts.begin();
@@ -762,7 +634,7 @@ void CColorBlockWidget::wheelEvent( QWheelEvent* e )
 	{
 		e->accept();
 		showStockIndex = iIndex;
-		updateShowMap();
+		updateColorBlockData();
 	}
 	return CBaseWidget::wheelEvent(e);
 }
@@ -793,7 +665,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 			if((iRow-showStockIndex)>=iShowCount)
 			{
 				showStockIndex = iRow-iShowCount+1;
-				updateShowMap();
+				updateColorBlockData();
 			}
 			clickedStock(m_listStocks[iCurIndex+1]);
 		}
@@ -810,7 +682,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 			if(iRow<showStockIndex)
 			{
 				showStockIndex = iRow;
-				updateShowMap();
+				updateColorBlockData();
 			}
 			clickedStock(pItem);
 		}
@@ -825,7 +697,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 		if((showStockIndex+iShowCount)<m_listStocks.size())
 		{
 			showStockIndex = showStockIndex+iShowCount;
-			updateShowMap();
+			updateColorBlockData();
 		}
 		e->accept();
 		return;
@@ -836,7 +708,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 		if(iShowCount<1)
 			return;
 		showStockIndex = (showStockIndex-iShowCount)>0 ? (showStockIndex-iShowCount) : 0;
-		updateShowMap();
+		updateColorBlockData();
 		e->accept();
 		return;
 	}
@@ -857,15 +729,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 
 void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth )
 {
-	float fTimes = 1;			//扩大或缩小倍数
-	/*
-	if(m_typeCircle<=Min60)		//小于小时的周期则扩大十倍
-		fTimes = 10;
-	else if(m_typeCircle<=Week)	//正常周期
-		fTimes = 1;
-	else						//大于周线的缩小十倍
-		fTimes = static_cast<float>(0.1);
-	*/
+	float fTimes = 10;			//扩大或缩小倍数
 
 	QMap<time_t,float>::iterator iter = m_mapShowTimes.begin();
 
@@ -879,8 +743,8 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 			if(iIndex>-1)
 			{
 				float f = vColor.size()>iIndex ? vColor[iIndex] : 1;
-				float fH = vHeight.size()>iIndex ? vHeight[iIndex]*fTimes : 1;
-				float fW = vWidth.size()> iIndex ? vWidth[iIndex]*fTimes : 1;
+				float fH = vHeight.size()>iIndex ? vHeight[iIndex] : 1;
+				float fW = vWidth.size()> iIndex ? vWidth[iIndex] : 1;
 				if(fH<0)
 					fH = 0;
 				else if(fH>1)
@@ -892,9 +756,9 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 					fW = 1;
 
 				rtCB.adjust(1,1,-1,-1);
-				rtCB.setHeight(rtCB.height()*fH);
-				rtCB.setWidth(rtCB.width()*fW);
-				p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*fTimes)));
+//				rtCB.setHeight(rtCB.height()*fH*fTimes);
+//				rtCB.setWidth(rtCB.width()*fW*fTimes);
+				p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*fTimes*100)));
 			}
 		}
 		++iter;
@@ -946,30 +810,30 @@ CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
 
 RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
 {
-	CStockInfoItem* pItem = hitTestStock(ptPoint);
+//	CStockInfoItem* pItem = hitTestStock(ptPoint);
 
 	RStockData* pData = NULL;
-	if(pItem && mapStockColorBlocks.contains(pItem))
-	{
-		QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
-		int iIndex = (m_rtClient.right() - ptPoint.x())/m_iCBWidth;
-		QMap<time_t,int>::iterator iter = m_mapTimes.end();
-		while(iter!=m_mapTimes.begin())
-		{
-			--iter;
+	//if(pItem)
+	//{
+	//	QMap<time_t,RStockData*>* pMap = mapStockColorBlocks[pItem];
+	//	int iIndex = (m_rtClient.right() - ptPoint.x())/m_iCBWidth;
+	//	QMap<time_t,int>::iterator iter = m_mapTimes.end();
+	//	while(iter!=m_mapTimes.begin())
+	//	{
+	//		--iter;
 
-			if(iIndex==iter.value())
-			{
-				if(pMap->contains(iter.key()))
-				{
-					pData = pMap->value(iter.key());
-					break;
-				}
-			}
-			else if(iIndex<iter.value())
-				break;
-		}
-	}
+	//		if(iIndex==iter.value())
+	//		{
+	//			if(pMap->contains(iter.key()))
+	//			{
+	//				pData = pMap->value(iter.key());
+	//				break;
+	//			}
+	//		}
+	//		else if(iIndex<iter.value())
+	//			break;
+	//	}
+	//}
 	return pData;
 }
 

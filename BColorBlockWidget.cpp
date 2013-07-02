@@ -229,7 +229,6 @@ void CBColorBlockWidget::setBlock( const QString& block )
 
 void CBColorBlockWidget::updateUI()
 {
-	m_typeCircle = Min1;
 	{
 		//更新数据
 		QMap<CBlockInfoItem*,QMap<time_t,qRcvFenBiData*>*>::iterator iter = mapBlockColorBlocks.begin();
@@ -314,25 +313,7 @@ void CBColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 	}
 
 	QString qsTooltip;		//Tips
-	QString qsTime;
-	if(m_typeCircle<Day)
-	{
-		qsTime = QDateTime::fromTime_t(item->tmTime).toString("hh:mm:ss");
-	}
-	else
-	{
-		QDate dtTmp = QDateTime::fromTime_t(item->tmTime).date();
-		if(m_typeCircle == Week)
-			qsTime = QString("%1 %2").arg(dtTmp.year()).arg(dtTmp.weekNumber());
-		else if(m_typeCircle == Month)
-			qsTime = dtTmp.toString("yyyy/MM");
-		else if(m_typeCircle == Month3)
-			qsTime = dtTmp.toString("yyyy/MM");
-		else if(m_typeCircle == Year)
-			qsTime = dtTmp.toString("yyyy");
-		else
-			qsTime = dtTmp.toString("yyyy/MM/dd");
-	}
+	QString qsTime = QDateTime::fromTime_t(item->tmTime).toString("hh:mm:ss");
 
 	qsTooltip = QString("板块名称:%1\r\n时间:%2\r\n当前价:%3\r\n成交量:%4\r\n成交额:%5\r\n涨跌数:")
 		.arg(pBlock->getName()).arg(qsTime).arg(item->fPrice).arg(item->fVolume).arg(item->fAmount);

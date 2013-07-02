@@ -25,13 +25,17 @@ public:
 	//保存该K线图的配置信息
 	virtual bool savePanelInfo(QDomDocument& doc,QDomElement& eleWidget);
 
-	//更新数据
-	virtual void updateData();
+
 	//清理当前的内存
 	virtual void clearTmpData();
 
 	//更新当前的排序方式
 	virtual void updateSortMode(bool bSelFirst);
+
+protected:
+	//更新当前的横坐标数据
+	virtual void updateTimesH();
+
 public:
 	//通过查找keyword获取需要在按键精灵上显示的数据
 	virtual void getKeyWizData(const QString& keyword,QList<KeyWizData*>& listRet);
@@ -40,13 +44,11 @@ public:
 
 public slots:
 	virtual void setBlock(const QString& block);
-	virtual void setCircle(RStockCircle _c);		//设置当前的显示周期
 
 protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
 	void onSetExpression();									//设置当前显示的表达式
-	void updateColorBlockData();							//更新当前需要显示的数据
-	void updateShowMap();									//更新要显示的数据，不删除之前的
+	virtual void updateColorBlockData();					//更新当前需要显示的数据
 
 private:
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
@@ -87,7 +89,6 @@ private:
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表
 
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
-	QMap<CStockInfoItem*,QMap<time_t,RStockData*>*> mapStockColorBlocks;	//当前显示的ColorBlock数据
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
 	/*用于绘制操作的成员变量*/
@@ -104,9 +105,6 @@ private:
 	QString m_qsExpColor;					//颜色表达式
 	QString m_qsExpHeight;					//高度表达式
 	QString m_qsExpWidth;					//宽度表达式
-
-	//各个周期所在的矩形
-	QMap<int,QRect> m_mapCircles;
 
 	//各个周期所在的矩形
 	QMap<int,QRect> m_mapSorts;
