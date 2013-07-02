@@ -24,13 +24,6 @@ public:
 		SortByVolumeRatio,	//按量比排序
 	};
 
-	//显示类型（）
-	enum RShowType
-	{
-		ShowIncrease = 1,	//涨幅
-		ShowTurnRatio,		//换手率
-		ShowVolumeRatio,	//量比
-	};
 public:
 	CBaseBlockWidget(CBaseWidget* parent = 0, RWidgetType type = WidgetBasic);
 	~CBaseBlockWidget(void);
