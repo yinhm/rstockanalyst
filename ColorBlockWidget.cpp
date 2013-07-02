@@ -153,9 +153,6 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, showStockIndex(0)
 	, m_pSelectedStock(0)
 	, m_pBlock(0)
-	, m_qsExpColor("(CLOSE-REF(CLOSE,1))/CLOSE")
-	, m_qsExpHeight("CLOSE")
-	, m_qsExpWidth("CLOSE")
 	, m_bShowIncrease(true)
 	, m_bShowTurnRatio(true)
 	, m_bShowVolumeRatio(true)
@@ -203,19 +200,13 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 	}
 
 	//当前的表达式
-	QDomElement eleExps = eleWidget.firstChildElement("exps");
-	if(eleExps.isElement())
+	QDomElement eleShowType = eleWidget.firstChildElement("ShowType");
+	if(eleShowType.isElement())
 	{
 		//子节点
-		QDomElement eleColor = eleExps.firstChildElement("color");
-		if(eleColor.isElement())
-			m_qsExpColor = eleColor.text();
-		QDomElement eleHeight = eleExps.firstChildElement("height");
-		if(eleHeight.isElement())
-			m_qsExpHeight = eleHeight.text();
-		QDomElement eleWidth = eleExps.firstChildElement("width");
-		if(eleWidth.isElement())
-			m_qsExpWidth = eleWidth.text();
+		m_bShowIncrease = eleShowType.attribute("increase","1").toInt();
+		m_bShowTurnRatio = eleShowType.attribute("turnratio","1").toInt();
+		m_bShowVolumeRatio = eleShowType.attribute("volumeratio","1").toInt();
 	}
 	return true;
 }
@@ -234,20 +225,14 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	}
 
 	//当前的表达式
-	QDomElement eleExps = doc.createElement("exps");
+	QDomElement eleShowType = doc.createElement("ShowType");
 	{
 		//子节点
-		QDomElement eleColor = doc.createElement("color");
-		QDomElement eleHeight = doc.createElement("height");
-		QDomElement eleWidth = doc.createElement("width");
-		eleColor.appendChild(doc.createTextNode(m_qsExpColor));
-		eleHeight.appendChild(doc.createTextNode(m_qsExpHeight));
-		eleWidth.appendChild(doc.createTextNode(m_qsExpWidth));
-		eleExps.appendChild(eleColor);
-		eleExps.appendChild(eleHeight);
-		eleExps.appendChild(eleWidth);
+		eleShowType.setAttribute("increase",static_cast<int>(m_bShowIncrease));
+		eleShowType.setAttribute("turnratio",static_cast<int>(m_bShowTurnRatio));
+		eleShowType.setAttribute("volumeratio",static_cast<int>(m_bShowVolumeRatio));
 	}
-	eleWidget.appendChild(eleExps);
+	eleWidget.appendChild(eleShowType);
 
 	return true;
 }
@@ -320,6 +305,7 @@ void CColorBlockWidget::onSetShowType()
 void CColorBlockWidget::onSetExpression()
 {
 	//弹出设置色块大小的对话框，用来设置色块的大小
+	/*
 	QDialog dlg(this);
 	QGridLayout layout(&dlg);
 	QLabel label1(tr("颜色"),&dlg);
@@ -351,6 +337,7 @@ void CColorBlockWidget::onSetExpression()
 	m_qsExpColor = editC.text().trimmed();
 	m_qsExpHeight = editH.text().trimmed();
 	m_qsExpWidth = editW.text().trimmed();
+	*/
 }
 
 void CColorBlockWidget::updateColorBlockData()
@@ -554,7 +541,7 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 		//绘制排序方式的按钮
 		m_mapSorts.clear();
 		int iSize = m_listSortOp.size();
-		int iRight = rtHeader.right()-250;
+		int iRight = rtHeader.right()-10;
 		int iTop = rtHeader.top();
 		for (int i=iSize-1;i>=0;--i)
 		{

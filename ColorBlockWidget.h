@@ -118,10 +118,6 @@ private:
 
 	QTimer m_timerUpdateUI;					//界面更新的timer
 
-	QString m_qsExpColor;					//颜色表达式
-	QString m_qsExpHeight;					//高度表达式
-	QString m_qsExpWidth;					//宽度表达式
-
 	//各个排序方式所在的矩形
 	QMap<int,QRect> m_mapSorts;
 
