@@ -38,7 +38,6 @@ bool CBColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 		setBlock(eleBlock.text());
 	}
 
-
 	updateUI();
 	return true;
 }
@@ -248,16 +247,29 @@ void CBColorBlockWidget::paintEvent( QPaintEvent* /*e*/ )
 
 	QPainter p(this);
 	QRect rtClient = this->rect();
-	m_rtHeader = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
-	m_rtClient = QRect(rtClient.left(),rtClient.top()+m_iTitleHeight,rtClient.width(),rtClient.height()-m_iTitleHeight-m_iBottomHeight);
-	m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
+	if(m_bClearMode)
+	{
+		m_rtClient = rtClient;
+		m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
 
-	updateShowTimes(QRect(m_rtBottom.left()+RCB_OFFSET_LEFT,m_rtBottom.top(),
-		m_rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,m_rtBottom.height()),m_iCBWidth);
+		updateShowTimes(QRect(m_rtBottom.left()+RCB_OFFSET_LEFT,m_rtBottom.top(),
+			m_rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,m_rtBottom.height()),m_iCBWidth);
 
-	drawHeader(p,m_rtHeader);
-	drawClient(p,m_rtClient);
-	drawBottom(p,m_rtBottom);
+		drawClient(p,m_rtClient);
+	}
+	else
+	{
+		m_rtHeader = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
+		m_rtClient = QRect(rtClient.left(),rtClient.top()+m_iTitleHeight,rtClient.width(),rtClient.height()-m_iTitleHeight-m_iBottomHeight);
+		m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
+
+		updateShowTimes(QRect(m_rtBottom.left()+RCB_OFFSET_LEFT,m_rtBottom.top(),
+			m_rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,m_rtBottom.height()),m_iCBWidth);
+
+		drawHeader(p,m_rtHeader);
+		drawClient(p,m_rtClient);
+		drawBottom(p,m_rtBottom);
+	}
 }
 
 void CBColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
@@ -427,6 +439,13 @@ void CBColorBlockWidget::keyPressEvent( QKeyEvent* e )
 				//未打开F10数据 do something
 			}
 		}
+		return;
+	}
+	else if(Qt::Key_F11 == iKey)
+	{
+		 m_bClearMode = !m_bClearMode;
+		 update();
+		 return;
 	}
 
 	return CBaseBlockWidget::keyPressEvent(e);

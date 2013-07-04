@@ -130,6 +130,8 @@ protected:
 	RWidgetType m_type;				//窗口类型
 	QAction* m_pActRelate;			//是否和其它窗口关联
 
+	//是否开启清爽模式
+	bool m_bClearMode;
 private:
 	QList<RWidgetOpData> m_listWidget;	//支持的窗口类型
 	QList<RWidgetOpData> m_listOperate;	//支持的窗口类型

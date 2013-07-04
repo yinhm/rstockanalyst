@@ -52,6 +52,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 	: QWidget(parent)
 	, m_pParent(parent)
 	, m_type(type)
+	, m_bClearMode(false)
 {
 	setMouseTracking(true);
 	//将Splitter放入到Layout中，这样使其充满整个窗口
@@ -222,6 +223,11 @@ bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(eleName.isElement())
 		setWidgetName(eleName.text());
 
+	//清爽模式
+	QDomElement eleClearMode = eleWidget.firstChildElement("ClearMode");
+	if(eleClearMode.isElement())
+		m_bClearMode = static_cast<bool>(eleClearMode.text().toInt());
+
 	//获取控件的排列方式
 	QDomElement eleAlign = eleWidget.firstChildElement("align");
 	if(eleAlign.isElement())
@@ -252,6 +258,7 @@ bool CBaseWidget::loadPanelInfo( const QDomElement& eleWidget )
 		eleChild = eleChild.nextSiblingElement("widget");
 	}
 	m_pSplitter->setSizes(sizes);
+
 	return true;
 }
 
@@ -265,6 +272,11 @@ bool CBaseWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 	QDomElement eleName = doc.createElement("name");
 	eleName.appendChild(doc.createTextNode(getWidgetName()));
 	eleWidget.appendChild(eleName);
+
+	//清爽模式
+	QDomElement eleClearMode = doc.createElement("ClearMode");
+	eleClearMode.appendChild(doc.createTextNode(QString("%1").arg(static_cast<int>(m_bClearMode))));
+	eleWidget.appendChild(eleClearMode);
 
 	//获取控件类型
 	QDomElement eleType = doc.createElement("type");

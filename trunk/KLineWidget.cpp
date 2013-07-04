@@ -274,22 +274,30 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		m_iShowCount = m_mapData->size();
 	}
 
-	/*画头部*/
-	QRect rtTitle = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
-	drawTitle(p,rtTitle);
+	if(!m_bClearMode)
+	{
+		/*画头部*/
+		QRect rtTitle = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
+		drawTitle(p,rtTitle);
 
-	/*画X坐标轴*/
-	QRectF rtCoordX = QRectF(rtClient.left()+3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
-	m_fItemWidth = float(rtCoordX.width()-1)/float(m_iShowCount);
-	updateShowTimes(rtCoordX,m_fItemWidth);
-	CCoordXBaseWidget::drawCoordX(p,rtCoordX,m_fItemWidth);
+		/*画X坐标轴*/
+		QRectF rtCoordX = QRectF(rtClient.left()+3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
+		m_fItemWidth = float(rtCoordX.width()-1)/float(m_iShowCount);
+		updateShowTimes(rtCoordX,m_fItemWidth);
+		CCoordXBaseWidget::drawCoordX(p,rtCoordX,m_fItemWidth);
 
-	/*画右下角的两个按钮*/
+		rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
+	}
+	else
+	{
+		rtClient.adjust(3,0,-2,0);			//改变为可画图区域的大小
+	}
+	/*
+	//画右下角的两个按钮
 	QRect rtShowBtns = QRect(rtClient.right()-m_iCoorYWidth,rtClient.bottom()-m_iCoorXHeight,m_iCoorYWidth,m_iCoorXHeight);
 	drawShowBtns(p,rtShowBtns);
+	*/
 
-
-	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 	m_rtClient = rtClient;
 
 	if(m_bShowMax&&m_iCurExp<m_vExps.size())
@@ -525,6 +533,13 @@ void CKLineWidget::keyPressEvent(QKeyEvent* e)
 				//未打开F10数据 do something
 			}
 		}
+		return;
+	}
+	else if(Qt::Key_F11 == iKey)
+	{
+		m_bClearMode = !m_bClearMode;
+		update();
+		return;
 	}
 
 	return CBaseWidget::keyPressEvent(e);
