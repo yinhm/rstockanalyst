@@ -23,9 +23,6 @@ public:
 	void setReport(qRcvReportData* p);
 	void setReport(RCV_REPORT_STRUCTExV3* p);
 
-	//补充日线数据
-	void appendHistorys(const QList<qRcvHistoryData*>& list);
-
 	//补充除权数据
 	QList<qRcvPowerData*> getPowerList();
 	void appendPowers(const QList<qRcvPowerData*>& list);
@@ -91,7 +88,7 @@ signals:
 	void stockItemReportComing(CStockInfoItem*);//行情数据更新
 
 protected:
-	void updateItemInfo();
+	virtual void updateItemInfo();
 	void resetBuySellVOL();		//重新计算内外盘数据
 
 private:
@@ -122,8 +119,6 @@ private:
 	float fSellVolume;				//委卖量
 	float fCommRatio;				//委比
 	float fCommSent;				//委差
-
-	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
 
 	QList<QList<QChar>> shortName;	//简拼表
 

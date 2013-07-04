@@ -899,35 +899,39 @@ QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
 			getTimeMapBySec(mapTimes,tmBegin,tmEnd,_c);
 		}
 	}
-	else
-	{
-		time_t tmBegin = QDateTime(QDate(2000,1,1)).toTime_t();
-		time_t tmEnd = (CDataEngine::getCurrentTime()/(3600*24))*3600*24 - 8*3600;
 
-		if(_c == Day)
-		{
-			getDayMapByHistory(mapTimes,tmBegin,tmEnd);
-		}
-		else if(_c == DayN)
-		{
-			//目前未使用
-		}
-		else if(_c == Week)
-		{
-			getWeekMapByHistory(mapTimes,tmBegin,tmEnd);
-		}
-		else if(_c == Month)
-		{
-			getMonthMapByHistory(mapTimes,tmBegin,tmEnd);
-		}
-		else if(_c == Month3)
-		{
-			getMonth3MapByHistory(mapTimes,tmBegin,tmEnd);
-		}
-		else if(_c == Year)
-		{
-			getYearMapByHistory(mapTimes,tmBegin,tmEnd);
-		}
+	return mapTimes;
+}
+
+QMap<time_t,int> CDataEngine::getHistoryTimeMap( RStockCircle _c,int iCount )
+{
+	QMap<time_t,int> mapTimes;
+	time_t tmEnd = (CDataEngine::getCurrentTime()/(3600*24))*3600*24 - 8*3600;
+	time_t tmBegin = QDateTime::fromTime_t(tmEnd).addDays(-iCount).toTime_t();
+
+	if(_c == Day)
+	{
+		getDayMapByHistory(mapTimes,tmBegin,tmEnd);
+	}
+	else if(_c == DayN)
+	{
+		//目前未使用
+	}
+	else if(_c == Week)
+	{
+		getWeekMapByHistory(mapTimes,tmBegin,tmEnd);
+	}
+	else if(_c == Month)
+	{
+		getMonthMapByHistory(mapTimes,tmBegin,tmEnd);
+	}
+	else if(_c == Month3)
+	{
+		getMonth3MapByHistory(mapTimes,tmBegin,tmEnd);
+	}
+	else if(_c == Year)
+	{
+		getYearMapByHistory(mapTimes,tmBegin,tmEnd);
 	}
 
 	return mapTimes;

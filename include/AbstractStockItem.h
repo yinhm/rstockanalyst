@@ -84,6 +84,9 @@ public:
 
 	bool isInstanceOfStock();
 	bool isInstanceOfBlock();
+
+protected:
+	virtual void updateItemInfo() = 0;
 signals:
 	void stockItemReportChanged(const QString&);	//行情数据更新
 	void stockItemHistoryChanged(const QString&);	//历史数据更新
@@ -96,8 +99,11 @@ protected:
 	WORD wMarket;									//市场类型
 	QString qsMarket;								//市场类型名称
 	QMap<time_t,qRcvFenBiData*> mapFenBis;			//分笔数据
-	QMap<time_t,tagRStockData*> map5MinDatas;			//5分钟历史数据，一般存储10天的
+	QMap<time_t,tagRStockData*> map5MinDatas;		//5分钟历史数据，一般存储10天的
+	QList<qRcvHistoryData*> listHistories;			//历史数据
 	qRcvReportData* pCurrentReport;					//当前的Report
+
+	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
 };
 
 #endif //ABSTRACT_STOCK_ITEM_H

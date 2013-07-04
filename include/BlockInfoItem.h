@@ -22,10 +22,6 @@ protected:
 	void initBlock();
 
 public:
-	//补充日线数据
-	void appendHistorys(const QList<qRcvHistoryData*>& list);
-
-
 	//补充5分钟数据
 	virtual QList<tagRStockData*> get5MinList();	//追加最后不够5分钟的数据
 	//重新计算当日5Min数据
@@ -86,6 +82,10 @@ public:
 
 	/*判断关键词_key是否匹配*/
 	bool isMatch(const QString& _key);
+
+protected:
+	virtual void updateItemInfo(){}
+
 private:
 	bool appendStocks(QList<QString> list);				//向板块中添加股票
 	bool removeStocks(QList<QString> list);				//从板块中删除股票

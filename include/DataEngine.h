@@ -61,7 +61,8 @@ public:
 	static time_t getCurrentTime();				//获取最后一个report数据的时间
 	static void setCurrentTime(const time_t& t);//设置最后一个report数据的时间
 
-	static QMap<time_t,int> getTodayTimeMap(RStockCircle _c);	//获取当天的时间轴
+	static QMap<time_t,int> getTodayTimeMap(RStockCircle _c);				//获取当天的时间轴
+	static QMap<time_t,int> getHistoryTimeMap(RStockCircle _c,int iCount);	//历史数据的时间轴
 	/*将分笔数据按照时间轴排序*/
 	static QMap<time_t,RStockData*>* getColorBlockItems(const QMap<time_t,int>& mapTimes, const QList<qRcvFenBiData*>& minutes);
 	/*将日线按照时间轴排序*/

@@ -11,18 +11,29 @@
    <type>2</type>
    <relate>1</relate>
    <align>1</align>
-   <size>50</size>
-   <block>800003BB</block>
-   <stock>000999SZ</stock>
+   <size>66</size>
+   <block>800002BB</block>
+   <stock>000064SH</stock>
   </widget>
   <widget circle="0">
    <name></name>
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
-   <size>49</size>
-   <code>800010BB</code>
-   <liners/>
+   <size>33</size>
+   <code>000064SH</code>
+   <liners>
+    <Liner size="80">
+     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+    </Liner>
+    <Liner size="20">
+     <exp>DrawHist(VOLUME)</exp>
+    </Liner>
+   </liners>
   </widget>
  </widget>
 </ROOT>

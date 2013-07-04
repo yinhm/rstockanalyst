@@ -17,7 +17,7 @@
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
-    <size>17</size>
+    <size>19</size>
     <code>1A0001SH</code>
     <liners>
      <Liner size="60">
@@ -28,28 +28,25 @@ DrawLine(MA(OPEN,3))</exp>
      </Liner>
     </liners>
    </widget>
-   <widget circle="60" CBHeight="16" CBWidth="16">
+   <widget CBHeight="16" CBWidth="16">
     <name></name>
     <type>3</type>
     <relate>0</relate>
     <align>1</align>
-    <size>16</size>
+    <size>15</size>
     <color>红绿</color>
     <Abnomals/>
     <block>800002BB</block>
-    <exps>
-     <color>(CLOSE-OPEN)/OPEN*5</color>
-     <height>VOLUME/MAX(VOLUME)</height>
-     <width>CLOSE</width>
-    </exps>
+    <ShowType volumeratio="0" turnratio="0" increase="1"/>
+    <TopStocks/>
    </widget>
    <widget>
     <name></name>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>20</size>
-    <widget circle="60" CBHeight="16" CBWidth="16">
+    <size>19</size>
+    <widget CBHeight="16" CBWidth="16">
      <name></name>
      <type>3</type>
      <relate>0</relate>
@@ -58,11 +55,8 @@ DrawLine(MA(OPEN,3))</exp>
      <color>红绿</color>
      <Abnomals/>
      <block>800022BB</block>
-     <exps>
-      <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
-      <height>CLOSE</height>
-      <width>CLOSE</width>
-     </exps>
+     <ShowType volumeratio="1" turnratio="1" increase="1"/>
+     <TopStocks/>
     </widget>
    </widget>
    <widget>
@@ -70,60 +64,54 @@ DrawLine(MA(OPEN,3))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>28</size>
-    <widget circle="60">
+    <size>26</size>
+    <widget circle="300">
      <name></name>
      <type>1</type>
      <relate>1</relate>
      <align>1</align>
-     <size>28</size>
-     <code>000021SZ</code>
+     <size>47</size>
+     <code>000001SH</code>
      <liners>
       <Liner size="60">
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
       </Liner>
      </liners>
     </widget>
-    <widget circle="60" CBHeight="30" CBWidth="1">
+    <widget CBHeight="30" CBWidth="1">
      <name></name>
      <type>4</type>
      <relate>0</relate>
      <align>1</align>
-     <size>38</size>
+     <size>17</size>
      <color>红绿</color>
      <Abnomals/>
      <block>800109BB</block>
     </widget>
-    <widget circle="0" CBHeight="16" CBWidth="16">
+    <widget CBHeight="16" CBWidth="3">
      <name></name>
      <type>3</type>
      <relate>1</relate>
      <align>1</align>
-     <size>33</size>
+     <size>34</size>
      <color>红绿</color>
      <Abnomals/>
-     <block>800013BB</block>
-     <exps>
-      <color>(CLOSE-OPEN)/OPEN*2</color>
-      <height>CLOSE</height>
-      <width>CLOSE</width>
-     </exps>
+     <block>800015BB</block>
+     <ShowType volumeratio="1" turnratio="1" increase="1"/>
+     <TopStocks/>
     </widget>
    </widget>
-   <widget circle="60" CBHeight="16" CBWidth="16">
+   <widget CBHeight="16" CBWidth="8">
     <name></name>
     <type>3</type>
     <relate>0</relate>
     <align>1</align>
-    <size>17</size>
+    <size>19</size>
     <color>红绿</color>
     <Abnomals/>
     <block>800106BB</block>
-    <exps>
-     <color>(CLOSE-REF(CLOSE,1))/CLOSE</color>
-     <height>CLOSE</height>
-     <width>CLOSE</width>
-    </exps>
+    <ShowType volumeratio="1" turnratio="1" increase="1"/>
+    <TopStocks/>
    </widget>
   </widget>
   <widget>
@@ -137,28 +125,25 @@ DrawLine(MA(OPEN,3))</exp>
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
-    <size>50</size>
-    <code>000021SZ</code>
+    <size>51</size>
+    <code>000001SH</code>
     <liners>
      <Liner size="20">
       <exp>DrawLine(CLOSE)</exp>
      </Liner>
     </liners>
    </widget>
-   <widget circle="0" CBHeight="50" CBWidth="16">
+   <widget CBHeight="50" CBWidth="16">
     <name></name>
     <type>3</type>
     <relate>1</relate>
     <align>1</align>
-    <size>49</size>
+    <size>48</size>
     <color>红绿</color>
     <Abnomals/>
-    <block>800013BB</block>
-    <exps>
-     <color>(CLOSE-OPEN)/OPEN</color>
-     <height>VOLUME/MAX(VOLUME)</height>
-     <width>CLOSE</width>
-    </exps>
+    <block>800015BB</block>
+    <ShowType volumeratio="1" turnratio="1" increase="1"/>
+    <TopStocks/>
    </widget>
   </widget>
  </widget>

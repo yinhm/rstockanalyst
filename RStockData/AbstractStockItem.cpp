@@ -7,6 +7,7 @@
 
 CAbstractStockItem::CAbstractStockItem(void)
 	: pCurrentReport(NULL)
+	, fLast5Volume(0.0)
 {
 
 }
@@ -50,17 +51,100 @@ QList<qRcvFenBiData*> CAbstractStockItem::getFenBiList()
 
 QList<qRcvHistoryData*> CAbstractStockItem::getHistoryList()
 {
-	return CDataEngine::getDataEngine()->getHistoryList(this);
+	if(listHistories.size()<1)
+	{
+		listHistories = CDataEngine::getDataEngine()->getHistoryList(this);
+	}
+	return listHistories;
 }
 
 QList<qRcvHistoryData*> CAbstractStockItem::getLastHistory( int count )
 {
-	return CDataEngine::getDataEngine()->getHistoryList(this,count);
+	if(listHistories.size()<1)
+	{
+		listHistories = CDataEngine::getDataEngine()->getHistoryList(this);
+	}
+	if(listHistories.size()>count)
+	{
+		return listHistories.mid(listHistories.size()-count);
+	}
+	return listHistories;
 }
 
-void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& /*list*/ )
+void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 {
+	QList<qRcvHistoryData*> listHistory;
+	int iCountFromFile = -1;
+	bool bRemoveList = true;		//是否最后删除listHistory中的数据
 
+	if(list.size()>130)
+	{
+		//读取所有历史数据
+		bRemoveList = false;
+		listHistory = getHistoryList();
+	}
+	else
+	{
+		iCountFromFile = list.size();
+		listHistory = CDataEngine::getDataEngine()->getHistoryList(this,iCountFromFile);
+	}
+
+	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
+	foreach(qRcvHistoryData* p,listHistory)
+	{
+		if(mapHistorys.contains(p->time))
+		{
+			qRcvHistoryData* pBefore = mapHistorys[p->time];
+			if(pBefore!=p)
+				delete pBefore;
+		}
+		mapHistorys[p->time] = p;
+	}
+	foreach(qRcvHistoryData* p,list)
+	{
+		if(mapHistorys.contains(p->time))
+		{
+			qRcvHistoryData* pBefore = mapHistorys[p->time];
+			if(pBefore!=p)
+				delete pBefore;
+		}
+		mapHistorys[p->time] = p;
+	}
+
+
+	listHistory.clear();
+	listHistory = mapHistorys.values();
+	{
+		//最近5日的全部成交量（用于量比的计算）
+		fLast5Volume = 0.0;
+		for (int i=1;i<=5;++i)
+		{
+			int iIndex = listHistory.size()-i;
+			if(iIndex<0)
+				break;
+			fLast5Volume = fLast5Volume + listHistory[iIndex]->fVolume;
+		}
+		updateItemInfo();
+	}
+
+	CDataEngine::getDataEngine()->exportHistoryData(this,listHistory,iCountFromFile);
+
+	if(bRemoveList)
+	{
+		QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
+		while(iter!=mapHistorys.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		mapHistorys.clear();
+	}
+	else
+	{
+		listHistories = listHistory;
+	}
+
+	emit stockItemHistoryChanged(qsOnly);
 }
 
 

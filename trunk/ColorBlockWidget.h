@@ -58,6 +58,8 @@ protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
 	void onSetShowType();									//设置显示类型
 	void onSetExpression();									//设置当前显示的表达式
+	void onSetTopStock();									//设置置顶显示股票
+	void onRemoveTopStock();								//移除置顶显示股票
 	virtual void updateColorBlockData();					//更新当前需要显示的数据
 
 protected:
@@ -106,6 +108,8 @@ private:
 
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
+
+	QList<CStockInfoItem*> m_listTopStocks;		//置顶显示股票
 
 	/*用于绘制操作的成员变量*/
 private:

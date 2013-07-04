@@ -28,7 +28,6 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fLTSZ(FLOAT_NAN)
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
-	, fLast5Volume(0.0)
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
 {
@@ -61,7 +60,6 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fLTSZ(FLOAT_NAN)
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
-	, fLast5Volume(0.0)
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
 {
@@ -187,72 +185,6 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 		}
 	}
 }
-
-void CStockInfoItem::appendHistorys( const QList<qRcvHistoryData*>& list )
-{
-	QList<qRcvHistoryData*> listHistory;
-	int iCountFromFile = -1;
-	if(list.size()>130)
-	{
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(this);
-	}
-	else
-	{
-		iCountFromFile = list.size();
-		listHistory = CDataEngine::getDataEngine()->getHistoryList(this,iCountFromFile);
-	}
-
-	QMap<time_t,qRcvHistoryData*> mapHistorys;		//日线数据
-	foreach(qRcvHistoryData* p,listHistory)
-	{
-		if(mapHistorys.contains(p->time))
-		{
-			qRcvHistoryData* pBefore = mapHistorys[p->time];
-			if(pBefore!=p)
-				delete pBefore;
-		}
-		mapHistorys[p->time] = p;
-	}
-	foreach(qRcvHistoryData* p,list)
-	{
-		if(mapHistorys.contains(p->time))
-		{
-			qRcvHistoryData* pBefore = mapHistorys[p->time];
-			if(pBefore!=p)
-				delete pBefore;
-		}
-		mapHistorys[p->time] = p;
-	}
-
-
-	listHistory.clear();
-	listHistory = mapHistorys.values();
-	{
-		//最近5日的全部成交量（用于量比的计算）
-		fLast5Volume = 0.0;
-		for (int i=1;i<=5;++i)
-		{
-			int iIndex = listHistory.size()-i;
-			if(iIndex<0)
-				break;
-			fLast5Volume = fLast5Volume + listHistory[iIndex]->fVolume;
-		}
-		updateItemInfo();
-	}
-
-	CDataEngine::getDataEngine()->exportHistoryData(this,listHistory,iCountFromFile);
-
-	QMap<time_t,qRcvHistoryData*>::iterator iter = mapHistorys.begin();
-	while(iter!=mapHistorys.end())
-	{
-		delete iter.value();
-		++iter;
-	}
-	mapHistorys.clear();
-
-	emit stockItemHistoryChanged(qsOnly);
-}
-
 
 QList<qRcvPowerData*> CStockInfoItem::getPowerList()
 {
