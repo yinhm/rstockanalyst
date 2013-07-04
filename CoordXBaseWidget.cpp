@@ -102,7 +102,10 @@ void CCoordXBaseWidget::clearTmpData()
 void CCoordXBaseWidget::updateTimesH()
 {
 	//更新当前的横坐标数据，从后向前计算时间
-	m_mapTimes = CDataEngine::getTodayTimeMap(m_typeCircle);
+	if(m_typeCircle<Day)
+		m_mapTimes = CDataEngine::getTodayTimeMap(m_typeCircle);
+	else
+		m_mapTimes = CDataEngine::getHistoryTimeMap(m_typeCircle,100);
 }
 
 void CCoordXBaseWidget::updateShowTimes( const QRectF& rtCoordX,float fItemWidth )
@@ -342,45 +345,6 @@ void CCoordXBaseWidget::setCircle( RStockCircle _c )
 	clearTmpData();
 	m_typeCircle = _c;
 	updateData();
-}
-
-QMap<time_t,RStockData*>* CCoordXBaseWidget::getColorBlockMap( CAbstractStockItem* pItem )
-{
-	if(!pItem)
-		return new QMap<time_t,RStockData*>();
-	QMap<time_t,RStockData*>* pMap = NULL;
-	if(m_typeCircle < Day)
-	{
-		//获取分钟数据，进行计算
-		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
-		pMap = CDataEngine::getColorBlockItems(m_mapTimes,FenBis);
-	}
-	else
-	{
-		//获取日线数据
-		QList<qRcvHistoryData*> historys = pItem->getHistoryList();
-		qRcvReportData* pLastReport = pItem->getCurrentReport();
-		bool bAppendLast = true;
-		if(historys.size()>0 && pLastReport)
-		{
-			qRcvHistoryData* pLastHistory = historys.last();
-			if(QDateTime::fromTime_t(pLastHistory->time).date() == QDateTime::fromTime_t(pLastReport->tmTime).date())
-				bAppendLast = false;
-		}
-		if(pLastReport&&bAppendLast)
-		{
-			historys.push_back(new qRcvHistoryData(pLastReport));
-		}
-		pMap = CDataEngine::getColorBlockItems(m_mapTimes,historys);
-		{
-			//清除获取的日线数据
-			foreach(qRcvHistoryData* p,historys)
-				delete p;
-			historys.clear();
-		}
-	}
-
-	return pMap;
 }
 
 void CCoordXBaseWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )

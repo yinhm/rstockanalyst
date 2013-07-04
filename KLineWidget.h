@@ -45,6 +45,12 @@ public slots:
 protected:
 	void setStockItem(CAbstractStockItem* pItem);
 
+	//更新当前的横坐标数据
+	virtual void updateTimesH();
+
+	//获取数据二维表，通过分析当前的周期。
+	QMap<time_t,RStockData*>* getColorBlockMap(CAbstractStockItem* pItem);
+
 protected:
 	virtual void paintEvent(QPaintEvent* e);				//绘制事件
 	virtual void mouseMoveEvent(QMouseEvent* e);			//鼠标移动事件

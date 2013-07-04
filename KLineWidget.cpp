@@ -188,6 +188,58 @@ void CKLineWidget::setStockItem( CAbstractStockItem* pItem )
 	m_bLock = false;
 }
 
+void CKLineWidget::updateTimesH()
+{
+	//更新当前的横坐标数据，从后向前计算时间
+	if(m_typeCircle<Day)
+		m_mapTimes = CDataEngine::getTodayTimeMap(m_typeCircle);
+	else
+		m_mapTimes = CDataEngine::getHistoryTimeMap(m_typeCircle,m_iShowCount*2);
+}
+
+QMap<time_t,RStockData*>* CKLineWidget::getColorBlockMap( CAbstractStockItem* pItem )
+{
+	if(!pItem)
+		return new QMap<time_t,RStockData*>();
+	QMap<time_t,RStockData*>* pMap = NULL;
+	if(m_typeCircle < Day)
+	{
+		//获取分钟数据，进行计算
+		QList<qRcvFenBiData*> FenBis = pItem->getFenBiList();
+		pMap = CDataEngine::getColorBlockItems(m_mapTimes,FenBis);
+	}
+	else
+	{
+		//获取日线数据
+		int iItemCount = m_iShowCount*2;
+		QList<qRcvHistoryData*> historys = pItem->getLastHistory(iItemCount);
+		qRcvReportData* pLastReport = pItem->getCurrentReport();
+		qRcvHistoryData* pLastData = 0;
+		if(historys.size()>0 && pLastReport)
+		{
+			qRcvHistoryData* pLastHistory = historys.last();
+			if(QDateTime::fromTime_t(pLastHistory->time).date() < QDateTime::fromTime_t(pLastReport->tmTime).date())
+			{
+				pLastData = new qRcvHistoryData(pLastReport);
+			}
+		}
+		if(pLastData)
+		{
+			historys.push_back(pLastData);
+		}
+		QDateTime dtNow = QDateTime::currentDateTime();
+		pMap = CDataEngine::getColorBlockItems(m_mapTimes,historys);
+		qDebug()<<abs(QDateTime::currentDateTime().msecsTo(dtNow));
+		if(pLastData)
+		{
+			//清除获取的日线数据
+			delete pLastData;
+		}
+	}
+
+	return pMap;
+}
+
 void CKLineWidget::updateMinLine( const QString& only )
 {
 	if(m_typeCircle>=Day)
@@ -450,9 +502,19 @@ void CKLineWidget::keyPressEvent(QKeyEvent* e)
 {
 	int iKey = e->key();
 	if(iKey == Qt::Key_Up)
-		return setShowCount(m_iShowCount-10);
+	{
+		int iShowCount = m_iShowCount*0.9;
+		if(iShowCount>=m_iShowCount)
+			iShowCount = m_iShowCount-2;
+		return setShowCount(iShowCount);
+	}
 	else if(iKey == Qt::Key_Down)
-		return setShowCount(m_iShowCount+10);
+	{
+		int iShowCount = m_iShowCount*1.1;
+		if(iShowCount<=m_iShowCount)
+			iShowCount = m_iShowCount+5;
+		return setShowCount(iShowCount);
+	}
 	else if(Qt::Key_F10 == iKey)
 	{
 		//F10数据
@@ -609,6 +671,8 @@ void CKLineWidget::onSetSizes()
 
 void CKLineWidget::setShowCount(int _iShow)
 {
+	m_iShowCount = _iShow;
+	updateData();
 	if(_iShow>m_mapData->size())
 	{
 		m_iShowCount = m_mapData->size();
