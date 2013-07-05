@@ -19,7 +19,7 @@ public:
 
 protected:
 	//初始化子节点
-	void initBlock();
+	virtual void initStockItem();
 
 public:
 	//补充5分钟数据

@@ -22,6 +22,8 @@ public:
 	~CAbstractStockItem(void);
 
 public:
+	virtual void initStockItem();							//初始化股票
+
 	//补充Report数据
 	virtual qRcvReportData* getCurrentReport() const;
 
@@ -38,6 +40,7 @@ public:
 	virtual void append5MinData(tagRStockData* pData);
 	virtual QList<tagRStockData*> get5MinList() = 0;		//追加最后不够5分钟的数据
 	virtual void recalc5MinData() = 0;						//重新计算当日5Min数据
+
 
 public:
 	/*属性类字段，只读*/

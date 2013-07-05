@@ -73,16 +73,11 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 		pCurrentReport->wMarket = BB_MARKET_EX;
 	}
 
-
 	connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(updateData()));
 	timerUpdate.start(UPDATE_BLOCK_TIME);
 	updateData();
 
-	CDataEngine::getDataEngine()->setBlockInfoItem(this);
-
-	CDataEngine::getDataEngine()->import5MinData(this,map5MinDatas);
-
-	initBlock();
+	initStockItem();
 }
 
 CBlockInfoItem::~CBlockInfoItem(void)
@@ -92,8 +87,9 @@ CBlockInfoItem::~CBlockInfoItem(void)
 	delete pCurrentReport;
 }
 
-void CBlockInfoItem::initBlock()
+void CBlockInfoItem::initStockItem()
 {
+	CDataEngine::getDataEngine()->setBlockInfoItem(this);
 	clearTmpData();
 	QFileInfo _info(blockFilePath);
 	if(!_info.exists())
@@ -148,6 +144,8 @@ void CBlockInfoItem::initBlock()
 			appendBlock(pChild);
 		}
 	}
+
+	return CAbstractStockItem::initStockItem();
 }
 
 QList<tagRStockData*> CBlockInfoItem::get5MinList()

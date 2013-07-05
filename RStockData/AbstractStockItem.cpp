@@ -47,6 +47,20 @@ CAbstractStockItem::~CAbstractStockItem(void)
 	}
 }
 
+void CAbstractStockItem::initStockItem()
+{
+	//获取过去5日的成交总量，用于计算量比等信息
+	QList<qRcvHistoryData*> list = CDataEngine::getDataEngine()->getHistoryList(this,5);
+	foreach(qRcvHistoryData* pHis,list)
+	{
+		fLast5Volume = fLast5Volume+pHis->fVolume;
+		delete pHis;
+	}
+	list.clear();
+
+	CDataEngine::getDataEngine()->import5MinData(this,map5MinDatas);
+}
+
 qRcvReportData* CAbstractStockItem::getCurrentReport() const
 {
 	return pCurrentReport;
