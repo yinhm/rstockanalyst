@@ -125,6 +125,20 @@ uint CColorManager::getBlockColor( const QString& mode,int index )
 	}
 }
 
+bool CColorManager::getBlockColor( const QString& mode,QVector<uint>& vColors )
+{
+	if(BlockColors.contains(mode))
+	{
+		vColors = BlockColors[mode];
+		return true;
+	}
+	else
+	{
+		vColors = DefaultColor;
+		return false;
+	}
+}
+
 uint CColorManager::getCommonColor( int index )
 {
 	return CommonColor[(index%(CommonColor.size()))];

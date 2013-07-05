@@ -36,6 +36,15 @@ CAbstractStockItem::~CAbstractStockItem(void)
 		}
 		map5MinDatas.clear();
 	}
+
+	{
+		//清空日线数据
+		foreach(qRcvHistoryData* pData,listHistories)
+		{
+			delete pData;
+		}
+		listHistories.clear();
+	}
 }
 
 qRcvReportData* CAbstractStockItem::getCurrentReport() const
@@ -85,7 +94,10 @@ void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 	}
 	else
 	{
+		//至少取5条数据
 		iCountFromFile = list.size();
+		if(iCountFromFile<5)
+			iCountFromFile = 5;
 		listHistory = CDataEngine::getDataEngine()->getHistoryList(this,iCountFromFile);
 	}
 

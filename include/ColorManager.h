@@ -32,6 +32,8 @@ public:
 	static uint getBlockColor(const QString& mode,float fVal);
 	/*通过索引值来查找种类为mode的对应颜色值*/
 	static uint getBlockColor(const QString& mode,int index);
+	//获取颜色表
+	static bool getBlockColor(const QString& mode,QVector<uint>& vColors);
 
 public:
 	/*获取常用的颜色，通过索引值*/

@@ -226,7 +226,7 @@ void CDataEngine::importData()
 		if(QFile::exists(qsF10File))
 		{
 			qDebug()<<"Import F10 Data from "<<qsF10File;
-			CDataEngine::importBaseInfoFromFinFile(qsF10File);	
+			CDataEngine::importBaseInfoFromFinFile(qsF10File);
 		}
 	}
 	{

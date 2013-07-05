@@ -8,6 +8,7 @@
 #include "SplashDlg.h"
 #include "WatcherSettingDlg.h"
 #include "ConfigSettings.h"
+#include "AllStockWidget.h"
 
 #define RSTOCK_ANALYST_MAINMSG (WM_USER+1)
 #define	EXPORT_TIME_TAG		"ExportTime"
@@ -52,6 +53,7 @@ CMainWindow::CMainWindow()
 		pMenuSettings->addAction(tr("监视雷达设置"),this,SLOT(onWatcherSetting()));
 		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onMarketCloseSetting()));
 		pMenuSettings->addAction(tr("收盘后数据整理2"),this,SLOT(onMarketClose()));
+		pMenuSettings->addAction(tr("显示所有的股票"),this,SLOT(onShowAllStocks()));
 
 		//帮助
 		QMenu* pMenuHelp = m_pMenuBar->addMenu(tr("帮助"));
@@ -598,4 +600,15 @@ void CMainWindow::CreateSubBlockMenu( QMenu* pMenuParent,CBlockInfoItem* pBlockP
 		connect(pActBlock,SIGNAL(triggered()),this,SLOT(onBlockActClicked()));
 		mapBlockMenus[_block] = pActBlock;
 	}
+}
+
+void CMainWindow::onShowAllStocks()
+{
+	QDialog dlg;
+	CAllStockWidget widgetAllStock(0);
+	QVBoxLayout layout(&dlg);
+	layout.addWidget(&widgetAllStock);
+	dlg.setLayout(&layout);
+
+	dlg.exec();
 }
