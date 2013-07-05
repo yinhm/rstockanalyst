@@ -9,7 +9,7 @@
 
 #ifndef BASE_BLOCK_WIDGET_H
 #define BASE_BLOCK_WIDGET_H
-#include "CoordXBaseWidget.h"
+#include "BaseWidget.h"
 #include "AbnomalSettingDlg.h"
 
 class CBaseBlockWidget : public CBaseWidget

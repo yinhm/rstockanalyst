@@ -13,6 +13,7 @@
 #include "StockInfoWidget.h"
 #include "RadarWidget.h"
 #include "StockDealWidget.h"
+#include "AllStockWidget.h"
 #include "KeyWizard.h"
 
 CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetType type/*=Basic*/ )
@@ -42,6 +43,9 @@ CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetTy
 		break;
 	case WidgetStockDeal:
 		return new CStockDealWidget(parent);
+		break;
+	case WidgetAllStock:
+		return new CAllStockWidget(parent);
 		break;
 	}
 

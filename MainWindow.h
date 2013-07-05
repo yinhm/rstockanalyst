@@ -43,6 +43,8 @@ protected slots:
 	void onBlockActClicked();		//板块菜单项被点击后触发
 	void onMarketCloseTimer();		//15点后休盘时触发此函数（需在函数中进行检查）
 
+	void onShowAllStocks();			//显示所有的股票信息
+
 	//
 	void onWatcherSetting();		//监控雷达设置
 

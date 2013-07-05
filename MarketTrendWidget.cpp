@@ -123,7 +123,12 @@ bool CMarketTrendWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget
 void CMarketTrendWidget::setStocks( const QList<CAbstractStockItem*>& list )
 {
 	clearTmpData();
-	m_listStocks = list;
+	foreach(CAbstractStockItem* pItem,list)
+	{
+		if(pItem->getCurrentReport()->tmTime>0)
+			m_listStocks.append(pItem);
+
+	}
 	if(!list.contains(m_pSelectedStock))
 	{
 		m_pSelectedStock = 0;

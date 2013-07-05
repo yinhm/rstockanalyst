@@ -117,9 +117,9 @@ int main(int argc, char *argv[])
 	//设置银江数据接口
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("设置银江数据接口"),30);
 	app.processEvents();
-	if(!CMainWindow::getMainWindow()->setupStockDrv())
+//	if(!CMainWindow::getMainWindow()->setupStockDrv())
 	{
-		return app.exit();
+//		return app.exit();
 	}
 
 	CSplashDlg::getSplashDlg()->hide();

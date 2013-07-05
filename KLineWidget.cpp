@@ -227,9 +227,7 @@ QMap<time_t,RStockData*>* CKLineWidget::getColorBlockMap( CAbstractStockItem* pI
 		{
 			historys.push_back(pLastData);
 		}
-		QDateTime dtNow = QDateTime::currentDateTime();
 		pMap = CDataEngine::getColorBlockItems(m_mapTimes,historys);
-		qDebug()<<abs(QDateTime::currentDateTime().msecsTo(dtNow));
 		if(pLastData)
 		{
 			//清除获取的日线数据
@@ -870,7 +868,6 @@ void CKLineWidget::resetTmpData()
 	{
 		qDebug()<<"Something wrong in 'CKLineWidget::resetTmpData()'!";
 	}
-	QTime tmNow = QTime::currentTime();
 	/*将更新后的数据设置到脚本引擎中*/
 	{
 		RCalcInfo calc;
@@ -886,9 +883,6 @@ void CKLineWidget::resetTmpData()
 		lua_getglobal(m_pL,"InitValues");
 		lua_call(m_pL,0,0);
 	}
-
-	if(m_pStockItem)
-		qDebug()<<"set "<<m_pStockItem->getOnly()<<" data to script, use ms:"<<tmNow.msecsTo(QTime::currentTime());
 
 	//更新界面
 	update();
