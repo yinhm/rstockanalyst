@@ -38,7 +38,7 @@ QVector<float> getVectorForTime(const QMap<time_t,int>& mapTimes,const QList<RSt
 						//计算
 						if(pLastData)
 						{
-							vRet.push_back((((*iterD)->fClose - pLastData->fClose) / pLastData->fClose));
+							vRet.push_back((((*iterD)->fClose - pLastData->fClose) / pLastData->fClose)*2);
 						}
 						else
 						{
@@ -81,7 +81,7 @@ QVector<float> getVectorForTime(const QMap<time_t,int>& mapTimes,const QList<RSt
 					if( iT == iTD)
 					{
 						//计算
-						vRet.push_back((((*iterD)->fVolume) / fLTAG)*10);
+						vRet.push_back((((*iterD)->fVolume) / fLTAG)*1);
 						++iter;
 						++iterD;
 					}
@@ -168,7 +168,11 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 //		this,SLOT(onSetExpression()));
 
 	//设置置顶股票
-	m_pMenuCustom->addAction(tr("设置置顶股票"),this,SLOT(onSetTopStock()));
+	QMenu * pMenuTop = m_pMenuCustom->addMenu("设置置顶");
+	pMenuTop->addAction(tr("置顶1"),this,SLOT(onSetTopStock1()));
+	pMenuTop->addAction(tr("置顶2"),this,SLOT(onSetTopStock2()));
+	pMenuTop->addAction(tr("置顶3"),this,SLOT(onSetTopStock3()));
+
 	m_pMenuCustom->addAction(tr("移除置顶股票"),this,SLOT(onRemoveTopStock()));
 
 	//设置显示类型
@@ -225,7 +229,7 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 				CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(eleStock.text());
 				if(pItem)
 				{
-					m_listTopStocks.append(pItem);
+					m_listTop1Stocks.append(pItem);
 				}
 
 				eleStock = eleStock.nextSiblingElement("Stock");
@@ -262,7 +266,7 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 	{
 		//置顶股票
 		QDomElement eleTopStocks = doc.createElement("TopStocks");
-		foreach(CStockInfoItem* pItem,m_listTopStocks)
+		foreach(CStockInfoItem* pItem,m_listTop1Stocks)
 		{
 			if(pItem->isInstanceOfStock())
 			{
@@ -342,33 +346,35 @@ void CColorBlockWidget::onSetShowType()
 	return;
 }
 
-void CColorBlockWidget::onSetTopStock()
+void CColorBlockWidget::onSetTopStock1()
 {
-	//弹出设置置顶显示股票的对话框
-	QDialog dlg(this);
-	QGridLayout layout(&dlg);
-	QLabel label1(tr("股票代码"),&dlg);
-	QLineEdit editC(&dlg);
-	QPushButton btnOk(&dlg);
-	dlg.setLayout(&layout);
-	layout.addWidget(&label1,0,0,1,1);
-	layout.addWidget(&editC,0,1,1,1);
-	layout.addWidget(&btnOk,3,0,1,2);
-	btnOk.setText(tr("确定"));
-
-	dlg.setWindowTitle(tr("置顶股票设置"));
-
-	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
-	if(QDialog::Accepted != dlg.exec())
-		return;
-
-	QString qsCode = editC.text().trimmed();
-	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItemByCode(qsCode);
-	if(pItem)
+	if(m_pSelectedStock)
 	{
-		if(!m_listTopStocks.contains(pItem))
+		if(!m_listTop1Stocks.contains(m_pSelectedStock))
 		{
-			m_listTopStocks.append(pItem);
+			m_listTop1Stocks.append(m_pSelectedStock);
+		}
+	}
+}
+
+void CColorBlockWidget::onSetTopStock2()
+{
+	if(m_pSelectedStock)
+	{
+		if(!m_listTop2Stocks.contains(m_pSelectedStock))
+		{
+			m_listTop2Stocks.append(m_pSelectedStock);
+		}
+	}
+}
+
+void CColorBlockWidget::onSetTopStock3()
+{
+	if(m_pSelectedStock)
+	{
+		if(!m_listTop3Stocks.contains(m_pSelectedStock))
+		{
+			m_listTop3Stocks.append(m_pSelectedStock);
 		}
 	}
 }
@@ -397,9 +403,9 @@ void CColorBlockWidget::onRemoveTopStock()
 	CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItemByCode(qsCode);
 	if(pItem)
 	{
-		if(m_listTopStocks.contains(pItem))
+		if(m_listTop1Stocks.contains(pItem))
 		{
-			m_listTopStocks.removeOne(pItem);
+			m_listTop1Stocks.removeOne(pItem);
 			if(m_pSelectedStock == pItem)
 			{
 				if(m_listStocks.size()>0)
@@ -568,11 +574,11 @@ void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
 {
 	if(pItem == m_pSelectedStock)
 		return;
-	if(!m_listTopStocks.contains(pItem))
+	if((!m_listTop1Stocks.contains(pItem))&&(!m_listTop2Stocks.contains(pItem))&&!m_listTop3Stocks.contains(pItem))
 	{
 		int iShowCount = m_rtClient.height()/m_iCBHeight;
 		int iRow = m_mapStockIndex[pItem];
-		if((iRow<showStockIndex)||(iRow>showStockIndex+iShowCount))
+		if(((iRow-getTopCount())<showStockIndex)||(iRow>(showStockIndex+iShowCount-getTopCount())))
 		{
 			showStockIndex = iRow;
 			update(m_rtClient);
@@ -707,11 +713,25 @@ void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 
 	int iCurY = rtClient.top();
 	//绘制置顶股票
-	foreach(CStockInfoItem* pItem,m_listTopStocks)
+	foreach(CStockInfoItem* pItem,m_listTop1Stocks)
 	{
 		drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),pItem);
 		iCurY=(iCurY+m_iCBHeight);
-		if(iCurY<rtClient.bottom())
+		if(iCurY>rtClient.bottom())
+			break;
+	}
+	foreach(CStockInfoItem* pItem,m_listTop2Stocks)
+	{
+		drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),pItem);
+		iCurY=(iCurY+m_iCBHeight);
+		if(iCurY>rtClient.bottom())
+			break;
+	}
+	foreach(CStockInfoItem* pItem,m_listTop3Stocks)
+	{
+		drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),pItem);
+		iCurY=(iCurY+m_iCBHeight);
+		if(iCurY>rtClient.bottom())
 			break;
 	}
 
@@ -727,11 +747,26 @@ void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 	}
 
 
-	if(m_listTopStocks.size()>0)
+	int iTop = rtClient.top();
+	if(m_listTop1Stocks.size()>0)
 	{
 		//绘制置顶股票周围的边框
 		p.setPen(QColor(255,0,0));
-		p.drawRect(rtClient.left(),rtClient.top(),rtClient.width(),m_listTopStocks.size()*m_iCBHeight);
+		p.drawRect(rtClient.left(),iTop,rtClient.width(),m_listTop1Stocks.size()*m_iCBHeight);
+		iTop += m_listTop1Stocks.size()*m_iCBHeight;
+	}
+	if(m_listTop2Stocks.size()>0)
+	{
+		//绘制置顶股票周围的边框
+		p.setPen(QColor(255,255,0));
+		p.drawRect(rtClient.left(),iTop,rtClient.width(),m_listTop1Stocks.size()*m_iCBHeight);
+		iTop += m_listTop1Stocks.size()*m_iCBHeight;
+	}
+	if(m_listTop3Stocks.size()>0)
+	{
+		//绘制置顶股票周围的边框
+		p.setPen(QColor(255,0,255));
+		p.drawRect(rtClient.left(),iTop,rtClient.width(),m_listTop1Stocks.size()*m_iCBHeight);
 	}
 }
 
@@ -739,7 +774,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 {
 	if(pItem == m_pSelectedStock)
 	{
-		p.fillRect(rtCB,QColor(50,50,50));
+		p.fillRect(rtCB,QColor(209,232,255));
 	}
 
 	/*
@@ -776,13 +811,179 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	if(m_bShowIncrease)
 		_vColor = getVectorForTime(m_mapTimes,listDatas,ShowIncrease,pItem);
 	QVector<float> _vHeight;
-	if(m_bShowTurnRatio)
+//	if(m_bShowTurnRatio)
 		_vHeight = getVectorForTime(m_mapTimes,listDatas,ShowTurnRatio,pItem);
 	QVector<float> _vWidth;
 	if(m_bShowVolumeRatio)
 		_vWidth = getVectorForTime(m_mapTimes,listDatas,ShowVolumeRatio,pItem);
 	//绘制
 	drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
+
+	//绘制辅助指标
+	float iBeginX = rtCB.right() - m_iCBWidth*57;
+	p.setPen(QColor(255,0,0));
+	p.drawLine(iBeginX+3,rtCB.top(),iBeginX+3,rtCB.bottom());
+
+	{
+		//价格创新高次数
+		int iIncWidth = 20;
+		int iNewHPriceCount = pItem->getNewHighPriceCount();
+		iBeginX-=iIncWidth;
+
+		QRect rtInc = QRect(iBeginX,rtCB.top(),iNewHPriceCount,m_iCBHeight);
+		rtInc.adjust(0,1,0,-1);
+		p.fillRect(rtInc,QColor(247,73,2));
+
+		iBeginX-=1;
+	}
+	{
+		//成交量创新高次数
+		int iIncWidth = 20;
+		int iNewHPriceCount = pItem->getNewHighVolumeCount();
+		iBeginX-=iIncWidth;
+
+		QRect rtInc = QRect(iBeginX,rtCB.top(),2*iNewHPriceCount,m_iCBHeight);
+		rtInc.adjust(0,1,0,-1);
+		p.fillRect(rtInc,QColor(197,15,136));
+
+		iBeginX-=1;
+	}
+	{
+		//绘制今日的涨幅
+		int iIncWidth = m_iCBWidth*1.2;
+		iBeginX-=iIncWidth;
+
+		QRect rtInc = QRect(iBeginX,rtCB.top(),iIncWidth,m_iCBHeight);
+		rtInc.adjust(0,1,0,-1);
+		p.fillRect(rtInc,CColorManager::getBlockColor("红绿",pItem->getIncrease()));
+
+		iBeginX-=1;
+	}
+	{
+		//绘制量比
+		int iIncWidth = 20;
+		float fW = iIncWidth;
+		float fV = pItem->getVolumeRatio();
+		if(fV<5.0&&fV>0.0)
+		{
+			fW = (float(iIncWidth)/5.0)*fV;
+		}
+		else if(fV<0.01)
+		{
+			fW = 0.0;
+		}
+
+		QRectF rtInc = QRect(iBeginX-iIncWidth,rtCB.top(),fW,m_iCBHeight);
+		rtInc.adjust(0,1,0,-1);
+		p.fillRect(rtInc,QColor(255,255,0));
+
+		iBeginX-=(iIncWidth+1);
+	}
+	{
+		//换手率
+		int iIncWidth = 30;
+		float fW = iIncWidth;
+		float fV = pItem->getTurnRatio();
+
+		QColor clr = QColor(0,0,255);
+		if(fV<30.0&&fV>0.0)
+		{
+			fW = fV;
+		}
+		else if(fV<0.01)
+		{
+			fW = 0.0;
+		}
+
+		QRectF rtInc = QRectF(iBeginX-iIncWidth,rtCB.top(),fW,m_iCBHeight);
+		rtInc.adjust(0,1,0,-1);
+		p.fillRect(rtInc,clr);
+		iBeginX-=(iIncWidth+1);
+	}
+	{
+		iBeginX-=1;
+		//挂单情况
+		int iIncWidth = 20;
+		float fW = iIncWidth;
+		qRcvReportData* pReport = pItem->getCurrentReport();
+		float fGuaDan[10];
+		for (int i=0;i<3;++i)
+		{
+			fGuaDan[2+i] = pReport->fBuyVolume[2-i];
+			fGuaDan[i+5] = pReport->fSellVolume[i];
+		}
+		fGuaDan[1] = pReport->fBuyVolume4;
+		fGuaDan[0] = pReport->fBuyVolume5;
+		fGuaDan[8] = pReport->fSellVolume4;
+		fGuaDan[9] = pReport->fSellVolume5;
+
+		float fTotal = 0.0;
+		for (int i = 0; i < 10; i++)
+		{
+			fTotal+=fGuaDan[i];
+		}
+
+		float fPer = iIncWidth/fTotal;
+		QVector<uint> vColors;
+		CColorManager::getBlockColor("红绿",vColors);
+		QColor clr = QColor(0,0,255);
+		for (int i=0;i<5;++i)
+		{
+			float fW = fGuaDan[i]*fPer;
+			iBeginX-=fW;
+			QRectF rtInc = QRectF(iBeginX,rtCB.top(),fW,m_iCBHeight);
+			rtInc.adjust(0,1,0,-1);
+
+			p.fillRect(rtInc,vColors[i*2]);
+		}
+
+		for (int i=5;i<10;++i)
+		{
+			float fW = fGuaDan[i]*fPer;
+			iBeginX-=fW;
+			QRectF rtInc = QRectF(iBeginX,rtCB.top(),fW,m_iCBHeight);
+			rtInc.adjust(0,1,0,-1);
+
+			p.fillRect(rtInc,vColors[(i+1)*2]);
+		}
+
+		iBeginX-=2;
+	}
+	{
+		//绘制最近5日涨幅
+		int iIncWidth = 20;
+		qRcvHistoryData* pCurHis = 0;
+		QList<qRcvHistoryData*> listHis = pItem->getLastHistory(7);
+		if(listHis.size()>0)
+		{
+			qRcvHistoryData* pLast = listHis.last();
+			if(QDateTime::fromTime_t(pLast->time).date() < QDateTime::fromTime_t(pItem->getCurrentReport()->tmTime).date())
+			{
+				pCurHis = new qRcvHistoryData(pItem->getCurrentReport());
+				listHis.append(pCurHis);
+			}
+		}
+		int iIndex = listHis.size() - 2;
+		int iCount = 0;
+		while (iCount<5&&iIndex>0)
+		{
+			qRcvHistoryData* pHis = listHis[iIndex];
+			qRcvHistoryData* pLast = listHis[iIndex-1];
+			iBeginX-=m_iCBWidth;
+
+			QRect rtInc = QRect(iBeginX,rtCB.top(),m_iCBWidth,m_iCBHeight);
+			rtInc.adjust(0,1,0,-1);
+			p.fillRect(rtInc,CColorManager::getBlockColor("红绿",(int)((((pHis->fClose-pLast->fClose)*100)/pLast->fClose)+10.5)));
+
+			++iCount;
+			--iIndex;
+		}
+		if(pCurHis)
+			delete pCurHis;
+
+		//绘制涨幅
+		iBeginX-=1;
+	}
 }
 
 
@@ -988,14 +1189,24 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 	int iMapSize = m_mapTimes.size()-1;
 	while(iter!=m_mapShowTimes.end())
 	{
-		QRectF rtCB = QRectF(iter.value(),iY,m_iCBWidth,m_iCBHeight);
+		QRect rtCB = QRect(iter.value(),iY,m_iCBWidth,m_iCBHeight);
+		p.fillRect(rtCB,QColor(0,0,0));
+
+		QRectF rtCB1 = QRectF(iter.value(),iY,m_iCBWidth,m_iCBHeight/3*2);
+		QRectF rtCB2 = QRectF(iter.value(),iY+m_iCBHeight/3*2,m_iCBWidth,m_iCBHeight/3);
+		if(m_iCBWidth<8||m_iCBHeight<3)
+		{
+			rtCB1 = rtCB;
+			rtCB2 = QRectF();
+		}
+
 		if(m_mapTimes.contains(iter.key()))
 		{
 			int iIndex = iMapSize - m_mapTimes[iter.key()];
 			if(iIndex>-1)
 			{
 				float f = vColor.size()>iIndex ? vColor[iIndex] : 1;
-				float fH = vHeight.size()>iIndex ? vHeight[iIndex] : 1;
+				float fH = vHeight.size()>iIndex ? vHeight[iIndex] : 0;
 				float fW = vWidth.size()> iIndex ? vWidth[iIndex] : 1;
 				if(fH<0)
 					fH = 0;
@@ -1007,10 +1218,16 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 				else if(fW>1)
 					fW = 1;
 
-				rtCB.adjust(1,1,-1,-1);
-				rtCB.setHeight(rtCB.height()*fH);
-				rtCB.setWidth(rtCB.width()*fW);
-				p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*fTimes*100)));
+				rtCB1.adjust(1,1,-1,0);
+//				rtCB.setHeight(rtCB.height()*fH);
+				rtCB2.adjust(1,0,-1,-1);
+				p.fillRect(rtCB1,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*100)));
+				if(rtCB2.isValid())
+				{
+					p.fillRect(rtCB2,QColor(255,255,255));
+					rtCB2.setWidth(rtCB2.width()*fH);
+					p.fillRect(rtCB2,QColor(0,0,255));
+				}
 			}
 		}
 		++iter;
@@ -1055,37 +1272,64 @@ QMenu* CColorBlockWidget::getCustomMenu()
 
 QRect CColorBlockWidget::rectOfStock( CStockInfoItem* pItem )
 {
-	if(m_listTopStocks.contains(pItem))
+	if(m_listTop1Stocks.contains(pItem))
 	{
-		int iRow = m_listTopStocks.indexOf(pItem);
+		int iRow = m_listTop1Stocks.indexOf(pItem);
+		return QRect(m_rtClient.left(),(m_rtClient.top()+iRow*m_iCBHeight),m_rtClient.width(),m_iCBHeight);
+	}
+	else if(m_listTop2Stocks.contains(pItem))
+	{
+		int iRow = m_listTop2Stocks.indexOf(pItem);
+		iRow += m_listTop1Stocks.size();
+		return QRect(m_rtClient.left(),(m_rtClient.top()+iRow*m_iCBHeight),m_rtClient.width(),m_iCBHeight);
+	}
+	else if(m_listTop3Stocks.contains(pItem))
+	{
+		int iRow = m_listTop3Stocks.indexOf(pItem);
+		iRow = iRow+m_listTop1Stocks.size()+m_listTop2Stocks.size();
 		return QRect(m_rtClient.left(),(m_rtClient.top()+iRow*m_iCBHeight),m_rtClient.width(),m_iCBHeight);
 	}
 	else if(m_mapStockIndex.contains(pItem))
 	{
 		int iRow = m_mapStockIndex[pItem];
-		iRow += m_listTopStocks.size();
+		iRow += getTopCount();
 		return QRect(m_rtClient.left(),(m_rtClient.top()+(iRow-showStockIndex)*m_iCBHeight),m_rtClient.width(),m_iCBHeight);
 	}
 
 	return QRect();
 }
 
-CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint ) const
+CStockInfoItem* CColorBlockWidget::hitTestStock( const QPoint& ptPoint )
 {
 	int iRow = (ptPoint.y()-m_rtClient.top())/m_iCBHeight;
-	if(iRow>-1&&iRow<m_listTopStocks.size())
+	if(iRow>-1&&iRow<getTopCount())
 	{
-		//置顶股票
-		return m_listTopStocks[iRow];
+		//置顶1股票
+		if(iRow<m_listTop1Stocks.size())
+		{
+			return m_listTop1Stocks[iRow];
+		}
+		iRow-=m_listTop1Stocks.size();
+		if(iRow<m_listTop2Stocks.size())
+		{
+			return m_listTop2Stocks[iRow];
+		}
+		iRow-=m_listTop2Stocks.size();
+		if(iRow<m_listTop3Stocks.size())
+		{
+			return m_listTop3Stocks[iRow];
+		}
+		return 0;
 	}
-	iRow = iRow + showStockIndex - m_listTopStocks.size();
+
+	iRow = iRow - getTopCount() + showStockIndex;
 	if(iRow<0||iRow>=m_listStocks.size())
 		return 0;
 
 	return m_listStocks[iRow];
 }
 
-RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint ) const
+RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint )
 {
 	CStockInfoItem* pItem = hitTestStock(ptPoint);
 
@@ -1151,3 +1395,7 @@ void CColorBlockWidget::onBlockClicked( CBlockInfoItem* pBlock,int iCmd )
 	}
 }
 
+int CColorBlockWidget::getTopCount()
+{
+	return m_listTop1Stocks.size()+m_listTop2Stocks.size()+m_listTop3Stocks.size();
+}

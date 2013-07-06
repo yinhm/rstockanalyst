@@ -125,23 +125,25 @@ int main(int argc, char *argv[])
 	CSplashDlg::getSplashDlg()->hide();
 
 	app.exec();
+
 	CSplashDlg::getSplashDlg()->show();
 
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("正在保存配置..."),10);
 	CMainWindow::getMainWindow()->saveTemplates();	//保存所有模板
+
+	/*
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("正在导出数据..."),20);
 
 	CDataEngine::exportData();				//导出数据
 
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("导出数据完成..."),99);
 
-
 	//收盘导出存盘
 	//CDataEngine::exportCloseData();
 
 	//释放资源
 	delete CMainWindow::getMainWindow();
-	CDataEngine::releaseDataEngine();
+	CDataEngine::releaseDataEngine();*/
 
 	foreach(HINSTANCE hDll,g_vDll)
 	{

@@ -531,6 +531,8 @@ void CStockDealWidget::drawClient( QPainter& p )
 {
 	if(!m_pCurStock)
 		return;
+	QVector<uint> vColors;
+	CColorManager::getBlockColor(m_qsColorMode,vColors);
 
 	int iBeginX = m_rtClient.right();
 //	int iEndX = m_rtClient.left();			//全部显示，暂时不用
@@ -577,7 +579,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 						for(int j=0;j<7;++j)
 						{
 							float fh = (fDealKind[j]/fTotal)*fH;
-							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,CColorManager::getCommonColor(j));
+							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,vColors[j]);
 							fY += fh;
 						}
 					}

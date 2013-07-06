@@ -205,6 +205,11 @@ void CBColorBlockWidget::setBlock( const QString& block )
 			m_pCurBlock = pBlock;
 			updateUI();
 		}
+		else
+		{
+			m_listBlocks.contains(pBlock);
+			clickedBlock(pBlock);
+		}
 	}
 }
 
@@ -592,25 +597,31 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				float fLeft = iter.value()-m_iCBWidth;
 				float fHeight = rtCB.height()-1;
 
-				float* fCount = &(pFenBi->fIncrease[0]);
+				float fCount[20];
+				memcpy(&fCount[0],&(pFenBi->fIncrease[0]),sizeof(float)*21);
 
-				float fNotEquel = 0;
-				for (int i=0;i<9;++i)
+				float fTotal = 0;
+				for (int i=0;i<10;++i)
 				{
-					fNotEquel+=fCount[i];
+					fCount[i]=(fCount[i]/(1+i/2));
 				}
-				for (int i=11;i<20;++i)
+				fCount[20] = (fCount[20]/10);
+				for (int i=10;i<20;++i)
 				{
-					fNotEquel+=fCount[i];
+					fCount[i]=(fCount[i]/(1+(i-11)/2));
 				}
 
-				float fTotal = fNotEquel;
+				for (int i=0;i<21;++i)
+				{
+					fTotal = fTotal+fCount[i];
+				}
+
 				float fPer = fHeight/fTotal;
 				float fCurY = fTop;
 				if(fPer>=fHeight)
 					continue;
 
-				for (int j=0;j<9;++j)
+				for (int j=0;j<10;++j)
 				{
 					//10-1
 					float fPerH = fCount[j]*fPer;
@@ -620,13 +631,13 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				}
 				{
 					//0
-//					float fPerH = (fTotal-fNotEquel)*fPer;
-//					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[10]);
+					float fPerH = (fCount[20])*fPer;
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[10]);
 
-//					fCurY+=fPerH;
+					fCurY+=fPerH;
 				}
 
-				for (int j=11;j<20;++j)
+				for (int j=10;j<20;++j)
 				{
 					float fPerH = fCount[j]*fPer;
 					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[19-j]);

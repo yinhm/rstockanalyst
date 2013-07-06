@@ -24,6 +24,7 @@ CMarketTrendWidget::CMarketTrendWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iSortColumn(0)
 	, m_sortOrder(Qt::AscendingOrder)
 	, m_pSelectedBlock(0)
+	, m_bLoaded(false)
 {
 	m_listHeader << tr("索引") << tr("代码") << tr("名称")
 		<< tr("涨幅") << tr("量比") << tr("换手率（仓差）") << tr("前收") << tr("今开")
@@ -93,6 +94,7 @@ bool CMarketTrendWidget::loadPanelInfo( const QDomElement& eleWidget )
 			clickedStock(pItem);
 	}
 
+	m_bLoaded = true;
 	return true;
 }
 
@@ -1107,5 +1109,36 @@ void CMarketTrendWidget::onBlockClicked( CBlockInfoItem* pBlock,int iCmd )
 	else if(iCmd == BLOCK_CMD_ADD)
 	{
 
+	}
+}
+
+void CMarketTrendWidget::setBlock( const QString& block )
+{
+	return;
+	if(!m_bLoaded)
+		return;
+	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(block);
+	if(pBlock)
+	{
+		if(m_pSelectedBlock == pBlock)
+		{
+			setStocks(pBlock->getAbsStockList());
+			resortStocks();
+			update();
+			return;
+		}
+
+		{
+			m_pSelectedStock = 0;
+			setStocks(pBlock->getAbsStockList());
+			m_pSelectedBlock = pBlock;
+			{
+				//设置排序方式
+	//			m_sortOrder = (m_sortOrder==Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
+	//			clickedHeader(0);
+			}
+			resortStocks();
+		}
+		update();
 	}
 }
