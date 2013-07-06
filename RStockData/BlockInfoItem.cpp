@@ -216,11 +216,13 @@ void CBlockInfoItem::recalc5MinData()
 		//计算此时间内的数据
 		foreach(CStockInfoItem* pStock,stocksInBlock)
 		{
+			float _last = pStock->getLastClose();		//使用昨天收盘价
+
 			RStockData* pData = pStock->get5MinData(tmCurrent);
 			if(pData)
 			{
 				float _new = pData->fClose;							//采用最新价计算涨幅
-				float _last = mapLastPrice.value(pStock,_new);		//默认使用本次价格
+		//		float _last = mapLastPrice.value(pStock,_new);		//默认使用本次价格
 
 				if(_new>0.1)
 				{
@@ -240,7 +242,7 @@ void CBlockInfoItem::recalc5MinData()
 						else if(_new<_last)
 							++pBlockData->wDecline;
 
-						int _index = ((float(_new-_last))*1000.0)/_last + 0.5;
+						int _index = ((float(_new-_last))*100.0)/_last + 0.5;
 						if(_index>9)
 						{
 							++(pBlockData->fIncrease[0]);

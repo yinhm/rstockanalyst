@@ -81,6 +81,9 @@ public:
 	virtual float getMgsy() = 0;				//获取每股收益
 	virtual float getLtag(){ return -1.0; }		//流通A股
 
+	virtual int getNewHighPriceCount();			//获取价格创新高次数，以一分钟为界
+	virtual int getNewHighVolumeCount();		//获取成交量创新高次数，以一分钟为界
+
 
 	/*判断关键词_key是否匹配*/
 	virtual bool isMatch(const QString& _key) = 0;

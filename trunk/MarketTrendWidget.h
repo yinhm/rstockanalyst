@@ -39,6 +39,11 @@ public slots:
 	void stockInfoChanged(const QString& code);				//某只股票的信息发生改变
 	void onAddToBlock();									//添加当前选中的股票到板块
 	void onAddToNewBlock();									//添加当前选中的股票到新加板块
+	
+	/*
+		虚函数，派生类中需重载此函数以进行相应操作
+	*/
+	virtual void setBlock(const QString& block);
 
 private:
 	void clearTmpData();						//清理本窗口中创建的内存。
@@ -109,6 +114,9 @@ private:
 	QList<int> m_listItemWidth;				//各个item的宽度。
 	QList<QPair<CBlockInfoItem*,QRect>> m_listBlocks;	//各个分类所在的矩形
 	CBlockInfoItem* m_pSelectedBlock;					//当前选中的板块
+
+
+	bool m_bLoaded;
 };
 
 

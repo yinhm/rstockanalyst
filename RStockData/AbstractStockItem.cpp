@@ -275,3 +275,78 @@ bool CAbstractStockItem::isInstanceOfBlock()
 	CBlockInfoItem* p = dynamic_cast<CBlockInfoItem*>(this);
 	return p ? true : false;
 }
+
+int CAbstractStockItem::getNewHighPriceCount()
+{
+	int iCount = 0;
+
+	QMap<time_t,qRcvFenBiData*>::iterator iter=mapFenBis.begin();
+	float fHighPrice = getOpenPrice();
+
+	float fPrice = fHighPrice;
+	int iTime = 0;
+	while (iter!=mapFenBis.end())
+	{
+		int iT = (iter.key())/60;
+		if(iT>iTime)
+		{
+			if(fPrice>fHighPrice)
+			{
+				iCount++;
+				fHighPrice = fPrice;
+			}
+			iTime = iT;
+		}
+		fPrice = (*iter)->fPrice;
+
+		++iter;
+	}
+
+	return iCount;
+}
+
+int CAbstractStockItem::getNewHighVolumeCount()
+{
+	int iCount = 0;
+
+	QMap<time_t,qRcvFenBiData*>::iterator iter=mapFenBis.begin();
+	if(iter==mapFenBis.end())
+		return iCount;
+
+	qRcvFenBiData* pLast = 0;
+	qRcvFenBiData* pCur = 0;
+
+	float fHighVolume = 0;
+	int iTime = iter.key()/60;
+
+	while (iter!=mapFenBis.end())
+	{
+		int iT = (iter.key())/60;
+		if(iT>iTime)
+		{
+			if(pLast && pCur)
+			{
+				if((pCur->fVolume-pLast->fVolume)>fHighVolume)
+				{
+					iCount++;
+					fHighVolume = (pCur->fVolume-pLast->fVolume);
+				}
+			}
+			else if(pCur)
+			{
+				fHighVolume = pCur->fVolume;
+			}
+			else
+			{
+				fHighVolume = (*iter)->fVolume;
+			}
+			pLast = pCur;
+			iTime = iT;
+		}
+
+		pCur = *iter;
+		++iter;
+	}
+
+	return iCount;
+}

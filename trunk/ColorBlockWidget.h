@@ -58,12 +58,15 @@ protected slots:
 	void onSetCurrentBlock();								//设置当前显示的板块
 	void onSetShowType();									//设置显示类型
 	void onSetExpression();									//设置当前显示的表达式
-	void onSetTopStock();									//设置置顶显示股票
+	void onSetTopStock1();									//设置置顶显示股票
+	void onSetTopStock2();
+	void onSetTopStock3();
 	void onRemoveTopStock();								//移除置顶显示股票
 	virtual void updateColorBlockData();					//更新当前需要显示的数据
 
 protected:
 	void setShowType(RShowType _t);
+	int getTopCount();							//获取置顶元素的数量
 
 private:
 	void clickedStock(CStockInfoItem* pItem);	//当点击股票时触发
@@ -95,8 +98,8 @@ private:
 	void drawStock(QPainter& p,const QRect& rtCB,CStockInfoItem* pItem);	//绘制单只股票
 
 	QRect rectOfStock(CStockInfoItem* pItem);					//获取某只股票显示的位置
-	CStockInfoItem* hitTestStock(const QPoint& ptPoint) const;		//测试某点所指向的股票信息
-	RStockData* hitTestCBItem(const QPoint& ptPoint) const;//测试某点所指向的色块信息
+	CStockInfoItem* hitTestStock(const QPoint& ptPoint);		//测试某点所指向的股票信息
+	RStockData* hitTestCBItem(const QPoint& ptPoint);//测试某点所指向的色块信息
 
 private:
 	QMenu* m_pMenuShowType;					//绘制界面中的显示类型
@@ -109,7 +112,9 @@ private:
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
-	QList<CStockInfoItem*> m_listTopStocks;		//置顶显示股票
+	QList<CStockInfoItem*> m_listTop1Stocks;		//置顶显示股票1
+	QList<CStockInfoItem*> m_listTop2Stocks;		//置顶显示股票2
+	QList<CStockInfoItem*> m_listTop3Stocks;		//置顶显示股票3
 
 	/*用于绘制操作的成员变量*/
 private:

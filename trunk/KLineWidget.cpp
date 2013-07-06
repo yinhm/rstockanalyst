@@ -418,9 +418,9 @@ void CKLineWidget::mouseMoveEvent( QMouseEvent* e )
 				qsTime = dtTmp.toString("yyyy/MM/dd");
 		}
 	
-		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最新价:%7\r\n最高价:%3\r\n最低价:%4\r\n成交量:%5\r\n成交额:%6")
+		qsTooltip = QString("股票代码:%1\r\n时间:%2\r\n最新价:%7\r\n最高价:%3\r\n最低价:%4\r\n开盘价:%8\r\n成交量:%5\r\n成交额:%6")
 			.arg(m_pStockItem->getCode()).arg(qsTime).arg(pData->fHigh).arg(pData->fLow)
-			.arg(pData->fVolume).arg(pData->fAmount).arg(pData->fClose);
+			.arg(pData->fVolume).arg(pData->fAmount).arg(pData->fClose).arg(pData->fOpen);
 
 		QToolTip::showText(e->globalPos(),qsTooltip,this);
 	}
@@ -822,6 +822,8 @@ void CKLineWidget::clearTmpData()
 void CKLineWidget::resetTmpData()
 {
 	clearTmpData();
+	if(!m_pStockItem)
+		return;
 	updateTimesH();			//更新最新的时间轴数据
 
 	m_mapData = getColorBlockMap(m_pStockItem);
