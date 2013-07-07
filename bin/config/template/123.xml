@@ -2,26 +2,29 @@
 <ROOT title="123">
  <widget>
   <name></name>
+  <ClearMode>0</ClearMode>
   <type>0</type>
   <relate>1</relate>
   <align>1</align>
   <size>100</size>
   <widget>
    <name></name>
+   <ClearMode>0</ClearMode>
    <type>2</type>
    <relate>1</relate>
    <align>1</align>
    <size>66</size>
-   <block>800002BB</block>
-   <stock>000064SH</stock>
+   <block>800010BB</block>
+   <stock>000988SZ</stock>
   </widget>
   <widget circle="0">
    <name></name>
+   <ClearMode>0</ClearMode>
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
    <size>33</size>
-   <code>000064SH</code>
+   <code>159901SZ</code>
    <liners>
     <Liner size="80">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)

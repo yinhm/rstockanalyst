@@ -2,18 +2,21 @@
 <ROOT title="demo2">
  <widget>
   <name></name>
+  <ClearMode>0</ClearMode>
   <type>0</type>
   <relate>1</relate>
   <align>1</align>
   <size>100</size>
   <widget>
    <name></name>
+   <ClearMode>0</ClearMode>
    <type>0</type>
    <relate>1</relate>
    <align>2</align>
-   <size>30</size>
+   <size>21</size>
    <widget circle="3">
     <name></name>
+    <ClearMode>0</ClearMode>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
@@ -28,13 +31,14 @@ DrawLine(MA(OPEN,3))</exp>
      </Liner>
     </liners>
    </widget>
-   <widget CBHeight="16" CBWidth="16">
+   <widget CBHeight="8" CBWidth="7">
     <name></name>
+    <ClearMode>0</ClearMode>
     <type>3</type>
     <relate>0</relate>
     <align>1</align>
-    <size>15</size>
-    <color>红绿</color>
+    <size>19</size>
+    <color>红绿1</color>
     <Abnomals/>
     <block>800002BB</block>
     <ShowType volumeratio="0" turnratio="0" increase="1"/>
@@ -42,17 +46,19 @@ DrawLine(MA(OPEN,3))</exp>
    </widget>
    <widget>
     <name></name>
+    <ClearMode>0</ClearMode>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>19</size>
+    <size>15</size>
     <widget CBHeight="16" CBWidth="16">
      <name></name>
+     <ClearMode>0</ClearMode>
      <type>3</type>
      <relate>0</relate>
      <align>1</align>
      <size>100</size>
-     <color>红绿</color>
+     <color>红绿1</color>
      <Abnomals/>
      <block>800022BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
@@ -61,17 +67,19 @@ DrawLine(MA(OPEN,3))</exp>
    </widget>
    <widget>
     <name></name>
+    <ClearMode>0</ClearMode>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
     <size>26</size>
     <widget circle="300">
      <name></name>
+     <ClearMode>0</ClearMode>
      <type>1</type>
      <relate>1</relate>
      <align>1</align>
-     <size>47</size>
-     <code>000001SH</code>
+     <size>50</size>
+     <code>000070SZ</code>
      <liners>
       <Liner size="60">
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -80,34 +88,37 @@ DrawLine(MA(OPEN,3))</exp>
     </widget>
     <widget CBHeight="30" CBWidth="1">
      <name></name>
+     <ClearMode>0</ClearMode>
      <type>4</type>
      <relate>0</relate>
      <align>1</align>
-     <size>17</size>
-     <color>红绿</color>
+     <size>25</size>
+     <color>红绿1</color>
      <Abnomals/>
      <block>800109BB</block>
     </widget>
     <widget CBHeight="16" CBWidth="3">
      <name></name>
+     <ClearMode>0</ClearMode>
      <type>3</type>
      <relate>1</relate>
      <align>1</align>
-     <size>34</size>
-     <color>红绿</color>
+     <size>24</size>
+     <color>红绿1</color>
      <Abnomals/>
-     <block>800015BB</block>
+     <block>800012BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
     </widget>
    </widget>
    <widget CBHeight="16" CBWidth="8">
     <name></name>
+    <ClearMode>0</ClearMode>
     <type>3</type>
     <relate>0</relate>
     <align>1</align>
     <size>19</size>
-    <color>红绿</color>
+    <color>红绿1</color>
     <Abnomals/>
     <block>800106BB</block>
     <ShowType volumeratio="1" turnratio="1" increase="1"/>
@@ -116,34 +127,67 @@ DrawLine(MA(OPEN,3))</exp>
   </widget>
   <widget>
    <name></name>
+   <ClearMode>0</ClearMode>
    <type>0</type>
    <relate>1</relate>
    <align>2</align>
-   <size>69</size>
-   <widget circle="60">
+   <size>78</size>
+   <widget circle="0">
     <name></name>
+    <ClearMode>0</ClearMode>
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
-    <size>51</size>
-    <code>000001SH</code>
+    <size>65</size>
+    <code>000070SZ</code>
     <liners>
+     <Liner size="80">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+     </Liner>
      <Liner size="20">
-      <exp>DrawLine(CLOSE)</exp>
+      <exp>DrawHist(VOLUME)</exp>
      </Liner>
     </liners>
    </widget>
-   <widget CBHeight="50" CBWidth="16">
+   <widget>
     <name></name>
-    <type>3</type>
+    <ClearMode>0</ClearMode>
+    <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>48</size>
-    <color>红绿</color>
-    <Abnomals/>
-    <block>800015BB</block>
-    <ShowType volumeratio="1" turnratio="1" increase="1"/>
-    <TopStocks/>
+    <size>34</size>
+    <widget circle="60">
+     <name></name>
+     <ClearMode>0</ClearMode>
+     <type>1</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>50</size>
+     <code>000070SZ</code>
+     <liners>
+      <Liner size="20">
+       <exp>DrawLine(CLOSE)
+DrawLine(MA(CLOSE,1000))</exp>
+      </Liner>
+     </liners>
+    </widget>
+    <widget CBHeight="10" CBWidth="10">
+     <name></name>
+     <ClearMode>0</ClearMode>
+     <type>3</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>49</size>
+     <color>红绿1</color>
+     <Abnomals/>
+     <block>800012BB</block>
+     <ShowType volumeratio="1" turnratio="1" increase="1"/>
+     <TopStocks/>
+    </widget>
    </widget>
   </widget>
  </widget>
