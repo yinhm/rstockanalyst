@@ -112,9 +112,7 @@ private:
 	QMap<CStockInfoItem*,int> m_mapStockIndex;	//用来快速查找某只股票所在的索引
 	CStockInfoItem* m_pSelectedStock;			//当前选中的股票
 
-	QList<CStockInfoItem*> m_listTop1Stocks;		//置顶显示股票1
-	QList<CStockInfoItem*> m_listTop2Stocks;		//置顶显示股票2
-	QList<CStockInfoItem*> m_listTop3Stocks;		//置顶显示股票3
+	QMap<int ,QList<CStockInfoItem*>> m_mapTopStocks;	//置顶股票
 
 	/*用于绘制操作的成员变量*/
 private:
