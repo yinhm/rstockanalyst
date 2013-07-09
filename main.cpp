@@ -117,9 +117,9 @@ int main(int argc, char *argv[])
 	//设置银江数据接口
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("设置银江数据接口"),30);
 	app.processEvents();
-//	if(!CMainWindow::getMainWindow()->setupStockDrv())
+	if(!CMainWindow::getMainWindow()->setupStockDrv())
 	{
-//		return app.exit();
+		return app.exit();
 	}
 
 	CSplashDlg::getSplashDlg()->hide();
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("正在保存配置..."),10);
 	CMainWindow::getMainWindow()->saveTemplates();	//保存所有模板
 
-	/*
+	
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("正在导出数据..."),20);
 
 	CDataEngine::exportData();				//导出数据
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 
 	//释放资源
 	delete CMainWindow::getMainWindow();
-	CDataEngine::releaseDataEngine();*/
+	CDataEngine::releaseDataEngine();
 
 	foreach(HINSTANCE hDll,g_vDll)
 	{
