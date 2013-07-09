@@ -93,6 +93,7 @@ private:
 
 	QString dataOfDisplay(CAbstractStockItem* itemData,int column);
 	QColor dataOfColor(CAbstractStockItem* itemData,int column);
+	QColor dataOfFillColor(CAbstractStockItem* itemData,int column);
 	QRect rectOfStock(CAbstractStockItem* pItem);			//获取某只股票显示的位置
 
 	/*用于绘制的成员变量*/

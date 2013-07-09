@@ -883,6 +883,7 @@ QColor CMarketTrendWidget::dataOfColor( CAbstractStockItem* itemData,int column 
 	}
 	else if(column == 10)
 	{
+		//最新价
 		float f = itemData->getNewPrice()-itemData->getLastClose();
 		return GetColorByFloat(f);
 	}
@@ -908,6 +909,30 @@ QColor CMarketTrendWidget::dataOfColor( CAbstractStockItem* itemData,int column 
 
 	return QColor(191,191,191);
 }
+
+QColor CMarketTrendWidget::dataOfFillColor( CAbstractStockItem* itemData,int column )
+{
+	if(column == 10)
+	{
+		//最新价
+		int iMax = itemData->getLastClose()*100*1.1+0.5;
+		int iMin = itemData->getLastClose()*100*0.9+0.5;
+		int iN = itemData->getNewPrice()*100+0.5;
+		if(iMax<=iN)
+		{
+			//涨停
+			return QColor(255,0,0);
+		}
+		else if(iMin>=iN)
+		{
+			//跌停
+			return QColor(0,255,255);
+		}
+	}
+
+	return QColor(0,0,0);
+}
+
 
 QRect CMarketTrendWidget::rectOfStock( CAbstractStockItem* pItem )
 {
@@ -1037,8 +1062,18 @@ void CMarketTrendWidget::drawStock( QPainter& p,const QRect& rtStock,CAbstractSt
 		QRect rtItem = QRect(iCurX,rtStock.top(),m_listItemWidth[iCurIndex],rtStock.height());
 		p.setPen(QColor(127,0,0));
 		p.drawRect(rtItem);
-		p.setPen(dataOfColor(pItem,iCurIndex));
-		p.drawText(rtItem,Qt::AlignCenter,dataOfDisplay(pItem,iCurIndex));
+		QColor clFill = dataOfFillColor(pItem,iCurIndex);
+		if(clFill!=QColor(0,0,0))
+		{
+			p.fillRect(rtItem.adjusted(1,1,-1,-1),clFill);
+			p.setPen(QColor(255,255,255));
+			p.drawText(rtItem,Qt::AlignCenter,dataOfDisplay(pItem,iCurIndex));
+		}
+		else
+		{
+			p.setPen(dataOfColor(pItem,iCurIndex));
+			p.drawText(rtItem,Qt::AlignCenter,dataOfDisplay(pItem,iCurIndex));
+		}
 		iCurX = iCurX+m_listItemWidth[iCurIndex];
 		++iCurIndex;
 	}
@@ -1142,3 +1177,4 @@ void CMarketTrendWidget::setBlock( const QString& block )
 		update();
 	}
 }
+
