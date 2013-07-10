@@ -541,7 +541,7 @@ void CBlockInfoItem::updateData()
 		CStockInfoItem* pStock = stocksInBlock[i];
 		float _new = pStock->getNewPrice();					//采用最新价计算涨幅
 		float _open = pStock->getOpenPrice();				//获取开盘价
-		float _last = mapLast5Price.value(pStock,_open);	//默认使用开盘价
+		float _last = pStock->getLastClose()/*mapLast5Price.value(pStock,_open)*/;	//默认使用开盘价
 		float _close = pStock->getLastClose();
 		if(_new>0.1)
 		{
@@ -613,6 +613,8 @@ void CBlockInfoItem::updateData()
 	fNewPrice = dNew/fLTG;
 	fLowPrice = dLow/fLTG;
 	fHighPrice = dHigh/fLTG;
+	fOpenPrice = dOpen/fLTG;
+	fLastClose = dLastClose/fLTG;
 	fLTSZ = dNew;
 
 	//涨幅
