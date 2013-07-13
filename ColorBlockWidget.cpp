@@ -156,6 +156,7 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_bShowIncrease(true)
 	, m_bShowTurnRatio(true)
 	, m_bShowVolumeRatio(true)
+	, m_bFocusWhenMove(false)
 {
 	{
 		//初始化显示类型
@@ -183,6 +184,11 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 			m_pMenuShowType->addAction(_d.desc,this,SLOT(onSetShowType()))->setData(_d.value);
 		}
 	}
+
+	//设置鼠标移动时是否切换股票
+	m_pActFocusWhenMove = m_pMenuCustom->addAction(tr("鼠标移动切换"),this,SLOT(onFocusWhenMove()));
+	m_pActFocusWhenMove->setCheckable(true);
+	m_pActFocusWhenMove->setChecked(m_bFocusWhenMove);
 
 
 	connect(&m_timerUpdateUI,SIGNAL(timeout()),this,SLOT(updateColorBlockData()));
@@ -243,6 +249,16 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 			}
 		}
 	}
+	
+	{
+		//是否鼠标移动切换股票
+		QDomElement eleFocusWhenMove = eleWidget.firstChildElement("FocusWhenMove");
+		if(eleFocusWhenMove.isElement())
+		{
+			m_bFocusWhenMove = static_cast<bool>(eleFocusWhenMove.text().toInt());
+			m_pActFocusWhenMove->setChecked(m_bFocusWhenMove);
+		}
+	}
 
 	return true;
 }
@@ -290,6 +306,13 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 			++iter;
 		}
 		eleWidget.appendChild(eleTopStocks);
+	}
+
+	{
+		//是否鼠标移动切换股票
+		QDomElement eleFocusWhenMove = doc.createElement("FocusWhenMove");
+		eleFocusWhenMove.appendChild(doc.createTextNode(QString("%1").arg(m_bFocusWhenMove)));
+		eleWidget.appendChild(eleFocusWhenMove);
 	}
 
 	return true;
@@ -414,6 +437,12 @@ void CColorBlockWidget::onRemoveTopStock()
 			clickedStock(m_listStocks.first());
 	}
 }
+
+void CColorBlockWidget::onFocusWhenMove()
+{
+	m_bFocusWhenMove = m_pActFocusWhenMove->isChecked();
+}
+
 
 void CColorBlockWidget::onSetExpression()
 {
@@ -985,6 +1014,8 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 {
+	if(!m_bFocusWhenMove)
+		return;
 	e->accept();
 	QPoint ptCur = e->pos();
 	if(m_rtClient.contains(ptCur))
@@ -992,7 +1023,7 @@ void CColorBlockWidget::mouseMoveEvent( QMouseEvent* e )
 		CStockInfoItem* pItem = hitTestStock(ptCur);
 		if(pItem)
 		{
-//			clickedStock(pItem);
+			clickedStock(pItem);
 		}
 	}
 	return;
@@ -1054,6 +1085,8 @@ void CColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	}
 	else if(m_rtClient.contains(ptCur))
 	{
+		if(m_bFocusWhenMove)
+			return;
 		CStockInfoItem* pItem = hitTestStock(ptCur);
 		if(pItem)
 			clickedStock(pItem);

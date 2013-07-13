@@ -24,6 +24,19 @@ public:
 		ShowVolumeRatio,	//量比
 	};
 
+	enum RAsistIndex
+	{
+		IndexNewPriceCount = 1,	//创新高次数
+		IndexNewVolumeCount,	//量创新高次数
+		IndexIncrease,			//今日涨幅
+		IndexVolumeRatio,		//量比
+		IndexTurnRatio,			//换手率
+		IndexGuanDan,			//当前挂单情况
+		Index5DayLine,			//最近5日涨幅变化
+	};
+
+
+
 public:
 	CColorBlockWidget(CBaseWidget* parent = 0);
 	~CColorBlockWidget(void);
@@ -62,6 +75,9 @@ protected slots:
 	void onSetTopStock2();
 	void onSetTopStock3();
 	void onRemoveTopStock();								//移除置顶显示股票
+	void onFocusWhenMove();									//设置鼠标移动时切换股票
+
+
 	virtual void updateColorBlockData();					//更新当前需要显示的数据
 
 protected:
@@ -103,6 +119,7 @@ private:
 
 private:
 	QMenu* m_pMenuShowType;					//绘制界面中的显示类型
+	QAction* m_pActFocusWhenMove;			//鼠标移动时切换股票菜单
 
 	QList<RWidgetOpData> m_listShowOp;		//显示类型列表
 
@@ -131,6 +148,8 @@ private:
 	bool m_bShowIncrease;					//显示涨幅（颜色）
 	bool m_bShowTurnRatio;					//显示换手率（高度）
 	bool m_bShowVolumeRatio;				//显示量比（宽度）
+
+	bool m_bFocusWhenMove;					//当鼠标移动时设置股票切换
 };
 
 #endif	//COLOR_BLOCK_WIDGET_H
