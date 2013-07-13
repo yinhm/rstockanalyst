@@ -76,6 +76,7 @@ protected slots:
 	void onSetTopStock3();
 	void onRemoveTopStock();								//移除置顶显示股票
 	void onFocusWhenMove();									//设置鼠标移动时切换股票
+	void onSetAsistIndex();									//设置当前显示的辅助指标
 
 
 	virtual void updateColorBlockData();					//更新当前需要显示的数据
@@ -122,6 +123,9 @@ private:
 	QAction* m_pActFocusWhenMove;			//鼠标移动时切换股票菜单
 
 	QList<RWidgetOpData> m_listShowOp;		//显示类型列表
+	QList<RWidgetOpData*> m_listAsistIndex;	//显示辅助指标
+
+	QMap<RAsistIndex,RAsistIndex> m_mapCurAsistIndex;	//当前显示的辅助指标
 
 	CBlockInfoItem* m_pBlock;				//当前的板块名称
 	QList<CStockInfoItem*> m_listStocks;	//当前显示的所有股票列表

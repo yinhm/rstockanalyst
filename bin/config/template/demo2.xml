@@ -43,6 +43,8 @@ DrawLine(MA(OPEN,3))</exp>
     <block>800002BB</block>
     <ShowType volumeratio="0" turnratio="0" increase="1"/>
     <TopStocks/>
+    <FocusWhenMove>0</FocusWhenMove>
+    <AssistIndex/>
    </widget>
    <widget>
     <name></name>
@@ -63,6 +65,8 @@ DrawLine(MA(OPEN,3))</exp>
      <block>800022BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
+     <FocusWhenMove>0</FocusWhenMove>
+     <AssistIndex/>
     </widget>
    </widget>
    <widget>
@@ -109,6 +113,8 @@ DrawLine(MA(OPEN,3))</exp>
      <block>800012BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
+     <FocusWhenMove>0</FocusWhenMove>
+     <AssistIndex/>
     </widget>
    </widget>
    <widget CBHeight="16" CBWidth="8">
@@ -123,6 +129,8 @@ DrawLine(MA(OPEN,3))</exp>
     <block>800106BB</block>
     <ShowType volumeratio="1" turnratio="1" increase="1"/>
     <TopStocks/>
+    <FocusWhenMove>0</FocusWhenMove>
+    <AssistIndex/>
    </widget>
   </widget>
   <widget>
@@ -187,6 +195,8 @@ DrawLine(MA(CLOSE,1000))</exp>
      <block>800012BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
+     <FocusWhenMove>0</FocusWhenMove>
+     <AssistIndex/>
     </widget>
    </widget>
   </widget>

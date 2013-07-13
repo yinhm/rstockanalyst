@@ -31,7 +31,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>41</size>
-    <code>000932SZ</code>
+    <code>000012SZ</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -59,7 +59,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>75</size>
-     <code>000932SZ</code>
+     <code>000012SZ</code>
     </widget>
     <widget dealtype="1">
      <name></name>
@@ -69,7 +69,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <align>1</align>
      <size>24</size>
      <color>红绿挂单类型</color>
-     <code>000932SZ</code>
+     <code>000012SZ</code>
     </widget>
    </widget>
   </widget>
@@ -120,6 +120,15 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
       <Stock>000401SZ</Stock>
      </Top1>
     </TopStocks>
+    <FocusWhenMove>1</FocusWhenMove>
+    <AssistIndex>
+     <Index>1</Index>
+     <Index>2</Index>
+     <Index>3</Index>
+     <Index>4</Index>
+     <Index>5</Index>
+     <Index>7</Index>
+    </AssistIndex>
    </widget>
    <widget CBHeight="100" CBWidth="4">
     <name></name>
