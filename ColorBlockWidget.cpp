@@ -164,6 +164,16 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 		m_listShowOp.push_back(RWidgetOpData(ShowTurnRatio,"vsh","显示换手率（高度）"));
 		m_listShowOp.push_back(RWidgetOpData(ShowVolumeRatio,"vsw","显示量比（宽度）"));
 	}
+	{
+		//初始化辅助指标类型
+		m_listAsistIndex.push_back(new RWidgetOpData(IndexNewPriceCount,"vip","创新高次数"));
+		m_listAsistIndex.push_back(new RWidgetOpData(IndexNewVolumeCount,"viv","量创新高次数"));
+		m_listAsistIndex.push_back(new RWidgetOpData(IndexIncrease,"vii","今日涨幅"));
+		m_listAsistIndex.push_back(new RWidgetOpData(IndexVolumeRatio,"vir","量比"));
+		m_listAsistIndex.push_back(new RWidgetOpData(IndexTurnRatio,"vit","换手率"));
+		m_listAsistIndex.push_back(new RWidgetOpData(IndexGuanDan,"vig","当前挂单情况"));
+		m_listAsistIndex.push_back(new RWidgetOpData(Index5DayLine,"vid","最近5日涨幅变化"));
+	}
 	//设置当前的表达式
 //	m_pMenuCustom->addAction(tr("设置当前的表达式"),
 //		this,SLOT(onSetExpression()));
@@ -175,6 +185,7 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	pMenuTop->addAction(tr("置顶3"),this,SLOT(onSetTopStock3()));
 
 	m_pMenuCustom->addAction(tr("移除置顶股票"),this,SLOT(onRemoveTopStock()));
+	m_pMenuCustom->addAction(tr("设置辅助指标"),this,SLOT(onSetAsistIndex()));
 
 	//设置显示类型
 	m_pMenuShowType = m_pMenuCustom->addMenu("设置显示类型");
@@ -198,6 +209,9 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 CColorBlockWidget::~CColorBlockWidget(void)
 {
 	clearTmpData();
+	foreach(RWidgetOpData*_d,m_listAsistIndex)
+		delete _d;
+	m_listAsistIndex.clear();
 }
 
 bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
@@ -260,6 +274,21 @@ bool CColorBlockWidget::loadPanelInfo( const QDomElement& eleWidget )
 		}
 	}
 
+	{
+		//当前显示的辅助指标
+		QDomElement eleAssistIndex = eleWidget.firstChildElement("AssistIndex");
+		if(eleAssistIndex.isElement())
+		{
+			QDomElement eleIndex = eleAssistIndex.firstChildElement("Index");
+			while (eleIndex.isElement())
+			{
+				RAsistIndex _i = static_cast<RAsistIndex>(eleIndex.text().toInt());
+				m_mapCurAsistIndex[_i] = _i;
+
+				eleIndex = eleIndex.nextSiblingElement("Index");
+			}
+		}
+	}
 	return true;
 }
 
@@ -315,6 +344,19 @@ bool CColorBlockWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget 
 		eleWidget.appendChild(eleFocusWhenMove);
 	}
 
+	{
+		//当前显示的辅助指标
+		QDomElement eleAssistIndex = doc.createElement("AssistIndex");
+		QMap<RAsistIndex,RAsistIndex>::iterator iter =m_mapCurAsistIndex.begin();
+		while (iter!=m_mapCurAsistIndex.end())
+		{
+			QDomElement eleIndex = doc.createElement("Index");
+			eleIndex.appendChild(doc.createTextNode(QString("%1").arg(iter.key())));
+			eleAssistIndex.appendChild(eleIndex);
+			++iter;
+		}
+		eleWidget.appendChild(eleAssistIndex);
+	}
 	return true;
 }
 
@@ -441,6 +483,51 @@ void CColorBlockWidget::onRemoveTopStock()
 void CColorBlockWidget::onFocusWhenMove()
 {
 	m_bFocusWhenMove = m_pActFocusWhenMove->isChecked();
+}
+
+void CColorBlockWidget::onSetAsistIndex()
+{
+	//弹出设置辅助指标的对话框，用来设置当前显示的辅助指标
+	QDialog dlg(this);
+	QGridLayout layout(&dlg);
+	int iRow = 0;
+	QMap<QCheckBox*, RAsistIndex> mapCheckBox;
+
+	foreach(RWidgetOpData* _d,m_listAsistIndex)
+	{
+		QCheckBox* pCheck = new QCheckBox(&dlg);
+		pCheck->setCheckable(true);
+		if(m_mapCurAsistIndex.contains(static_cast<RAsistIndex>(_d->value)))
+		{
+			pCheck->setChecked(true);
+		}
+		pCheck->setText(_d->desc);
+		mapCheckBox[pCheck] = static_cast<RAsistIndex>(_d->value);
+		layout.addWidget(pCheck,iRow,0,1,1);
+		++iRow;
+	}
+	QPushButton btnOk(&dlg);
+	dlg.setLayout(&layout);
+	layout.addWidget(&btnOk,iRow,0,1,1);
+	btnOk.setText(tr("确定"));
+
+	dlg.setWindowTitle(tr("当前显示辅助指标设置"));
+
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	m_mapCurAsistIndex.clear();
+	QMap<QCheckBox*, RAsistIndex>::iterator iter = mapCheckBox.begin();
+	while (iter!=mapCheckBox.end())
+	{
+		if(iter.key()->isChecked())
+		{
+			m_mapCurAsistIndex[iter.value()] = iter.value();
+		}
+		++iter;
+	}
+	updateColorBlockData();
 }
 
 
@@ -848,6 +935,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	p.setPen(QColor(255,0,0));
 	p.drawLine(iBeginX+3,rtCB.top(),iBeginX+3,rtCB.bottom());
 
+	if(m_mapCurAsistIndex.contains(IndexNewPriceCount))
 	{
 		//价格创新高次数
 		int iIncWidth = 20;
@@ -860,6 +948,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 		iBeginX-=1;
 	}
+	if(m_mapCurAsistIndex.contains(IndexNewVolumeCount))
 	{
 		//成交量创新高次数
 		int iIncWidth = 20;
@@ -872,6 +961,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 		iBeginX-=1;
 	}
+	if(m_mapCurAsistIndex.contains(IndexIncrease))
 	{
 		//绘制今日的涨幅
 		int iIncWidth = m_iCBWidth*1.2;
@@ -883,6 +973,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 		iBeginX-=1;
 	}
+	if(m_mapCurAsistIndex.contains(IndexVolumeRatio))
 	{
 		//绘制量比
 		int iIncWidth = 20;
@@ -903,6 +994,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 		iBeginX-=(iIncWidth+1);
 	}
+	if(m_mapCurAsistIndex.contains(IndexTurnRatio))
 	{
 		//换手率
 		int iIncWidth = 30;
@@ -924,6 +1016,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		p.fillRect(rtInc,clr);
 		iBeginX-=(iIncWidth+1);
 	}
+	if(m_mapCurAsistIndex.contains(IndexGuanDan))
 	{
 		iBeginX-=1;
 		//挂单情况
@@ -972,6 +1065,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 		iBeginX-=2;
 	}
+	if(m_mapCurAsistIndex.contains(Index5DayLine))
 	{
 		//绘制最近5日涨幅
 		int iIncWidth = 20;
