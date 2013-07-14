@@ -13,7 +13,7 @@
    <type>0</type>
    <relate>1</relate>
    <align>2</align>
-   <size>21</size>
+   <size>40</size>
    <widget circle="3">
     <name></name>
     <ClearMode>0</ClearMode>
@@ -82,8 +82,8 @@ DrawLine(MA(OPEN,3))</exp>
      <type>1</type>
      <relate>1</relate>
      <align>1</align>
-     <size>50</size>
-     <code>000070SZ</code>
+     <size>24</size>
+     <code>000988SZ</code>
      <liners>
       <Liner size="60">
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -96,21 +96,21 @@ DrawLine(MA(OPEN,3))</exp>
      <type>4</type>
      <relate>0</relate>
      <align>1</align>
-     <size>25</size>
+     <size>29</size>
      <color>红绿1</color>
      <Abnomals/>
      <block>800109BB</block>
     </widget>
-    <widget CBHeight="16" CBWidth="3">
+    <widget CBHeight="16" CBWidth="4">
      <name></name>
      <ClearMode>0</ClearMode>
      <type>3</type>
      <relate>1</relate>
      <align>1</align>
-     <size>24</size>
+     <size>45</size>
      <color>红绿1</color>
      <Abnomals/>
-     <block>800012BB</block>
+     <block>800010BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
      <FocusWhenMove>0</FocusWhenMove>
@@ -139,27 +139,101 @@ DrawLine(MA(OPEN,3))</exp>
    <type>0</type>
    <relate>1</relate>
    <align>2</align>
-   <size>78</size>
-   <widget circle="0">
+   <size>59</size>
+   <widget>
     <name></name>
     <ClearMode>0</ClearMode>
-    <type>1</type>
+    <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>65</size>
-    <code>000070SZ</code>
-    <liners>
-     <Liner size="80">
-      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
-DrawLine(MA(OPEN,10))
-DrawLine(MA(OPEN,5))
-DrawLine(MA(OPEN,3))
-DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
-     </Liner>
-     <Liner size="20">
-      <exp>DrawHist(VOLUME)</exp>
-     </Liner>
-    </liners>
+    <size>62</size>
+    <widget>
+     <name></name>
+     <ClearMode>0</ClearMode>
+     <type>0</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>100</size>
+     <widget>
+      <name></name>
+      <ClearMode>0</ClearMode>
+      <type>0</type>
+      <relate>1</relate>
+      <align>1</align>
+      <size>100</size>
+      <widget>
+       <name></name>
+       <ClearMode>0</ClearMode>
+       <type>0</type>
+       <relate>1</relate>
+       <align>2</align>
+       <size>18</size>
+       <widget>
+        <name></name>
+        <ClearMode>0</ClearMode>
+        <type>0</type>
+        <relate>1</relate>
+        <align>1</align>
+        <size>33</size>
+       </widget>
+       <widget>
+        <name></name>
+        <ClearMode>0</ClearMode>
+        <type>0</type>
+        <relate>1</relate>
+        <align>1</align>
+        <size>33</size>
+       </widget>
+       <widget>
+        <name></name>
+        <ClearMode>0</ClearMode>
+        <type>0</type>
+        <relate>1</relate>
+        <align>1</align>
+        <size>33</size>
+       </widget>
+      </widget>
+      <widget circle="60">
+       <name></name>
+       <ClearMode>0</ClearMode>
+       <type>1</type>
+       <relate>1</relate>
+       <align>1</align>
+       <size>60</size>
+       <code>000988SZ</code>
+       <liners>
+        <Liner size="60">
+         <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
+        </Liner>
+       </liners>
+      </widget>
+      <widget>
+       <name></name>
+       <ClearMode>0</ClearMode>
+       <type>0</type>
+       <relate>1</relate>
+       <align>1</align>
+       <size>21</size>
+       <widget>
+        <name></name>
+        <ClearMode>0</ClearMode>
+        <type>5</type>
+        <relate>1</relate>
+        <align>1</align>
+        <size>50</size>
+        <code>000988SZ</code>
+       </widget>
+       <widget>
+        <name></name>
+        <ClearMode>0</ClearMode>
+        <type>0</type>
+        <relate>1</relate>
+        <align>1</align>
+        <size>49</size>
+       </widget>
+      </widget>
+     </widget>
+    </widget>
    </widget>
    <widget>
     <name></name>
@@ -167,7 +241,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>34</size>
+    <size>37</size>
     <widget circle="60">
      <name></name>
      <ClearMode>0</ClearMode>
@@ -175,7 +249,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>50</size>
-     <code>000070SZ</code>
+     <code>000988SZ</code>
      <liners>
       <Liner size="20">
        <exp>DrawLine(CLOSE)
@@ -192,7 +266,7 @@ DrawLine(MA(CLOSE,1000))</exp>
      <size>49</size>
      <color>红绿1</color>
      <Abnomals/>
-     <block>800012BB</block>
+     <block>800010BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
      <FocusWhenMove>0</FocusWhenMove>

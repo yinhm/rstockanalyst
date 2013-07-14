@@ -13,7 +13,7 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>55</size>
+   <size>38</size>
    <widget>
     <name></name>
     <ClearMode>0</ClearMode>
@@ -21,8 +21,8 @@
     <relate>1</relate>
     <align>1</align>
     <size>39</size>
-    <block>800109BB</block>
-    <stock>800010BB</stock>
+    <block>800021BB</block>
+    <stock>000568SZ</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -30,8 +30,8 @@
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
-    <size>41</size>
-    <code>000012SZ</code>
+    <size>40</size>
+    <code>1A0001SH</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -59,7 +59,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>75</size>
-     <code>000012SZ</code>
+     <code>1A0001SH</code>
     </widget>
     <widget dealtype="1">
      <name></name>
@@ -69,7 +69,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <align>1</align>
      <size>24</size>
      <color>红绿挂单类型</color>
-     <code>000012SZ</code>
+     <code>1A0001SH</code>
     </widget>
    </widget>
   </widget>
@@ -79,14 +79,14 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>44</size>
-   <widget circle="3602">
+   <size>61</size>
+   <widget circle="0">
     <name></name>
     <ClearMode>0</ClearMode>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
-    <size>23</size>
+    <size>68</size>
     <code>1A0001SH</code>
     <liners>
      <Liner size="80">
@@ -107,20 +107,23 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>3</type>
     <relate>1</relate>
     <align>1</align>
-    <size>54</size>
+    <size>11</size>
     <color>红绿1</color>
     <Abnomals>
      <Abnomal type="4">0.05</Abnomal>
     </Abnomals>
-    <block>800014BB</block>
+    <block>800056BB</block>
     <ShowType volumeratio="0" turnratio="0" increase="1"/>
     <TopStocks>
      <Top1>
       <Stock>000012SZ</Stock>
       <Stock>000401SZ</Stock>
      </Top1>
+     <Top3>
+      <Stock>1A0001SH</Stock>
+     </Top3>
     </TopStocks>
-    <FocusWhenMove>1</FocusWhenMove>
+    <FocusWhenMove>0</FocusWhenMove>
     <AssistIndex>
      <Index>1</Index>
      <Index>2</Index>
@@ -130,13 +133,13 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <Index>7</Index>
     </AssistIndex>
    </widget>
-   <widget CBHeight="100" CBWidth="4">
+   <widget CBHeight="100" CBWidth="2">
     <name></name>
     <ClearMode>0</ClearMode>
     <type>4</type>
     <relate>1</relate>
     <align>1</align>
-    <size>22</size>
+    <size>20</size>
     <color>红绿1</color>
     <Abnomals/>
     <block>800109BB</block>

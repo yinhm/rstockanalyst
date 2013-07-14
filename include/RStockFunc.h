@@ -46,6 +46,7 @@ enum RWidgetType
 	WidgetRadar,					//雷达监视图
 	WidgetStockDeal,				//交易详情图
 	WidgetAllStock,					//所有股票显示图
+	WidgetFlash,					//Flash切换窗口
 };
 
 

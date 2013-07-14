@@ -7,7 +7,7 @@
 CAllStockWidget::CAllStockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= WidgetAllStock*/ )
 	: CBaseWidget(parent,type)
 	, m_iItemWidth(1)
-	, m_iItemHeight(2)
+	, m_iItemHeight(1)
 {
 	QList<CStockInfoItem*> list = CDataEngine::getDataEngine()->getStockInfoList();
 
@@ -16,7 +16,8 @@ CAllStockWidget::CAllStockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type 
 	{
 		if(pItem->getCurrentReport()->tmTime>0)
 		{
-			mapSort.insert(pItem->getIncrease(),pItem);
+//			mapSort.insert(pItem->getIncrease(),pItem);
+			mapSort.insert(pItem->getZGB(),pItem);
 		}
 	}
 	m_listStocks = mapSort.values();
@@ -35,7 +36,7 @@ void CAllStockWidget::paintEvent( QPaintEvent* )
 	int iX = rtClient.left();
 	int iY = rtClient.top();
 	int m_iStockWidth = m_iItemWidth*48 + 4;
-	int m_iStockHeight= m_iItemHeight + 2;
+	int m_iStockHeight= m_iItemHeight + 1;
 
 	p.fillRect(rtClient,QColor(0,0,0));
 	p.setPen(QColor(255,0,0));

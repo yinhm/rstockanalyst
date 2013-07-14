@@ -10,28 +10,56 @@
   <widget>
    <name></name>
    <ClearMode>0</ClearMode>
-   <type>2</type>
+   <type>0</type>
+   <relate>1</relate>
+   <align>2</align>
+   <size>10</size>
+   <widget>
+    <name></name>
+    <ClearMode>0</ClearMode>
+    <type>9</type>
+    <relate>1</relate>
+    <align>1</align>
+    <size>100</size>
+    <widget CBHeight="50" CBWidth="2">
+     <name></name>
+     <ClearMode>0</ClearMode>
+     <type>4</type>
+     <relate>1</relate>
+     <align>1</align>
+     <size>100</size>
+     <color>红绿3Grid</color>
+     <Abnomals/>
+     <block>800109BB</block>
+    </widget>
+   </widget>
+  </widget>
+  <widget CBHeight="16" CBWidth="6">
+   <name></name>
+   <ClearMode>0</ClearMode>
+   <type>3</type>
    <relate>1</relate>
    <align>1</align>
-   <size>66</size>
-   <block>800010BB</block>
-   <stock>000988SZ</stock>
+   <size>38</size>
+   <color></color>
+   <Abnomals/>
+   <block>800015BB</block>
+   <ShowType volumeratio="1" turnratio="1" increase="1"/>
+   <TopStocks/>
+   <FocusWhenMove>0</FocusWhenMove>
+   <AssistIndex/>
   </widget>
-  <widget circle="0">
+  <widget circle="60">
    <name></name>
    <ClearMode>0</ClearMode>
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
-   <size>33</size>
-   <code>159901SZ</code>
+   <size>50</size>
+   <code>000806SZ</code>
    <liners>
-    <Liner size="80">
-     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
-DrawLine(MA(OPEN,10))
-DrawLine(MA(OPEN,5))
-DrawLine(MA(OPEN,3))
-DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+    <Liner size="60">
+     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
     </Liner>
     <Liner size="20">
      <exp>DrawHist(VOLUME)</exp>

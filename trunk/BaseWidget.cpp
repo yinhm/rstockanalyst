@@ -14,6 +14,7 @@
 #include "RadarWidget.h"
 #include "StockDealWidget.h"
 #include "AllStockWidget.h"
+#include "FlashWidget.h"
 #include "KeyWizard.h"
 
 CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetType type/*=Basic*/ )
@@ -47,6 +48,9 @@ CBaseWidget* CBaseWidget::createBaseWidget( CBaseWidget* parent/*=0*/, RWidgetTy
 	case WidgetAllStock:
 		return new CAllStockWidget(parent);
 		break;
+	case WidgetFlash:
+		return new CFlashWidget(parent);
+		break;
 	}
 
 	return new CBaseWidget(parent);
@@ -60,15 +64,15 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 {
 	setMouseTracking(true);
 	//将Splitter放入到Layout中，这样使其充满整个窗口
-	QVBoxLayout* pLayout = new QVBoxLayout();
-	pLayout->setMargin(0);		//更改此处可设置Panel的边框大小
+	m_pLayout = new QVBoxLayout();
+	m_pLayout->setMargin(0);		//更改此处可设置Panel的边框大小
 	m_pSplitter = new QSplitter(Qt::Vertical,this);
 	m_pSplitter->setHandleWidth(1);
 	m_pSplitter->setFrameShadow(QFrame::Sunken);
 	m_pSplitter->setOrientation(Qt::Horizontal);
 	m_pSplitter->setMouseTracking(true);
-	pLayout->addWidget(m_pSplitter);
-	setLayout(pLayout);
+	m_pLayout->addWidget(m_pSplitter);
+	setLayout(m_pLayout);
 
 	if(m_pParent == 0 && m_type==WidgetBasic)
 	{
@@ -86,6 +90,7 @@ CBaseWidget::CBaseWidget( CBaseWidget* parent /*= 0*/, RWidgetType type /*= Basi
 		m_listWidget.push_back(RWidgetOpData(WidgetStockInfo,"vi","行情信息"));
 		m_listWidget.push_back(RWidgetOpData(WidgetRadar,"vr","雷达监视"));
 		m_listWidget.push_back(RWidgetOpData(WidgetStockDeal,"vd","成交详情图"));
+		m_listWidget.push_back(RWidgetOpData(WidgetFlash,"vf","快速切换图"));
 	}
 
 	{
