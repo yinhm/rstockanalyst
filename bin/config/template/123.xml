@@ -43,7 +43,7 @@
    <size>38</size>
    <color></color>
    <Abnomals/>
-   <block>800015BB</block>
+   <block>800010BB</block>
    <ShowType volumeratio="1" turnratio="1" increase="1"/>
    <TopStocks/>
    <FocusWhenMove>0</FocusWhenMove>
@@ -55,8 +55,8 @@
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
-   <size>50</size>
-   <code>000806SZ</code>
+   <size>51</size>
+   <code>000988SZ</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>

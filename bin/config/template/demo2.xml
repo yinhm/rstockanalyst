@@ -174,7 +174,7 @@ DrawLine(MA(OPEN,3))</exp>
         <type>0</type>
         <relate>1</relate>
         <align>1</align>
-        <size>33</size>
+        <size>32</size>
        </widget>
        <widget>
         <name></name>
@@ -182,7 +182,7 @@ DrawLine(MA(OPEN,3))</exp>
         <type>0</type>
         <relate>1</relate>
         <align>1</align>
-        <size>33</size>
+        <size>35</size>
        </widget>
        <widget>
         <name></name>
@@ -190,7 +190,7 @@ DrawLine(MA(OPEN,3))</exp>
         <type>0</type>
         <relate>1</relate>
         <align>1</align>
-        <size>33</size>
+        <size>32</size>
        </widget>
       </widget>
       <widget circle="60">
