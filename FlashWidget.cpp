@@ -82,8 +82,6 @@ void CFlashWidget::onAddWidget()
 
 void CFlashWidget::onSwitchNextWidget()
 {
-	qDebug()<<m_listWidgetsStack.size();
-
 	int iIndex = m_pSplitter->indexOf(m_pCurWidget);
 	++iIndex;
 	if(iIndex>=m_pSplitter->count())
