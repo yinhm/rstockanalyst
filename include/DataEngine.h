@@ -79,6 +79,7 @@ public:
 	bool isHadBlock(const QString& block);		//是否存在某板块
 	void setBlockInfoItem(CBlockInfoItem* _p);						//设置板块数据
 	void removeBlockInfoItem(CBlockInfoItem* _p);				//删除板块数据
+	CBlockInfoItem* getCustomBlock();				//获取“自选板块”
 
 	//获取单只股票数据
 	QList<CStockInfoItem*> getStocksByMarket(WORD wMarket);			//根据市场类型获取股票列表
@@ -119,6 +120,8 @@ private:
 	QMap<QString,CStockInfoItem*> m_mapStockInfos;			//股票数据
 	QMap<QString,CBlockInfoItem*> m_mapBlockInfos;			//板块数据
 	QList<CBlockInfoItem*> m_listTopLevelBlocks;			//顶层板块
+
+	CBlockInfoItem* m_pBlockCustom;							//“自选板块”
 
 private:
 	static CDataEngine* m_pDataEngine;

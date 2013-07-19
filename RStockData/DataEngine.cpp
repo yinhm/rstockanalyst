@@ -1128,6 +1128,7 @@ QMap<time_t,RStockData*>* CDataEngine::getColorBlockItems( const QMap<time_t,int
 
 
 CDataEngine::CDataEngine(void)
+	: m_pBlockCustom(0)
 {
 	m_qsHistroyDir = qApp->applicationDirPath()+"/data/history/";
 	QDir().mkpath(m_qsHistroyDir);
@@ -1207,7 +1208,13 @@ bool CDataEngine::isHadBlock( const QString& block )
 void CDataEngine::setBlockInfoItem( CBlockInfoItem* _p )
 {
 	if(_p->parentBlock()==0)
+	{
+		if(_p->getName()=="自选板块")
+		{
+			m_pBlockCustom = _p;
+		}
 		m_listTopLevelBlocks.push_back(_p);
+	}
 	m_mapBlockInfos[_p->getOnly()] = _p;
 }
 
@@ -1217,6 +1224,12 @@ void CDataEngine::removeBlockInfoItem( CBlockInfoItem* _p )
 		m_listTopLevelBlocks.removeOne(_p);
 	m_mapBlockInfos.remove(_p->getOnly());
 }
+
+CBlockInfoItem* CDataEngine::getCustomBlock()
+{
+	return m_pBlockCustom;
+}
+
 
 
 QList<CStockInfoItem*> CDataEngine::getStocksByMarket( WORD wMarket )
@@ -1628,4 +1641,3 @@ QString CDataEngine::getMarketStr( WORD wMarket )
 	//未知类型
 	return "UN";
 }
-

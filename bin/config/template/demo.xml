@@ -22,7 +22,7 @@
     <align>1</align>
     <size>39</size>
     <block>800021BB</block>
-    <stock>000858SZ</stock>
+    <stock>000983SZ</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -31,7 +31,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>40</size>
-    <code>000058SZ</code>
+    <code>002544SZ</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -59,7 +59,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>75</size>
-     <code>000058SZ</code>
+     <code>002544SZ</code>
     </widget>
     <widget dealtype="1">
      <name></name>
@@ -69,7 +69,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <align>1</align>
      <size>24</size>
      <color>红绿挂单类型</color>
-     <code>000058SZ</code>
+     <code>002544SZ</code>
     </widget>
    </widget>
   </widget>
@@ -80,13 +80,13 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
    <relate>1</relate>
    <align>1</align>
    <size>61</size>
-   <widget circle="0">
+   <widget circle="3602">
     <name></name>
     <ClearMode>0</ClearMode>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
-    <size>68</size>
+    <size>51</size>
     <code>1A0001SH</code>
     <liners>
      <Liner size="80">
@@ -107,12 +107,12 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>3</type>
     <relate>1</relate>
     <align>1</align>
-    <size>11</size>
+    <size>33</size>
     <color>红绿1</color>
     <Abnomals>
      <Abnomal type="4">0.05</Abnomal>
     </Abnomals>
-    <block>800095BB</block>
+    <block>800013BB</block>
     <ShowType volumeratio="0" turnratio="0" increase="1"/>
     <TopStocks>
      <Top1>
@@ -139,7 +139,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>4</type>
     <relate>1</relate>
     <align>1</align>
-    <size>20</size>
+    <size>15</size>
     <color>红绿1</color>
     <Abnomals/>
     <block>800109BB</block>
