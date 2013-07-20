@@ -75,8 +75,10 @@ protected slots:
 	void onSetTopStock2();
 	void onSetTopStock3();
 	void onRemoveTopStock();								//移除置顶显示股票
+	void onRemoveStock();									//从当前板块中删除选中股票
 	void onFocusWhenMove();									//设置鼠标移动时切换股票
 	void onSetAsistIndex();									//设置当前显示的辅助指标
+
 
 
 	virtual void updateColorBlockData();					//更新当前需要显示的数据
@@ -121,6 +123,7 @@ private:
 private:
 	QMenu* m_pMenuShowType;					//绘制界面中的显示类型
 	QAction* m_pActFocusWhenMove;			//鼠标移动时切换股票菜单
+	QAction* m_pActRemoveStock;				//删除该板块中的股票
 
 	QList<RWidgetOpData> m_listShowOp;		//显示类型列表
 	QList<RWidgetOpData*> m_listAsistIndex;	//显示辅助指标

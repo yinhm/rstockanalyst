@@ -24,6 +24,8 @@ public:
 	static void importData();
 	//程序退出时，数据的自动保存
 	static void exportData();
+	//是否正在加载数据
+	static bool isLoading();
 
 
 	/*数据导入函数*/
@@ -138,6 +140,7 @@ private:
 
 	//用于存储初始加载的板块Report数据，板块初始化完成后即删除该数据
 	static QMap<QString,qRcvReportData*> m_mapReportForBlock;
+	static bool m_bLoading;						//是否正在加载。。。
 };
 
 

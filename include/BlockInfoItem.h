@@ -37,6 +37,7 @@ public:
 	int getStockCount() const;										//获取股票的数量
 
 	bool hasBlocks();											//返回该板块是否含有子板块
+	bool hasBlock(const QString& _code);						//是否包含此block
 
 	bool appendStocks(QList<CStockInfoItem*> list);		//向板块中添加股票
 	bool removeStocks(QList<CStockInfoItem*> list);		//从板块中删除股票
@@ -45,6 +46,14 @@ public:
 	bool isChildOf(CBlockInfoItem* parent);
 
 	CBlockInfoItem* parentBlock(){ return m_pParent;}
+
+	void addStockInfo(CStockInfoItem* _p);
+	void removeStockInfo(CStockInfoItem* _p);
+
+	void addBlockInfo(CBlockInfoItem* _p);
+	void removeBlockInfo(CBlockInfoItem* _p);
+
+	QString getFilePath();					//获取此板块的文件路径
 
 public:
 	/*属性类字段，只读*/
@@ -90,6 +99,7 @@ private:
 	bool appendStocks(QList<QString> list);				//向板块中添加股票
 	bool removeStocks(QList<QString> list);				//从板块中删除股票
 	bool appendBlock(CBlockInfoItem* pBlock);			//添加板块
+	bool removeBlock(CBlockInfoItem* pBlock);			//移除板块
 
 
 protected slots:
@@ -100,6 +110,7 @@ protected slots:
 private:
 	void addStock(CStockInfoItem* p);				//添加股票
 	void removeStock(CStockInfoItem* p);			//删除股票
+	void saveBlockFile();							//保存到板块文件
 	void clearTmpData();							//清理临时内存。
 
 private:
@@ -119,6 +130,8 @@ private:
 	QMap<CStockInfoItem*,float> mapLast5Price;	//最新的5分钟价格
 	float fLast5MinVolume;						//最后5分钟的成交量
 	float fLast5MinAmount;						//最后5分钟的成交额
+
+	QString qsRegExp;							//匹配的正则表达式
 private:
 	float fLastClose;				//昨日收盘价
 	float fOpenPrice;				//今日开盘价

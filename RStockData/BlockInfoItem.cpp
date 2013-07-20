@@ -116,6 +116,7 @@ void CBlockInfoItem::initStockItem()
 							addStock(p);
 						}
 					}
+					qsRegExp = qsExp;
 				}
 			}
 			else
@@ -127,7 +128,10 @@ void CBlockInfoItem::initStockItem()
 					code = code.trimmed();
 					if(!code.isEmpty())
 					{
-						addStock(CDataEngine::getDataEngine()->getStockInfoItemByCode(code));
+						CStockInfoItem* pStock = CDataEngine::getDataEngine()->getStockInfoItem(code);
+						if(pStock==0)
+							pStock = CDataEngine::getDataEngine()->getStockInfoItemByCode(code);
+						addStock(pStock);
 					}
 				}
 			}
@@ -160,6 +164,7 @@ QList<tagRStockData*> CBlockInfoItem::get5MinList()
 
 void CBlockInfoItem::recalc5MinData()
 {
+	updateData();
 	//重新计算5分钟数据
 	if(_isnan(fLTG) || fLTG<0.01)
 	{
@@ -325,6 +330,48 @@ bool CBlockInfoItem::isChildOf( CBlockInfoItem* parent)
 	return getAbsPath().indexOf(parent->getAbsPath())>-1;
 }
 
+void CBlockInfoItem::addStockInfo( CStockInfoItem* _p )
+{
+	if(!m_pParent)
+		return;
+	if(m_pParent!=CDataEngine::getDataEngine()->getCustomBlock())
+		return;
+	addStock(_p);
+	saveBlockFile();
+}
+
+void CBlockInfoItem::removeStockInfo( CStockInfoItem* _p )
+{
+	if(!m_pParent)
+		return;
+	if(m_pParent!=CDataEngine::getDataEngine()->getCustomBlock())
+		return;
+	removeStock(_p);
+	saveBlockFile();
+}
+
+void CBlockInfoItem::addBlockInfo( CBlockInfoItem* _p )
+{
+	if(this!=CDataEngine::getDataEngine()->getCustomBlock())
+		return;
+	appendBlock(_p);
+}
+
+void CBlockInfoItem::removeBlockInfo( CBlockInfoItem* _p )
+{
+	if(this!=CDataEngine::getDataEngine()->getCustomBlock())
+		return;
+	removeBlock(_p);
+	QFile::remove(_p->getFilePath());
+}
+
+
+QString CBlockInfoItem::getFilePath()
+{
+	return blockFilePath;
+}
+
+
 QList<CAbstractStockItem*> CBlockInfoItem::getAbsStockList()
 {
 	QList<CAbstractStockItem*> list;
@@ -354,6 +401,13 @@ int CBlockInfoItem::getStockCount() const
 bool CBlockInfoItem::hasBlocks()
 {
 	return blocksInBlock.size()>0 ? true : false;
+}
+
+bool CBlockInfoItem::hasBlock( const QString& _code )
+{
+	if(blocksInBlock.contains(_code))
+		return true;
+	return false;
 }
 
 bool CBlockInfoItem::appendStocks( QList<CStockInfoItem*> list )
@@ -464,6 +518,17 @@ bool CBlockInfoItem::appendBlock( CBlockInfoItem* pBlock )
 	return true;
 }
 
+bool CBlockInfoItem::removeBlock( CBlockInfoItem* pBlock )
+{
+	if(blocksInBlock.contains(pBlock->getBlockName()))
+	{
+		blocksInBlock.remove(pBlock->getBlockName());
+		return true;
+	}
+	return false;
+}
+
+
 void CBlockInfoItem::stockFenbiChanged( const QString& /*_code*/ )
 {
 
@@ -486,7 +551,8 @@ void CBlockInfoItem::updateData()
 	if((QDateTime::currentDateTime().toTime_t()-tmNow)>70)
 	{
 		//如果当前时间和最后的时间相差大于70秒(取10秒的延迟)，直接忽略
-		return;
+		if(!_isnan(fLastClose))
+			return;
 	}
 
 	if(_isnan(fLTG) || fLTG<0.01)
@@ -679,6 +745,21 @@ void CBlockInfoItem::removeStock( CStockInfoItem* _p )
 	stocksInBlock.removeOne(_p);
 	disconnect(_p,SIGNAL(stockItemHistoryChanged(const QString&)),this,SLOT(stockHistoryChanged(const QString&)));
 	disconnect(_p,SIGNAL(stockItemFenBiChanged(const QString&)),this,SLOT(stockFenbiChanged(const QString&)));
+}
+
+void CBlockInfoItem::saveBlockFile()
+{
+	if(!qsRegExp.isEmpty())
+		return;
+	QFile file(blockFilePath);
+	if(!file.open(QFile::WriteOnly|QFile::Truncate))
+		return;
+	foreach(CStockInfoItem* pStock,stocksInBlock)
+	{
+		file.write(QString("%1\r\n").arg(pStock->getOnly()).toAscii());
+	}
+	file.close();
+	return;
 }
 
 void CBlockInfoItem::clearTmpData()

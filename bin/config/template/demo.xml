@@ -21,8 +21,8 @@
     <relate>1</relate>
     <align>1</align>
     <size>39</size>
-    <block>800021BB</block>
-    <stock>000983SZ</stock>
+    <block>800111BB</block>
+    <stock>800113BB</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -31,15 +31,8 @@
     <relate>1</relate>
     <align>1</align>
     <size>40</size>
-    <code>002544SZ</code>
+    <code>000018SZ</code>
     <liners>
-     <Liner size="80">
-      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
-DrawLine(MA(OPEN,10))
-DrawLine(MA(OPEN,5))
-DrawLine(MA(OPEN,3))
-DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
-     </Liner>
      <Liner size="20">
       <exp>DrawHist(VOLUME)</exp>
      </Liner>
@@ -59,7 +52,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>75</size>
-     <code>002544SZ</code>
+     <code>000018SZ</code>
     </widget>
     <widget dealtype="1">
      <name></name>
@@ -69,7 +62,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <align>1</align>
      <size>24</size>
      <color>红绿挂单类型</color>
-     <code>002544SZ</code>
+     <code>000018SZ</code>
     </widget>
    </widget>
   </widget>
@@ -109,10 +102,8 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <align>1</align>
     <size>33</size>
     <color>红绿1</color>
-    <Abnomals>
-     <Abnomal type="4">0.05</Abnomal>
-    </Abnomals>
-    <block>800013BB</block>
+    <Abnomals/>
+    <block>800114BB</block>
     <ShowType volumeratio="0" turnratio="0" increase="1"/>
     <TopStocks>
      <Top1>
@@ -142,7 +133,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <size>15</size>
     <color>红绿1</color>
     <Abnomals/>
-    <block>800109BB</block>
+    <block>800111BB</block>
    </widget>
   </widget>
  </widget>

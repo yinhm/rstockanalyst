@@ -202,6 +202,7 @@ void CDataEngine::releaseDataEngine()
 
 void CDataEngine::importData()
 {
+	m_bLoading = true;
 	QString qsDir = qApp->applicationDirPath();
 	{
 		//导入F10 数据
@@ -281,6 +282,8 @@ void CDataEngine::importData()
 		//加载监视雷达数据
 		CRadarManager::getRadarManager()->loadRadars();
 	}
+
+	m_bLoading = false;
 }
 
 void CDataEngine::exportData()
@@ -322,6 +325,11 @@ void CDataEngine::exportData()
 		//导出监视雷达数据
 		CRadarManager::getRadarManager()->saveRadars();
 	}
+}
+
+bool CDataEngine::isLoading()
+{
+	return m_bLoading;
 }
 
 int CDataEngine::importBaseInfoFromFinFile( const QString& qsFile )
@@ -1641,3 +1649,5 @@ QString CDataEngine::getMarketStr( WORD wMarket )
 	//未知类型
 	return "UN";
 }
+
+bool CDataEngine::m_bLoading = false;

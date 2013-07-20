@@ -236,8 +236,10 @@ void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 
 
 	//如果追加的数据大于5，则重新对5分钟数据进行计算
-	if(list.size()>5)
+	if(list.size()>5 && (!CDataEngine::isLoading()))
+	{
 		recalc5MinData();
+	}
 
 	emit stockItemFenBiChanged(qsOnly);
 }
