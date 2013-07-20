@@ -38,6 +38,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom->addAction(tr("设置表达式"),this,SLOT(onSetExpression()));
 	m_pMenuCustom->addAction(tr("设置所有图的显示比例"),this,SLOT(onSetSizes()));
 
+	m_pMenuAdd2Block = m_pMenuCustom->addMenu(tr("添加到自选板块"));
+
 //	setMinimumSize(200,200);
 }
 
@@ -558,6 +560,20 @@ QMenu* CKLineWidget::getCustomMenu()
 		}
 	}
 
+	{
+		//添加到自选板块
+		m_pMenuAdd2Block->clear();
+		CBlockInfoItem* pCustomBlock = CDataEngine::getDataEngine()->getCustomBlock();
+		if(pCustomBlock)
+		{
+			foreach(CBlockInfoItem* pBlock,pCustomBlock->getBlockList())
+			{
+				m_pMenuAdd2Block->addAction(pBlock->getBlockName(),this,SLOT(onAdd2Block()))->setData(uint(pBlock));
+			}
+		}
+		m_pMenuAdd2Block->addSeparator();
+		m_pMenuAdd2Block->addAction(tr("添加到新建板块"),this,SLOT(onAdd2NewBlock()));
+	}
 	return m_pMenuCustom;
 }
 
@@ -681,6 +697,67 @@ void CKLineWidget::onSetSizes()
 		delete vSpins[i];
 	}
 }
+
+void CKLineWidget::onAdd2Block()
+{
+	if(!m_pStockItem)
+		return;
+	if(!m_pStockItem->isInstanceOfStock())
+		return;
+	{
+		QAction* pAct = reinterpret_cast<QAction*>(sender());
+		CBlockInfoItem* pBlock = reinterpret_cast<CBlockInfoItem*>(pAct->data().toUInt());
+		if(pBlock)
+		{
+			pBlock->addStockInfo(reinterpret_cast<CStockInfoItem*>(m_pStockItem));
+		}
+	}
+}
+
+void CKLineWidget::onAdd2NewBlock()
+{
+	if(!m_pStockItem->isInstanceOfStock())
+		return;
+
+	if(!m_pStockItem)
+		return;
+
+	CBlockInfoItem* pCustomBlock = CDataEngine::getDataEngine()->getCustomBlock();
+	if(!pCustomBlock)
+		return;
+
+	QDialog dlg(this);
+	QVBoxLayout layout(this);
+	QLineEdit edit(this);
+	QPushButton btnOk(this);
+	dlg.setLayout(&layout);
+	layout.addWidget(&edit);
+	layout.addWidget(&btnOk);
+	btnOk.setText(tr("确定"));
+	connect(&btnOk,SIGNAL(clicked()),&dlg,SLOT(accept()));
+
+	if(QDialog::Accepted != dlg.exec())
+		return;
+
+	QString block = edit.text();
+	if(pCustomBlock->hasBlock(block))
+	{
+		QMessageBox::information(this,tr("新建自选板块失败"),tr("已存在同名板块"));
+		return;
+	}
+
+	QString qsFilePath = QString("%1/%2").arg(pCustomBlock->getFilePath()).arg(block);
+	QFile file(qsFilePath);
+	file.open(QFile::WriteOnly);
+	file.close();
+	CBlockInfoItem* pBlock = new CBlockInfoItem(qsFilePath,pCustomBlock);
+	if(pBlock)
+	{
+		pCustomBlock->addBlockInfo(pBlock);
+		pBlock->addStockInfo(reinterpret_cast<CStockInfoItem*>(m_pStockItem));
+	}
+}
+
 
 void CKLineWidget::setShowCount(int _iShow)
 {

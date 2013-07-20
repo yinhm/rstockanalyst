@@ -18,6 +18,9 @@ CBColorBlockWidget::CBColorBlockWidget(CBaseWidget* parent /*= 0*/ )
 {
 	connect(&m_timerUpdateUI,SIGNAL(timeout()),this,SLOT(updateUI()));
 	m_timerUpdateUI.start(3000);
+
+	m_pActRemoveBlock = m_pMenuCustom->addAction(tr("删除选中板块"),this,SLOT(onRemoveBlock()));
+	m_pMenuCustom->addAction(tr("更新选中板块数据"),this,SLOT(onRecalcBlock()));
 }
 
 
@@ -459,7 +462,7 @@ void CBColorBlockWidget::keyPressEvent( QKeyEvent* e )
 QMenu* CBColorBlockWidget::getCustomMenu()
 {
 	CBaseBlockWidget::getCustomMenu();
-
+	m_pActRemoveBlock->setEnabled(m_pCurBlock == CDataEngine::getDataEngine()->getCustomBlock());
 	return m_pMenuCustom;
 }
 
@@ -717,4 +720,22 @@ void CBColorBlockWidget::onBlockReportUpdate( const QString& qsOnly )
 	//未使用
 	CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(qsOnly);
 	update(rectOfBlock(pBlock));
+}
+
+void CBColorBlockWidget::onRemoveBlock()
+{
+	if(m_pSelectedBlock)
+	{
+		m_pCurBlock->removeBlockInfo(m_pSelectedBlock);
+		setBlock(m_pCurBlock->getOnly());
+	}
+}
+
+void CBColorBlockWidget::onRecalcBlock()
+{
+	if(m_pSelectedBlock)
+	{
+		m_pSelectedBlock->recalc5MinData();
+		updateSortMode(false);
+	}
 }

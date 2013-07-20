@@ -35,6 +35,8 @@ public slots:
 protected slots:
 	void updateUI();							//更新当前需要显示的数据
 	void onBlockReportUpdate(const QString& qsOnly);		//当板块数据更新时触发
+	void onRemoveBlock();								//删除板块
+	void onRecalcBlock();								//重新计算该板块的数据
 
 private:
 	void clickedBlock(CBlockInfoItem* pItem);				//当点击股票时触发
@@ -70,6 +72,7 @@ private:
 
 	/*用于绘制操作的成员变量*/
 private:
+	QAction* m_pActRemoveBlock;				//删除选中板块
 	int m_iTitleHeight;						//头部高度
 	int m_iBottomHeight;					//底部的高度
 	int showStockIndex;						//当前显示的起始位置（列）

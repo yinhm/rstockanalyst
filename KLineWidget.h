@@ -72,6 +72,9 @@ protected slots:
 	void onRemoveDeputy();								//删除副图
 	void onSetSizes();									//设置所有图的显示比例
 
+	void onAdd2Block();									//添加到板块
+	void onAdd2NewBlock();								//添加到新建板块
+
 protected:
 	void setShowCount(int _iShow);						//设置当前的显示个数
 
@@ -82,6 +85,9 @@ private:
 		const QString& e,QList<uint>& lsColor);
 private:
 	void resetTmpData();					//重新计算数据。
+
+private:
+	QMenu* m_pMenuAdd2Block;				//自选板块菜单
 
 private:
 	CAbstractStockItem* m_pStockItem;		//当前K线图的股票数据指针

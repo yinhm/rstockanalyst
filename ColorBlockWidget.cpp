@@ -201,6 +201,8 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	m_pActFocusWhenMove->setCheckable(true);
 	m_pActFocusWhenMove->setChecked(m_bFocusWhenMove);
 
+	m_pActRemoveStock = m_pMenuCustom->addAction(tr("从版块中删除选中股票"),this,SLOT(onRemoveStock()));
+
 
 	connect(&m_timerUpdateUI,SIGNAL(timeout()),this,SLOT(updateColorBlockData()));
 	m_timerUpdateUI.start(1000);
@@ -478,6 +480,15 @@ void CColorBlockWidget::onRemoveTopStock()
 		if(m_listStocks.size()>0)
 			clickedStock(m_listStocks.first());
 	}
+}
+
+void CColorBlockWidget::onRemoveStock()
+{
+	if(!m_pBlock)
+		return;
+	if(!m_pSelectedStock)
+		return;
+	m_pBlock->removeStockInfo(m_pSelectedStock);
 }
 
 void CColorBlockWidget::onFocusWhenMove()
@@ -1388,7 +1399,9 @@ QMenu* CColorBlockWidget::getCustomMenu()
 			}
 		}
 	}
-
+	{
+		m_pActRemoveStock->setEnabled(m_pBlock->parentBlock()==CDataEngine::getDataEngine()->getCustomBlock());
+	}
 	return m_pMenuCustom;
 }
 
