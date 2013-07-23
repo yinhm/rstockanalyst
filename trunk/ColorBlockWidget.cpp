@@ -9,9 +9,6 @@
 
 #define BLOCK_CMD_SET	1
 
-#define	RCB_OFFSET_Y	2
-#define RCB_OFFSET_LEFT	0
-
 QVector<float> getVectorForTime(const QMap<time_t,int>& mapTimes,const QList<RStockData*>& listDatas, CColorBlockWidget::RShowType _t, CAbstractStockItem* pStock)
 {
 	QVector<float> vRet;
@@ -157,6 +154,8 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 	, m_bShowTurnRatio(true)
 	, m_bShowVolumeRatio(true)
 	, m_bFocusWhenMove(false)
+	, m_iRightLen(2)
+	, m_iLeftLen(0)
 {
 	{
 		//初始化显示类型
@@ -743,8 +742,8 @@ void CColorBlockWidget::paintEvent( QPaintEvent* )
 		m_rtClient = rtClient;
 		m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
 
-		updateShowTimes(QRect(m_rtBottom.left()+RCB_OFFSET_LEFT,m_rtBottom.top(),
-			m_rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,m_rtBottom.height()),m_iCBWidth);
+		updateShowTimes(QRect(m_rtBottom.left()+m_iLeftLen,m_rtBottom.top(),
+			m_rtBottom.width()-m_iRightLen-m_iLeftLen,m_rtBottom.height()),m_iCBWidth);
 		drawClient(p,m_rtClient);
 	}
 	else
@@ -753,8 +752,8 @@ void CColorBlockWidget::paintEvent( QPaintEvent* )
 		m_rtClient = QRect(rtClient.left(),rtClient.top()+m_iTitleHeight,rtClient.width(),rtClient.height()-m_iTitleHeight-m_iBottomHeight);
 		m_rtBottom = QRect(rtClient.left(),rtClient.bottom()-m_iBottomHeight,rtClient.width(),m_iBottomHeight);
 
-		updateShowTimes(QRect(m_rtBottom.left()+RCB_OFFSET_LEFT,m_rtBottom.top(),
-			m_rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,m_rtBottom.height()),m_iCBWidth);
+		updateShowTimes(QRect(m_rtBottom.left()+m_iLeftLen,m_rtBottom.top(),
+			m_rtBottom.width()-m_iRightLen-m_iLeftLen,m_rtBottom.height()),m_iCBWidth);
 		drawHeader(p,m_rtHeader);
 		drawClient(p,m_rtClient);
 		drawBottom(p,m_rtBottom);
@@ -842,8 +841,8 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	}
 
 	//从右向左绘制横坐标
-	drawCoordX(p,QRect(rtBottom.left()+RCB_OFFSET_LEFT,rtBottom.top(),
-		rtBottom.width()-RCB_OFFSET_Y-RCB_OFFSET_LEFT,rtBottom.height()),m_iCBWidth);
+	drawCoordX(p,QRect(rtBottom.left()+m_iLeftLen,rtBottom.top(),
+		rtBottom.width()-m_iRightLen-m_iLeftLen,rtBottom.height()),m_iCBWidth);
 }
 
 void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
@@ -921,8 +920,8 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	*/
 
 	//从右向左绘制横坐标
-	float fBeginX = rtCB.right()-RCB_OFFSET_Y;
-	float fEndX = rtCB.left()+RCB_OFFSET_LEFT;
+	float fBeginX = rtCB.right()-m_iRightLen;
+	float fEndX = rtCB.left()+m_iLeftLen;
 	float fCBWidth = fBeginX-fEndX;
 	if(fCBWidth<0)
 		return;

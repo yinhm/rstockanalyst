@@ -81,6 +81,7 @@ public:
 	float getMgsy();		//获取每股收益
 	float getLtag();		//流通A股
 
+	QVector<int> getLast5CmpPrices();		//获取最近5分钟的价格变化
 	/*判断关键词_key是否匹配*/
 	bool isMatch(const QString& _key);
 
@@ -122,10 +123,13 @@ private:
 
 	QList<QList<QChar>> shortName;	//简拼表
 
+	float fLastCmpPrice;			//上一个用来比较的价格
+
 private:
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据
 	QMultiMap<time_t,qRcvFenBiData*> mapJingJias;	//9:25前的竞价数据
 	qRcvBaseInfoData baseInfo;
+	QVector<int> vCmpPrices;						//经过比较后的涨跌表
 };
 
 #endif	//STOCK_INFO_ITEM_H

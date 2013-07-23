@@ -75,6 +75,8 @@ private:
 	QAction* m_pActRemoveBlock;				//删除选中板块
 	int m_iTitleHeight;						//头部高度
 	int m_iBottomHeight;					//底部的高度
+	int m_iLeftLen;							//左侧的空闲区域
+	int m_iRightLen;						//右侧的空闲区域
 	int showStockIndex;						//当前显示的起始位置（列）
 
 	QRect m_rtHeader;						//头部Header区域

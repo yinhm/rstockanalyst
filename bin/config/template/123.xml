@@ -30,7 +30,6 @@
      <size>100</size>
      <color>红绿3Grid</color>
      <Abnomals/>
-     <block>800111BB</block>
     </widget>
    </widget>
   </widget>
@@ -43,7 +42,6 @@
    <size>38</size>
    <color></color>
    <Abnomals/>
-   <block>800003BB</block>
    <ShowType volumeratio="1" turnratio="1" increase="1"/>
    <TopStocks/>
    <FocusWhenMove>0</FocusWhenMove>

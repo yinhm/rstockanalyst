@@ -30,6 +30,7 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fBuyVOL(0.0)
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
+	, fLastCmpPrice(0)
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
@@ -62,6 +63,7 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fBuyVOL(0.0)
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
+	, fLastCmpPrice(0)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
@@ -102,7 +104,10 @@ void CStockInfoItem::setReport( qRcvReportData* p )
 	pLastReport->resetItem(pCurrentReport);
 	pCurrentReport->resetItem(p);
 	CDataEngine::setCurrentTime(pCurrentReport->tmTime);
-	
+
+	//设置对比价格
+	fLastCmpPrice = p->fNewPrice;
+
 	updateItemInfo();
 }
 
@@ -146,11 +151,32 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 			if((p->m_time/300) > (pCurrent5Min->tmTime/300))
 			{
 				//追加到5分钟数据中，并重新对当前5分钟数据分配内存
-				append5MinData(pCurrent5Min);			
+				vCmpPrices.clear();
+				append5MinData(pCurrent5Min);
 				pCurrent5Min = new RStockData;
 				//将最后的5分钟数据进行保存
 				fLast5MinVolume = pLastReport->fVolume;
 				fLast5MinAmount = pLastReport->fAmount;
+			}
+		}
+
+		{
+			//计算最近5分钟内的涨跌比
+			if(fLastCmpPrice<0.001)
+				fLastCmpPrice = p->m_fNewPrice;
+			if(fLastCmpPrice>0.001)
+			{
+				float fInc = (p->m_fNewPrice-fLastCmpPrice)/fLastCmpPrice*100;
+				if(fInc>0.9)
+				{
+					vCmpPrices.append(fInc+0.5);
+					fLastCmpPrice = p->m_fNewPrice;
+				}
+				else if(fInc<-0.9)
+				{
+					vCmpPrices.append(fInc-0.5);
+					fLastCmpPrice = p->m_fNewPrice;
+				}
 			}
 		}
 		//将新数据跟当前的5分钟数据进行整合
@@ -719,3 +745,7 @@ float CStockInfoItem::getLtag()
 	return -1.0;
 }
 
+QVector<int> CStockInfoItem::getLast5CmpPrices()
+{
+	return vCmpPrices;
+}
