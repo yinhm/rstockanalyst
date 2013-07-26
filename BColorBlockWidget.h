@@ -85,6 +85,9 @@ private:
 	QTimer m_timerUpdateUI;					//界面更新的timer
 
 	QVector<QRgb> m_clrTable;				//颜色表，12个
+
+
+	QList<QPair<CBlockInfoItem*,QRect>> m_listBlockBtns;	//各个分类所在的矩形
 };
 
 #endif // !B_COLOR_BLOCK_WIDGET_H
