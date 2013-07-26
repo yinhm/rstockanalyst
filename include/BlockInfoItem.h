@@ -34,7 +34,8 @@ public:
 	QList<CStockInfoItem*> getStockList();						//获取股票列表
 	QList<CBlockInfoItem*> getBlockList();						//获取板块列表
 
-	int getStockCount() const;										//获取股票的数量
+	int getStockCount() const;									//获取股票的数量
+	int getBlockCount() const;									//获取板块的数量
 
 	bool hasBlocks();											//返回该板块是否含有子板块
 	bool hasBlock(const QString& _code);						//是否包含此block

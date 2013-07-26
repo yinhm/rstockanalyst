@@ -172,6 +172,7 @@ CColorBlockWidget::CColorBlockWidget( CBaseWidget* parent /*= 0*/ )
 		m_listAsistIndex.push_back(new RWidgetOpData(IndexTurnRatio,"vit","换手率"));
 		m_listAsistIndex.push_back(new RWidgetOpData(IndexGuanDan,"vig","当前挂单情况"));
 		m_listAsistIndex.push_back(new RWidgetOpData(Index5DayLine,"vid","最近5日涨幅变化"));
+		m_listAsistIndex.push_back(new RWidgetOpData(IndexCmpPrice,"vic","最近5分钟内涨幅变化"));
 	}
 	//设置当前的表达式
 //	m_pMenuCustom->addAction(tr("设置当前的表达式"),
@@ -735,6 +736,11 @@ void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
 
 void CColorBlockWidget::paintEvent( QPaintEvent* )
 {
+	if(m_mapCurAsistIndex.contains(IndexCmpPrice))
+		m_iRightLen = 20;
+	else
+		m_iRightLen = 2;
+
 	QPainter p(this);
 	QRect rtClient = this->rect();
 	if(m_bClearMode)
@@ -920,10 +926,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	*/
 
 	//从右向左绘制横坐标
-	float fBeginX = rtCB.right()-m_iRightLen;
-	float fEndX = rtCB.left()+m_iLeftLen;
-	float fCBWidth = fBeginX-fEndX;
-	if(fCBWidth<0)
+	if((rtCB.width()-m_iRightLen)<0)
 		return;
 
 	QList<RStockData*> listDatas = pItem->get5MinList();
@@ -937,11 +940,25 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 	QVector<float> _vWidth;
 	if(m_bShowVolumeRatio)
 		_vWidth = getVectorForTime(m_mapTimes,listDatas,ShowVolumeRatio,pItem);
+	//绘制右侧的辅助指标
+	if(m_mapCurAsistIndex.contains(IndexCmpPrice))
+	{
+		int iX = rtCB.right()-m_iRightLen;
+		QVector<int> vCmpPrices = pItem->getLast5CmpPrices();
+		foreach(int _v,vCmpPrices)
+		{
+			if(_v>0)
+				p.fillRect(QRect(iX,rtCB.top(),_v,rtCB.height()),QColor(255,0,0));
+			else
+				p.fillRect(QRect(iX,rtCB.top(),-_v,rtCB.height()),QColor(0,255,255));
+			iX+=5;
+		}
+	}
 	//绘制
 	drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
 
-	//绘制辅助指标
-	float iBeginX = rtCB.right() - m_iCBWidth*57;
+	//绘制左侧的辅助指标
+	float iBeginX = rtCB.right() - m_iCBWidth*57 - m_iRightLen;
 	p.setPen(QColor(255,0,0));
 	p.drawLine(iBeginX+3,rtCB.top(),iBeginX+3,rtCB.bottom());
 

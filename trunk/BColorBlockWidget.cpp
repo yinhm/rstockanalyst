@@ -342,7 +342,16 @@ void CBColorBlockWidget::mousePressEvent( QMouseEvent* e )
 	}
 	else if(m_rtBottom.contains(ptCur))
 	{
-
+		QList<QPair<CBlockInfoItem*,QRect>>::iterator iter = m_listBlockBtns.begin();
+		while(iter!=m_listBlockBtns.end())
+		{
+			if(iter->second.contains(ptCur))
+			{
+				setBlock(iter->first->getOnly());
+				break;
+			}
+			++iter;
+		}
 	}
 
 	return CBaseBlockWidget::mousePressEvent(e);
@@ -539,6 +548,34 @@ void CBColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	//从右向左绘制横坐标
 	drawCoordX(p,QRect(rtBottom.left()+m_iLeftLen,rtBottom.top(),
 		rtBottom.width()-m_iRightLen-m_iLeftLen,rtBottom.height()),m_iCBWidth);
+
+	//绘制板块按钮
+	m_listBlockBtns.clear();
+	int iBeginX = rtBottom.right()-m_iLeftLen-m_mapTimes.size()*m_iCBWidth;
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getTopLevelBlocks();
+	foreach(CBlockInfoItem* pBlock,listBlocks)
+	{
+		if(iBeginX<rtBottom.left())
+			break;
+		if(pBlock->getBlockCount()>0)
+		{
+			QRect rtText = QRect(iBeginX-50,rtBottom.top(),48,rtBottom.height());
+			if(m_pCurBlock == pBlock)
+			{
+				p.setPen(QColor(255,255,255));
+				p.fillRect(rtText,QColor(127,0,0));
+			}
+			else
+			{
+				p.setPen(QColor(127,0,0));
+				p.drawRect(rtText);
+			}
+			p.drawText(rtText,pBlock->getBlockName(),QTextOption(Qt::AlignCenter));
+
+			m_listBlockBtns.append(QPair<CBlockInfoItem*,QRect>(pBlock,rtText));
+			iBeginX-=50;
+		}
+	}
 }
 
 void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem* pItem )

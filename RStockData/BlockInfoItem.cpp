@@ -398,6 +398,11 @@ int CBlockInfoItem::getStockCount() const
 	return stocksInBlock.size();
 }
 
+int CBlockInfoItem::getBlockCount() const
+{
+	return blocksInBlock.size();
+}
+
 bool CBlockInfoItem::hasBlocks()
 {
 	return blocksInBlock.size()>0 ? true : false;
@@ -628,7 +633,7 @@ void CBlockInfoItem::updateData()
 				else if(_new<_last)
 					++pCurrent5Min->wDecline;
 
-				int _index = ((float(_new-_last))*1000.0)/_last + 0.5;
+				int _index = ((float(_new-_last))*100.0)/_last + 0.5;
 				if(_index>9)
 				{
 					++(pCurrent5Min->fIncrease[0]);

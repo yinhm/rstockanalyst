@@ -20,9 +20,9 @@
     <type>2</type>
     <relate>1</relate>
     <align>1</align>
-    <size>39</size>
-    <block>800109BB</block>
-    <stock>800016BB</stock>
+    <size>43</size>
+    <block>800106BB</block>
+    <stock>000410SZ</stock>
    </widget>
    <widget circle="0">
     <name></name>
@@ -30,9 +30,16 @@
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
-    <size>40</size>
-    <code>000988SZ</code>
+    <size>37</size>
+    <code>300050SZ</code>
     <liners>
+     <Liner size="80">
+      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,10))
+DrawLine(MA(OPEN,5))
+DrawLine(MA(OPEN,3))
+DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
+     </Liner>
      <Liner size="20">
       <exp>DrawHist(VOLUME)</exp>
      </Liner>
@@ -52,7 +59,7 @@
      <relate>1</relate>
      <align>1</align>
      <size>75</size>
-     <code>000988SZ</code>
+     <code>300050SZ</code>
     </widget>
     <widget dealtype="1">
      <name></name>
@@ -62,7 +69,7 @@
      <align>1</align>
      <size>24</size>
      <color>红绿挂单类型</color>
-     <code>000988SZ</code>
+     <code>300050SZ</code>
     </widget>
    </widget>
   </widget>
@@ -79,7 +86,7 @@
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
-    <size>51</size>
+    <size>29</size>
     <code>1A0001SH</code>
     <liners>
      <Liner size="80">
@@ -100,10 +107,10 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>3</type>
     <relate>1</relate>
     <align>1</align>
-    <size>33</size>
+    <size>40</size>
     <color>红绿1</color>
     <Abnomals/>
-    <block>800010BB</block>
+    <block>800011BB</block>
     <ShowType volumeratio="0" turnratio="0" increase="1"/>
     <TopStocks>
      <Top1>
@@ -122,6 +129,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <Index>4</Index>
      <Index>5</Index>
      <Index>7</Index>
+     <Index>8</Index>
     </AssistIndex>
    </widget>
    <widget CBHeight="100" CBWidth="2">
@@ -130,7 +138,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>4</type>
     <relate>1</relate>
     <align>1</align>
-    <size>15</size>
+    <size>29</size>
     <color>红绿1</color>
     <Abnomals/>
     <block>800109BB</block>

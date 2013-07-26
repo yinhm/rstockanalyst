@@ -747,5 +747,13 @@ float CStockInfoItem::getLtag()
 
 QVector<int> CStockInfoItem::getLast5CmpPrices()
 {
+	//QVector<int> vvv;
+	//for (int i=0;i<3;++i)
+	//{
+	//	int v = qrand()%2 ? (qrand()%3) : (-qrand()%3);
+	//	if(v!=0)
+	//		vvv.append(v);
+	//}
+	//return vvv;
 	return vCmpPrices;
 }
