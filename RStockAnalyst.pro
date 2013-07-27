@@ -28,7 +28,8 @@ HEADERS += StdAfx.h MainWindow.h \
 			FuncHelper.h RadarWidget.h WatcherSettingDlg.h \
 			WatcherEditDlg.h ConfigSettings.h \
 			AbnomalSettingDlg.h StockDealWidget.h \
-			AllStockWidget.h FlashWidget.h
+			AllStockWidget.h FlashWidget.h \
+			AllStockDialog.h
 
 SOURCES += main.cpp MainWindow.cpp \
 			BaseWidget.cpp KLineWidget.cpp \
@@ -39,7 +40,8 @@ SOURCES += main.cpp MainWindow.cpp \
 			FuncHelper.cpp RadarWidget.cpp WatcherSettingDlg.cpp \
 			WatcherEditDlg.cpp ConfigSettings.cpp \
 			AbnomalSettingDlg.cpp StockDealWidget.cpp \
-			AllStockWidget.cpp FlashWidget.cpp
+			AllStockWidget.cpp FlashWidget.cpp \
+			AllStockDialog.cpp
 
 
 RESOURCES += RStockAnalyst.qrc
