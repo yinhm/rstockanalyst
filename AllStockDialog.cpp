@@ -23,10 +23,30 @@ CAllStockDialog::CAllStockDialog( QWidget* parent /*= 0*/ )
 	pHLayout->setSpacing(0);
 	pWidgetCtrl->setLayout(pHLayout);
 
-	m_pWidgetKLine = new CKLineWidget(0);
-	m_pWidgetKLine->setStockCode("1A0001");
-	connect(m_pWidgetAll,SIGNAL(stockFocus(CStockInfoItem*)),this,SLOT(onStockFocusChanged(CStockInfoItem*)));
-	pHLayout->addWidget(m_pWidgetKLine,70);
+	{
+		m_pWidgetKLine = new CKLineWidget(0);
+		//
+		QFile file(qApp->applicationDirPath()+"/AllStock.xml");
+		if(file.open(QFile::ReadOnly))
+		{
+			QDomDocument doc;
+			doc.setContent(file.readAll());
+			file.close();
+
+			QDomElement eleRoot = doc.firstChildElement("ROOT");
+			if(eleRoot.isElement())
+			{
+				QDomElement eleWidget = eleRoot.firstChildElement("widget");
+				if(eleWidget.isElement())
+				{
+					m_pWidgetKLine->loadPanelInfo(eleWidget);
+				}
+			}
+		}
+
+		connect(m_pWidgetAll,SIGNAL(stockFocus(CStockInfoItem*)),this,SLOT(onStockFocusChanged(CStockInfoItem*)));
+		pHLayout->addWidget(m_pWidgetKLine,70);
+	}
 
 	{
 		QGridLayout* pGLayout = new QGridLayout();
@@ -97,7 +117,23 @@ CAllStockDialog::~CAllStockDialog(void)
 	if(m_pWidgetAll)
 		delete m_pWidgetAll;
 	if(m_pWidgetKLine)
+	{
+		QDomDocument doc("AllStock");
+		QDomElement eleRoot = doc.createElement("ROOT");
+		doc.appendChild(eleRoot);
+		QDomElement eleWidget = doc.createElement("widget");
+		eleRoot.appendChild(eleWidget);
+		m_pWidgetKLine->savePanelInfo(doc,eleWidget);
+
+		QFile file(qApp->applicationDirPath()+"/AllStock.xml");
+		if(file.open(QFile::Truncate|QFile::WriteOnly))
+		{
+			file.write(doc.toByteArray());
+			file.close();
+		}
+
 		delete m_pWidgetKLine;
+	}
 }
 
 void CAllStockDialog::onCircle5Min()
