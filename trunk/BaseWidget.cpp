@@ -354,14 +354,11 @@ void CBaseWidget::paintEvent( QPaintEvent* )
 
 void CBaseWidget::contextMenuEvent( QContextMenuEvent* e )
 {
-	if(m_pParent)
-	{
-		QMenu* pMenuCustom = getCustomMenu();
-		if(pMenuCustom)
-			pMenuCustom->exec(e->globalPos());
-		else
-			m_pMenu->exec(e->globalPos());
-	}
+	QMenu* pMenuCustom = getCustomMenu();
+	if(pMenuCustom)
+		pMenuCustom->exec(e->globalPos());
+	else
+		m_pMenu->exec(e->globalPos());
 	return e->accept();
 }
 

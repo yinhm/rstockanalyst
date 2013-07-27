@@ -20,6 +20,7 @@ CAllStockWidget::CAllStockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type 
 
 CAllStockWidget::~CAllStockWidget(void)
 {
+	clearStockDatas();
 }
 
 void CAllStockWidget::setCircle( int _cr )
