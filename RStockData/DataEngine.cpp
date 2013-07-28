@@ -6,6 +6,7 @@
 #include "STKDRV.h"
 #include "Hz2Py.h"
 #include "RadarWatcher.h"
+#include "BaseInfoGetter.h"
 
 
 //计算分时数据的横坐标时间
@@ -362,9 +363,9 @@ int CDataEngine::importBaseInfoFromFinFile( const QString& qsFile )
 		d.wMarket = wMarket;
 		memcpy(d.code,chCode,STKLABEL_LEN);
 
-		QString qsCode = QString::fromLocal8Bit(chCode);
+		QString qsOnly = QString::fromLocal8Bit(chCode) + CDataEngine::getMarketStr(wMarket);;
 
-		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsCode);
+		CStockInfoItem* pItem = CDataEngine::getDataEngine()->getStockInfoItem(qsOnly);
 		if(pItem)
 		{
 			pItem->setBaseInfo(d);
@@ -414,6 +415,7 @@ int CDataEngine::importBaseInfo( const QString& qsFile )
 		}
 		else
 		{
+			CBaseInfoGetter::updateBaseInfoFromEastMoney(&baseInfo);
 			CStockInfoItem* pItem = new CStockInfoItem(baseInfo);
 			pItem->setLast5Volume(fLast5Volume);
 			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
