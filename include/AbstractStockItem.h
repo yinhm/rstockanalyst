@@ -71,6 +71,8 @@ public:
 	virtual float getSellVOL() const = 0;		//外盘量
 	virtual float getBuyVOL() const = 0;		//内盘量
 	virtual float getBIDVOL() const = 0;		//委买量
+	virtual float getBIDVOL3() const = 0;		//委买量3
+	virtual float getASKVOL3() const = 0;		//委卖量3
 	virtual float getASKVOL() const = 0;		//委卖量
 	virtual float getCommRatio() const = 0;		//委比
 	virtual float getCommSent() const = 0;		//委差

@@ -81,6 +81,8 @@ public:
 	float getBuyVOL() const;		//内盘量
 	float getBIDVOL() const;		//委买量
 	float getASKVOL() const;		//委卖量
+	float getBIDVOL3() const;		//委买量
+	float getASKVOL3() const;		//委卖量
 	float getCommRatio() const;		//委比
 	float getCommSent() const;		//委差
 

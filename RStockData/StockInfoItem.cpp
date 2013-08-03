@@ -16,6 +16,8 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)
 	, fSellVolume(FLOAT_NAN)
+	, fBuyVolume3(FLOAT_NAN)
+	, fSellVolume3(FLOAT_NAN)
 	, fIncrease(FLOAT_NAN)
 	, fVolumeRatio(FLOAT_NAN)
 	, fTurnRatio(FLOAT_NAN)
@@ -49,6 +51,8 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fIncreaseSpeed(FLOAT_NAN)
 	, fBuyVolume(FLOAT_NAN)
 	, fSellVolume(FLOAT_NAN)
+	, fBuyVolume3(FLOAT_NAN)
+	, fSellVolume3(FLOAT_NAN)
 	, fIncrease(FLOAT_NAN)
 	, fVolumeRatio(FLOAT_NAN)
 	, fTurnRatio(FLOAT_NAN)
@@ -493,6 +497,16 @@ float CStockInfoItem::getASKVOL() const
 	return fSellVolume;
 }
 
+float CStockInfoItem::getBIDVOL3() const
+{
+	return fBuyVolume3;
+}
+
+float CStockInfoItem::getASKVOL3() const
+{
+	return fSellVolume3;
+}
+
 float CStockInfoItem::getCommRatio() const
 {
 	//委比
@@ -572,19 +586,30 @@ void CStockInfoItem::updateItemInfo()
 	{
 		//委买量计算
 		fBuyVolume = 0.0;
+		fBuyVolume3 = 0.0;
 		fBuyVolume += pCurrentReport->fBuyVolume[0];
 		fBuyVolume += pCurrentReport->fBuyVolume[1];
 		fBuyVolume += pCurrentReport->fBuyVolume[2];
 		fBuyVolume += pCurrentReport->fBuyVolume4;
 		fBuyVolume += pCurrentReport->fBuyVolume5;
 
+
+		fBuyVolume3 += pCurrentReport->fBuyVolume[0];
+		fBuyVolume3 += pCurrentReport->fBuyVolume[1];
+		fBuyVolume3 += pCurrentReport->fBuyVolume[2];
+
 		//委卖量计算
 		fSellVolume = 0.0;
+		fSellVolume3 = 0.0;
 		fSellVolume += pCurrentReport->fSellVolume[0];
 		fSellVolume += pCurrentReport->fSellVolume[1];
 		fSellVolume += pCurrentReport->fSellVolume[2];
 		fSellVolume += pCurrentReport->fSellVolume4;
 		fSellVolume += pCurrentReport->fSellVolume5;
+
+		fSellVolume3 += pCurrentReport->fSellVolume[0];
+		fSellVolume3 += pCurrentReport->fSellVolume[1];
+		fSellVolume3 += pCurrentReport->fSellVolume[2];
 
 		//委比
 		if(pCurrentReport&&(fBuyVolume>0||fSellVolume>0))

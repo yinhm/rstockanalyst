@@ -415,7 +415,7 @@ int CDataEngine::importBaseInfo( const QString& qsFile )
 		}
 		else
 		{
-			CBaseInfoGetter::updateBaseInfoFromEastMoney(&baseInfo);
+//			CBaseInfoGetter::updateBaseInfoFromEastMoney(&baseInfo);
 			CStockInfoItem* pItem = new CStockInfoItem(baseInfo);
 			pItem->setLast5Volume(fLast5Volume);
 			CDataEngine::getDataEngine()->setStockInfoItem(pItem);

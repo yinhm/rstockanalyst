@@ -716,10 +716,9 @@ void CColorBlockWidget::clickedStock( CStockInfoItem* pItem )
 	{
 		int iShowCount = m_rtClient.height()/m_iCBHeight;
 		int iRow = m_mapStockIndex[pItem];
-		if(((iRow-getTopCount())<showStockIndex)||(iRow>(showStockIndex+iShowCount-getTopCount())))
+		if((iRow<showStockIndex)||(iRow>(showStockIndex+iShowCount-getTopCount())))
 		{
 			showStockIndex = iRow;
-			update(m_rtClient);
 		}
 	}
 

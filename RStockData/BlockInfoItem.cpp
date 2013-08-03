@@ -916,6 +916,18 @@ float CBlockInfoItem::getASKVOL() const
 	return 0.0;
 }
 
+float CBlockInfoItem::getBIDVOL3() const
+{
+
+	return 0.0;
+}
+
+float CBlockInfoItem::getASKVOL3() const
+{
+
+	return 0.0;
+}
+
 float CBlockInfoItem::getCommRatio() const
 {
 
