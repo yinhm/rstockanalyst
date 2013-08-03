@@ -1,6 +1,49 @@
 #include "StdAfx.h"
 #include "AbnomalSettingDlg.h"
 
+bool CAbnomalSettingDlg::m_bInit = false;
+QMap<RAbnomalType,RAbnomalValue*> CAbnomalSettingDlg::m_mapAbnomals;
+
+
+void CAbnomalSettingDlg::initAbnomals()
+{
+	m_mapAbnomals[HighIncrease] = new RAbnomalValue(HighIncrease,AbnomalGreater,"涨幅>=",(float)0.05);
+	m_mapAbnomals[LowIncrease] = new RAbnomalValue(LowIncrease,AbnomalLesser,"涨幅<=",(float)-0.05);
+	m_mapAbnomals[HighTurnRatio] = new RAbnomalValue(HighTurnRatio,AbnomalGreater,"换手率>=",(float)0.05);
+	m_mapAbnomals[HighVolumeRatio] = new RAbnomalValue(HighVolumeRatio,AbnomalGreater,"量比>=",(float)0.05);
+	m_mapAbnomals[HighAvgVolume] = new RAbnomalValue(HighAvgVolume,AbnomalGreater,"均价>=",(float)0.05);
+	m_mapAbnomals[HighPrice] = new RAbnomalValue(HighPrice,AbnomalGreater,"股价>=",(float)0.05);
+	m_mapAbnomals[LowPrice] = new RAbnomalValue(LowPrice,AbnomalLesser,"股价<=",(float)0.05);
+	m_mapAbnomals[HighLTSZ] = new RAbnomalValue(HighLTSZ,AbnomalGreater,"流通市值>=",(float)0.05);
+	m_mapAbnomals[LowLTSZ] = new RAbnomalValue(LowLTSZ,AbnomalLesser,"流通市值<=",(float)0.05);
+	m_mapAbnomals[HighMGSY] = new RAbnomalValue(HighMGSY,AbnomalGreater,"每股收益>=",(float)0.05);
+	m_mapAbnomals[HighPERatio] = new RAbnomalValue(HighPERatio,AbnomalGreater,"市盈率>=",(float)0.05);
+	m_mapAbnomals[HighZYYWRatio] = new RAbnomalValue(HighZYYWRatio,AbnomalGreater,"主营业务增长率>=",(float)0.05);
+	m_mapAbnomals[HighYJYZ] = new RAbnomalValue(HighYJYZ,AbnomalGreater,"业绩预增>=",(float)0.05);
+	m_mapAbnomals[HighYJZZ] = new RAbnomalValue(HighYJZZ,AbnomalGreater,"业绩增长>=",(float)0.05);
+	m_mapAbnomals[HighYJHBZZ] = new RAbnomalValue(HighYJHBZZ,AbnomalGreater,"业绩环比增长>=",(float)0.05);
+	m_mapAbnomals[HighJZCSYL] = new RAbnomalValue(HighJZCSYL,AbnomalGreater,"净资产收益率>=",(float)0.05);
+	m_mapAbnomals[HighBuyVolume] = new RAbnomalValue(HighBuyVolume,AbnomalGreater,"委买1+2+3>=",(float)0.05);
+	m_mapAbnomals[HighSellVolume] = new RAbnomalValue(HighSellVolume,AbnomalGreater,"委卖1+2+3>=",(float)0.05);
+	m_mapAbnomals[HighCommRatio] = new RAbnomalValue(HighCommRatio,AbnomalGreater,"委比>=",(float)0.05);
+	m_bInit = true;
+}
+
+void CAbnomalSettingDlg::ShowAbnomalDlg( QMap<RAbnomalType,float>& map,QWidget* parent /*= 0*/ )
+{
+	if(!m_bInit)
+	{
+		initAbnomals();
+	}
+
+	CAbnomalSettingDlg dlg(map,parent);
+	if(QDialog::Accepted == dlg.exec())
+	{
+		map.clear();
+		map = dlg.getAbnomalMap();
+	}
+}
+
 CAbnomalSettingDlg::CAbnomalSettingDlg( const QMap<RAbnomalType,float>& map,QWidget* parent /*= 0*/ )
 	: QDialog(parent)
 	, m_mapAbnomal(map)
@@ -13,39 +56,36 @@ CAbnomalSettingDlg::~CAbnomalSettingDlg(void)
 {
 }
 
+
 void CAbnomalSettingDlg::initDlg()
 {
-	m_ckHighIncrease.setText(tr("涨幅>="));
-	m_ckHighTurnRatio.setText(tr("换手率>="));
-	m_ckHighVolumeRatio.setText(tr("量比>="));
-	if(m_mapAbnomal.contains(HighIncrease))
+	QGridLayout* pLayout = new QGridLayout(this);
+	int iRow = 0;
+	QMap<RAbnomalType,RAbnomalValue*>::iterator iter = m_mapAbnomals.begin();
+	while(iter!=m_mapAbnomals.end())
 	{
-		m_ckHighIncrease.setCheckState(Qt::Checked);
-		m_editHighIncrease.setText(QString("%1").arg(m_mapAbnomal[HighIncrease]));
-	}
-	else
-	{
-		m_editHighIncrease.setText("0.05");
-	}
+		QCheckBox* pCheckBox = new QCheckBox(this);
+		QLineEdit* pLineEdit = new QLineEdit(this);
 
-	if(m_mapAbnomal.contains(HighTurnRatio))
-	{
-		m_ckHighTurnRatio.setCheckState(Qt::Checked);
-		m_editHighTurnRatio.setText(QString("%1").arg(m_mapAbnomal[HighTurnRatio]));
-	}
-	else
-	{
-		m_editHighTurnRatio.setText("0.05");
-	}
+		pCheckBox->setText((*iter)->_Desc);
+		pLineEdit->setValidator(new QDoubleValidator());
+		pLayout->addWidget(pCheckBox,iRow,0);
+		pLayout->addWidget(pLineEdit,iRow,1);
 
-	if(m_mapAbnomal.contains(HighVolumeRatio))
-	{
-		m_ckHighVolumeRatio.setCheckState(Qt::Checked);
-		m_editHighVolumeRatio.setText(QString("%1").arg(m_mapAbnomal[HighVolumeRatio]));
-	}
-	else
-	{
-		m_editHighVolumeRatio.setText("0.05");
+		if(m_mapAbnomal.contains(iter.key()))
+		{
+			pCheckBox->setCheckState(Qt::Checked);
+			pLineEdit->setText(QString("%1").arg(m_mapAbnomal[iter.key()]));
+		}
+		else
+		{
+			pLineEdit->setText(QString("%1").arg((*iter)->_Default));
+		}
+
+		m_mapCtrls[iter.key()] = QPair<QLineEdit*,QCheckBox*>(pLineEdit,pCheckBox);
+
+		++iRow;
+		++iter;
 	}
 
 
@@ -54,45 +94,28 @@ void CAbnomalSettingDlg::initDlg()
 	connect(pBtnOk,SIGNAL(clicked()),this,SLOT(onBtnOk()));
 	connect(pBtnCancel,SIGNAL(clicked()),this,SLOT(onBtnCancel()));
 
-	QGridLayout* pLayout = new QGridLayout(this);
-	pLayout->addWidget(&m_ckHighIncrease,0,0);
-	pLayout->addWidget(&m_ckHighTurnRatio,1,0);
-	pLayout->addWidget(&m_ckHighVolumeRatio,2,0);
-
-	pLayout->addWidget(&m_editHighIncrease,0,1);
-	pLayout->addWidget(&m_editHighTurnRatio,1,1);
-	pLayout->addWidget(&m_editHighVolumeRatio,2,1);
-
-	pLayout->addWidget(new QLabel("%"),0,2);
-	pLayout->addWidget(new QLabel("%"),1,2);
-	pLayout->addWidget(new QLabel("%"),2,2);
-
 	QHBoxLayout* pBtnLayout = new QHBoxLayout(this);
 	pBtnLayout->addWidget(pBtnOk,1);
 	pBtnLayout->addWidget(pBtnCancel,1);
 
-	pLayout->addLayout(pBtnLayout,3,0,1,2);
+	pLayout->addLayout(pBtnLayout,iRow,0,1,2);
 	setLayout(pLayout);
 }
 
 void CAbnomalSettingDlg::onBtnOk()
 {
+
 	m_mapAbnomal.clear();
-	if(m_ckHighIncrease.isChecked())
+	QMap<RAbnomalType,QPair<QLineEdit*,QCheckBox*>>::iterator iter = m_mapCtrls.begin();
+	while(iter!=m_mapCtrls.end())
 	{
-		m_mapAbnomal[HighIncrease] = m_editHighIncrease.text().toFloat();
-	}
+		if(iter->second->isChecked())
+		{
+			m_mapAbnomal[iter.key()]=iter->first->text().toFloat();
+		}
 
-	if(m_ckHighTurnRatio.isChecked())
-	{
-		m_mapAbnomal[HighTurnRatio] = m_editHighTurnRatio.text().toFloat();
+		++iter;
 	}
-
-	if(m_ckHighVolumeRatio.isChecked())
-	{
-		m_mapAbnomal[HighVolumeRatio] = m_editHighVolumeRatio.text().toFloat();
-	}
-
 	accept();
 }
 
@@ -105,3 +128,4 @@ QMap<RAbnomalType,float> CAbnomalSettingDlg::getAbnomalMap()
 {
 	return m_mapAbnomal;
 }
+

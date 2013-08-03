@@ -170,14 +170,8 @@ void CBaseBlockWidget::onSetSortMode()
 
 void CBaseBlockWidget::onSetAbnomal()
 {
-	CAbnomalSettingDlg dlg(m_mapAbnomal);
-	if(QDialog::Accepted == dlg.exec())
-	{
-		m_mapAbnomal.clear();
-		m_mapAbnomal = dlg.getAbnomalMap();
-		//更新显示
-		updateSortMode();
-	}
+	CAbnomalSettingDlg::ShowAbnomalDlg(m_mapAbnomal);
+	updateSortMode();
 }
 
 void CBaseBlockWidget::onSetBlockSize()
@@ -337,6 +331,12 @@ bool CBaseBlockWidget::isMatchAbnomal( CAbstractStockItem* pItem )
 					return false;
 			}
 			break;
+		case LowIncrease:
+			{
+				if(pItem->getIncrease()>iter.value()||_isnan(pItem->getIncrease()))
+					return false;
+			}
+			break;
 		case HighTurnRatio:
 			{
 				if(pItem->getTurnRatio()<iter.value()||_isnan(pItem->getTurnRatio()))
@@ -349,6 +349,99 @@ bool CBaseBlockWidget::isMatchAbnomal( CAbstractStockItem* pItem )
 					return false;
 			}
 			break;
+		case HighAvgVolume:
+			{
+				//每笔均量 ？
+				;
+			}
+			break;
+		case HighPrice:
+			{
+				//价格大于某值
+				if(pItem->getNewPrice()<iter.value()||_isnan(pItem->getNewPrice()))
+					return false;
+			}
+			break;
+		case LowPrice:
+			{
+				//价格小于某值
+				if(pItem->getNewPrice()>iter.value()||_isnan(pItem->getNewPrice()))
+					return false;
+			}
+			break;
+		case HighLTSZ:
+			{
+				//高流通盘
+				if(pItem->getLTSZ()<iter.value()||_isnan(pItem->getLTSZ()))
+					return false;
+			}
+			break;
+		case LowLTSZ:
+			{
+				//低流通盘
+				if(pItem->getLTSZ()>iter.value()||_isnan(pItem->getLTSZ()))
+					return false;
+			}
+			break;
+		case HighMGSY:
+			{
+				//高每股收益
+				if(pItem->getMgsy()<iter.value()||_isnan(pItem->getMgsy()))
+					return false;
+			}
+			break;
+		case HighPERatio:
+			{
+				//高市盈率
+				if(pItem->getPERatio()<iter.value()||_isnan(pItem->getPERatio()))
+					return false;
+			}
+			break;
+		case HighZYYWRatio:
+			{
+				//高主营业务增长率 ？
+			}
+			break;
+		case HighYJYZ:
+			{
+				//高业绩预增
+			}
+			break;
+		case HighYJZZ:
+			{
+				//高业绩增长
+			}
+			break;
+		case HighYJHBZZ:
+			{
+				//高业绩环比增长连续4个季度
+			}
+			break;
+		case HighJZCSYL:
+			{
+				//净资产收益率   >=
+			}
+			break;
+		case HighBuyVolume:
+			{
+				//委买1+2+3>=
+				if(pItem->getBIDVOL3()<iter.value()||_isnan(pItem->getBIDVOL3()))
+					return false;
+			}
+			break;
+		case HighSellVolume:
+			{
+				//委卖1+2+3>=
+				if(pItem->getASKVOL3()<iter.value()||_isnan(pItem->getASKVOL3()))
+					return false;
+			}
+			break;
+		case HighCommRatio:
+			{
+				//委比 >=
+				if(pItem->getCommRatio()<iter.value()||_isnan(pItem->getCommRatio()))
+					return false;
+			}
 		default:
 			break;
 		}
