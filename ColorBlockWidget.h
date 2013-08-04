@@ -11,6 +11,7 @@
 #define COLOR_BLOCK_WIDGET_H
 #include "BaseBlockWidget.h"
 #include "BlockInfoItem.h"
+#include "ColorManager.h"
 
 class CColorBlockWidget : public CBaseBlockWidget
 {
@@ -103,7 +104,8 @@ protected:
 	//vHeight:百分比0-100%;
 	//vWidth:百分比0%-100%;
 	void drawColocBlock(QPainter& p,int iY,
-		QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth);
+		QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth
+		,CColorItem* pClrItem);
 
 	//虚函数，各个控件的自定义菜单。
 	virtual QMenu* getCustomMenu();
@@ -115,7 +117,7 @@ private:
 	void drawClient(QPainter& p,const QRect& rtClient);			//绘制主区域
 	void drawBottom(QPainter& p,const QRect& rtBottom);			//绘制底部区域
 
-	void drawStock(QPainter& p,const QRect& rtCB,CStockInfoItem* pItem);	//绘制单只股票
+	void drawStock(QPainter& p,const QRect& rtCB,CStockInfoItem* pItem,CColorItem* pClrItem);	//绘制单只股票
 
 	QRect rectOfStock(CStockInfoItem* pItem);					//获取某只股票显示的位置
 	CStockInfoItem* hitTestStock(const QPoint& ptPoint);		//测试某点所指向的股票信息

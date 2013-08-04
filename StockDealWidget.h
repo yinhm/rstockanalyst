@@ -78,7 +78,6 @@ private:
 	QMap<int,QRect> m_mapDealTypes;
 
 	QString m_qsColorMode;					//当前颜色模式
-	QVector<QColor> m_vColor;				//当前的颜色
 private:
 	QMenu* m_pMenuDealType;					//成交种类图
 	QMenu* m_pMenuColorMode;				//颜色模式选择菜单

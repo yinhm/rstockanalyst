@@ -44,7 +44,7 @@ CBlockColorSettingDlg::CBlockColorSettingDlg( QWidget* parent /*= 0*/ )
 		//右侧的主显示窗口
 		QGroupBox* pGroupBox = new QGroupBox(tr("选中模式颜色表"),this);
 	//	QGridLayout* pRightLayout = new QGridLayout(this);
-		for (int i=0;i<COLOR_BLOCK_SIZE;++i)
+		for (int i=0;i<21;++i)
 		{
 			QLabel* pLabel = new QLabel(QString("%1").arg(i-10),this);
 			pMainLayout->addWidget(pLabel,5+i*4,40,3,10);
@@ -195,7 +195,7 @@ void CBlockColorSettingDlg::onAddColorMode()
 			if((!qsMode.isEmpty())&&(!m_mapBlockColors.contains(qsMode)))
 			{
 				QVector<QColor> vColors;
-				for (int i=0;i<COLOR_BLOCK_SIZE;++i)
+				for (int i=0;i<21;++i)
 				{
 					vColors.push_back(QColor(255,255,255));
 				}
@@ -240,10 +240,10 @@ void CBlockColorSettingDlg::onColorItemChanged()
 		return;
 
 	QVector<QColor> vColors = m_mapBlockColors[qsMode];
-	if(vColors.size()<COLOR_BLOCK_SIZE)
+	if(vColors.size()<21)
 		return;
 
-	for (int i=0;i<COLOR_BLOCK_SIZE;++i)
+	for (int i=0;i<21;++i)
 	{
 		QString qsStyle = QString("background-color: rgb(%1,%2,%3);")
 			.arg(vColors[i].red())
@@ -254,7 +254,7 @@ void CBlockColorSettingDlg::onColorItemChanged()
 		//	.arg(vColors[i].rgb(),8,16,QLatin1Char('0'));
 		m_vColorButtons[i]->setStyleSheet(qsStyle);
 		m_vColorButtons[i]->setProperty("c",vColors[i].rgb());
-//		m_vColorButtons[i]->setData(COLOR_BLOCK_SIZE,vColors[i]);
+//		m_vColorButtons[i]->setData(21,vColors[i]);
 	}
 }
 
@@ -277,7 +277,7 @@ void CBlockColorSettingDlg::onSetButtonColor()
 	pBtn->setProperty("c",clr.rgb());
 
 	int iIndex = m_vColorButtons.indexOf(pBtn);
-	if(iIndex<0||iIndex>COLOR_BLOCK_SIZE)
+	if(iIndex<0||iIndex>21)
 		return;
 	
 	QList<QListWidgetItem*> listItems = m_pListColors->selectedItems();

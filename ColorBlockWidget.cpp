@@ -835,7 +835,7 @@ void CColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 {
 	p.fillRect(rtBottom,QColor(0,0,0));
-
+/*
 	QRectF rtColors = QRectF(rtBottom.left(),rtBottom.top(),50,rtBottom.height());
 	float fColorsWidth = rtColors.width()-5;
 	float fColorWidth = fColorsWidth/COLOR_BLOCK_SIZE;
@@ -844,6 +844,7 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 		p.fillRect(QRectF(rtBottom.left()+i*fColorWidth,rtBottom.top(),fColorWidth,rtBottom.height()),
 			QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,i)));
 	}
+*/
 
 	//从右向左绘制横坐标
 	drawCoordX(p,QRect(rtBottom.left()+m_iLeftLen,rtBottom.top(),
@@ -853,6 +854,7 @@ void CColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 {
 	p.fillRect(rtClient,QColor(0,0,0));
+	CColorItem* pClrItem = CColorManager::getColorItem(m_qsColorMode);
 
 	int iCurY = rtClient.top();
 	//绘制置顶股票
@@ -861,7 +863,7 @@ void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 	{
 		foreach(CStockInfoItem* pItem,iter.value())
 		{
-			drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),pItem);
+			drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),pItem,pClrItem);
 			iCurY=(iCurY+m_iCBHeight);
 			if(iCurY>rtClient.bottom())
 				break;
@@ -876,7 +878,7 @@ void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 		if(iIndex<0||iIndex>=m_listStocks.size())
 			break;
 
-		drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),m_listStocks[iIndex]);
+		drawStock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),m_listStocks[iIndex],pClrItem);
 		++iIndex;
 	}
 
@@ -896,7 +898,8 @@ void CColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 	}
 }
 
-void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem* pItem )
+void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,
+								  CStockInfoItem* pItem,CColorItem* pClrItem )
 {
 	if(pItem == m_pSelectedStock)
 	{
@@ -954,7 +957,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		}
 	}
 	//绘制
-	drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth);
+	drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth,pClrItem);
 
 	//绘制左侧的辅助指标
 	float iBeginX = rtCB.right() - m_iCBWidth*57 - m_iRightLen;
@@ -995,7 +998,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 		QRect rtInc = QRect(iBeginX,rtCB.top(),iIncWidth,m_iCBHeight);
 		rtInc.adjust(0,1,0,-1);
-		p.fillRect(rtInc,CColorManager::getBlockColor("红绿",pItem->getIncrease()));
+		p.fillRect(rtInc,pClrItem->getColor(pItem->getIncrease()));
 
 		iBeginX-=1;
 	}
@@ -1066,8 +1069,6 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 		}
 
 		float fPer = iIncWidth/fTotal;
-		QVector<uint> vColors;
-		CColorManager::getBlockColor("红绿",vColors);
 		QColor clr = QColor(0,0,255);
 		for (int i=0;i<5;++i)
 		{
@@ -1076,7 +1077,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 			QRectF rtInc = QRectF(iBeginX,rtCB.top(),fW,m_iCBHeight);
 			rtInc.adjust(0,1,0,-1);
 
-			p.fillRect(rtInc,vColors[i*2]);
+			p.fillRect(rtInc,pClrItem->getColor(i*2));
 		}
 
 		for (int i=5;i<10;++i)
@@ -1086,7 +1087,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 			QRectF rtInc = QRectF(iBeginX,rtCB.top(),fW,m_iCBHeight);
 			rtInc.adjust(0,1,0,-1);
 
-			p.fillRect(rtInc,vColors[(i+1)*2]);
+			p.fillRect(rtInc,pClrItem->getColor((i+1)*2));
 		}
 
 		iBeginX-=2;
@@ -1117,7 +1118,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,CStockInfoItem*
 
 			QRect rtInc = QRect(iX,rtCB.top(),m_iCBWidth,m_iCBHeight);
 			rtInc.adjust(0,1,0,-1);
-			p.fillRect(rtInc,CColorManager::getBlockColor("红绿",(int)((((pHis->fClose-pLast->fClose)*100)/pLast->fClose)+10.5)));
+			p.fillRect(rtInc,pClrItem->getColor((((pHis->fClose-pLast->fClose)*100)/pLast->fClose),10));
 
 			++iCount;
 			--iIndex;
@@ -1329,7 +1330,7 @@ void CColorBlockWidget::keyPressEvent( QKeyEvent* e )
 	return CBaseBlockWidget::keyPressEvent(e);
 }
 
-void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth )
+void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vColor,QVector<float>& vHeight,QVector<float>& vWidth,CColorItem* pClrItem )
 {
 //	float fTimes = 10;			//扩大或缩小倍数
 
@@ -1370,7 +1371,7 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 				rtCB1.adjust(1,1,-1,0);
 //				rtCB.setHeight(rtCB.height()*fH);
 				rtCB2.adjust(1,0,-1,-1);
-				p.fillRect(rtCB1,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*100)));
+				p.fillRect(rtCB1,pClrItem->getColor(f,(float)0.1));
 				if(rtCB2.isValid())
 				{
 					p.fillRect(rtCB2,QColor(255,255,255));

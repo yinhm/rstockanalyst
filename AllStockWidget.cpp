@@ -13,7 +13,6 @@ CAllStockWidget::CAllStockWidget( CBaseWidget* parent /*= 0*/, RWidgetType type 
 {
 	setMouseTracking(true);
 
-	CColorManager::getBlockColor("ºìÂÌ",m_vColors);
 	setSortType(SortByIncrease);
 	updateStockDatas();
 }
