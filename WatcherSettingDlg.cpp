@@ -36,7 +36,7 @@ void CWatcherSettingDlg::initDlg()
 	connect(&m_btnEdit,SIGNAL(clicked()),this,SLOT(onEditWatcher()));
 	connect(&m_btnRefresh,SIGNAL(clicked()),this,SLOT(onRefresh()));
 
-	m_listWatchers.setHeaderLabels(QStringList()<<tr("ID")<<tr("类型")<<tr("阈值")<<tr("间隔时间")<<tr("当前板块"));
+	m_listWatchers.setHeaderLabels(QStringList()<<tr("ID")<<tr("类型")<<tr("阈值")<<tr("间隔时间")<<tr("当前板块")<<tr("目标板块"));
 	m_listWatchers.setSelectionMode(QTreeWidget::SingleSelection);
 	connect(&m_listWatchers,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(onEditWatcher()));
 
@@ -88,12 +88,14 @@ void CWatcherSettingDlg::onRefresh()
 	QList<CRadarWatcher*> list = CRadarManager::getRadarManager()->getRadarWatchers();
 	foreach(CRadarWatcher* pWatcher,list)
 	{
+		CBlockInfoItem* pDestBlock = pWatcher->getDestBlock();
 		QStringList listValue;
 		listValue<<QString("%1").arg(pWatcher->getId())
 			<<QString("%1").arg(CRadarManager::getTypeName(pWatcher->getType()))
 			<<QString("%1").arg(pWatcher->getHold())
 			<<QString("%1").arg(pWatcher->getSec())
-			<<pWatcher->getBlock()->getName();
+			<<pWatcher->getBlock()->getName()
+			<<(pDestBlock ? pDestBlock->getName() : "NULL");
 		QTreeWidgetItem* pItem = new QTreeWidgetItem(listValue);
 		if(m_bForSel)
 		{

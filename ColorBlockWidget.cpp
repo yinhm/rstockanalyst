@@ -1415,7 +1415,10 @@ QMenu* CColorBlockWidget::getCustomMenu()
 		}
 	}
 	{
-		m_pActRemoveStock->setEnabled(m_pBlock->parentBlock()==CDataEngine::getDataEngine()->getCustomBlock());
+		if(m_pBlock)
+		{
+			m_pActRemoveStock->setEnabled(m_pBlock->parentBlock()==CDataEngine::getDataEngine()->getCustomBlock());
+		}
 	}
 	return m_pMenuCustom;
 }
@@ -1504,6 +1507,21 @@ RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint )
 
 void CColorBlockWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
 {
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	foreach(CBlockInfoItem* pBlock,listBlocks)
+	{
+		if(pBlock->isMatch(keyword))
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdBlock;
+			pData->arg = pBlock;
+			pData->desc = QString("%1 %2").arg(pBlock->getCode()).arg(pBlock->getName());
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+
 	foreach(CStockInfoItem* pItem,m_listStocks)
 	{
 		if(pItem->isMatch(keyword))
@@ -1527,6 +1545,12 @@ void CColorBlockWidget::keyWizEntered( KeyWizData* pData )
 	{
 		clickedStock(reinterpret_cast<CStockInfoItem*>(pData->arg));
 		return;
+	}
+	if(pData->cmd == CKeyWizard::CmdBlock)
+	{
+		CBlockInfoItem* pBlock = reinterpret_cast<CBlockInfoItem*>(pData->arg);
+		if(pBlock)
+			setBlock(pBlock->getOnly());
 	}
 
 	return CBaseBlockWidget::keyWizEntered(pData);
