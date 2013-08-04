@@ -969,6 +969,20 @@ void CKLineWidget::resetTmpData()
 
 void CKLineWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& listRet )
 {
+	foreach(const RWidgetOpData& _d,m_listCircle)
+	{
+		if(_d.key.indexOf(keyword)>-1)
+		{
+			KeyWizData* pData = new KeyWizData;
+			pData->cmd = CKeyWizard::CmdCircle;
+			pData->arg = (void*)_d.value;
+			pData->desc = _d.desc;
+			listRet.push_back(pData);
+			if(listRet.size()>20)
+				return;
+		}
+	}
+
 	foreach(CStockInfoItem* pItem,CDataEngine::getDataEngine()->getStockInfoList())
 	{
 		if(pItem->isMatch(keyword))
@@ -983,7 +997,7 @@ void CKLineWidget::getKeyWizData( const QString& keyword,QList<KeyWizData*>& lis
 		}
 	}
 
-	return CCoordXBaseWidget::getKeyWizData(keyword,listRet);
+	return CBaseWidget::getKeyWizData(keyword,listRet);
 }
 
 void CKLineWidget::keyWizEntered( KeyWizData* pData )

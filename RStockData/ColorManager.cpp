@@ -3,8 +3,21 @@
 
 QVector<uint> CColorManager::CommonColor;
 
-QVector<uint> CColorManager::DefaultColor;
-QMap<QString,QVector<uint>> CColorManager::BlockColors;
+CColorItem* CColorManager::m_pDefaultColor = NULL;
+QMap<QString,CColorItem*> CColorManager::m_mapColors;
+
+
+CColorItem::CColorItem( const QVector<uint>& vClrs )
+	: m_vColors(vClrs)
+{
+
+}
+
+CColorItem::~CColorItem()
+{
+
+}
+
 
 void CColorManager::initAll()
 {
@@ -14,7 +27,14 @@ void CColorManager::initAll()
 
 void CColorManager::reloadBlockColors()
 {
-	BlockColors.clear();
+	//清空以前的颜色表
+	QMap<QString,CColorItem*>::iterator iter = m_mapColors.begin();
+	while(iter!=m_mapColors.end())
+	{
+		delete iter.value();
+	}
+	m_mapColors.clear();
+
 
 	QString qsDir = QString("%1/config/blockcolors").arg(qApp->applicationDirPath());
 	QDir dir(qsDir);
@@ -29,8 +49,6 @@ void CColorManager::reloadBlockColors()
 
 		QString qsContent = file.readAll();
 		QStringList listColors = qsContent.split("\n");
-		if(listColors.size()<21)
-			continue;
 
 		foreach(const QString& clr,listColors)
 		{
@@ -45,8 +63,7 @@ void CColorManager::reloadBlockColors()
 			colors.push_back(rRGB(iR,iG,iB));
 		}
 
-		if(colors.size()>20)
-			BlockColors[info.completeBaseName()] = colors;
+		m_mapColors[info.completeBaseName()] = new CColorItem(colors);
 
 		file.close();
 	}
@@ -76,65 +93,67 @@ void CColorManager::initCommonColor()
 void CColorManager::initBlockColors()
 {
 	//初始化基本的颜色表
-	for (int i=0;i<COLOR_BLOCK_SIZE;++i)
+	QVector<uint> vColors;
+	for (int i=0;i<21;++i)
 	{
-		int iColor = (255.0/(COLOR_BLOCK_SIZE-1))*i;
-		DefaultColor.push_back(rRGB(iColor,iColor,iColor));
+		int iColor = (255.0/(20))*i;
+		vColors.push_back(rRGB(iColor,iColor,iColor));
 	}
+	m_pDefaultColor = new CColorItem(vColors);
 
 	reloadBlockColors();		//从文件加载颜色表
 }
 
 QStringList CColorManager::getBlockColorList()
 {
-	return BlockColors.keys();
+	return m_mapColors.keys();
 }
 
 uint CColorManager::getBlockColor( const QString& mode,float fVal )
 {
 	int iColor = fVal+10.5;
-	if(iColor>(COLOR_BLOCK_SIZE-1))
-		iColor = (COLOR_BLOCK_SIZE-1);
+	if(iColor>(20))
+		iColor = (20);
 	if(iColor<0)
 		iColor = 0;
 
-	if(BlockColors.contains(mode))
+	if(m_mapColors.contains(mode))
 	{
-		return BlockColors[mode][iColor];
+		return m_mapColors[mode][iColor];
 	}
 	else
 	{
-		return DefaultColor[iColor];
+		return m_pDefaultColor[iColor];
 	}
 }
 
 uint CColorManager::getBlockColor( const QString& mode,int index )
 {
-	if(index>(COLOR_BLOCK_SIZE-1))
-		index = (COLOR_BLOCK_SIZE-1);
+	if(index>(20))
+		index = (20);
 	if(index<0)
 		index = 0;
 
-	if(BlockColors.contains(mode))
+	if(m_mapColors.contains(mode))
 	{
-		return BlockColors[mode][index];
+		return m_mapColors[mode][index];
 	}
 	else
 	{
-		return DefaultColor[index];
+		return m_pDefaultColor[index];
 	}
 }
 
 bool CColorManager::getBlockColor( const QString& mode,QVector<uint>& vColors )
 {
-	if(BlockColors.contains(mode))
+	if(m_mapColors.contains(mode))
 	{
-		vColors = BlockColors[mode];
+		vColors = m_mapColors[mode];
 		return true;
 	}
 	else
 	{
-		vColors = DefaultColor;
+		vColors = m_pDefaultColor;
 		return false;
 	}
 }
