@@ -36,7 +36,7 @@ QString CRadarManager::getTypeName( RadarType _t )
 	return QString("未知");
 }
 
-CRadarWatcher* CRadarManager::createRadarWatcher( CBlockInfoItem* pBlock, RadarType _t,int iSec,float _hold,int iId/*=-1*/ )
+CRadarWatcher* CRadarManager::createRadarWatcher( CBlockInfoItem* pBlock, RadarType _t,int iSec,float _hold,CBlockInfoItem* pDestBlock/*=NULL*/,int iId/*=-1*/ )
 {
 	QList<int> listKey = m_listWatchers.keys();
 	int iMaxId = iId;
@@ -56,16 +56,16 @@ CRadarWatcher* CRadarManager::createRadarWatcher( CBlockInfoItem* pBlock, RadarT
 	switch(_t)
 	{
 	case BigVolumn:
-		pWatcher = new CVolumnWatcher(iMaxId,pBlock,iSec,_hold);
+		pWatcher = new CVolumnWatcher(iMaxId,pBlock,iSec,_hold,pDestBlock);
 		break;
 	case BigIncrease:
-		pWatcher = new CIncreaseWatcher(iMaxId,pBlock,iSec,_hold);
+		pWatcher = new CIncreaseWatcher(iMaxId,pBlock,iSec,_hold,pDestBlock);
 		break;
 	case MaxPrice:
-		pWatcher = new CMaxPriceWatcher(iMaxId,pBlock,iSec,_hold);
+		pWatcher = new CMaxPriceWatcher(iMaxId,pBlock,iSec,_hold,pDestBlock);
 		break;
 	case MinPrice:
-		pWatcher = new CMinPriceWatcher(iMaxId,pBlock,iSec,_hold);
+		pWatcher = new CMinPriceWatcher(iMaxId,pBlock,iSec,_hold,pDestBlock);
 		break;
 	}
 
@@ -130,8 +130,10 @@ void CRadarManager::loadRadars()
 		int iSec = eleRadar.attribute("sec").toInt();
 		QString qsCode = eleRadar.attribute("block");
 		CBlockInfoItem* pBlock = CDataEngine::getDataEngine()->getStockBlock(qsCode);
+		QString qsDestCode = eleRadar.attribute("dest");
+		CBlockInfoItem* pDestBlock = CDataEngine::getDataEngine()->getStockBlock(qsDestCode);
 
-		createRadarWatcher(pBlock,iType,iSec,fHold,iId);
+		createRadarWatcher(pBlock,iType,iSec,fHold,pDestBlock,iId);
 
 		eleRadar = eleRadar.nextSiblingElement("radar");
 	}
@@ -153,6 +155,10 @@ void CRadarManager::saveRadars()
 		eleRadar.setAttribute("sec",pWatcher->getSec());
 		CBlockInfoItem* pBlock = pWatcher->getBlock();
 		eleRadar.setAttribute("block",pBlock==0 ? "" : pBlock->getOnly());
+
+		CBlockInfoItem* pDestBlock = pWatcher->getDestBlock();
+		eleRadar.setAttribute("dest",pDestBlock==0 ? "" : pDestBlock->getOnly());
+
 		eleRoot.appendChild(eleRadar);
 		++iter;
 	}
@@ -187,12 +193,13 @@ void CRadarManager::releaseRadars()
 
 
 
-CRadarWatcher::CRadarWatcher( int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold )
+CRadarWatcher::CRadarWatcher( int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold,CBlockInfoItem* pDestBlock )
 	: m_id(_id)
 	, m_pWatcherBlock(pBlock)
 	, m_type(_t)
 	, m_iSec(iSec)
 	, m_fHold(_hold)
+	, m_pDestBlock(pDestBlock)
 {
 	if(m_pWatcherBlock)
 	{
@@ -238,9 +245,15 @@ void CRadarWatcher::setBlock( CBlockInfoItem* _b )
 	}
 }
 
+void CRadarWatcher::setDestBlock( CBlockInfoItem* _b )
+{
+	m_pDestBlock = _b;
+}
 
-CVolumnWatcher::CVolumnWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold )
-	: CRadarWatcher(_id,pBlock,BigVolumn,iSec,_hold)
+
+
+CVolumnWatcher::CVolumnWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock )
+	: CRadarWatcher(_id,pBlock,BigVolumn,iSec,_hold,pDestBlock)
 {
 
 }
@@ -281,6 +294,10 @@ void CVolumnWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tpType = BigVolumn;
 				pRadar->qsDesc = QString("大笔成交量出现，超过上一周期:%1").arg((fNewV-fLastV)/fLastV);
 				pRadar->iWatcher = m_id;
+				if(m_pDestBlock)
+				{
+					m_pDestBlock->addStockInfo(pItem);
+				}
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 
@@ -302,8 +319,8 @@ void CVolumnWatcher::onStockReportComing( CStockInfoItem* pItem )
 	}
 }
 
-CIncreaseWatcher::CIncreaseWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold )
-	: CRadarWatcher(_id,pBlock,BigIncrease,iSec,_hold)
+CIncreaseWatcher::CIncreaseWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock )
+	: CRadarWatcher(_id,pBlock,BigIncrease,iSec,_hold,pDestBlock)
 {
 
 }
@@ -334,6 +351,10 @@ void CIncreaseWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tpType = BigIncrease;
 				pRadar->qsDesc = QString("大的成交价出现，超过上一周期:%1").arg((pReport->fNewPrice-pData->fMaxPrice)/pData->fMaxPrice);
 				pRadar->iWatcher = m_id;
+				if(m_pDestBlock)
+				{
+					m_pDestBlock->addStockInfo(pItem);
+				}
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}
@@ -361,8 +382,8 @@ void CIncreaseWatcher::onStockReportComing( CStockInfoItem* pItem )
 }
 
 
-CMaxPriceWatcher::CMaxPriceWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold )
-	: CRadarWatcher(_id,pBlock,MaxPrice,iSec,_hold)
+CMaxPriceWatcher::CMaxPriceWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock )
+	: CRadarWatcher(_id,pBlock,MaxPrice,iSec,_hold,pDestBlock)
 {
 
 }
@@ -400,6 +421,10 @@ void CMaxPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tpType = MaxPrice;
 				pRadar->qsDesc = QString("创新高，成交价:%1").arg(pReport->fNewPrice);
 				pRadar->iWatcher = m_id;
+				if(m_pDestBlock)
+				{
+					m_pDestBlock->addStockInfo(pItem);
+				}
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}
@@ -418,8 +443,8 @@ void CMaxPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 	}
 }
 
-CMinPriceWatcher::CMinPriceWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold )
-	: CRadarWatcher(_id,pBlock,MinPrice,iSec,_hold)
+CMinPriceWatcher::CMinPriceWatcher( int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock )
+	: CRadarWatcher(_id,pBlock,MinPrice,iSec,_hold,pDestBlock)
 {
 
 }
@@ -457,6 +482,10 @@ void CMinPriceWatcher::onStockReportComing( CStockInfoItem* pItem )
 				pRadar->tpType = MinPrice;
 				pRadar->qsDesc = QString("创新高，成交价:%1").arg(pReport->fNewPrice);
 				pRadar->iWatcher = m_id;
+				if(m_pDestBlock)
+				{
+					m_pDestBlock->addStockInfo(pItem);
+				}
 				CRadarManager::getRadarManager()->appendRadar(pRadar);
 			}
 		}

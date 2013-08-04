@@ -27,6 +27,7 @@ private:
 	QLineEdit m_editHold;
 	QComboBox m_combType;
 	QComboBox m_combBlock;
+	QComboBox m_combDestBlock;
 	//
 	QPushButton m_btnOk;
 	QPushButton m_btnCancel;
@@ -37,6 +38,7 @@ private:
 	RadarType m_type;							//雷达类型
 	CBlockInfoItem* m_pWatcherBlock;			//监视的板块
 	CRadarWatcher* m_pWatcher;					//监视器
+	CBlockInfoItem* m_pDestBlock;				//目标板块
 };
 
 #endif	//WATCHER_EDIT_DLG_H

@@ -35,7 +35,7 @@ class RSDSHARED_EXPORT CRadarWatcher : public QObject
 {
 	Q_OBJECT
 public:
-	CRadarWatcher(int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold);
+	CRadarWatcher(int _id,CBlockInfoItem* pBlock,RadarType _t,int iSec,float _hold,CBlockInfoItem* pDestBlock);
 	~CRadarWatcher(void);
 
 public:
@@ -48,6 +48,8 @@ public:
 	void setSec(int _sec){ m_iSec = _sec; }
 	CBlockInfoItem* getBlock(){ return m_pWatcherBlock; }
 	void setBlock(CBlockInfoItem* _b);
+	CBlockInfoItem* getDestBlock(){ return m_pDestBlock; }
+	void setDestBlock(CBlockInfoItem* _b);
 
 protected slots:
 	virtual void onStockReportComing(CStockInfoItem* pItem) = 0;
@@ -56,6 +58,7 @@ protected:
 	int m_iSec;									//监视间隔
 	float m_fHold;								//阈值
 	int m_id;									//雷达id
+	CBlockInfoItem* m_pDestBlock;				//输出到的板块
 
 private:
 	RadarType m_type;							//雷达类型
@@ -78,7 +81,7 @@ public:
 		_hold 阈值
 	*/
 	CRadarWatcher* createRadarWatcher(CBlockInfoItem* pBlock,
-		RadarType _t,int iSec,float _hold,int iId=-1);
+		RadarType _t,int iSec,float _hold,CBlockInfoItem* pDestBlock=NULL,int iId=-1);
 	
 	//获取所有的监视雷达
 	QList<CRadarWatcher*> getRadarWatchers();
@@ -126,7 +129,7 @@ class CVolumnWatcher : public CRadarWatcher
 	};
 	Q_OBJECT
 public:
-	CVolumnWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold);
+	CVolumnWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock);
 	~CVolumnWatcher(void);
 protected slots:
 	void onStockReportComing(CStockInfoItem* pItem);
@@ -145,7 +148,7 @@ class CIncreaseWatcher : public CRadarWatcher
 	};
 	Q_OBJECT
 public:
-	CIncreaseWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold);
+	CIncreaseWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock);
 	~CIncreaseWatcher(void);
 protected slots:
 	void onStockReportComing(CStockInfoItem* pItem);
@@ -164,7 +167,7 @@ class CMaxPriceWatcher : public CRadarWatcher
 	};
 	Q_OBJECT
 public:
-	CMaxPriceWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold);
+	CMaxPriceWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock);
 	~CMaxPriceWatcher(void);
 protected slots:
 	void onStockReportComing(CStockInfoItem* pItem);
@@ -183,7 +186,7 @@ class CMinPriceWatcher : public CRadarWatcher
 	};
 	Q_OBJECT
 public:
-	CMinPriceWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold);
+	CMinPriceWatcher(int _id,CBlockInfoItem* pBlock,int iSec,float _hold,CBlockInfoItem* pDestBlock);
 	~CMinPriceWatcher(void);
 protected slots:
 	void onStockReportComing(CStockInfoItem* pItem);
