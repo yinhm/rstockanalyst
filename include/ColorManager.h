@@ -20,6 +20,10 @@ public:
 	CColorItem(const QVector<uint>& vClrs);
 	~CColorItem();
 
+public:
+	uint getColor(const float& _f,const float& _abs=0.1);
+	uint getColor(const int& _v);
+
 private:
 	QVector<uint> m_vColors;
 };

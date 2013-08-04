@@ -246,12 +246,6 @@ void CBColorBlockWidget::clickedBlock( CBlockInfoItem* pItem )
 
 void CBColorBlockWidget::paintEvent( QPaintEvent* /*e*/ )
 {
-	m_clrTable.clear();
-	for (int i=0;i<21;++i)
-	{
-		m_clrTable.push_back(CColorManager::getBlockColor(m_qsColorMode,i));
-	}
-
 	QPainter p(this);
 	QRect rtClient = this->rect();
 	if(m_bClearMode)
@@ -517,6 +511,8 @@ void CBColorBlockWidget::drawHeader( QPainter& p,const QRect& rtHeader )
 
 void CBColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 {
+	CColorItem* pClrItem = CColorManager::getColorItem(m_qsColorMode);
+
 	p.fillRect(rtClient,QColor(0,0,0));
 
 	int iCurY = rtClient.top();
@@ -526,7 +522,7 @@ void CBColorBlockWidget::drawClient( QPainter& p,const QRect& rtClient )
 		if(iIndex<0||iIndex>=m_listBlocks.size())
 			break;
 
-		drawBlock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),m_listBlocks[iIndex]);
+		drawBlock(p,QRect(rtClient.left(),iCurY,rtClient.width(),m_iCBHeight),m_listBlocks[iIndex],pClrItem);
 		++iIndex;
 	}
 }
@@ -578,7 +574,7 @@ void CBColorBlockWidget::drawBottom( QPainter& p,const QRect& rtBottom )
 	}
 }
 
-void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem* pItem )
+void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem* pItem,CColorItem* pClrItem)
 {
 	if(pItem == m_pSelectedBlock)
 	{
@@ -664,14 +660,14 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				{
 					//10-1
 					float fPerH = fCount[j]*fPer;
-					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[20-j]);
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),pClrItem->getColor(20-j));
 				
 					fCurY+=fPerH;
 				}
 				{
 					//0
 					float fPerH = (fCount[20])*fPer;
-					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[10]);
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),pClrItem->getColor(10));
 
 					fCurY+=fPerH;
 				}
@@ -679,7 +675,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				for (int j=10;j<20;++j)
 				{
 					float fPerH = fCount[j]*fPer;
-					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),m_clrTable[19-j]);
+					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),pClrItem->getColor(19-j));
 
 					fCurY+=fPerH;
 				}

@@ -272,6 +272,7 @@ QMenu* CBaseBlockWidget::getCustomMenu()
 void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 {
 	int nTimes = 1;
+	CColorItem* pClrItem = CColorManager::getColorItem(m_qsColorMode);
 
 	QMap<time_t,float>::iterator iter = m_mapShowTimes.begin();
 	
@@ -283,7 +284,7 @@ void CBaseBlockWidget::drawColocBlock(QPainter& p,int iY,QVector<float>& vValue)
 		{
 			float f = vValue[iMapSize - m_mapTimes[iter.key()]];
 			rtCB.adjust(1,1,-1,-1);
-			p.fillRect(rtCB,QColor::fromRgb(CColorManager::getBlockColor(m_qsColorMode,f*nTimes)));
+			p.fillRect(rtCB,pClrItem->getColor((int)(f*nTimes)));
 		}
 		++iter;
 	}

@@ -3,6 +3,7 @@
 
 #include "BaseBlockWidget.h"
 #include "BlockInfoItem.h"
+#include "ColorManager.h"
 
 class CBColorBlockWidget : public CBaseBlockWidget
 {
@@ -57,7 +58,7 @@ private:
 	void drawClient(QPainter& p,const QRect& rtClient);			//绘制主区域
 	void drawBottom(QPainter& p,const QRect& rtBottom);			//绘制底部区域
 
-	void drawBlock(QPainter& p,const QRect& rtCB,CBlockInfoItem* pItem);	//绘制单只股票
+	void drawBlock(QPainter& p,const QRect& rtCB,CBlockInfoItem* pItem,CColorItem* pClrItem);	//绘制单只股票
 
 	QRect rectOfBlock(CBlockInfoItem* pItem);					//获取某只股票显示的位置
 	CBlockInfoItem* hitTestBlock(const QPoint& ptPoint) const;	//测试某点所指向的股票信息
@@ -83,8 +84,6 @@ private:
 	QRect m_rtBottom;						//底部区域，用于鼠标操作等信息
 
 	QTimer m_timerUpdateUI;					//界面更新的timer
-
-	QVector<QRgb> m_clrTable;				//颜色表，12个
 
 
 	QList<QPair<CBlockInfoItem*,QRect>> m_listBlockBtns;	//各个分类所在的矩形

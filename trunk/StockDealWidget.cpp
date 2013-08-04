@@ -399,12 +399,7 @@ void CStockDealWidget::setDealType( RDealWidgetType _t )
 
 void CStockDealWidget::setColorMode( const QString& mode )
 {
-	m_vColor.clear();
 	m_qsColorMode = mode;
-	for (int i=0;i<21;++i)
-	{
-		m_vColor.push_back(CColorManager::getBlockColor(mode,i));
-	}
 	updateData();
 }
 
@@ -531,8 +526,8 @@ void CStockDealWidget::drawClient( QPainter& p )
 {
 	if(!m_pCurStock)
 		return;
-	QVector<uint> vColors;
-	CColorManager::getBlockColor(m_qsColorMode,vColors);
+
+	CColorItem* pClrItem = CColorManager::getColorItem(m_qsColorMode);
 
 	int iBeginX = m_rtClient.right();
 //	int iEndX = m_rtClient.left();			//全部显示，暂时不用
@@ -579,7 +574,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 						for(int j=0;j<7;++j)
 						{
 							float fh = (fDealKind[j]/fTotal)*fH;
-							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,vColors[j]);
+							p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,pClrItem->getColor(7));
 							fY += fh;
 						}
 					}
@@ -599,7 +594,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 							for(int j=0;j<21;++j)
 							{
 								float fh = (fDealIncrease[j]/fTotal)*fH;
-								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[j]);
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,pClrItem->getColor(7));
 								fY += fh;
 							}
 						}
@@ -639,7 +634,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 								float fh = (iter.value()/fTotalBuy)*fH;
 								if(j<10)
 									j=10;
-								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[j]);
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,pClrItem->getColor(7));
 								fY += fh;
 								--j;
 								++iter;
@@ -658,7 +653,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 								float fh = (iter.value()/fTotalSell)*fH;
 								if(j<0)
 									j=0;
-								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,m_vColor[j]);
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fh,pClrItem->getColor(7));
 								fY += fh;
 								--j;
 								++iter;
@@ -710,7 +705,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 									int iIndex = ((iter.value()/fTotalBuy)*100)+0.5;
 									if(iIndex>9)
 										iIndex=9;
-									p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[20-iIndex]);
+									p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,pClrItem->getColor(7));
 									fY += fPer;
 								}
 								++j;
@@ -721,7 +716,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 								int iIndex = ((fV/fTotalBuy)*100)+0.5;
 								if(iIndex>9)
 									iIndex=9;
-								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[20-iIndex]);
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,pClrItem->getColor(7));
 							}
 						}
 
@@ -747,7 +742,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 									int iIndex = ((iter.value()/fTotalSell)*100)+0.5;
 									if(iIndex>9)
 										iIndex=9;
-									p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[9-iIndex]);
+									p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,pClrItem->getColor(7));
 									fY += fPer;
 								}
 								++j;
@@ -758,7 +753,7 @@ void CStockDealWidget::drawClient( QPainter& p )
 								int iIndex = ((fV/fTotalSell)*100)+0.5;
 								if(iIndex>9)
 									iIndex=9;
-								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,m_vColor[9-iIndex]);
+								p.fillRect(rtBlock.left(),fY,rtBlock.width(),fPer,pClrItem->getColor(7));
 							}
 						}
 					}

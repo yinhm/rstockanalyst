@@ -18,6 +18,37 @@ CColorItem::~CColorItem()
 
 }
 
+uint CColorItem::getColor( const float& _f,const float& _abs/*=0.1*/ )
+{
+	if(m_vColors.size()<3)
+		return rRGB(0,0,0);
+
+	if(_f>=_abs)
+	{
+		return m_vColors.first();
+	}
+	else if(_f<=-_abs)
+	{
+		return m_vColors.last();
+	}
+
+	float fStep = (_abs*2/(m_vColors.size()-2));
+	return m_vColors[(_abs-_f)/fStep];
+}
+
+uint CColorItem::getColor( const int& _v )
+{
+	if(m_vColors.size()<0)
+		return rRGB(0,0,0);
+
+	if(_v<0)
+		return m_vColors.first();
+	if(_v>=m_vColors.size())
+		return m_vColors.last();
+
+	return m_vColors[_v];
+}
+
 
 void CColorManager::initAll()
 {
@@ -109,54 +140,16 @@ QStringList CColorManager::getBlockColorList()
 	return m_mapColors.keys();
 }
 
-uint CColorManager::getBlockColor( const QString& mode,float fVal )
-{
-	int iColor = fVal+10.5;
-	if(iColor>(20))
-		iColor = (20);
-	if(iColor<0)
-		iColor = 0;
-
-	if(m_mapColors.contains(mode))
-	{
-		return m_mapColors[mode][iColor];
-	}
-	else
-	{
-		return m_pDefaultColor[iColor];
-	}
-}
-
-uint CColorManager::getBlockColor( const QString& mode,int index )
-{
-	if(index>(20))
-		index = (20);
-	if(index<0)
-		index = 0;
-
-	if(m_mapColors.contains(mode))
-	{
-		return m_mapColors[mode][index];
-	}
-	else
-	{
-		return m_pDefaultColor[index];
-	}
-}
-
-bool CColorManager::getBlockColor( const QString& mode,QVector<uint>& vColors )
+CColorItem* CColorManager::getColorItem( const QString& mode )
 {
 	if(m_mapColors.contains(mode))
 	{
-		vColors = m_mapColors[mode];
-		return true;
+		return m_mapColors[mode];
 	}
-	else
-	{
-		vColors = m_pDefaultColor;
-		return false;
-	}
+
+	return m_pDefaultColor;
 }
+
 
 uint CColorManager::getCommonColor( int index )
 {
