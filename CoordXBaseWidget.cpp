@@ -30,21 +30,21 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 	}
 	{
 		//初始化显示周期的快速查找表
-		m_listCircle.push_back(RWidgetOpData(AutoCircle,".auto","自动分时图"));
-		m_listCircle.push_back(RWidgetOpData(Sec3,".m3","3秒分时图"));
-		m_listCircle.push_back(RWidgetOpData(Sec6,".m6","6秒分时图"));
-		m_listCircle.push_back(RWidgetOpData(Sec12,".m12","12秒分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min1,".f1","一分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min5,".f5","五分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min15,".f15","刻分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min30,".f30","半小时分时图"));
-		m_listCircle.push_back(RWidgetOpData(Min60,".f60","时分时图"));
+		m_listCircle.push_back(RWidgetOpData(AutoCircle,"0","自动分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec3,"s3","3秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec6,"s6","6秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Sec12,"s12","12秒分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min1,"m1","一分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min5,"m52","五分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min15,"m153","刻分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min30,"m304","半小时分时图"));
+		m_listCircle.push_back(RWidgetOpData(Min60,"h15","时分时图"));
 
-		m_listCircle.push_back(RWidgetOpData(Day,".r","日线图"));
-		m_listCircle.push_back(RWidgetOpData(Week,".z","周线图"));
-		m_listCircle.push_back(RWidgetOpData(Month,".y","月线图"));
-		m_listCircle.push_back(RWidgetOpData(Month3,".y3","季线图"));
-		m_listCircle.push_back(RWidgetOpData(Year,".n","年线图"));
+		m_listCircle.push_back(RWidgetOpData(Day,"d6","日线图"));
+		m_listCircle.push_back(RWidgetOpData(Week,"w7","周线图"));
+		m_listCircle.push_back(RWidgetOpData(Month,"y8","月线图"));
+		m_listCircle.push_back(RWidgetOpData(Month3,"q3","季线图"));
+		m_listCircle.push_back(RWidgetOpData(Year,"y9","年线图"));
 	}
 
 	m_pMenuCustom = new QMenu(tr("色块图菜单"));
