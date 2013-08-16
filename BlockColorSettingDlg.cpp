@@ -23,49 +23,64 @@ CBlockColorSettingDlg* CBlockColorSettingDlg::getDialog()
 CBlockColorSettingDlg::CBlockColorSettingDlg( QWidget* parent /*= 0*/ )
 	: QDialog(parent)
 {
-	QGridLayout* pMainLayout = new QGridLayout(this);
+	QVBoxLayout* pMainLayout = new QVBoxLayout(this);
+
+	QHBoxLayout* pCentLayout = new QHBoxLayout();
+	QHBoxLayout* pLastLayout = new QHBoxLayout();
+	pMainLayout->addLayout(pCentLayout,90);
+	pMainLayout->addLayout(pLastLayout,10);
 
 	{
+		QVBoxLayout* pVLayout = new QVBoxLayout();
+		pCentLayout->addLayout(pVLayout,50);
 		//左侧的模式选择列表
 		m_pListColors = new QListWidget(this);
-		pMainLayout->addWidget(m_pListColors,0,0,90,30);
+		pVLayout->addWidget(m_pListColors,90);
 		connect(m_pListColors,SIGNAL(itemSelectionChanged()),this,SLOT(onColorItemChanged()));
 
+		QHBoxLayout* pHLayout = new QHBoxLayout();
 		QPushButton* pAddMode = new QPushButton(tr("添加"));
-		pMainLayout->addWidget(pAddMode,90,0,5,15);
+		pHLayout->addWidget(pAddMode);
 		connect(pAddMode,SIGNAL(clicked()),this,SLOT(onAddColorMode()));
 
 		QPushButton* pRemoveMode = new QPushButton(tr("删除"));
-		pMainLayout->addWidget(pRemoveMode,90,15,5,15);
+		pHLayout->addWidget(pRemoveMode);
 		connect(pRemoveMode,SIGNAL(clicked()),this,SLOT(onRemoveColorMode()));
+		pVLayout->addLayout(pHLayout,10);
 	}
 
 	{
+		QVBoxLayout* pVLayout = new QVBoxLayout();
+		pCentLayout->addLayout(pVLayout,50);
 		//右侧的主显示窗口
-		QGroupBox* pGroupBox = new QGroupBox(tr("选中模式颜色表"),this);
-	//	QGridLayout* pRightLayout = new QGridLayout(this);
-		for (int i=0;i<21;++i)
-		{
-			QLabel* pLabel = new QLabel(QString("%1").arg(i-10),this);
-			pMainLayout->addWidget(pLabel,5+i*4,40,3,10);
+		QLabel* pLabel = new QLabel(tr("选中模式颜色表"),this);
+		pVLayout->addWidget(pLabel);
 
-			QPushButton* pBtn = new QPushButton(this);
-			m_vColorButtons.push_back(pBtn);
-			connect(pBtn,SIGNAL(clicked()),this,SLOT(onSetButtonColor()));
-			pMainLayout->addWidget(pBtn,5+i*4,50,3,40);
-		}
+		m_pListDetail = new QListWidget(this);
+		m_pListDetail->setSelectionMode(QListWidget::MultiSelection);
+		connect(m_pListDetail,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(onClickedItemColor(QListWidgetItem*)));
 
-		pMainLayout->addWidget(pGroupBox,0,30,95,70);
+		pVLayout->addWidget(m_pListDetail,80);
+
+		QHBoxLayout* pHLayout = new QHBoxLayout();
+		QPushButton* pAddMode = new QPushButton(tr("添加"));
+		pHLayout->addWidget(pAddMode);
+		connect(pAddMode,SIGNAL(clicked()),this,SLOT(onAddItemColor()));
+
+		QPushButton* pRemoveMode = new QPushButton(tr("删除"));
+		pHLayout->addWidget(pRemoveMode);
+		connect(pRemoveMode,SIGNAL(clicked()),this,SLOT(onRemoveItemColor()));
+		pVLayout->addLayout(pHLayout,10);
 	}
 
 	{
 		//最底下的 确定/取消 按钮
 		QPushButton* pBtnOk = new QPushButton(tr("确定"));
-		pMainLayout->addWidget(pBtnOk,95,0,5,50);
+		pLastLayout->addWidget(pBtnOk);
 		connect(pBtnOk,SIGNAL(clicked()),this,SLOT(onBtnOk()));
 
 		QPushButton* pBtnCancel = new QPushButton(tr("取消"));
-		pMainLayout->addWidget(pBtnCancel,95,50,5,50);
+		pLastLayout->addWidget(pBtnCancel);
 		connect(pBtnCancel,SIGNAL(clicked()),this,SLOT(onBtnCancel()));
 	}
 	this->setLayout(pMainLayout);
@@ -98,7 +113,7 @@ void CBlockColorSettingDlg::reloadColorMode()
 
 		QString qsContent = file.readAll();
 		QStringList listColors = qsContent.split("\n");
-		if(listColors.size()<21)
+		if(listColors.size()<1)
 			continue;
 
 		foreach(const QString& clr,listColors)
@@ -114,7 +129,7 @@ void CBlockColorSettingDlg::reloadColorMode()
 			colors.push_back(QColor::fromRgb(iR,iG,iB));
 		}
 
-		if(colors.size()>20)
+		if(colors.size()>0)
 			m_mapBlockColors[info.completeBaseName()] = colors;
 
 		file.close();
@@ -230,6 +245,8 @@ void CBlockColorSettingDlg::onRemoveColorMode()
 
 void CBlockColorSettingDlg::onColorItemChanged()
 {
+	m_pListDetail->clear();
+
 	QList<QListWidgetItem*> listItems = m_pListColors->selectedItems();
 	if(listItems.size()<1)
 		return;
@@ -240,52 +257,18 @@ void CBlockColorSettingDlg::onColorItemChanged()
 		return;
 
 	QVector<QColor> vColors = m_mapBlockColors[qsMode];
-	if(vColors.size()<21)
+	if(vColors.size()<1)
 		return;
 
-	for (int i=0;i<21;++i)
+	foreach(const QColor& _c,vColors)
 	{
-		QString qsStyle = QString("background-color: rgb(%1,%2,%3);")
-			.arg(vColors[i].red())
-			.arg(vColors[i].green())
-			.arg(vColors[i].blue());
+		QListWidgetItem* pItem = new QListWidgetItem(m_pListDetail);
+		pItem->setBackgroundColor(_c);
 
-		//QString qsStyle = QString("background-color: #%1;")
-		//	.arg(vColors[i].rgb(),8,16,QLatin1Char('0'));
-		m_vColorButtons[i]->setStyleSheet(qsStyle);
-		m_vColorButtons[i]->setProperty("c",vColors[i].rgb());
-//		m_vColorButtons[i]->setData(21,vColors[i]);
+		QColor _c11 = pItem->backgroundColor();
+
+		m_pListDetail->addItem(pItem);
 	}
-}
-
-void CBlockColorSettingDlg::onSetButtonColor()
-{
-	QPushButton* pBtn = reinterpret_cast<QPushButton*>(sender());
-	QColor initColor = QColor::fromRgb(pBtn->property("c").toUInt());
-
-	QColor clr = QColorDialog::getColor(initColor,this);
-	if(!clr.isValid())
-		return;
-
-
-	QString qsStyle = QString("background-color: rgb(%1,%2,%3);")
-		.arg(clr.red())
-		.arg(clr.green())
-		.arg(clr.blue());
-
-	pBtn->setStyleSheet(qsStyle);
-	pBtn->setProperty("c",clr.rgb());
-
-	int iIndex = m_vColorButtons.indexOf(pBtn);
-	if(iIndex<0||iIndex>21)
-		return;
-	
-	QList<QListWidgetItem*> listItems = m_pListColors->selectedItems();
-	if(listItems.size()<1)
-		return;
-
-	QString qsMode = listItems[0]->text();
-	m_mapBlockColors[qsMode][iIndex] = clr;
 }
 
 void CBlockColorSettingDlg::onBtnOk()
@@ -301,4 +284,53 @@ void CBlockColorSettingDlg::onBtnCancel()
 {
 	reloadColorMode();
 	hide();
+}
+
+void CBlockColorSettingDlg::onAddItemColor()
+{
+	QListWidgetItem* pItem = new QListWidgetItem();
+	pItem->setBackgroundColor(QColor(255,0,0));
+	m_pListDetail->addItem(pItem);
+	updateCurMode();
+}
+
+void CBlockColorSettingDlg::onRemoveItemColor()
+{
+	QList<QListWidgetItem*> list = m_pListDetail->selectedItems();
+	foreach(QListWidgetItem* pItem,list)
+	{
+		delete pItem;
+	}
+	updateCurMode();
+}
+
+void CBlockColorSettingDlg::onClickedItemColor( QListWidgetItem* pItem )
+{
+	if(pItem==NULL)
+		return;
+
+	QColor initColor = pItem->backgroundColor();
+
+	QColor clr = QColorDialog::getColor(initColor,this);
+	if(!clr.isValid())
+		return;
+
+	pItem->setBackgroundColor(clr);
+
+	updateCurMode();
+}
+
+void CBlockColorSettingDlg::updateCurMode()
+{
+	QList<QListWidgetItem*> listItems = m_pListColors->selectedItems();
+	if(listItems.size()<1)
+		return;
+
+	QString qsMode = listItems[0]->text();
+	m_mapBlockColors[qsMode].clear();
+	for(int i=0;i<m_pListDetail->count();++i)
+	{
+		QListWidgetItem* pItem = m_pListDetail->item(i);
+		m_mapBlockColors[qsMode].append(pItem->backgroundColor());
+	}
 }
