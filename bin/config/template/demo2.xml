@@ -198,7 +198,7 @@ DrawLine(MA(OPEN,3))</exp>
        <type>1</type>
        <relate>1</relate>
        <align>1</align>
-       <size>48</size>
+       <size>47</size>
        <code>000070SZ</code>
        <liners>
         <Liner size="60">

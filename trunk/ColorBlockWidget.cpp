@@ -1118,7 +1118,10 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,
 
 			QRect rtInc = QRect(iX,rtCB.top(),m_iCBWidth,m_iCBHeight);
 			rtInc.adjust(0,1,0,-1);
-			p.fillRect(rtInc,pClrItem->getColor((((pHis->fClose-pLast->fClose)*100)/pLast->fClose),10));
+			if(pLast->fClose>0.0001)
+			{
+				p.fillRect(rtInc,pClrItem->getColor((((pHis->fClose-pLast->fClose)*100)/pLast->fClose),10));
+			}
 
 			++iCount;
 			--iIndex;

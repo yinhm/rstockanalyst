@@ -62,7 +62,9 @@ void CColorManager::reloadBlockColors()
 	QMap<QString,CColorItem*>::iterator iter = m_mapColors.begin();
 	while(iter!=m_mapColors.end())
 	{
-		delete iter.value();
+		CColorItem* pItem = iter.value();
+		delete pItem;
+		++iter;
 	}
 	m_mapColors.clear();
 

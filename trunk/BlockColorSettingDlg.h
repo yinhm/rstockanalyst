@@ -26,14 +26,21 @@ protected slots:
 	void onAddColorMode();
 	void onRemoveColorMode();
 	void onColorItemChanged();
-	void onSetButtonColor();
+
+	void onAddItemColor();
+	void onRemoveItemColor();
+	void onClickedItemColor(QListWidgetItem* pItem);
+
 	void onBtnOk();					//确定
 	void onBtnCancel();				//取消
 
+protected:
+	void updateCurMode();			//更新当前的颜色表
+
 private:
 	static CBlockColorSettingDlg* m_pDialog;
-	QVector<QPushButton*> m_vColorButtons;
 	QListWidget* m_pListColors;
+	QListWidget* m_pListDetail;
 
 	QMap<QString,QVector<QColor>> m_mapBlockColors;	//色块颜色种类。（通过百分比来所获取颜色的种类数）
 };

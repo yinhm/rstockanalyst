@@ -14,7 +14,7 @@
 inline uint rRGB(int r, int g, int b)// set RGB value
 { return (0xffu << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff); }
 
-class RSDSHARED_EXPORT CColorItem
+class RSDSHARED_EXPORT CColorItem : public QObject
 {
 public:
 	CColorItem(const QVector<uint>& vClrs);
