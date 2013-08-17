@@ -33,7 +33,7 @@ uint CColorItem::getColor( const float& _f,const float& _abs/*=0.1*/ )
 	}
 
 	float fStep = (_abs*2/(m_vColors.size()-2));
-	return m_vColors[(_abs-_f)/fStep];
+	return m_vColors[(_abs-_f)/fStep + 1];
 }
 
 uint CColorItem::getColor( const int& _v )

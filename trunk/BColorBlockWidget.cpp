@@ -632,19 +632,10 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 				float fLeft = iter.value()-m_iCBWidth;
 				float fHeight = rtCB.height()-1;
 
-				float fCount[20];
+				float fCount[21];
 				memcpy(&fCount[0],&(pFenBi->fIncrease[0]),sizeof(float)*21);
 
 				float fTotal = 0;
-				for (int i=0;i<10;++i)
-				{
-					fCount[i]=(fCount[i]/(1+i/2));
-				}
-				fCount[20] = (fCount[20]/10);
-				for (int i=10;i<20;++i)
-				{
-					fCount[i]=(fCount[i]/(1+(i-11)/2));
-				}
 
 				for (int i=0;i<21;++i)
 				{
