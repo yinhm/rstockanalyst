@@ -14,7 +14,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iCurExp(0)
 	, m_bShowMax(false)
 	, m_iTitleHeight(16)
-	, m_iCoorYWidth(50)
+	, m_iCoorYWidth(30)
 	, m_iCoorXHeight(16)
 	, m_iMainLinerHeight(200)
 	, m_mapData(NULL)
@@ -193,7 +193,11 @@ void CKLineWidget::setStockItem( CAbstractStockItem* pItem )
 void CKLineWidget::updateTimesH()
 {
 	//更新当前的横坐标数据，从后向前计算时间
-	if(m_typeCircle<Day)
+	if(m_typeCircle == FenShi)
+	{
+
+	}
+	else if(m_typeCircle<Day)
 		m_mapTimes = CDataEngine::getTodayTimeMap(m_typeCircle);
 	else
 		m_mapTimes = CDataEngine::getHistoryTimeMap(m_typeCircle,m_iShowCount*2);
@@ -283,8 +287,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 		/*画X坐标轴*/
 		QRectF rtCoordX = QRectF(rtClient.left()+3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
 		m_fItemWidth = float(rtCoordX.width()-1)/float(m_iShowCount);
-		updateShowTimes(rtCoordX,m_fItemWidth);
-		CCoordXBaseWidget::drawCoordX(p,rtCoordX,m_fItemWidth);
+		drawCoordX(p,rtCoordX,m_fItemWidth);
 
 		rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);			//改变为可画图区域的大小
 	}
@@ -318,7 +321,7 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 
 		luaL_dostring(m_pL,qsExp.toLocal8Bit());
 
-		drawCoordY(p,QRectF(rtClient.right(),rtClient.top(),50,rtClient.height()),draw.fMax,draw.fMin);
+		drawCoordY(p,QRectF(rtClient.right(),rtClient.top(),m_iCoorYWidth,rtClient.height()),draw.fMax,draw.fMin);
 	}
 	else
 	{
@@ -1009,4 +1012,221 @@ void CKLineWidget::keyWizEntered( KeyWizData* pData )
 	}
 
 	return CCoordXBaseWidget::keyWizEntered(pData);
+}
+
+void CKLineWidget::drawCoordX( QPainter& p,const QRectF& rtCoordX,float fItemWidth )
+{
+	if(m_typeCircle != FenShi)
+	{
+		updateShowTimes(rtCoordX,fItemWidth);
+	}
+
+	//从右向左绘制横坐标
+	float fBeginX = rtCoordX.right();
+	float fEndX = rtCoordX.left();
+	float fCBWidth = fBeginX-fEndX;
+	if(fCBWidth<0)
+		return;
+
+	QList<time_t> listTimes = m_mapTimes.keys();
+	float fCurX = fBeginX-fItemWidth;
+	float fLastX = fBeginX;
+	int iCount = listTimes.size()-1;
+	if(iCount<0)
+		return;
+
+	int iTimeCount = 0;				//只是用来区分时间的颜色（隔开颜色，便于查看）
+	if(m_typeCircle==FenShi)
+	{
+
+	}
+	else if(m_typeCircle<Day)
+	{
+		time_t tmCurDate = QDateTime(QDateTime::fromTime_t(listTimes[iCount]).date()).toTime_t();
+		while(fCurX>fEndX && iCount>=0)
+		{
+			time_t tmTime = listTimes[iCount];
+			if(tmTime<tmCurDate)
+			{
+				p.setPen(QColor(255,255,255));
+				p.fillRect(fLastX-14,rtCoordX.top(),30,rtCoordX.height(),QColor(0,0,0));
+				p.drawLine(fCurX+fItemWidth,rtCoordX.top(),fCurX+fItemWidth,rtCoordX.top()+2);
+				p.drawText(fCurX+fItemWidth-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+					Qt::AlignCenter,QDateTime::fromTime_t(tmCurDate).toString("MM/dd"));
+
+				tmCurDate = QDateTime(QDateTime::fromTime_t(tmTime).date()).toTime_t();
+				fLastX = fCurX;
+				++iTimeCount;
+			}
+			else
+			{
+				if(m_typeCircle<Min1)
+				{
+					if((fLastX-fCurX)>30)
+					{
+						if(iTimeCount%2)
+						{
+							p.setPen(QColor(255,0,0));
+							p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+							p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+								Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+						}
+						else
+						{
+							p.setPen(QColor(0,255,255));
+							p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+							p.drawText(fCurX-24,rtCoordX.top()+2,50,rtCoordX.height()-2,
+								Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("mm:ss"));
+						}
+
+						fLastX = fCurX;
+						++iTimeCount;
+					}
+				}
+				else
+				{
+					if((fLastX-fCurX)>30)
+					{
+						p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
+						p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+						p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+
+						fLastX = fCurX;
+						++iTimeCount;
+					}
+				}
+			}
+
+			--iCount;
+			fCurX = fCurX- fItemWidth;
+		}
+	}
+	else
+	{
+		while(fCurX>fEndX && iCount>=0)
+		{
+			if((fLastX-fCurX)>80)
+			{
+				p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
+				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+				switch(m_typeCircle)
+				{
+				case Week:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QString("%1 %2").arg(dtmTmp.date().year()).arg(dtmTmp.date().weekNumber()));
+					}
+					break;
+				case Month:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy/MM"));
+					}
+					break;
+				case Month3:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy/MM"));
+					}
+					break;
+				case Year:
+					{
+						QDateTime dtmTmp = QDateTime::fromTime_t(listTimes[iCount]);
+						p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+							Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy"));
+					}
+					break;
+				default:
+					p.drawText(fCurX-40,rtCoordX.top()+2,80,rtCoordX.height()-2,
+						Qt::AlignCenter,QDateTime::fromTime_t(listTimes[iCount]).toString("yyyy/MM/dd"));
+					break;
+				}
+				fLastX = fCurX;
+				++iTimeCount;
+			}
+
+			--iCount;
+			fCurX = fCurX- fItemWidth;
+		}
+	}
+	return;
+}
+
+void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, float fMin )
+{
+	//最高精确到小数点后三位，将数据扩大1000倍进行计算
+	if(!rtCoordY.isValid())
+		return;
+	if(fMax<=fMin)
+		return;
+
+	//设置画笔颜色
+	p.setPen(QColor(255,0,0));
+
+	//Y坐标（价格）
+	p.drawLine(rtCoordY.topLeft(),rtCoordY.bottomLeft());			//主线
+
+	qint64 iValueMax = fMax*1000;
+	qint64 iValueMin = fMin*1000;
+	qint64 iAllValue = iValueMax-iValueMin;
+	float fAllUi = rtCoordY.height();
+	float fRealPerUi = fAllUi/(fMax-fMin);
+
+	qint64 iValueIncre = 1;
+	while(iAllValue/iValueIncre>100)
+	{
+		iValueIncre *= 10;
+	}
+	if(iValueIncre>10000000000)
+		return;
+
+	qint64 iValue = qint64((iValueMin + iValueIncre)/iValueIncre)*iValueIncre;
+	float fBottom = rtCoordY.bottom();
+	float fX = rtCoordY.left();
+
+	float fLastY = -100;
+	int iDrawIndex = 0;
+
+	QPen oldPen = p.pen();
+	QPen newPen = QPen(Qt::DotLine);
+	newPen.setColor(QColor(155,155,155));
+
+	while(iValue<iValueMax)
+	{
+		float fValue = iValue/(1000.0);
+		float fY = (fBottom - (fValue - fMin)*(fRealPerUi));
+		if(abs(fY-fLastY) > 30)
+		{
+			p.setPen(oldPen);
+			if(iDrawIndex%2)
+				p.setPen(QColor(255,0,0));
+			else
+				p.setPen(QColor(0,255,255));
+
+			p.drawLine(fX,fY,fX+4,fY);
+
+			int iDot = 3 - int(log10(double(iValueIncre))+0.1);
+			if(iDot<0)
+				iDot = 0;
+			if(fValue>10000.0)
+			{
+				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
+			}
+			else
+			{
+				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
+			}
+
+			p.setPen(newPen);
+			p.drawLine(fX,fY,m_rtClient.left(),fY);
+
+			fLastY = fY;
+			++iDrawIndex;
+		}
+		iValue = iValue+iValueIncre;
+	}
 }

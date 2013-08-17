@@ -616,6 +616,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 		{
 			--iterFenBi;
 			RBlockData* pFenBi = reinterpret_cast<RBlockData*>(*iterFenBi);
+			QString qsTime = QDateTime::fromTime_t(pFenBi->tmTime).toString();
 
 			QMap<time_t,float>::iterator iter = m_mapShowTimes.lowerBound(pFenBi->tmTime);
 			if(iter==m_mapShowTimes.end())
@@ -652,7 +653,6 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 					//10-1
 					float fPerH = fCount[j]*fPer;
 					p.fillRect(QRectF(fLeft,fCurY,m_iCBWidth,fPerH),pClrItem->getColor(20-j));
-				
 					fCurY+=fPerH;
 				}
 				{
