@@ -13,7 +13,7 @@
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>38</size>
+   <size>37</size>
    <widget>
     <name></name>
     <ClearMode>0</ClearMode>
@@ -30,7 +30,7 @@
     <type>1</type>
     <relate>1</relate>
     <align>1</align>
-    <size>37</size>
+    <size>36</size>
     <code>900936SH</code>
     <liners>
      <Liner size="80">
@@ -79,7 +79,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
    <type>0</type>
    <relate>1</relate>
    <align>1</align>
-   <size>61</size>
+   <size>62</size>
    <widget circle="3602">
     <name></name>
     <ClearMode>0</ClearMode>

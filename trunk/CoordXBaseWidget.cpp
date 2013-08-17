@@ -31,6 +31,7 @@ CCoordXBaseWidget::CCoordXBaseWidget(CBaseWidget* parent /*= 0*/, RWidgetType ty
 	{
 		//初始化显示周期的快速查找表
 		m_listCircle.push_back(RWidgetOpData(AutoCircle,"0","自动分时图"));
+		m_listCircle.push_back(RWidgetOpData(FenShi,"1","分时图"));
 		m_listCircle.push_back(RWidgetOpData(Sec3,"s3","3秒分时图"));
 		m_listCircle.push_back(RWidgetOpData(Sec6,"s6","6秒分时图"));
 		m_listCircle.push_back(RWidgetOpData(Sec12,"s12","12秒分时图"));
@@ -110,6 +111,9 @@ void CCoordXBaseWidget::updateTimesH()
 
 void CCoordXBaseWidget::updateShowTimes( const QRectF& rtCoordX,float fItemWidth )
 {
+	if(m_typeCircle == FenShi)
+		return;
+
 	m_mapShowTimes.clear();
 	//从右向左绘制横坐标
 	float fBeginX = rtCoordX.right();

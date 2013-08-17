@@ -83,6 +83,11 @@ private:
 	void drawShowBtns(QPainter& p,const QRect& rtBtns);	//绘制右下角的两个按钮
 	void drawExpArgs(QPainter& p,const QRect& rtClient,
 		const QString& e,QList<uint>& lsColor);
+
+	virtual void drawCoordX(QPainter& p,const QRectF& rtCoordX,float fItemWidth);	//绘制X坐标轴
+	//绘制Y轴，主要用于K线图
+	virtual void drawCoordY(QPainter& p,const QRectF rtCoordY, float fMax, float fMin);
+
 private:
 	void resetTmpData();					//重新计算数据。
 
