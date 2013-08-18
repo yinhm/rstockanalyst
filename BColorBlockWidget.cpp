@@ -608,7 +608,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 	if(fCBWidth<0)
 		return;
 
-	QList<RStockData*> listDatas = pItem->get5MinList();
+	QList<RStockData*> listDatas = pItem->getMinList();
 	if(listDatas.size()>0)
 	{
 		QList<RStockData*>::iterator iterFenBi = listDatas.end();
@@ -758,7 +758,7 @@ void CBColorBlockWidget::onRecalcBlock()
 {
 	if(m_pSelectedBlock)
 	{
-		m_pSelectedBlock->recalc5MinData();
+		m_pSelectedBlock->recalcMinData();
 		updateSortMode(false);
 	}
 }
