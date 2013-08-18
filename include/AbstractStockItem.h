@@ -13,6 +13,7 @@ struct qRcvFenBiData;
 struct qRcvReportData;
 struct qRcvHistoryData;
 struct tagRStockData;
+struct tagRcvBlockData;
 
 class RSDSHARED_EXPORT CAbstractStockItem : public QObject
 {
@@ -36,10 +37,13 @@ public:
 	virtual QList<qRcvHistoryData*> getLastHistory(int count);
 	virtual void appendHistorys(const QList<qRcvHistoryData*>& list);
 
-	//补充历史5分钟数据
-	virtual void append5MinData(tagRStockData* pData);
-	virtual QList<tagRStockData*> get5MinList() = 0;		//追加最后不够5分钟的数据
-	virtual void recalc5MinData() = 0;						//重新计算当日5Min数据
+	//补充历史分钟数据
+	virtual void appendMinData(tagRStockData* pData);
+	virtual QList<tagRStockData*> getMinList() = 0;		//追加最后不够5分钟的数据
+	virtual void recalcMinData() = 0;					//重新计算当日5Min数据
+
+	virtual QList<tagRStockData*> get5MinList();				//5分钟数据
+	virtual tagRStockData* get5MinData( const time_t& tmTime );	//获取指定时间的数据
 
 
 public:
@@ -107,9 +111,12 @@ protected:
 	WORD wMarket;									//市场类型
 	QString qsMarket;								//市场类型名称
 	QMap<time_t,qRcvFenBiData*> mapFenBis;			//分笔数据
-	QMap<time_t,tagRStockData*> map5MinDatas;		//5分钟历史数据，一般存储10天的
+	QMap<time_t,tagRStockData*> mapMinDatas;		//1分钟历史数据，一般存储7天的
+	QMap<time_t,tagRStockData*> map5MinDatas;		//5分钟历史数据，一般存储7天的，从1分钟数据中计算得出
 	QList<qRcvHistoryData*> listHistories;			//历史数据
 	qRcvReportData* pCurrentReport;					//当前的Report
+
+	tagRcvBlockData* pCurrent5Min;						//当前5分钟数据
 
 	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
 };

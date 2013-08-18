@@ -1343,7 +1343,7 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 	while(iter!=m_mapShowTimes.end())
 	{
 		QRect rtCB = QRect(iter.value(),iY,m_iCBWidth,m_iCBHeight);
-		p.fillRect(rtCB,QColor(0,0,0));
+//		p.fillRect(rtCB,QColor(0,0,0));
 
 		QRectF rtCB1 = QRectF(iter.value(),iY,m_iCBWidth,m_iCBHeight/3*2);
 		QRectF rtCB2 = QRectF(iter.value(),iY+m_iCBHeight/3*2,m_iCBWidth,m_iCBHeight/3);
@@ -1371,7 +1371,14 @@ void CColorBlockWidget::drawColocBlock( QPainter& p,int iY, QVector<float>& vCol
 				else if(fW>1)
 					fW = 1;
 
-				rtCB1.adjust(1,1,-1,0);
+				if(rtCB1.width()>2)
+				{
+					rtCB1.adjust(1,2,-1,-1);
+				}
+				else
+				{
+					rtCB1.adjust(0,2,0,-1);
+				}
 //				rtCB.setHeight(rtCB.height()*fH);
 				rtCB2.adjust(1,0,-1,-1);
 				p.fillRect(rtCB1,pClrItem->getColor(f,(float)0.1));

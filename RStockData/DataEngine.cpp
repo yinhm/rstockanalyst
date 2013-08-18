@@ -320,7 +320,7 @@ void CDataEngine::exportData()
 	}
 	{
 		//导出5分钟数据
-		export5MinData();
+		exportMinData();
 	}
 	{
 		//导出监视雷达数据
@@ -669,13 +669,13 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 	return iCount;
 }
 
-int CDataEngine::export5MinData()
+int CDataEngine::exportMinData()
 {
 	QList<CAbstractStockItem*> listStocks = CDataEngine::getDataEngine()->getStockItems();
 	foreach(CAbstractStockItem* pItem,listStocks)
 	{
 		//导出5min数据
-		CDataEngine::getDataEngine()->export5MinData(pItem);
+		CDataEngine::getDataEngine()->exportMinData(pItem);
 	}
 	return listStocks.size();
 }
@@ -688,8 +688,8 @@ int CDataEngine::exportCloseData()
 	foreach(CStockInfoItem* pItem,listStocks)
 	{
 		//导出5min数据
-		pItem->recalc5MinData();
-		CDataEngine::getDataEngine()->export5MinData(pItem);
+		pItem->recalcMinData();
+		CDataEngine::getDataEngine()->exportMinData(pItem);
 		qRcvReportData* pReport = pItem->getCurrentReport();
 		if(pReport)
 		{
@@ -705,8 +705,8 @@ int CDataEngine::exportCloseData()
 	foreach(CBlockInfoItem* pItem,listBlocks)
 	{
 		//导出5min数据
-		pItem->recalc5MinData();
-		CDataEngine::getDataEngine()->export5MinData(pItem);
+		pItem->recalcMinData();
+		CDataEngine::getDataEngine()->exportMinData(pItem);
 		qRcvReportData* pReport = pItem->getCurrentReport();
 		if(pReport)
 		{
@@ -1162,13 +1162,13 @@ CDataEngine::CDataEngine(void)
 	QDir().mkpath(m_qsF10Dir+getMarketStr(EB_MARKET_EX));
 	QDir().mkpath(m_qsF10Dir+getMarketStr(BB_MARKET_EX));*/
 
-	m_qs5Min = qApp->applicationDirPath()+"/data/5min/";
-	QDir().mkpath(m_qs5Min);
-	QDir().mkpath(m_qs5Min+getMarketStr(SH_MARKET_EX));
-	QDir().mkpath(m_qs5Min+getMarketStr(SZ_MARKET_EX));
-	QDir().mkpath(m_qs5Min+getMarketStr(HK_MARKET_EX));
-	QDir().mkpath(m_qs5Min+getMarketStr(EB_MARKET_EX));
-	QDir().mkpath(m_qs5Min+getMarketStr(BB_MARKET_EX));
+	m_qsMin = qApp->applicationDirPath()+"/data/min/";
+	QDir().mkpath(m_qsMin);
+	QDir().mkpath(m_qsMin+getMarketStr(SH_MARKET_EX));
+	QDir().mkpath(m_qsMin+getMarketStr(SZ_MARKET_EX));
+	QDir().mkpath(m_qsMin+getMarketStr(HK_MARKET_EX));
+	QDir().mkpath(m_qsMin+getMarketStr(EB_MARKET_EX));
+	QDir().mkpath(m_qsMin+getMarketStr(BB_MARKET_EX));
 
 	m_qsFenBiDir = qApp->applicationDirPath()+"/data/FenBi/";
 	QDir().mkpath(m_qsFenBiDir);
@@ -1485,7 +1485,7 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( CAbstractStockItem* pItem, 
 	return list;
 }
 
-bool CDataEngine::export5MinData( CAbstractStockItem* pItem )
+bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 {
 	//导出5分钟数据，对于非今日的数据只以5min为最小单位存储
 	//60*sizeof(RStockData)
@@ -1496,9 +1496,9 @@ bool CDataEngine::export5MinData( CAbstractStockItem* pItem )
 		return false;
 
 	time_t tmDate = QDateTime(QDateTime::fromTime_t(pReport->tmTime).date()).toTime_t();
-	tmDate = tmDate-3600*24*15;		//15天以前的数据不再保存
+	tmDate = tmDate-3600*24*7;		//15天以前的数据不再保存
 
-	QString qsFileName = QString("%1/%2/%3").arg(m_qs5Min).arg(pItem->getMarketName()).arg(pItem->getCode());
+	QString qsFileName = QString("%1/%2/%3").arg(m_qsMin).arg(pItem->getMarketName()).arg(pItem->getCode());
 	QFile file(qsFileName);
 	if(!file.open(QFile::WriteOnly|QFile::Truncate))
 	{
@@ -1507,7 +1507,7 @@ bool CDataEngine::export5MinData( CAbstractStockItem* pItem )
 	}
 
 	QDataStream out(&file);
-	QList<tagRStockData*> listData = pItem->get5MinList();
+	QList<tagRStockData*> listData = pItem->getMinList();
 	if(pItem->isInstanceOfBlock())
 	{
 		int iSizeOfStruct = sizeof(RBlockData);
@@ -1537,9 +1537,9 @@ bool CDataEngine::export5MinData( CAbstractStockItem* pItem )
 	return true;
 }
 
-void CDataEngine::import5MinData( CAbstractStockItem* pItem, QMap<time_t,RStockData*>& mapDatas )
+void CDataEngine::importMinData( CAbstractStockItem* pItem, QMap<time_t,RStockData*>& mapDatas )
 {
-	QString qsFileName = QString("%1/%2/%3").arg(m_qs5Min).arg(pItem->getMarketName()).arg(pItem->getCode());
+	QString qsFileName = QString("%1/%2/%3").arg(m_qsMin).arg(pItem->getMarketName()).arg(pItem->getCode());
 	if(!QFile::exists(qsFileName))
 		return;
 

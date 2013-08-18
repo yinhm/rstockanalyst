@@ -455,7 +455,7 @@ bool CBaseBlockWidget::isMatchAbnomal( CAbstractStockItem* pItem )
 void CBaseBlockWidget::updateTimesH()
 {
 	//更新当前的横坐标数据，从后向前计算时间
-	m_mapTimes = CDataEngine::getTodayTimeMap(Min5);
+	m_mapTimes = CDataEngine::getTodayTimeMap(Min1);
 }
 
 void CBaseBlockWidget::updateShowTimes( const QRectF& rtCoordX,float fItemWidth )

@@ -9,7 +9,7 @@ CAbstractStockItem::CAbstractStockItem(void)
 	: pCurrentReport(NULL)
 	, fLast5Volume(0.0)
 {
-
+	pCurrent5Min = new RBlockData;
 }
 
 
@@ -28,13 +28,13 @@ CAbstractStockItem::~CAbstractStockItem(void)
 
 	{
 		//清空历史5分钟数据
-		QMap<time_t,RStockData*>::iterator iter = map5MinDatas.begin();		//5分钟历史数据
-		while(iter!=map5MinDatas.end())
+		QMap<time_t,RStockData*>::iterator iter = mapMinDatas.begin();		//5分钟历史数据
+		while(iter!=mapMinDatas.end())
 		{
 			delete iter.value();
 			++iter;
 		}
-		map5MinDatas.clear();
+		mapMinDatas.clear();
 	}
 
 	{
@@ -58,7 +58,7 @@ void CAbstractStockItem::initStockItem()
 	//}
 	//list.clear();
 
-	CDataEngine::getDataEngine()->import5MinData(this,map5MinDatas);
+	CDataEngine::getDataEngine()->importMinData(this,mapMinDatas);
 }
 
 qRcvReportData* CAbstractStockItem::getCurrentReport() const
@@ -174,15 +174,15 @@ void CAbstractStockItem::appendHistorys( const QList<qRcvHistoryData*>& list )
 }
 
 
-void CAbstractStockItem::append5MinData( tagRStockData* pData )
+void CAbstractStockItem::appendMinData( tagRStockData* pData )
 {
-	if(map5MinDatas.contains(pData->tmTime))
+	if(mapMinDatas.contains(pData->tmTime))
 	{
-		tagRStockData* pBefore = map5MinDatas[pData->tmTime];
-		map5MinDatas.remove(pBefore->tmTime);
+		tagRStockData* pBefore = mapMinDatas[pData->tmTime];
+		mapMinDatas.remove(pBefore->tmTime);
 		delete pBefore;
 	}
-	map5MinDatas.insert(pData->tmTime,pData);
+	mapMinDatas.insert(pData->tmTime,pData);
 	return;
 }
 
@@ -238,7 +238,7 @@ void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 	//如果追加的数据大于5，则重新对5分钟数据进行计算
 	if(list.size()>5 && (!CDataEngine::isLoading()))
 	{
-		recalc5MinData();
+		recalcMinData();
 	}
 
 	emit stockItemFenBiChanged(qsOnly);
@@ -351,4 +351,22 @@ int CAbstractStockItem::getNewHighVolumeCount()
 	}
 
 	return iCount;
+}
+
+QList<tagRStockData*> CAbstractStockItem::get5MinList()
+{
+	QList<tagRStockData*> list = map5MinDatas.values();
+	if(pCurrent5Min->tmTime>0 && (!mapMinDatas.contains(pCurrent5Min->tmTime)))
+	{
+		list.push_back(pCurrent5Min);
+	}
+	return list;
+}
+
+RStockData* CAbstractStockItem::get5MinData( const time_t& tmTime )
+{
+	if(mapMinDatas.contains(tmTime))
+		return mapMinDatas[tmTime];
+
+	return 0;
 }

@@ -51,7 +51,7 @@ public:
 	/*导出分笔数据*/
 	static int exportFenBisData(const QString& qsFile);
 	/*导出5分钟数据*/
-	static int export5MinData();
+	static int exportMinData();
 	/*收盘后数据整理*/
 	static int exportCloseData();
 
@@ -110,9 +110,9 @@ public:
 	QList<qRcvHistoryData*> getHistoryList(CAbstractStockItem* pItem, int count);
 
 	/*导出收盘后当天5分钟数据*/
-	bool export5MinData(CAbstractStockItem* pItem);
+	bool exportMinData(CAbstractStockItem* pItem);
 	/*获取5分钟数据*/
-	void import5MinData(CAbstractStockItem* pItem, QMap<time_t,RStockData*>& mapDatas);
+	void importMinData(CAbstractStockItem* pItem, QMap<time_t,RStockData*>& mapDatas);
 
 
 	/*导出分笔数据*/
@@ -133,7 +133,7 @@ private:
 	QString m_qsBlocksDir;						//板块数据的存储路径 AppDir/data/blocks/...
 	QString m_qsNewsDir;						//新闻数据的存储路径 AppDir/data/news/...
 	QString m_qsF10Dir;							//F10数据的存储路径 AppDir/data/F10/...
-	QString m_qs5Min;							//5分钟数据的存储路径 AppDir/data/5Min/...
+	QString m_qsMin;							//5分钟数据的存储路径 AppDir/data/5Min/...
 	QString m_qsFenBiDir;						//分笔数据的存储路径 AppDir/data/FenBi/Date/...
 
 

@@ -23,9 +23,9 @@ protected:
 
 public:
 	//补充5分钟数据
-	virtual QList<tagRStockData*> get5MinList();	//追加最后不够5分钟的数据
+	virtual QList<tagRStockData*> getMinList();	//追加最后不够5分钟的数据
 	//重新计算当日5Min数据
-	virtual void recalc5MinData();
+	virtual void recalcMinData();
 
 public:
 	QString getBlockName() const{ return blockName; }			//获取板块名称
@@ -127,7 +127,7 @@ private:
 
 	CBlockInfoItem* m_pParent;
 
-	RBlockData* pCurrent5Min;		//当前的分笔数据
+	RBlockData* pCurrentMin;		//当前的分笔数据
 
 	QMap<CStockInfoItem*,float> mapLastPrice;	//最后进行比较的数据
 	QMap<CStockInfoItem*,float> mapLast5Price;	//最新的5分钟价格
