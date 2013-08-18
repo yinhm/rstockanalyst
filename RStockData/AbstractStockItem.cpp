@@ -356,7 +356,7 @@ int CAbstractStockItem::getNewHighVolumeCount()
 QList<tagRStockData*> CAbstractStockItem::get5MinList()
 {
 	QList<tagRStockData*> list = map5MinDatas.values();
-	if(pCurrent5Min->tmTime>0 && (!mapMinDatas.contains(pCurrent5Min->tmTime)))
+	if(pCurrent5Min->tmTime>0 && (!map5MinDatas.contains(pCurrent5Min->tmTime)))
 	{
 		list.push_back(pCurrent5Min);
 	}
