@@ -390,6 +390,30 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					}
 				}
 				break;
+			case FILE_5MINUTE_EX:
+				{
+					//历史5分钟数据
+					qDebug()<<"5 Minute Packet cout:"<<pHeader->m_nPacketNum;
+					RCV_HISTORY_STRUCTEx* pMinute5 = pHeader->m_pDay;
+					QString qsOnly;
+
+					for(int i=0;i<pHeader->m_nPacketNum;++i)
+					{
+						pMinute5 = (pHeader->m_pDay+i);
+
+						if(pMinute5->m_time == EKE_HEAD_TAG)
+						{
+							//数据头
+							qsOnly = QString::fromLocal8Bit(pMinute5->m_head.m_szLabel)
+								+ CDataEngine::getMarketStr(pMinute5->m_head.m_wMarket);
+						}
+						else
+						{
+							//实体数据
+						}
+					}
+				}
+				break;
 			default:
 				{
 					int i = 0;
