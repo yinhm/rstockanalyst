@@ -324,6 +324,7 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 							else
 							{
 								pItem->appendFenBis(listFenBis);
+								pItem->recalc5MinData();
 							}
 							qsOnly = QString::fromLocal8Bit(pMinute->m_head.m_szLabel)
 								+ CDataEngine::getMarketStr(pMinute->m_head.m_wMarket);

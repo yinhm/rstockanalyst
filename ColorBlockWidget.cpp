@@ -931,7 +931,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,
 	if((rtCB.width()-m_iRightLen)<0)
 		return;
 
-	QList<RStockData*> listDatas = pItem->get5MinList();
+	QList<RStockData*> listDatas = pItem->getToday5MinList();
 
 	QVector<float> _vColor;
 	if(m_bShowIncrease)
@@ -1503,7 +1503,7 @@ RStockData* CColorBlockWidget::hitTestCBItem( const QPoint& ptPoint )
 
 			if(iIndex==iter.value())
 			{
-				pData = pItem->get5MinData(iter.key()/300*300+299);
+				pData = pItem->getToday5MinData(iter.key()/300*300+299);
 				if(pData)
 				{
 					break;
