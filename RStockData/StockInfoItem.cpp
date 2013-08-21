@@ -30,6 +30,8 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fLTSZ(FLOAT_NAN)
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
+	, fLastMinVolume(0)
+	, fLastMinAmount(0)
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
 	, fLastCmpPrice(0)
@@ -37,6 +39,7 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
 	pCurrentMin = new RStockData;
+	pCurrent5Min = new RStockData;
 	qsCode = code;
 	wMarket = market;
 	qsMarket = CDataEngine::getMarketStr(wMarket);
@@ -65,6 +68,8 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fLTSZ(FLOAT_NAN)
 	, fSellVOL(0.0)
 	, fBuyVOL(0.0)
+	, fLastMinVolume(0)
+	, fLastMinAmount(0)
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
 	, fLastCmpPrice(0)
@@ -73,6 +78,7 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
 	pCurrentMin = new RStockData;
+	pCurrent5Min = new RStockData;
 
 	qsCode = QString::fromLocal8Bit(info.code);
 	wMarket = info.wMarket;
@@ -149,15 +155,53 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 	appendFenBis(QList<qRcvFenBiData*>()<<pFenBi);
 
 	{
-		//计算5分钟数据
+		//计算1分钟数据
 		if(pCurrentMin->tmTime>0)
 		{
 			if((p->m_time/60) > (pCurrentMin->tmTime/60))
 			{
-				//追加到5分钟数据中，并重新对当前5分钟数据分配内存
-				vCmpPrices.clear();
+				//追加到1分钟数据中，并重新对当前1分钟数据分配内存
 				appendMinData(pCurrentMin);
 				pCurrentMin = new RStockData;
+				//将最后的5分钟数据进行保存
+				fLastMinVolume = pLastReport->fVolume;
+				fLastMinAmount = pLastReport->fAmount;
+			}
+		}
+
+		//将新数据跟当前的1分钟数据进行整合
+		if(pCurrentMin->tmTime>0)
+		{
+//			pCurrentMin->tmTime = p->m_time/60*60+59;			//设置为最后一个周期
+			pCurrentMin->fClose = p->m_fNewPrice;
+			if(pCurrentMin->fHigh<p->m_fNewPrice)
+				pCurrentMin->fHigh = p->m_fNewPrice;
+			if(pCurrentMin->fLow>p->m_fNewPrice)
+				pCurrentMin->fLow = p->m_fNewPrice;
+			pCurrentMin->fAmount = p->m_fAmount - fLastMinAmount;
+			pCurrentMin->fVolume = p->m_fVolume - fLastMinVolume;
+		}
+		else
+		{
+			pCurrentMin->tmTime = p->m_time/60*60+59;			//设置为最后一个周期
+			pCurrentMin->fClose = p->m_fNewPrice;
+			pCurrentMin->fHigh = p->m_fNewPrice;
+			pCurrentMin->fLow = p->m_fNewPrice;
+			pCurrentMin->fOpen = p->m_fNewPrice;
+			pCurrentMin->fAmount = p->m_fAmount - fLastMinAmount;
+			pCurrentMin->fVolume = p->m_fVolume - fLastMinVolume;
+		}
+	}
+	{
+		//计算5分钟数据
+		if(pCurrent5Min->tmTime>0)
+		{
+			if((p->m_time/300) > (pCurrent5Min->tmTime/300))
+			{
+				//追加到5分钟数据中，并重新对当前5分钟数据分配内存
+				vCmpPrices.clear();
+				appendToday5MinData(pCurrent5Min);
+				pCurrent5Min = new RStockData;
 				//将最后的5分钟数据进行保存
 				fLast5MinVolume = pLastReport->fVolume;
 				fLast5MinAmount = pLastReport->fAmount;
@@ -184,26 +228,26 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 			}
 		}
 		//将新数据跟当前的5分钟数据进行整合
-		if(pCurrentMin->tmTime>0)
+		if(pCurrent5Min->tmTime>0)
 		{
-//			pCurrent5Min->tmTime = p->m_time/60*60+59;			//设置为最后一个周期
-			pCurrentMin->fClose = p->m_fNewPrice;
-			if(pCurrentMin->fHigh<p->m_fNewPrice)
-				pCurrentMin->fHigh = p->m_fNewPrice;
-			if(pCurrentMin->fLow>p->m_fNewPrice)
-				pCurrentMin->fLow = p->m_fNewPrice;
-			pCurrentMin->fAmount = p->m_fAmount - fLast5MinAmount;
-			pCurrentMin->fVolume = p->m_fVolume - fLast5MinVolume;
+			//			pCurrent5Min->tmTime = p->m_time/300*300+299;			//设置为最后一个周期
+			pCurrent5Min->fClose = p->m_fNewPrice;
+			if(pCurrent5Min->fHigh<p->m_fNewPrice)
+				pCurrent5Min->fHigh = p->m_fNewPrice;
+			if(pCurrent5Min->fLow>p->m_fNewPrice)
+				pCurrent5Min->fLow = p->m_fNewPrice;
+			pCurrent5Min->fAmount = p->m_fAmount - fLast5MinAmount;
+			pCurrent5Min->fVolume = p->m_fVolume - fLast5MinVolume;
 		}
 		else
 		{
-			pCurrentMin->tmTime = p->m_time/60*60+59;			//设置为最后一个周期
-			pCurrentMin->fClose = p->m_fNewPrice;
-			pCurrentMin->fHigh = p->m_fNewPrice;
-			pCurrentMin->fLow = p->m_fNewPrice;
-			pCurrentMin->fOpen = p->m_fNewPrice;
-			pCurrentMin->fAmount = p->m_fAmount - fLast5MinAmount;
-			pCurrentMin->fVolume = p->m_fVolume - fLast5MinVolume;
+			pCurrent5Min->tmTime = p->m_time/300*300+299;			//设置为最后一个周期
+			pCurrent5Min->fClose = p->m_fNewPrice;
+			pCurrent5Min->fHigh = p->m_fNewPrice;
+			pCurrent5Min->fLow = p->m_fNewPrice;
+			pCurrent5Min->fOpen = p->m_fNewPrice;
+			pCurrent5Min->fAmount = p->m_fAmount - fLast5MinAmount;
+			pCurrent5Min->fVolume = p->m_fVolume - fLast5MinVolume;
 		}
 	}
 }
@@ -255,6 +299,16 @@ QList<tagRStockData*> CStockInfoItem::getMinList()
 	if(pCurrentMin->tmTime>0 && (!mapMinDatas.contains(pCurrentMin->tmTime)))
 	{
 		list.push_back(pCurrentMin);
+	}
+	return list;
+}
+
+QList<tagRStockData*> CStockInfoItem::getToday5MinList()
+{
+	QList<tagRStockData*> list = mapToday5MinDatas.values();
+	if(pCurrent5Min->tmTime>0 && (!mapToday5MinDatas.contains(pCurrent5Min->tmTime)))
+	{
+		list.push_back(pCurrent5Min);
 	}
 	return list;
 }
@@ -325,6 +379,68 @@ void CStockInfoItem::recalcMinData()
 	if(pMin->tmTime>0)
 	{
 		appendMinData(pMin);
+	}
+	emit stockItemFenBiChanged(qsCode);
+}
+
+void CStockInfoItem::recalc5MinData()
+{
+	//重新计算5分钟数据
+	QMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.begin();
+	RStockData* p5Min = new RStockData();
+	qRcvFenBiData* pLastFenBi = 0;
+	float fLastVolume = 0;
+	float fLastAmount = 0;
+	while (iter!=mapFenBis.end())
+	{
+		qRcvFenBiData* pFenBi = iter.value();
+
+		//计算5分钟数据
+		if(p5Min->tmTime>0)
+		{
+			if((pFenBi->tmTime/300) > (p5Min->tmTime/300))
+			{
+				//追加到5分钟数据中，并重新对当前5分钟数据分配内存
+				appendToday5MinData(p5Min);
+				p5Min = new RStockData;
+				//将最后的5分钟数据进行保存
+				if(pLastFenBi)
+				{
+					fLastVolume = pLastFenBi->fVolume;
+					fLastAmount = pLastFenBi->fAmount;
+				}
+			}
+		}
+		//将新数据跟当前的5分钟数据进行整合
+		if(p5Min->tmTime>0)
+		{
+			p5Min->fClose = pFenBi->fPrice;
+			if(p5Min->fHigh<pFenBi->fPrice)
+				p5Min->fHigh = pFenBi->fPrice;
+			if(p5Min->fLow>pFenBi->fPrice)
+				p5Min->fLow = pFenBi->fPrice;
+			p5Min->fAmount = pFenBi->fAmount - fLastAmount;
+			p5Min->fVolume = pFenBi->fVolume - fLastVolume;
+		}
+		else
+		{
+			p5Min->tmTime = pFenBi->tmTime/300*300+299;
+			p5Min->fClose = pFenBi->fPrice;
+			p5Min->fHigh = pFenBi->fPrice;
+			p5Min->fLow = pFenBi->fPrice;
+			p5Min->fOpen = pFenBi->fPrice;
+			p5Min->fAmount = pFenBi->fAmount - fLastAmount;
+			p5Min->fVolume = pFenBi->fVolume - fLastVolume;
+		}
+
+		pLastFenBi = pFenBi;
+		++iter;
+	}
+
+	//将最后一笔分笔数据加入到队列中
+	if(p5Min->tmTime>0)
+	{
+		appendToday5MinData(p5Min);
 	}
 	emit stockItemFenBiChanged(qsCode);
 }

@@ -30,7 +30,6 @@
      <size>100</size>
      <color>红绿3Grid</color>
      <Abnomals/>
-     <block>800002BB</block>
     </widget>
    </widget>
   </widget>
@@ -43,7 +42,7 @@
    <size>38</size>
    <color></color>
    <Abnomals/>
-   <block>800003BB</block>
+   <block>800004BB</block>
    <ShowType volumeratio="1" turnratio="1" increase="1"/>
    <TopStocks/>
    <FocusWhenMove>0</FocusWhenMove>
@@ -56,7 +55,7 @@
    <relate>1</relate>
    <align>1</align>
    <size>51</size>
-   <code>900901SH</code>
+   <code>600000SH</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>

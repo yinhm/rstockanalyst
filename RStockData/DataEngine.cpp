@@ -319,10 +319,6 @@ void CDataEngine::exportData()
 		qDebug()<<iCount<<" FenBis data had been exported.";
 	}
 	{
-		//导出5分钟数据
-		exportMinData();
-	}
-	{
 		//导出监视雷达数据
 		CRadarManager::getRadarManager()->saveRadars();
 	}
@@ -518,12 +514,26 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 			iIndex += sizeof(qRcvFenBiData);
 		}
 		pItem->appendFenBis(listFenBis);
+
+		if(pItem->isInstanceOfStock())
+		{
+			//重新计算该股票的5分钟数据
+			pItem->recalc5MinData();
+		}
 		delete pFenBiData;
 
 		++iCount;
 	}
 
 	file.close();
+
+	//重新计算板块的5分钟数据
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	foreach( CBlockInfoItem* pItem, listBlocks)
+	{
+		pItem->recalc5MinData();
+	}
+
 	return iCount;
 }
 
@@ -669,17 +679,6 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 	return iCount;
 }
 
-int CDataEngine::exportMinData()
-{
-	QList<CAbstractStockItem*> listStocks = CDataEngine::getDataEngine()->getStockItems();
-	foreach(CAbstractStockItem* pItem,listStocks)
-	{
-		//导出5min数据
-		CDataEngine::getDataEngine()->exportMinData(pItem);
-	}
-	return listStocks.size();
-}
-
 //收盘后数据的整理
 int CDataEngine::exportCloseData()
 {
@@ -687,8 +686,7 @@ int CDataEngine::exportCloseData()
 	QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
 	foreach(CStockInfoItem* pItem,listStocks)
 	{
-		//导出5min数据
-		pItem->recalcMinData();
+		//导出分钟数据
 		CDataEngine::getDataEngine()->exportMinData(pItem);
 		qRcvReportData* pReport = pItem->getCurrentReport();
 		if(pReport)
@@ -1487,10 +1485,12 @@ QList<qRcvHistoryData*> CDataEngine::getHistoryList( CAbstractStockItem* pItem, 
 
 bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 {
-	//导出5分钟数据，对于非今日的数据只以5min为最小单位存储
+	//导出1分钟数据，对于非今日的数据只以min为最小单位存储
 	//60*sizeof(RStockData)
 	if(!pItem)
 		return false;
+
+	pItem->recalcMinData();
 	qRcvReportData* pReport = pItem->getCurrentReport();
 	if(pReport->tmTime<1)
 		return false;
@@ -1508,19 +1508,6 @@ bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 
 	QDataStream out(&file);
 	QList<tagRStockData*> listData = pItem->getMinList();
-	if(pItem->isInstanceOfBlock())
-	{
-		int iSizeOfStruct = sizeof(RBlockData);
-		foreach(tagRStockData* pData,listData)
-		{
-			if(pData->tmTime>tmDate)
-			{
-				if(file.write(reinterpret_cast<char*>(pData),iSizeOfStruct)!=iSizeOfStruct)
-					break;
-			}
-		}
-	}
-	else
 	{
 		int iSizeOfStruct = sizeof(RStockData);
 		foreach(tagRStockData* pData,listData)
@@ -1551,29 +1538,6 @@ void CDataEngine::importMinData( CAbstractStockItem* pItem, QMap<time_t,RStockDa
 	}
 
 	QDataStream out(&file);
-	if(pItem->isInstanceOfBlock())
-	{
-		int iSizeOfStruct = sizeof(RBlockData);
-		while(true)
-		{
-			RBlockData* pData = new RBlockData();
-			if(out.readRawData((char*)pData,iSizeOfStruct) == iSizeOfStruct)
-			{
-				if(!mapDatas.contains(pData->tmTime))
-				{
-					mapDatas.insert(pData->tmTime,pData);
-				}
-				else
-					delete pData;
-			}
-			else
-			{
-				delete pData;
-				break;
-			}
-		}
-	}
-	else
 	{
 		int iSizeOfStruct = sizeof(RStockData);
 		while(true)

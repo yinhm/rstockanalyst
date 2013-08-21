@@ -50,8 +50,6 @@ public:
 	static int exportReportsInfo(const QString& qsFile);
 	/*导出分笔数据*/
 	static int exportFenBisData(const QString& qsFile);
-	/*导出5分钟数据*/
-	static int exportMinData();
 	/*收盘后数据整理*/
 	static int exportCloseData();
 

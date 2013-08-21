@@ -99,7 +99,6 @@ DrawLine(MA(OPEN,3))</exp>
      <size>29</size>
      <color>红绿</color>
      <Abnomals/>
-     <block>800002BB</block>
     </widget>
     <widget CBHeight="16" CBWidth="4">
      <name></name>

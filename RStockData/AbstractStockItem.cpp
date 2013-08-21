@@ -9,7 +9,6 @@ CAbstractStockItem::CAbstractStockItem(void)
 	: pCurrentReport(NULL)
 	, fLast5Volume(0.0)
 {
-	pCurrent5Min = new RBlockData;
 }
 
 
@@ -58,7 +57,7 @@ void CAbstractStockItem::initStockItem()
 	//}
 	//list.clear();
 
-	CDataEngine::getDataEngine()->importMinData(this,mapMinDatas);
+//	CDataEngine::getDataEngine()->importMinData(this,mapMinDatas);
 }
 
 qRcvReportData* CAbstractStockItem::getCurrentReport() const
@@ -186,6 +185,18 @@ void CAbstractStockItem::appendMinData( tagRStockData* pData )
 	return;
 }
 
+void CAbstractStockItem::appendToday5MinData( tagRStockData* pData )
+{
+	if(mapToday5MinDatas.contains(pData->tmTime))
+	{
+		tagRStockData* pBefore = mapToday5MinDatas[pData->tmTime];
+		mapToday5MinDatas.remove(pBefore->tmTime);
+		delete pBefore;
+	}
+	mapToday5MinDatas.insert(pData->tmTime,pData);
+	return;
+}
+
 void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 {
 	//追加分笔数据，未完工
@@ -232,13 +243,6 @@ void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 		}
 		if(bInsert)
 			mapFenBis.insert(p->tmTime,p);
-	}
-
-
-	//如果追加的数据大于5，则重新对5分钟数据进行计算
-	if(list.size()>5 && (!CDataEngine::isLoading()))
-	{
-		recalcMinData();
 	}
 
 	emit stockItemFenBiChanged(qsOnly);
@@ -356,14 +360,11 @@ int CAbstractStockItem::getNewHighVolumeCount()
 QList<tagRStockData*> CAbstractStockItem::get5MinList()
 {
 	QList<tagRStockData*> list = map5MinDatas.values();
-	if(pCurrent5Min->tmTime>0 && (!map5MinDatas.contains(pCurrent5Min->tmTime)))
-	{
-		list.push_back(pCurrent5Min);
-	}
+
 	return list;
 }
 
-RStockData* CAbstractStockItem::get5MinData( const time_t& tmTime )
+RStockData* CAbstractStockItem::getToday5MinData( const time_t& tmTime )
 {
 	if(mapMinDatas.contains(tmTime))
 		return mapMinDatas[tmTime];

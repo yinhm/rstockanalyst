@@ -22,7 +22,7 @@
     <align>1</align>
     <size>43</size>
     <block>800002BB</block>
-    <stock>300288SZ</stock>
+    <stock>300306SZ</stock>
    </widget>
    <widget circle="300">
     <name></name>
@@ -31,7 +31,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>36</size>
-    <code>900936SH</code>
+    <code>900949SH</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -59,7 +59,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>75</size>
-     <code>900936SH</code>
+     <code>900949SH</code>
     </widget>
     <widget dealtype="1">
      <name></name>
@@ -69,7 +69,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <align>1</align>
      <size>24</size>
      <color>红绿挂单类型</color>
-     <code>900936SH</code>
+     <code>900949SH</code>
     </widget>
    </widget>
   </widget>
