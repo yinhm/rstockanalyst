@@ -1035,61 +1035,106 @@ void CKLineWidget::drawCoordX( QPainter& p,const QRectF& rtCoordX,float fItemWid
 	}
 	else if(m_typeCircle<Day)
 	{
-		time_t tmCurDate = QDateTime(QDateTime::fromTime_t(listTimes[iCount]).date()).toTime_t();
+		time_t tmCurHalfHour = listTimes[iCount]/1800;
+
+		p.setPen(QColor(155,0,0));
+		QPen oldPen = p.pen();
+		QPen newPen = QPen(Qt::DotLine);
+		newPen.setColor(QColor(155,0,0));
+
 		while(fCurX>fEndX && iCount>=0)
 		{
 			time_t tmTime = listTimes[iCount];
-			if(tmTime<tmCurDate)
+			if((tmCurHalfHour - tmTime/1800)>24)
 			{
-				p.setPen(QColor(255,255,255));
-				p.fillRect(fLastX-14,rtCoordX.top(),30,rtCoordX.height(),QColor(0,0,0));
-				p.drawLine(fCurX+fItemWidth,rtCoordX.top(),fCurX+fItemWidth,rtCoordX.top()+2);
+				//相差一天时间
+				p.setPen(oldPen);
+				p.setPen(QColor(0,155,155));
+
+				if((fLastX - fCurX) < 40)
+				{
+					//覆盖之前绘制的时间
+					p.fillRect(fLastX-14,rtCoordX.top(),30,rtCoordX.height(),QColor(0,0,0));
+				}
+
+				p.drawLine(fCurX+fItemWidth,m_rtClient.top(),fCurX+fItemWidth,rtCoordX.top()+2);
 				p.drawText(fCurX+fItemWidth-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
-					Qt::AlignCenter,QDateTime::fromTime_t(tmCurDate).toString("MM/dd"));
+					Qt::AlignCenter,QDateTime::fromTime_t(tmCurHalfHour*1800).toString("MM/dd"));
 
-				tmCurDate = QDateTime(QDateTime::fromTime_t(tmTime).date()).toTime_t();
-				fLastX = fCurX;
-				++iTimeCount;
+				fLastX = fCurX+fItemWidth;
+				tmCurHalfHour = tmTime/1800;
 			}
-			else
+			else if(tmTime/1800 < tmCurHalfHour)
 			{
-				if(m_typeCircle<Min1)
+				if((fLastX - fCurX)>40)
 				{
-					if((fLastX-fCurX)>30)
-					{
-						if(iTimeCount%2)
-						{
-							p.setPen(QColor(255,0,0));
-							p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
-							p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
-								Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
-						}
-						else
-						{
-							p.setPen(QColor(0,255,255));
-							p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
-							p.drawText(fCurX-24,rtCoordX.top()+2,50,rtCoordX.height()-2,
-								Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("mm:ss"));
-						}
+					if(tmCurHalfHour%2==0)
+						p.setPen(oldPen);
+					else
+						p.setPen(newPen);
 
-						fLastX = fCurX;
-						++iTimeCount;
-					}
-				}
-				else
-				{
-					if((fLastX-fCurX)>30)
-					{
-						p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
-						p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
-						p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
-							Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+					p.drawLine(fCurX+fItemWidth,m_rtClient.top(),fCurX+fItemWidth,rtCoordX.top()+2);
 
-						fLastX = fCurX;
-						++iTimeCount;
-					}
+					p.setPen( tmCurHalfHour%2 ? QColor(0,255,255) : QColor(255,0,0));
+					p.drawText(fCurX+fItemWidth-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+						Qt::AlignCenter,QDateTime::fromTime_t(tmCurHalfHour*1800).toString("hh:mm"));
+
+					fLastX = fCurX+fItemWidth;
 				}
+				tmCurHalfHour = tmTime/1800;
 			}
+
+			//if(tmTime<tmCurDate)
+			//{
+			//	p.setPen(QColor(255,255,255));
+			//	p.fillRect(fLastX-14,rtCoordX.top(),30,rtCoordX.height(),QColor(0,0,0));
+			//	p.drawLine(fCurX+fItemWidth,rtCoordX.top(),fCurX+fItemWidth,rtCoordX.top()+2);
+			//	p.drawText(fCurX+fItemWidth-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+			//		Qt::AlignCenter,QDateTime::fromTime_t(tmCurDate).toString("MM/dd"));
+
+			//	tmCurDate = QDateTime(QDateTime::fromTime_t(tmTime).date()).toTime_t();
+			//	fLastX = fCurX;
+			//	++iTimeCount;
+			//}
+			//else
+			//{
+			//	if(m_typeCircle<Min1)
+			//	{
+			//		if((fLastX-fCurX)>30)
+			//		{
+			//			if(iTimeCount%2)
+			//			{
+			//				p.setPen(QColor(255,0,0));
+			//				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+			//				p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+			//					Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+			//			}
+			//			else
+			//			{
+			//				p.setPen(QColor(0,255,255));
+			//				p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+			//				p.drawText(fCurX-24,rtCoordX.top()+2,50,rtCoordX.height()-2,
+			//					Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("mm:ss"));
+			//			}
+
+			//			fLastX = fCurX;
+			//			++iTimeCount;
+			//		}
+			//	}
+			//	else
+			//	{
+			//		if((fLastX-fCurX)>30)
+			//		{
+			//			p.setPen( iTimeCount%2 ? QColor(255,0,0) : QColor(0,255,255));
+			//			p.drawLine(fCurX,rtCoordX.top(),fCurX,rtCoordX.top()+2);
+			//			p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+			//				Qt::AlignCenter,QDateTime::fromTime_t(tmTime).toString("hh:mm"));
+
+			//			fLastX = fCurX;
+			//			++iTimeCount;
+			//		}
+			//	}
+			//}
 
 			--iCount;
 			fCurX = fCurX- fItemWidth;
