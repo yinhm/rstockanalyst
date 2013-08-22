@@ -32,7 +32,6 @@ CBlockInfoItem::CBlockInfoItem( const QString& _file,CBlockInfoItem* parent/*=0*
 	, fLast5MinAmount(0)
 {
 	pCurrentReport = new qRcvReportData;
-	pCurrentMin = new RStockData;
 	pCurrent5Min = new RBlockData;
 
 	QFileInfo _info(blockFilePath);
@@ -156,20 +155,10 @@ void CBlockInfoItem::initStockItem()
 	return CAbstractStockItem::initStockItem();
 }
 
-QList<tagRStockData*> CBlockInfoItem::getMinList()
-{
-	QList<tagRStockData*> list = mapMinDatas.values();
-	if(pCurrentMin->tmTime>0 && (!mapMinDatas.contains(pCurrentMin->tmTime)))
-	{
-		list.push_back(pCurrentMin);
-	}
-	return list;
-}
-
 QList<tagRStockData*> CBlockInfoItem::getToday5MinList()
 {
-	QList<tagRStockData*> list = map5MinDatas.values();
-	if(pCurrent5Min->tmTime>0 && (!map5MinDatas.contains(pCurrent5Min->tmTime)))
+	QList<tagRStockData*> list = mapToday5MinDatas.values();
+	if(pCurrent5Min->tmTime>0 && (!mapToday5MinDatas.contains(pCurrent5Min->tmTime)))
 	{
 		list.push_back(pCurrent5Min);
 	}
@@ -229,7 +218,7 @@ void CBlockInfoItem::recalcMinData()
 		double dVolume = 0.0;		//成交量
 		double dAmount = 0.0;		//成交价
 
-		RBlockData* pBlockData = new RBlockData();
+		RStockData* pBlockData = new RStockData();
 		pBlockData->tmTime = tmCurrent;
 
 		//计算此时间内的数据
@@ -237,7 +226,7 @@ void CBlockInfoItem::recalcMinData()
 		{
 			float _last = pStock->getLastClose();		//使用昨天收盘价
 
-			RStockData* pData = pStock->getMinData(tmCurrent);
+			RStockData* pData = pStock->getTodayMinData(tmCurrent);
 			if(pData)
 			{
 				float _new = pData->fClose;							//采用最新价计算涨幅
@@ -260,28 +249,6 @@ void CBlockInfoItem::recalcMinData()
 							++pBlockData->wAdvance;
 						else if(_new<_last)
 							++pBlockData->wDecline;
-
-						int _index = ((float(_new-_last))*100.0)/_last + 0.5;
-						if(_index>9)
-						{
-							++(pBlockData->fIncrease[0]);
-						}
-						else if(_index>0)
-						{
-							++(pBlockData->fIncrease[10-_index]);
-						}
-						else if(_index<0&&_index>-10)
-						{
-							++(pBlockData->fIncrease[9-_index]);
-						}
-						else if(_index<-9)
-						{
-							++(pBlockData->fIncrease[19]);
-						}
-						else
-						{
-							++(pBlockData->fIncrease[20]);
-						}
 					}
 				}
 

@@ -40,16 +40,14 @@ public:
 	//补充历史分钟数据
 	virtual void appendMinData(tagRStockData* pData);			//补充分钟数据
 	virtual void appendToday5MinData(tagRStockData* pData);		//补充当日5分钟数据
-	virtual QList<tagRStockData*> getMinList() = 0;		//追加最后不够1分钟的数据
+	virtual QList<tagRStockData*> getMinList();			//追加最后不够1分钟的数据
+	virtual QList<tagRStockData*> getMinList(int _c);	//获取日线以下的历史数据
 	virtual void recalcMinData() = 0;					//重新计算当日1Min数据
-
-	virtual QList<tagRStockData*> get5MinList();				//5分钟数据
 
 	//获取今日的5分钟数据
 	virtual QList<tagRStockData*> getToday5MinList() = 0;
 	virtual tagRStockData* getToday5MinData( const time_t& tmTime );//获取指定时间的数据
 	virtual void recalc5MinData() = 0;				//重新计算当日5Min数据
-
 
 public:
 	/*属性类字段，只读*/
@@ -104,6 +102,7 @@ public:
 
 protected:
 	virtual void updateItemInfo() = 0;
+	void loadHisMinData();
 signals:
 	void stockItemReportChanged(const QString&);	//行情数据更新
 	void stockItemHistoryChanged(const QString&);	//历史数据更新
@@ -119,11 +118,22 @@ protected:
 	QMap<time_t,tagRStockData*> mapToday5MinDatas;	//当天5分钟历史数据
 
 	QMap<time_t,tagRStockData*> mapMinDatas;		//1分钟历史数据，一般存储7天的
-	QMap<time_t,tagRStockData*> map5MinDatas;		//5分钟历史数据，一般存储7天的，从1分钟数据中计算得出
+	QList<tagRStockData*> list5MinDatas;			//5分钟历史数据，一般存储7天的
+	QList<tagRStockData*> list15MinDatas;			//15分钟历史数据，一般存储7天的
+	QList<tagRStockData*> list30MinDatas;			//30分钟历史数据，一般存储7天的
+	QList<tagRStockData*> list60MinDatas;			//60分钟历史数据，一般存储7天的
 	QList<qRcvHistoryData*> listHistories;			//历史数据
 	qRcvReportData* pCurrentReport;					//当前的Report
 
+
+	tagRStockData* pCurrentMin;		//当前的1分钟数据
+	tagRStockData* pCurrent5Min;	//当前的5分钟数据
+	tagRStockData* pCurrent15Min;	//当前的15分钟数据
+	tagRStockData* pCurrent30Min;	//当前的30分钟数据
+	tagRStockData* pCurrent60Min;	//当前的60分钟数据
+
 	float fLast5Volume;				//过去5日的成交总量（用于计算量比）
+	bool m_bLoadHisMin;				//是否已经加载历史分钟数据
 };
 
 #endif //ABSTRACT_STOCK_ITEM_H

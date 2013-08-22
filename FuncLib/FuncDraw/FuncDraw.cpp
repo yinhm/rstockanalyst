@@ -156,8 +156,8 @@ int my_lua_drawk( lua_State* _L )
 		int iBeginIndex = iEndIndex-iCount;
 		if(iBeginIndex<0)
 			iBeginIndex = 0;
-		getMinAndMax(vHigh.mid(iBeginIndex,iCount),fMin,fMax);
-		getMinAndMax(vLow.mid(iBeginIndex,iCount),fMin,fMax);
+		getMinAndMax(vHigh.mid(iBeginIndex),fMin,fMax);
+		getMinAndMax(vLow.mid(iBeginIndex),fMin,fMax);
 
 		//将最大值和最小值分别扩大5%，方便查看
 		fMin = fMin - (fMax-fMin)*0.05;
@@ -199,34 +199,27 @@ int my_lua_drawk( lua_State* _L )
 				float fCenterX = fBeginX+fItemWidth/2;
 				p.drawLine(fCenterX,rtClient.bottom()-fHighY,fCenterX,rtClient.bottom()-fLowY);		//画最高价到最低价的线
 
-				if(int(fItemWidth)%2==0)
+				QRectF rt = QRectF(fBeginX,rtClient.bottom()-fCloseY,fItemWidth,fCloseY==fOpenY ? 1.0 : fCloseY-fOpenY);
+
+				if(fItemWidth>5.0)
 				{
-					QRectF rt = QRectF(fBeginX+0.5,rtClient.bottom()-fCloseY,fItemWidth-1.0,fCloseY==fOpenY ? 1.0 : fCloseY-fOpenY);
-					p.fillRect(rt,QColor(0,0,0));
-					p.drawRect(rt);
+					rt.adjust(1.0,0,-1.0,0);
 				}
-				else
-				{
-					QRectF rt = QRectF(fBeginX,rtClient.bottom()-fCloseY,fItemWidth,fCloseY==fOpenY ? 1.0 : fCloseY-fOpenY);
-					p.fillRect(rt,QColor(0,0,0));
-					p.drawRect(rt);
-				}
+				p.fillRect(rt,QColor(0,0,0));
+				p.drawRect(rt);
 			}
 			else
 			{
 				//降低，绘制蓝色色块
 				p.setPen(QColor(0,255,255));
-				if(int(fItemWidth)%2==0)
-				{
-					QRectF rt = QRectF(fBeginX+0.5,rtClient.bottom()-fOpenY,fItemWidth-1.0,fOpenY==fCloseY ? 1.0 : (fOpenY-fCloseY));
-					p.fillRect(rt,QColor(0,255,255));
-				}
-				else
-				{
-					QRectF rt = QRectF(fBeginX,rtClient.bottom()-fOpenY,fItemWidth,fOpenY==fCloseY ? 1.0 : (fOpenY-fCloseY));
-					p.fillRect(rt,QColor(0,255,255));
-				}
 
+				QRectF rt = QRectF(fBeginX,rtClient.bottom()-fOpenY,fItemWidth,fOpenY==fCloseY ? 1.0 : (fOpenY-fCloseY));
+
+				if(fItemWidth>3.0)
+				{
+					rt.adjust(1.0,0,-1.0,0);
+				}
+				p.fillRect(rt,QColor(0,255,255));
 				float fCenterX = fBeginX+fItemWidth/2;
 				p.drawLine(fCenterX,rtClient.bottom()-fHighY,fCenterX,rtClient.bottom()-fLowY);		//画最高价到最低价的线
 			}
@@ -294,7 +287,7 @@ int my_lua_drawLine( lua_State* _L )
 		int iBeginIndex = iEndIndex-iCount;
 		if(iBeginIndex<0)
 			iBeginIndex = 0;
-		getMinAndMax(vValues.mid(iBeginIndex,iCount),fMin,fMax);
+		getMinAndMax(vValues.mid(iBeginIndex),fMin,fMax);
 
 		//将最大值和最小值分别扩大5%，方便查看
 		fMin = fMin - (fMax-fMin)*0.05;
@@ -384,7 +377,7 @@ int my_lua_drawHistogram( lua_State* _L )
 		int iBeginIndex = iEndIndex-iCount;
 		if(iBeginIndex<0)
 			iBeginIndex = 0;
-		getMinAndMax(vValues.mid(iBeginIndex,iCount),fMin,fMax);
+		getMinAndMax(vValues.mid(iBeginIndex),fMin,fMax);
 
 		//将最大值扩大5%，方便查看
 		fMax = fMax + (fMax-fMin)*0.05;
@@ -486,8 +479,8 @@ int my_lua_drawCross( lua_State* _L )
 		int iBeginIndex = iEndIndex-iCount;
 		if(iBeginIndex<0)
 			iBeginIndex = 0;
-		getMinAndMax(vL1.mid(iBeginIndex,iCount),fMin,fMax);
-		getMinAndMax(vL2.mid(iBeginIndex,iCount),fMin,fMax);
+		getMinAndMax(vL1.mid(iBeginIndex),fMin,fMax);
+		getMinAndMax(vL2.mid(iBeginIndex),fMin,fMax);
 
 		//将最大值和最小值分别扩大5%，方便查看
 		fMin = fMin - (fMax-fMin)*0.05;

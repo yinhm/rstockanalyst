@@ -608,7 +608,7 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 	if(fCBWidth<0)
 		return;
 
-	QList<RStockData*> listDatas = pItem->getMinList();
+	QList<RStockData*> listDatas = pItem->getToday5MinList();
 	if(listDatas.size()>0)
 	{
 		QList<RStockData*>::iterator iterFenBi = listDatas.end();
@@ -616,7 +616,6 @@ void CBColorBlockWidget::drawBlock( QPainter& p,const QRect& rtCB,CBlockInfoItem
 		{
 			--iterFenBi;
 			RBlockData* pFenBi = reinterpret_cast<RBlockData*>(*iterFenBi);
-			QString qsTime = QDateTime::fromTime_t(pFenBi->tmTime).toString();
 
 			QMap<time_t,float>::iterator iter = m_mapShowTimes.lowerBound(pFenBi->tmTime);
 			if(iter==m_mapShowTimes.end())

@@ -518,6 +518,7 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 		if(pItem->isInstanceOfStock())
 		{
 			//重新计算该股票的5分钟数据
+			pItem->recalcMinData();
 			pItem->recalc5MinData();
 		}
 		delete pFenBiData;
@@ -531,6 +532,7 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
 	foreach( CBlockInfoItem* pItem, listBlocks)
 	{
+		pItem->recalcMinData();
 		pItem->recalc5MinData();
 	}
 
@@ -1496,7 +1498,7 @@ bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 		return false;
 
 	time_t tmDate = QDateTime(QDateTime::fromTime_t(pReport->tmTime).date()).toTime_t();
-	tmDate = tmDate-3600*24*7;		//15天以前的数据不再保存
+	tmDate = tmDate-3600*24*7;		//7天以前的数据不再保存
 
 	QString qsFileName = QString("%1/%2/%3").arg(m_qsMin).arg(pItem->getMarketName()).arg(pItem->getCode());
 	QFile file(qsFileName);
@@ -1508,6 +1510,14 @@ bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 
 	QDataStream out(&file);
 	QList<tagRStockData*> listData = pItem->getMinList();
+	if(listData.size()>0)
+	{
+		if( (listData.last()->tmTime+1%60) != 0)
+		{
+			listData.removeLast();
+		}
+	}
+
 	{
 		int iSizeOfStruct = sizeof(RStockData);
 		foreach(tagRStockData* pData,listData)

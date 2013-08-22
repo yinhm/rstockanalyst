@@ -4,11 +4,140 @@
 #include "BlockInfoItem.h"
 #include "DataEngine.h"
 
+tagRStockData* getNMinDataByMin(QMap<time_t,tagRStockData*>& mapMins, QList<tagRStockData*>& listNMin, tagRStockData* pLastMin, tagRStockData* pCurMin, RStockCircle _c)
+{
+	if(listNMin.size()>0)
+	{
+		if(listNMin.last()->tmTime != pLastMin->tmTime)
+		{
+			//删除之前的数据
+			foreach(tagRStockData* pData,listNMin)
+				delete pData;
+			listNMin.clear();
+		}
+	}
+
+	if(listNMin.size() == 0)
+	{
+		//重新计算数据
+		RStockData* pData = NULL;
+		QMap<time_t,tagRStockData*>::iterator iter = mapMins.begin();
+		while(iter!=mapMins.end())
+		{
+			if(pData == NULL)
+			{
+				pData = new RStockData(**iter);
+			}
+			else if((int)(pData->tmTime/_c) == (int)((*iter)->tmTime/_c))
+			{
+				pData->tmTime = (*iter)->tmTime;
+				if(pData->fHigh<(*iter)->fHigh)
+					pData->fHigh = (*iter)->fHigh;
+				if(pData->fLow>(*iter)->fLow)
+					pData->fLow = (*iter)->fLow;
+				pData->fClose = (*iter)->fClose;
+				pData->fVolume += (*iter)->fVolume;
+				pData->fAmount += (*iter)->fAmount;
+			}
+			else
+			{
+				listNMin.append(pData);
+				pData = new RStockData(**iter);
+			}
+
+			++iter;
+		}
+
+		if(pData)
+		{
+			if((int)(pData->tmTime/_c) == (int)(pCurMin->tmTime/_c))
+			{
+				pData->tmTime = pCurMin->tmTime;
+				if(pData->fHigh<pCurMin->fHigh)
+					pData->fHigh = pCurMin->fHigh;
+				if(pData->fLow>pCurMin->fLow)
+					pData->fLow = pCurMin->fLow;
+				pData->fClose = pCurMin->fClose;
+				pData->fVolume += pCurMin->fVolume;
+				pData->fAmount += pCurMin->fAmount;
+
+				return pData;
+			}
+			else
+			{
+				listNMin.append(pData);
+				return new tagRStockData(*pCurMin);
+			}
+		}
+		else
+			return new tagRStockData(*pCurMin);
+	}
+	else
+	{
+		QMap<time_t,tagRStockData*>::iterator iter = mapMins.find(listNMin.last()->tmTime);
+		if(iter==mapMins.end())
+			return new tagRStockData(*pCurMin);
+		else
+		{
+			++iter;
+			tagRStockData* pData = NULL;
+			while(iter!=mapMins.end())
+			{
+				if(pData == NULL)
+				{
+					pData = new RStockData(**iter);
+				}
+				else
+				{
+					pData->tmTime = (*iter)->tmTime;
+					if(pData->fHigh<(*iter)->fHigh)
+						pData->fHigh = (*iter)->fHigh;
+					if(pData->fLow>(*iter)->fLow)
+						pData->fLow = (*iter)->fLow;
+					pData->fClose = (*iter)->fClose;
+					pData->fVolume += (*iter)->fVolume;
+					pData->fAmount += (*iter)->fAmount;
+				}
+				++iter;
+			}
+
+			if(pData)
+			{
+				if((int)(pData->tmTime/_c) == (int)(pCurMin->tmTime/_c))
+				{
+					pData->tmTime = pCurMin->tmTime;
+					if(pData->fHigh<pCurMin->fHigh)
+						pData->fHigh = pCurMin->fHigh;
+					if(pData->fLow>pCurMin->fLow)
+						pData->fLow = pCurMin->fLow;
+					pData->fClose = pCurMin->fClose;
+					pData->fVolume += pCurMin->fVolume;
+					pData->fAmount += pCurMin->fAmount;
+
+					return pData;
+				}
+				else
+				{
+					listNMin.append(pData);
+					return new tagRStockData(*pCurMin);
+				}
+			}
+			else
+				return new tagRStockData(*pCurMin);
+		}
+	}
+}
 
 CAbstractStockItem::CAbstractStockItem(void)
 	: pCurrentReport(NULL)
 	, fLast5Volume(0.0)
+	, pCurrent5Min(NULL)
+	, pCurrent15Min(NULL)
+	, pCurrent30Min(NULL)
+	, pCurrent60Min(NULL)
+	, m_bLoadHisMin(false)
 {
+	pCurrentMin = new RStockData();
 }
 
 
@@ -26,7 +155,29 @@ CAbstractStockItem::~CAbstractStockItem(void)
 	}
 
 	{
-		//清空历史5分钟数据
+		//清空今日1分钟数据
+		QMap<time_t,RStockData*>::iterator iter = mapMinDatas.begin();
+		while(iter!=mapMinDatas.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		mapMinDatas.clear();
+	}
+
+	{
+		//清空今日5分钟数据
+		QMap<time_t,RStockData*>::iterator iter = mapToday5MinDatas.begin();		//5分钟历史数据
+		while(iter!=mapToday5MinDatas.end())
+		{
+			delete iter.value();
+			++iter;
+		}
+		mapToday5MinDatas.clear();
+	}
+
+	{
+		//清空历史1分钟数据
 		QMap<time_t,RStockData*>::iterator iter = mapMinDatas.begin();		//5分钟历史数据
 		while(iter!=mapMinDatas.end())
 		{
@@ -49,15 +200,13 @@ CAbstractStockItem::~CAbstractStockItem(void)
 void CAbstractStockItem::initStockItem()
 {
 	//获取过去5日的成交总量，用于计算量比等信息
-	//QList<qRcvHistoryData*> list = CDataEngine::getDataEngine()->getHistoryList(this,5);
-	//foreach(qRcvHistoryData* pHis,list)
-	//{
-	//	fLast5Volume = fLast5Volume+pHis->fVolume;
-	//	delete pHis;
-	//}
-	//list.clear();
-
-//	CDataEngine::getDataEngine()->importMinData(this,mapMinDatas);
+	QList<qRcvHistoryData*> list = CDataEngine::getDataEngine()->getHistoryList(this,5);
+	foreach(qRcvHistoryData* pHis,list)
+	{
+		fLast5Volume = fLast5Volume+pHis->fVolume;
+		delete pHis;
+	}
+	list.clear();
 }
 
 qRcvReportData* CAbstractStockItem::getCurrentReport() const
@@ -248,6 +397,97 @@ void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 	emit stockItemFenBiChanged(qsOnly);
 }
 
+QList<tagRStockData*> CAbstractStockItem::getMinList()
+{
+	loadHisMinData();
+	QList<tagRStockData*> listMins = mapMinDatas.values();
+	
+	if(pCurrentMin->tmTime>0)
+	{
+		listMins.append(pCurrentMin);
+	}
+
+	return listMins;
+}
+
+QList<tagRStockData*> CAbstractStockItem::getMinList( int _c )
+{
+	if(_c>Min60)
+		return QList<tagRStockData*>();
+
+	/*
+	Min5 = 5*60,			//5分钟
+	Min15 = 15*60,			//15分钟
+	Min30 = 30*60,			//30分钟
+	Min60 = 60*60,			//60分钟
+	*/
+	loadHisMinData();
+
+	QList<tagRStockData*> listRet;
+	RStockData* pLastMin = 0;
+	if(mapMinDatas.size()>0)
+	{
+		pLastMin = (mapMinDatas.end()-1).value();
+	}
+	else
+	{
+		return QList<tagRStockData*>()<<pCurrentMin;
+	}
+
+	if(_c<=Min1)
+	{
+		listRet = mapMinDatas.values();
+
+		//追加最后不够1分钟的数据
+		if(pCurrentMin->tmTime>0)
+		{
+			listRet.append(pCurrentMin);
+		}
+	}
+	else if(_c==Min5)
+	{
+		if(pCurrent5Min)
+			delete pCurrent5Min;
+
+		pCurrent5Min = getNMinDataByMin(mapMinDatas,list5MinDatas,pLastMin,pCurrentMin,Min5);
+		listRet = list5MinDatas;
+		if(pCurrent5Min->tmTime>0)
+			listRet.append(pCurrent5Min);
+	}
+	else if(_c==Min15)
+	{
+		if(pCurrent15Min)
+			delete pCurrent15Min;
+
+		pCurrent15Min = getNMinDataByMin(mapMinDatas,list15MinDatas,pLastMin,pCurrentMin,Min15);
+		listRet = list15MinDatas;
+		if(pCurrent15Min->tmTime>0)
+			listRet.append(pCurrent15Min);
+	}
+	else if(_c==Min30)
+	{
+		if(pCurrent30Min)
+			delete pCurrent30Min;
+
+		pCurrent30Min = getNMinDataByMin(mapMinDatas,list30MinDatas,pLastMin,pCurrentMin,Min30);
+		listRet = list30MinDatas;
+		if(pCurrent30Min->tmTime>0)
+			listRet.append(pCurrent30Min);
+	}
+	else if(_c==Min60)
+	{
+		if(pCurrent60Min)
+			delete pCurrent60Min;
+
+		pCurrent60Min = getNMinDataByMin(mapMinDatas,list60MinDatas,pLastMin,pCurrentMin,Min60);
+		listRet = list60MinDatas;
+		if(pCurrent60Min->tmTime>0)
+			listRet.append(pCurrent60Min);
+	}
+
+	return listRet;
+}
+
 
 QString CAbstractStockItem::getOnly() const
 {
@@ -357,17 +597,19 @@ int CAbstractStockItem::getNewHighVolumeCount()
 	return iCount;
 }
 
-QList<tagRStockData*> CAbstractStockItem::get5MinList()
-{
-	QList<tagRStockData*> list = map5MinDatas.values();
-
-	return list;
-}
-
 RStockData* CAbstractStockItem::getToday5MinData( const time_t& tmTime )
 {
-	if(mapMinDatas.contains(tmTime))
-		return mapMinDatas[tmTime];
+	if(mapToday5MinDatas.contains(tmTime))
+		return mapToday5MinDatas[tmTime];
 
 	return 0;
+}
+
+void CAbstractStockItem::loadHisMinData()
+{
+	if(m_bLoadHisMin==false)
+	{
+		CDataEngine::getDataEngine()->importMinData(this,mapMinDatas);
+		m_bLoadHisMin = true;
+	}
 }

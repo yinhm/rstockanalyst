@@ -250,7 +250,7 @@ void CAllStockWidget::updateStockDatas()
 	{
 		foreach(CStockInfoItem* pItem,m_listStocks)
 		{
-			m_mapStockDatas.insert(pItem,new QList<RStockData*>(pItem->get5MinList()));
+			m_mapStockDatas.insert(pItem,new QList<RStockData*>(pItem->getToday5MinList()));
 		}
 	}
 	else if(m_crCircle>=Day)

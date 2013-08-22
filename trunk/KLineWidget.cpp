@@ -866,19 +866,14 @@ void CKLineWidget::clearTmpData()
 		{
 			if(CDataEngine::getCurrentTime()>0)
 			{
-				time_t tmToday = QDateTime(QDateTime::fromTime_t(CDataEngine::getCurrentTime()).date()).toTime_t();
-				//非今日的5分钟数据不能delete
-				QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
-				while(iter!=m_mapData->end())
+				if(m_typeCircle<Min1)
 				{
-					RStockData* pData = iter.value();
-					if(pData && pData->tmTime>tmToday)
+					QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+					while(iter!=m_mapData->end())
 					{
-						delete pData;
-						(*iter) = 0;
+						delete (*iter);
+						++iter;
 					}
-					pData = iter.value();
-					++iter;
 				}
 			}
 		}
@@ -906,43 +901,41 @@ void CKLineWidget::resetTmpData()
 		return;
 	updateTimesH();			//更新最新的时间轴数据
 
-	m_mapData = getColorBlockMap(m_pStockItem);
-
+	if(m_typeCircle<Min1 || m_typeCircle>Min60)
 	{
-		//对于K线图需去除空值
-		QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
-		while(iter != m_mapData->end())
+		m_mapData = getColorBlockMap(m_pStockItem);
 		{
-			time_t tmRemove = 0;
-			if(iter.value()==NULL)
+			//对于K线图需去除空值
+			QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
+			while(iter != m_mapData->end())
 			{
-				tmRemove = iter.key();
-			}
-			++iter;
+				time_t tmRemove = 0;
+				if(iter.value()==NULL)
+				{
+					tmRemove = iter.key();
+				}
+				++iter;
 
-			if(tmRemove!=0)
-			{
-				m_mapData->remove(tmRemove);
-				m_mapTimes.remove(tmRemove);
+				if(tmRemove!=0)
+				{
+					m_mapData->remove(tmRemove);
+					m_mapTimes.remove(tmRemove);
+				}
 			}
 		}
 	}
+	else
 	{
-		if(m_typeCircle<Day)
+		QList<RStockData*> listData = m_pStockItem->getMinList(m_typeCircle);
+		m_mapData = new QMap<time_t,RStockData*>();
+		m_mapTimes.clear();
+
+		int iCount = listData.count();
+		for(int i=(iCount-1);i>=0;--i)
 		{
-			time_t tmToday = QDateTime(QDateTime::fromTime_t(CDataEngine::getCurrentTime()).date()).toTime_t();
-			//过去5分钟数据
-			QList<RStockData*> listData = m_pStockItem->get5MinList();
-			int iCount = listData.count();
-			for(int i=(iCount-1);i>=0;--i)
-			{
-				RStockData* _p = listData[i];
-				if(_p->tmTime<tmToday)
-				{
-					m_mapData->insert(_p->tmTime,_p);
-					m_mapTimes.insert(_p->tmTime,m_mapTimes.size());
-				}
-			}
+			RStockData* _p = listData[i];
+			m_mapData->insert(_p->tmTime,_p);
+			m_mapTimes.insert(_p->tmTime,m_mapTimes.size());
 		}
 	}
 

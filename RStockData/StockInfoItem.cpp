@@ -38,7 +38,6 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
-	pCurrentMin = new RStockData;
 	pCurrent5Min = new RStockData;
 	qsCode = code;
 	wMarket = market;
@@ -77,7 +76,6 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
-	pCurrentMin = new RStockData;
 	pCurrent5Min = new RStockData;
 
 	qsCode = QString::fromLocal8Bit(info.code);
@@ -144,8 +142,18 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 		return;
 	}
 
-	pLastReport->resetItem(pCurrentReport);
-	pCurrentReport->resetItem(p);
+	if((p->m_time - pCurrentReport->tmTime) > 3600*8)
+	{
+		pLastReport->resetItem(p);
+		pCurrentReport->resetItem(p);
+		fLastMinVolume = pLastReport->fVolume;
+		fLastMinAmount = pLastReport->fAmount;
+	}
+	else
+	{
+		pLastReport->resetItem(pCurrentReport);
+		pCurrentReport->resetItem(p);
+	}
 	CDataEngine::setCurrentTime(pCurrentReport->tmTime);
 
 	//将新的Report数据添加到分笔数据中
@@ -293,16 +301,6 @@ void CStockInfoItem::appendJingJias( qRcvFenBiData* pJingJia )
 	return;
 }
 
-QList<tagRStockData*> CStockInfoItem::getMinList()
-{
-	QList<tagRStockData*> list = mapMinDatas.values();
-	if(pCurrentMin->tmTime>0 && (!mapMinDatas.contains(pCurrentMin->tmTime)))
-	{
-		list.push_back(pCurrentMin);
-	}
-	return list;
-}
-
 QList<tagRStockData*> CStockInfoItem::getToday5MinList()
 {
 	QList<tagRStockData*> list = mapToday5MinDatas.values();
@@ -313,7 +311,7 @@ QList<tagRStockData*> CStockInfoItem::getToday5MinList()
 	return list;
 }
 
-RStockData* CStockInfoItem::getMinData( const time_t& tmTime )
+RStockData* CStockInfoItem::getTodayMinData( const time_t& tmTime )
 {
 	if(mapMinDatas.contains(tmTime))
 		return mapMinDatas[tmTime];
@@ -339,7 +337,7 @@ void CStockInfoItem::recalcMinData()
 			if((pFenBi->tmTime/60) > (pMin->tmTime/60))
 			{
 				//追加到5分钟数据中，并重新对当前5分钟数据分配内存
-				appendMinData(pMin);			
+				appendMinData(pMin);
 				pMin = new RStockData;
 				//将最后的5分钟数据进行保存
 				if(pLastFenBi)

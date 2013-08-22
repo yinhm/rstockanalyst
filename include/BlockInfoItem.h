@@ -22,9 +22,6 @@ protected:
 	virtual void initStockItem();
 
 public:
-	//补充1分钟数据
-	virtual QList<tagRStockData*> getMinList();	//追加最后不够1分钟的数据
-
 	//获取当日5分钟数据
 	virtual QList<tagRStockData*> getToday5MinList();	//追加最后不够5分钟的数据
 
@@ -134,7 +131,6 @@ private:
 
 	CBlockInfoItem* m_pParent;
 
-	RStockData* pCurrentMin;		//当前的1分钟数据
 	RBlockData* pCurrent5Min;		//当前的5分钟数据
 
 	QMap<CStockInfoItem*,float> mapLastPrice;	//最后进行比较的数据
