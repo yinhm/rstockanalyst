@@ -64,6 +64,11 @@ int loadAllFunc()
 	return iDllCount;
 }
 
+void OnShowSplashMessage(const QString& msg,int iPro)
+{
+	CSplashDlg::getSplashDlg()->showMessage(msg,iPro);
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -100,6 +105,9 @@ int main(int argc, char *argv[])
 
 	CMainWindow::getMainWindow()->hide();
 
+
+	//关联消息进度窗口和数据引擎
+	CDataEngine::messageShowed = &OnShowSplashMessage;
 
 
 	CSplashDlg::getSplashDlg()->showMessage(QObject::tr("初始化数据..."),40);
