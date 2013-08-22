@@ -7,6 +7,7 @@
 #include "RStockFunc.h"
 
 #define	R_TIME_ZONE	8
+typedef void (*SplashMessage)(const QString&,int);
 
 class RSDSHARED_EXPORT CDataEngine : public QObject
 {
@@ -68,6 +69,7 @@ public:
 	/*将日线按照时间轴排序*/
 	static QMap<time_t,RStockData*>* getColorBlockItems(const QMap<time_t,int>& mapTimes, const QList<qRcvHistoryData*>& minutes);
 
+	static SplashMessage messageShowed;
 public:
 	QString getStockBlockDir() const{ return m_qsBlocksDir; }
 

@@ -19,7 +19,7 @@ private:
 	CSplashDlg(QWidget* parent = 0);
 	~CSplashDlg();
 
-public:
+public slots:
 	void showMessage(const QString& msg, int iPro = 90);
 
 protected:

@@ -52,7 +52,7 @@ DrawLine(MA(OPEN,3))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>15</size>
+    <size>17</size>
     <widget CBHeight="16" CBWidth="16">
      <name></name>
      <ClearMode>0</ClearMode>
@@ -75,7 +75,7 @@ DrawLine(MA(OPEN,3))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>26</size>
+    <size>24</size>
     <widget circle="300">
      <name></name>
      <ClearMode>0</ClearMode>
@@ -83,7 +83,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>24</size>
-     <code>900901SH</code>
+     <code>000836SZ</code>
      <liners>
       <Liner size="60">
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -99,6 +99,7 @@ DrawLine(MA(OPEN,3))</exp>
      <size>29</size>
      <color>红绿</color>
      <Abnomals/>
+     <block>800002BB</block>
     </widget>
     <widget CBHeight="16" CBWidth="4">
      <name></name>
@@ -109,7 +110,7 @@ DrawLine(MA(OPEN,3))</exp>
      <size>45</size>
      <color>红绿1</color>
      <Abnomals/>
-     <block>800004BB</block>
+     <block>800005BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
      <FocusWhenMove>0</FocusWhenMove>
@@ -199,7 +200,7 @@ DrawLine(MA(OPEN,3))</exp>
        <relate>1</relate>
        <align>1</align>
        <size>47</size>
-       <code>900901SH</code>
+       <code>000836SZ</code>
        <liners>
         <Liner size="60">
          <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -220,7 +221,7 @@ DrawLine(MA(OPEN,3))</exp>
         <relate>1</relate>
         <align>1</align>
         <size>50</size>
-        <code>900901SH</code>
+        <code>000836SZ</code>
        </widget>
        <widget>
         <name></name>
@@ -249,7 +250,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>50</size>
-     <code>900901SH</code>
+     <code>000836SZ</code>
      <liners>
       <Liner size="20">
        <exp>DrawLine(CLOSE)
@@ -266,7 +267,7 @@ DrawLine(MA(CLOSE,1000))</exp>
      <size>49</size>
      <color>红绿1</color>
      <Abnomals/>
-     <block>800004BB</block>
+     <block>800005BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
      <FocusWhenMove>0</FocusWhenMove>

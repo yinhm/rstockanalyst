@@ -211,6 +211,7 @@ void CDataEngine::importData()
 		QString qsBaseInfo = qsDir+"/data/baseinfo.rsqfin";
 		if(QFile::exists(qsBaseInfo))
 		{
+			messageShowed("加载F10数据...",10);
 			qDebug()<<"Import F10 data...";
 			int iCount = importBaseInfo(qsBaseInfo);
 			if(iCount<1)
@@ -235,6 +236,7 @@ void CDataEngine::importData()
 		//导入最后一组的Reports数据
 		QString qsReportFile = QString("%1/data/reports").arg(qsDir);
 		qDebug()<<"Import reports data from "<<qsReportFile;
+		messageShowed("加载Reports数据...",20);
 		int iCount = importReportsInfo(qsReportFile);
 		if(iCount<1)
 		{
@@ -247,6 +249,7 @@ void CDataEngine::importData()
 
 	{
 		//导入板块数据
+		messageShowed("加载板块信息...",30);
 		importBlocksData("");
 		//清空 m_mapReportForBlock;
 		QMap<QString,qRcvReportData*>::iterator iter = m_mapReportForBlock.begin();
@@ -260,6 +263,7 @@ void CDataEngine::importData()
 
 	{
 		//导入当天的分笔数据
+		messageShowed("加载当日分笔数据...",40);
 		QString qsFenBiFile = QString("%1/data/FenBi/%2").arg(qsDir).arg(QDate::currentDate().toString("yyyyMMdd"));
 		while(!QFile::exists(qsFenBiFile))
 		{
@@ -281,6 +285,7 @@ void CDataEngine::importData()
 	}
 	{
 		//加载监视雷达数据
+		messageShowed("加载雷达信息...",90);
 		CRadarManager::getRadarManager()->loadRadars();
 	}
 
@@ -501,6 +506,8 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 			continue;
 		}
 
+		messageShowed("导入\""+pItem->getName()+"\"的分笔数据...",40);
+
 		int iIndex = 0;
 		QList<qRcvFenBiData*> listFenBis;
 	//	QString qsMin;
@@ -532,6 +539,7 @@ int CDataEngine::importFenBisData( const QString& qsFile )
 	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
 	foreach( CBlockInfoItem* pItem, listBlocks)
 	{
+		messageShowed("计算板块\""+pItem->getName()+"\"数据...",70);
 		pItem->recalcMinData();
 		pItem->recalc5MinData();
 	}
@@ -1625,5 +1633,7 @@ QString CDataEngine::getMarketStr( WORD wMarket )
 	//未知类型
 	return "UN";
 }
+
+SplashMessage CDataEngine::messageShowed = NULL;
 
 bool CDataEngine::m_bLoading = false;
