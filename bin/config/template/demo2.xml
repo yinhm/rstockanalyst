@@ -83,7 +83,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>24</size>
-     <code>000836SZ</code>
+     <code>002001SZ</code>
      <liners>
       <Liner size="60">
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -200,7 +200,7 @@ DrawLine(MA(OPEN,3))</exp>
        <relate>1</relate>
        <align>1</align>
        <size>47</size>
-       <code>000836SZ</code>
+       <code>002001SZ</code>
        <liners>
         <Liner size="60">
          <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -221,7 +221,7 @@ DrawLine(MA(OPEN,3))</exp>
         <relate>1</relate>
         <align>1</align>
         <size>50</size>
-        <code>000836SZ</code>
+        <code>002001SZ</code>
        </widget>
        <widget>
         <name></name>
@@ -250,7 +250,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>50</size>
-     <code>000836SZ</code>
+     <code>002001SZ</code>
      <liners>
       <Liner size="20">
        <exp>DrawLine(CLOSE)
