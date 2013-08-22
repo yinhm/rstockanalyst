@@ -63,6 +63,9 @@ CMainWindow::CMainWindow()
 	connect(&m_timerClose,SIGNAL(timeout()),this,SLOT(onMarketCloseTimer()));
 	m_timerClose.start(60000);
 
+	//定时计算板块数据
+	connect(&m_timerCalcBlock,SIGNAL(timeout()),this,SLOT(onCalcBlock()));
+
 	//获取导出时间
 	QVariant tmExport = DilideCode::DConfigSettings::getConfigSettings()->getValue(EXPORT_TIME_TAG);
 	if(!tmExport.toString().isEmpty())
@@ -324,7 +327,9 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 							else
 							{
 								pItem->appendFenBis(listFenBis);
+								pItem->recalcMinData();
 								pItem->recalc5MinData();
+								m_timerCalcBlock.start(30000);
 							}
 							qsOnly = QString::fromLocal8Bit(pMinute->m_head.m_szLabel)
 								+ CDataEngine::getMarketStr(pMinute->m_head.m_wMarket);
@@ -631,4 +636,17 @@ void CMainWindow::onShowAllStocks()
 {
 	CAllStockDialog dlg;
 	dlg.exec();
+}
+
+void CMainWindow::onCalcBlock()
+{
+	CSplashDlg::getSplashDlg()->showMessage(tr("正在重新计算板块数据..."),50);
+	QList<CBlockInfoItem*> listBlocks = CDataEngine::getDataEngine()->getStockBlocks();
+	foreach(CBlockInfoItem* pItem,listBlocks)
+	{
+		pItem->recalc5MinData();
+		pItem->recalcMinData();
+	}
+	m_timerCalcBlock.stop();
+	CSplashDlg::getSplashDlg()->hide();
 }

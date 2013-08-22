@@ -48,6 +48,9 @@ protected slots:
 	//
 	void onWatcherSetting();		//监控雷达设置
 
+	//重新计算板块数据的定时器响应函数
+	void onCalcBlock();
+
 protected:
 	virtual bool winEvent( MSG* message, long* result );
 
@@ -72,6 +75,8 @@ private:
 
 	QTimer m_timerClose;								//是否休盘
 	QTime m_tmExportClose;								//导出休盘数据的时间
+
+	QTimer m_timerCalcBlock;							//重新计算板块数据
 
 	bool m_bExportClose;								//是否已经导出休盘数据
 };
