@@ -51,8 +51,8 @@ CMainWindow::CMainWindow()
 		QMenu* pMenuSettings = m_pMenuBar->addMenu(tr("设置"));
 		pMenuSettings->addAction(tr("设置色块颜色"),CBlockColorSettingDlg::getDialog(),SLOT(exec()));
 		pMenuSettings->addAction(tr("监视雷达设置"),this,SLOT(onWatcherSetting()));
-		pMenuSettings->addAction(tr("收盘后数据整理"),this,SLOT(onMarketCloseSetting()));
-		pMenuSettings->addAction(tr("重新计算板块数据"),this,SLOT(onMarketClose()));
+		pMenuSettings->addAction(tr("收盘后作业设置"),this,SLOT(onMarketCloseSetting()));
+		pMenuSettings->addAction(tr("立即进行收盘作业"),this,SLOT(onMarketClose()));
 		pMenuSettings->addAction(tr("显示所有的股票"),this,SLOT(onShowAllStocks()));
 
 		//帮助
