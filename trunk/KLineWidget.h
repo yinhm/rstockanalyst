@@ -16,6 +16,12 @@ class CKLineWidget : public CCoordXBaseWidget
 {
 	Q_OBJECT
 public:
+	enum FenShiAsis				//分时图上的辅助图
+	{
+		FenShiVol = 0,			//量（无其它指标）
+		FenShiVolRatio,			//量比
+	};
+public:
 	CKLineWidget(CBaseWidget* parent = 0);
 	~CKLineWidget(void);
 
@@ -88,6 +94,8 @@ private:
 	//绘制Y轴，主要用于K线图
 	virtual void drawCoordY(QPainter& p,const QRectF rtCoordY, float fMax, float fMin);
 
+	//绘制分时图
+	void drawFenShi(QPainter& p, QRect rtClient);
 private:
 	void resetTmpData();					//重新计算数据。
 
@@ -122,6 +130,10 @@ private:
 
 	bool m_bLock;							//用于切换时的加锁
 	QDateTime m_tmLastUpdate;				//最后一次更新的时间
+
+	//分时图设置项
+	int m_iFenShiCount;						//绘制分时图的天数
+	FenShiAsis m_iFenShiAsis;				//分时图的辅助项
 };
 
 

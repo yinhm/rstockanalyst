@@ -6,6 +6,7 @@
 #include <Windows.h>
 
 #define	KLINE_BORDER	2
+#define TIME_OF_DAY		(3600*24)
 
 CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	: CCoordXBaseWidget(parent,WidgetKLine)
@@ -20,6 +21,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_mapData(NULL)
 	, m_bLock(false)
 	, m_tmLastUpdate(QDateTime::currentDateTime())
+	, m_iFenShiCount(1)
+	, m_iFenShiAsis(FenShiVol)
 {
 	m_typeCircle = Min1;
 
@@ -195,7 +198,27 @@ void CKLineWidget::updateTimesH()
 	//更新当前的横坐标数据，从后向前计算时间
 	if(m_typeCircle == FenShi)
 	{
-
+		m_mapTimes.clear();
+		//生成7天内的分时坐标线
+		time_t tmDay = (CDataEngine::getCurrentTime()/TIME_OF_DAY);
+		for (int i=0; i<m_iFenShiCount; ++i)
+		{
+			time_t tmCur = ((tmDay-i)*TIME_OF_DAY) + 3600*7;	//15:00休盘
+			time_t tmLast = tmCur-1800*11;						//9:30开盘
+			time_t tmNoon1 = tmCur-1800*7;						//11:30休盘
+			time_t tmNoon2 = tmCur-1800*4;						//13:00重新开盘
+			while(tmCur>=tmNoon2)
+			{
+				m_mapTimes[tmCur] = m_mapTimes.size();
+				tmCur-=60;
+			}
+			tmCur = tmNoon1;
+			while(tmCur>=tmLast)
+			{
+				m_mapTimes[tmCur] = m_mapTimes.size();
+				tmCur-=60;
+			}
+		}
 	}
 	else if(m_typeCircle<Day)
 		m_mapTimes = CDataEngine::getTodayTimeMap(m_typeCircle);
@@ -272,6 +295,13 @@ void CKLineWidget::paintEvent( QPaintEvent* )
 	p.fillRect(rtClient,QColor(0,0,0));
 	if(!m_pStockItem)
 		return;
+
+	if(m_typeCircle == FenShi)
+	{
+		//绘制分时图
+		drawFenShi(p,rtClient);
+		return;
+	}
 
 	if(m_iShowCount>m_mapData->size())
 	{
@@ -514,17 +544,35 @@ void CKLineWidget::keyPressEvent(QKeyEvent* e)
 	int iKey = e->key();
 	if(iKey == Qt::Key_Up)
 	{
-		int iShowCount = m_iShowCount*0.9;
-		if(iShowCount>=m_iShowCount)
-			iShowCount = m_iShowCount-2;
-		return setShowCount(iShowCount);
+		if(m_typeCircle == FenShi)
+		{
+			if(m_iFenShiCount>1)
+				--m_iFenShiCount;
+			return updateData();
+		}
+		else
+		{
+			int iShowCount = m_iShowCount*0.9;
+			if(iShowCount>=m_iShowCount)
+				iShowCount = m_iShowCount-2;
+			return setShowCount(iShowCount);
+		}
 	}
 	else if(iKey == Qt::Key_Down)
 	{
-		int iShowCount = m_iShowCount*1.1;
-		if(iShowCount<=m_iShowCount)
-			iShowCount = m_iShowCount+5;
-		return setShowCount(iShowCount);
+		if(m_typeCircle == FenShi)
+		{
+			if(m_iFenShiCount<7)
+				++m_iFenShiCount;
+			return updateData();
+		}
+		else
+		{
+			int iShowCount = m_iShowCount*1.1;
+			if(iShowCount<=m_iShowCount)
+				iShowCount = m_iShowCount+5;
+			return setShowCount(iShowCount);
+		}
 	}
 	else if(Qt::Key_F10 == iKey)
 	{
@@ -866,7 +914,7 @@ void CKLineWidget::clearTmpData()
 		{
 			if(CDataEngine::getCurrentTime()>0)
 			{
-				if(m_typeCircle<Min1)
+				if(m_typeCircle<Min1 && m_typeCircle!=FenShi)
 				{
 					QMap<time_t,RStockData*>::iterator iter = m_mapData->begin();
 					while(iter!=m_mapData->end())
@@ -901,7 +949,19 @@ void CKLineWidget::resetTmpData()
 		return;
 	updateTimesH();			//更新最新的时间轴数据
 
-	if(m_typeCircle<Min1 || m_typeCircle>Min60)
+	if(m_typeCircle == FenShi)
+	{
+		m_mapData = new QMap<time_t,RStockData*>();
+		QList<RStockData*> listData = m_pStockItem->getMinList();
+		foreach(RStockData* pData,listData)
+		{
+			m_mapData->insert(pData->tmTime,pData);
+		}
+
+		update();
+		return;
+	}
+	else if(m_typeCircle<Min1 || m_typeCircle>Min60)
 	{
 		m_mapData = getColorBlockMap(m_pStockItem);
 		{
@@ -1009,10 +1069,10 @@ void CKLineWidget::keyWizEntered( KeyWizData* pData )
 
 void CKLineWidget::drawCoordX( QPainter& p,const QRectF& rtCoordX,float fItemWidth )
 {
-	if(m_typeCircle != FenShi)
-	{
-		updateShowTimes(rtCoordX,fItemWidth);
-	}
+	if(m_typeCircle == FenShi)
+		return;
+
+	updateShowTimes(rtCoordX,fItemWidth);
 
 	//从右向左绘制横坐标
 	float fBeginX = rtCoordX.right();
@@ -1266,5 +1326,197 @@ void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, fl
 			++iDrawIndex;
 		}
 		iValue = iValue+iValueIncre;
+	}
+}
+
+void CKLineWidget::drawFenShi( QPainter& p, QRect rtClient )
+{
+	/*画头部*/
+	QRect rtTitle = QRect(rtClient.left(),rtClient.top(),rtClient.width(),m_iTitleHeight);
+	drawTitle(p,rtTitle);
+
+	QRectF rtCoordX = QRectF(rtClient.left()+3,rtClient.bottom()-m_iCoorXHeight+1,rtClient.width()-m_iCoorYWidth-5,m_iCoorXHeight);
+	float fItemWidth = float(rtCoordX.width()-1)/(m_mapTimes.size()-1);
+
+	//改变为可画图区域的大小
+	rtClient.adjust(3,m_iTitleHeight,-m_iCoorYWidth-2,-m_iCoorXHeight);	
+
+	float fBeginX = rtCoordX.right();
+	float fEndX = rtCoordX.left();
+	float fCBWidth = fBeginX-fEndX;
+	if(fCBWidth<0 || m_mapTimes.size()<1)
+		return;
+	{
+		//从右向左绘制横坐标
+		float fCurX = fBeginX;
+		float fLastX = fBeginX;
+
+		p.setPen(QColor(155,0,0));
+		QPen oldPen = p.pen();
+		QPen newPen = QPen(Qt::DotLine);
+		newPen.setColor(QColor(155,0,0));
+
+		QMap<time_t,int>::iterator iter = m_mapTimes.end();
+		--iter;
+		time_t tmCurHalfHour = iter.key()/1800;
+
+		while(iter!=m_mapTimes.begin())
+		{
+			time_t tmTime = iter.key();
+			if((tmCurHalfHour - tmTime/1800)>24)
+			{
+				//相差一天时间
+				p.setPen(oldPen);
+				p.setPen(QColor(0,155,155));
+
+				if((fLastX - fCurX) < 40)
+				{
+					//覆盖之前绘制的时间
+					p.fillRect(fLastX-14,rtCoordX.top(),30,rtCoordX.height(),QColor(0,0,0));
+				}
+
+				p.drawLine(fCurX,rtClient.top(),fCurX,rtCoordX.top()+2);
+				p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+					Qt::AlignCenter,QDateTime::fromTime_t(tmCurHalfHour*1800).toString("MM/dd"));
+
+				fLastX = fCurX;
+				tmCurHalfHour = tmTime/1800;
+			}
+			else if(tmTime/1800 < tmCurHalfHour)
+			{
+				if((fLastX - fCurX)>40)
+				{
+					if(tmCurHalfHour%2==0)
+						p.setPen(oldPen);
+					else
+						p.setPen(newPen);
+
+					p.drawLine(fCurX,rtClient.top(),fCurX,rtCoordX.top()+2);
+
+					p.setPen( tmCurHalfHour%2 ? QColor(0,255,255) : QColor(255,0,0));
+					p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
+						Qt::AlignCenter,QDateTime::fromTime_t(tmCurHalfHour*1800).toString("hh:mm"));
+
+					fLastX = fCurX;
+				}
+				tmCurHalfHour = tmTime/1800;
+			}
+			fCurX = fCurX- fItemWidth;
+			--iter;
+		}
+	}
+	{
+		//绘制Y坐标轴
+		//两种模式，最大值/最小值  最大百分比  (lastclose*110+1.0)/100
+	}
+	{
+		//绘制主图
+		QRect rtMain,rtVolume,rtAsis;
+		if(m_iFenShiAsis != FenShiVol)
+		{
+			int iHMain = rtClient.height()*0.6;
+			int iHVol = rtClient.height()*0.2;
+			rtMain = QRect(rtClient.left(),rtClient.top(),rtClient.width(),iHMain);
+			rtVolume = QRect(rtClient.left(),rtClient.top()+iHMain,rtClient.width(),iHVol);
+			rtAsis = QRect(rtClient.left(),rtClient.top()+iHMain+iHVol,rtClient.width(),rtClient.height()-iHMain-iHVol);
+		}
+		else
+		{
+			int iHMain = rtClient.height()*0.7;
+			rtMain = QRect(rtClient.left(),rtClient.top(),rtClient.width(),iHMain);
+			rtVolume = QRect(rtClient.left(),rtClient.top()+iHMain,rtClient.width(),rtClient.height()-iHMain);
+			rtAsis = QRect();
+		}
+
+		float fMinPrice = 9999;
+		float fMaxPrice = -9999;
+		float fMinVolume = 9999;
+		float fMaxVolume = -9999;
+
+		{
+			//求最大值和最小值，用于绘制Y坐标轴
+			QMap<time_t,RStockData*>::iterator iterBegin = m_mapData->lowerBound(m_mapTimes.begin().key());
+			QMap<time_t,RStockData*>::iterator iterEnd = m_mapData->end();
+			QMap<time_t,RStockData*>::iterator iterTmp = iterBegin;
+			while(iterTmp!=m_mapData->end())
+			{
+				RStockData* pData = (*iterTmp);
+				if(pData->fClose>fMaxPrice)
+					fMaxPrice = pData->fClose;
+				if(pData->fClose<fMinPrice)
+					fMinPrice = pData->fClose;
+
+				if(pData->fVolume>fMaxVolume)
+					fMaxVolume = pData->fVolume;
+				if(pData->fVolume<fMinVolume)
+					fMinVolume = pData->fVolume;
+				++iterTmp;
+			}
+
+			if(fMaxPrice<fMinPrice)
+				return;
+			fMaxPrice+=(float)0.01;
+			fMinPrice-=(float)0.01;
+			fMaxVolume = fMaxVolume*1.1;
+			fMinVolume = fMinVolume*0.9;
+		}
+
+		float fRight = rtMain.right();
+		float fTop = rtMain.top();
+		float fPer = rtMain.height()/(fMaxPrice-fMinPrice);
+		float fBottomVol = rtVolume.bottom();
+		float fPerVol = rtVolume.height()/(fMaxVolume-fMinVolume);
+
+		p.setPen(QColor(160,0,0));
+		p.drawRect(rtMain);
+		p.drawRect(rtVolume);
+
+		time_t tmDay = (CDataEngine::getCurrentTime()/TIME_OF_DAY);
+		for (int i=0;i<m_iFenShiCount;++i)
+		{
+			time_t tmBegin = ((tmDay-i)*TIME_OF_DAY);	//开始时间
+			time_t tmEnd = ((tmDay-i+1)*TIME_OF_DAY);	//结束时间
+			double dVolume = 0.0;
+			double dAmount = 0.0;
+
+			float fLastV = -9999;
+			float fLastVA = -9999;	//均线位置
+			float fLastH = -9999;
+			p.setPen(QColor(250,250,250));
+
+			QMap<time_t,RStockData*>::iterator iterBegin = m_mapData->upperBound(tmBegin);
+			QMap<time_t,RStockData*>::iterator iterEnd = m_mapData->upperBound(tmEnd);
+			QMap<time_t,RStockData*>::iterator iterTmp = iterBegin;
+			while(iterTmp!=iterEnd)
+			{
+				RStockData* pData = (*iterTmp);
+				QMap<time_t,int>::iterator iterT = m_mapTimes.upperBound(pData->tmTime);
+				if(iterT!=m_mapTimes.end())
+				{
+					int iIndex = (*iterT)-1;
+					float fV = (fMaxPrice - pData->fClose)*fPer+fTop;
+					float fH = fRight - fItemWidth*iIndex;
+					dVolume += pData->fVolume;
+					dAmount += pData->fAmount;
+					float fVA = (dVolume>0.0001) ? ((fMaxPrice - (dAmount/(dVolume*100)))*fPer+fTop) : -999;
+					if(fLastV>0.0)
+					{
+						p.setPen(QColor(250,250,250));
+						p.drawLine(fH,fV,fLastH,fLastV);
+						p.setPen(QColor(192,192,0));
+						p.drawLine(fH,fVA,fLastH,fLastVA);
+					}
+					fLastV = fV;
+					fLastH = fH;
+					fLastVA = fVA;
+
+					float fVol = fBottomVol - (pData->fVolume-fMinVolume)*fPerVol;
+					p.setPen(QColor(192,192,0));
+					p.drawLine(fH,fBottomVol,fH,fVol);
+				}
+				++iterTmp;
+			}
+		}
+
 	}
 }

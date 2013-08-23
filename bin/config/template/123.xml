@@ -43,20 +43,20 @@
    <size>38</size>
    <color></color>
    <Abnomals/>
-   <block>800003BB</block>
+   <block>800010BB</block>
    <ShowType volumeratio="1" turnratio="1" increase="1"/>
    <TopStocks/>
    <FocusWhenMove>0</FocusWhenMove>
    <AssistIndex/>
   </widget>
-  <widget circle="60">
+  <widget circle="1">
    <name></name>
    <ClearMode>0</ClearMode>
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
    <size>51</size>
-   <code>002001SZ</code>
+   <code>300227SZ</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>

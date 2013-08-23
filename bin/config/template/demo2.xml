@@ -52,7 +52,7 @@ DrawLine(MA(OPEN,3))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>17</size>
+    <size>19</size>
     <widget CBHeight="16" CBWidth="16">
      <name></name>
      <ClearMode>0</ClearMode>
@@ -75,7 +75,7 @@ DrawLine(MA(OPEN,3))</exp>
     <type>0</type>
     <relate>1</relate>
     <align>1</align>
-    <size>24</size>
+    <size>23</size>
     <widget circle="300">
      <name></name>
      <ClearMode>0</ClearMode>
@@ -83,7 +83,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>24</size>
-     <code>002001SZ</code>
+     <code>900905SH</code>
      <liners>
       <Liner size="60">
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -99,7 +99,6 @@ DrawLine(MA(OPEN,3))</exp>
      <size>29</size>
      <color>红绿</color>
      <Abnomals/>
-     <block>800002BB</block>
     </widget>
     <widget CBHeight="16" CBWidth="4">
      <name></name>
@@ -200,7 +199,7 @@ DrawLine(MA(OPEN,3))</exp>
        <relate>1</relate>
        <align>1</align>
        <size>47</size>
-       <code>002001SZ</code>
+       <code>900905SH</code>
        <liners>
         <Liner size="60">
          <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -221,7 +220,7 @@ DrawLine(MA(OPEN,3))</exp>
         <relate>1</relate>
         <align>1</align>
         <size>50</size>
-        <code>002001SZ</code>
+        <code>900905SH</code>
        </widget>
        <widget>
         <name></name>
@@ -250,7 +249,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>50</size>
-     <code>002001SZ</code>
+     <code>900905SH</code>
      <liners>
       <Liner size="20">
        <exp>DrawLine(CLOSE)

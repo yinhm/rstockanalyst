@@ -1508,6 +1508,15 @@ bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 	time_t tmDate = QDateTime(QDateTime::fromTime_t(pReport->tmTime).date()).toTime_t();
 	tmDate = tmDate-3600*24*7;		//7天以前的数据不再保存
 
+	QList<tagRStockData*> listData = pItem->getMinList();
+	if(listData.size()>0)
+	{
+		if( ((listData.last()->tmTime+1)%60) != 0)
+		{
+			listData.removeLast();
+		}
+	}
+
 	QString qsFileName = QString("%1/%2/%3").arg(m_qsMin).arg(pItem->getMarketName()).arg(pItem->getCode());
 	QFile file(qsFileName);
 	if(!file.open(QFile::WriteOnly|QFile::Truncate))
@@ -1515,16 +1524,7 @@ bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 		qDebug()<<"Open file\""<<qsFileName<<"\" error!";
 		return false;
 	}
-
 	QDataStream out(&file);
-	QList<tagRStockData*> listData = pItem->getMinList();
-	if(listData.size()>0)
-	{
-		if( (listData.last()->tmTime+1%60) != 0)
-		{
-			listData.removeLast();
-		}
-	}
 
 	{
 		int iSizeOfStruct = sizeof(RStockData);
@@ -1533,7 +1533,9 @@ bool CDataEngine::exportMinData( CAbstractStockItem* pItem )
 			if(pData->tmTime>tmDate)
 			{
 				if(file.write(reinterpret_cast<char*>(pData),iSizeOfStruct)!=iSizeOfStruct)
+				{
 					break;
+				}
 			}
 		}
 	}

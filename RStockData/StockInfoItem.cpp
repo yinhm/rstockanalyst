@@ -142,7 +142,7 @@ void CStockInfoItem::setReport( RCV_REPORT_STRUCTExV3* p )
 		return;
 	}
 
-	if((p->m_time - pCurrentReport->tmTime) > 3600*8)
+	if((p->m_time - pCurrentReport->tmTime) > 60)
 	{
 		pLastReport->resetItem(p);
 		pCurrentReport->resetItem(p);
@@ -322,7 +322,9 @@ RStockData* CStockInfoItem::getTodayMinData( const time_t& tmTime )
 void CStockInfoItem::recalcMinData()
 {
 	//重新计算5分钟数据
-	QMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.begin();
+	//不计算集合竞价时间
+	time_t tmBegin = (CDataEngine::getCurrentTime()/(3600*24)*(3600*24))+1800*3-1;
+	QMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.upperBound(tmBegin);
 	RStockData* pMin = new RStockData();
 	qRcvFenBiData* pLastFenBi = 0;
 	float fLastVolume = 0;
