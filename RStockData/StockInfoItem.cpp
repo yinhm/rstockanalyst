@@ -35,6 +35,7 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
 	, fLastCmpPrice(0)
+	, m_bIsIndex(false)
 {
 	pCurrentReport = new qRcvReportData;
 	pLastReport = new qRcvReportData;
@@ -43,6 +44,7 @@ CStockInfoItem::CStockInfoItem( const QString& code, WORD market )
 	wMarket = market;
 	qsMarket = CDataEngine::getMarketStr(wMarket);
 	qsOnly = qsCode+qsMarket;
+	m_bIsIndex = CDataEngine::isIndexStock(qsOnly);
 
 	initStockItem();
 }
@@ -72,6 +74,7 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	, fLast5MinVolume(0)
 	, fLast5MinAmount(0)
 	, fLastCmpPrice(0)
+	, m_bIsIndex(false)
 {
 	memcpy(&baseInfo,&info,sizeof(qRcvBaseInfoData));
 	pCurrentReport = new qRcvReportData;
@@ -82,6 +85,8 @@ CStockInfoItem::CStockInfoItem( const qRcvBaseInfoData& info )
 	wMarket = info.wMarket;
 	qsMarket = CDataEngine::getMarketStr(wMarket);
 	qsOnly = qsCode+qsMarket;
+
+	m_bIsIndex = CDataEngine::isIndexStock(qsOnly);
 
 	initStockItem();
 }

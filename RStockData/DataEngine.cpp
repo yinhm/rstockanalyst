@@ -185,6 +185,7 @@ CDataEngine* CDataEngine::m_pDataEngine = 0;
 time_t CDataEngine::m_tmCurrentDay = 0;
 time_t CDataEngine::m_tmCurrent = 0;
 QMap<QString,qRcvReportData*> CDataEngine::m_mapReportForBlock;
+QMap<QString,int> CDataEngine::m_mapIndexStocks;
 
 
 CDataEngine* CDataEngine::getDataEngine()
@@ -205,6 +206,10 @@ void CDataEngine::importData()
 {
 	m_bLoading = true;
 	QString qsDir = qApp->applicationDirPath();
+	{
+		//导入指数股信息
+		importIndexStocks(qsDir+"/config/特殊股票");
+	}
 	{
 		//导入F10 数据
 		/*如果有本地数据，先导入本地数据*/
@@ -332,6 +337,28 @@ void CDataEngine::exportData()
 bool CDataEngine::isLoading()
 {
 	return m_bLoading;
+}
+
+int CDataEngine::importIndexStocks( const QString& qsFile )
+{
+	int iCount = 0;
+
+	QFile file(qsFile);
+	if(file.open(QFile::ReadOnly))
+	{
+		file.seek(0);
+		while(!file.atEnd())
+		{
+			QString code = file.readLine();
+			code = code.trimmed();
+			if(!code.isEmpty())
+			{
+				m_mapIndexStocks.insert(code,iCount);
+			}
+		}
+		file.close();
+	}
+	return iCount;
 }
 
 int CDataEngine::importBaseInfoFromFinFile( const QString& qsFile )
@@ -563,6 +590,11 @@ qRcvReportData* CDataEngine::getReportForInitBlock( const QString& qsOnly )
 	if(m_mapReportForBlock.contains(qsOnly))
 		return m_mapReportForBlock[qsOnly];
 	return NULL;
+}
+
+bool CDataEngine::isIndexStock( const QString& qsCode )
+{
+	return m_mapIndexStocks.contains(qsCode);
 }
 
 
@@ -1635,6 +1667,7 @@ QString CDataEngine::getMarketStr( WORD wMarket )
 	//未知类型
 	return "UN";
 }
+
 
 SplashMessage CDataEngine::messageShowed = NULL;
 

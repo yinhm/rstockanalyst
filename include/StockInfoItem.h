@@ -91,6 +91,7 @@ public:
 	/*判断关键词_key是否匹配*/
 	bool isMatch(const QString& _key);
 
+	virtual bool isIndex(){ return m_bIsIndex; }
 signals:
 	void stockItemReportComing(CStockInfoItem*);//行情数据更新
 
@@ -135,6 +136,8 @@ private:
 	QList<QList<QChar>> shortName;	//简拼表
 
 	float fLastCmpPrice;			//上一个用来比较的价格
+
+	bool m_bIsIndex;				//是否是指数股
 
 private:
 	QMap<time_t,qRcvPowerData*> mapPowers;			//除权数据

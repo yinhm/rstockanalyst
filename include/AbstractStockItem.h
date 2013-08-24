@@ -100,6 +100,8 @@ public:
 	bool isInstanceOfStock();
 	bool isInstanceOfBlock();
 
+	virtual bool isIndex() = 0;							//是否是指数
+
 protected:
 	virtual void updateItemInfo() = 0;
 	void loadHisMinData();

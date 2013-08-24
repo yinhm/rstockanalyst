@@ -30,6 +30,8 @@ public:
 
 
 	/*数据导入函数*/
+	//导入指数股信息
+	static int importIndexStocks(const QString& qsFile);
 	//F10数据导入,返回值为导入的数据总条数，从后缀名为.fin的文件导入。
 	static int importBaseInfoFromFinFile(const QString& qsFile);
 	//F10数据导入，从本应用支持的数据导入，后缀名为 .rsafin
@@ -43,6 +45,9 @@ public:
 
 	//为初始化的板块获取Report
 	static qRcvReportData* getReportForInitBlock(const QString& qsOnly);
+
+	//获取股票代码是否为指数股
+	static bool isIndexStock(const QString& qsCode);
 
 	/*数据导出函数*/
 	/*导出基本财务数据，F10数据*/
@@ -141,6 +146,7 @@ private:
 	//用于存储初始加载的板块Report数据，板块初始化完成后即删除该数据
 	static QMap<QString,qRcvReportData*> m_mapReportForBlock;
 	static bool m_bLoading;						//是否正在加载。。。
+	static QMap<QString,int> m_mapIndexStocks;	//加载的指数股
 };
 
 

@@ -114,7 +114,7 @@ void CBlockInfoItem::initStockItem()
 					QList<CStockInfoItem*> listStocks = CDataEngine::getDataEngine()->getStockInfoList();
 					foreach(CStockInfoItem* p,listStocks)
 					{
-						if(_exp.exactMatch(p->getCode()))
+						if(_exp.exactMatch(p->getCode()) && !p->isIndex())
 						{
 							addStock(p);
 						}
@@ -239,8 +239,8 @@ void CBlockInfoItem::recalcMinData()
 					dLow += pData->fLow*fLTAG;
 					dHigh += pData->fHigh*fLTAG;
 					dOpen += pData->fOpen*fLTAG;
-					fVolume += pData->fVolume;
-					fAmount += pData->fAmount;
+					dVolume += pData->fVolume;
+					dAmount += pData->fAmount;
 
 					if(_last>0.1)
 					{
@@ -346,8 +346,8 @@ void CBlockInfoItem::recalc5MinData()
 					dLow += pData->fLow*fLTAG;
 					dHigh += pData->fHigh*fLTAG;
 					dOpen += pData->fOpen*fLTAG;
-					fVolume += pData->fVolume;
-					fAmount += pData->fAmount;
+					dVolume += pData->fVolume;
+					dAmount += pData->fAmount;
 
 					if(_last>0.1)
 					{

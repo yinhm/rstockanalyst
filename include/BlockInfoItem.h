@@ -99,6 +99,8 @@ public:
 	/*≈–∂œπÿº¸¥ _key «∑Ò∆•≈‰*/
 	bool isMatch(const QString& _key);
 
+	virtual bool isIndex(){ return true; }
+
 protected:
 	virtual void updateItemInfo(){}
 
