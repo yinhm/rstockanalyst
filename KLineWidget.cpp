@@ -1476,8 +1476,6 @@ void CKLineWidget::drawFenShi( QPainter& p, QRect rtClient )
 		{
 			time_t tmBegin = ((tmDay-i)*TIME_OF_DAY);	//开始时间
 			time_t tmEnd = ((tmDay-i+1)*TIME_OF_DAY);	//结束时间
-			double dVolume = 0.0;
-			double dAmount = 0.0;
 
 			float fLastV = -9999;
 			float fLastVA = -9999;	//均线位置
@@ -1487,34 +1485,76 @@ void CKLineWidget::drawFenShi( QPainter& p, QRect rtClient )
 			QMap<time_t,RStockData*>::iterator iterBegin = m_mapData->upperBound(tmBegin);
 			QMap<time_t,RStockData*>::iterator iterEnd = m_mapData->upperBound(tmEnd);
 			QMap<time_t,RStockData*>::iterator iterTmp = iterBegin;
-			while(iterTmp!=iterEnd)
+			if(!m_pStockItem->isIndex())
 			{
-				RStockData* pData = (*iterTmp);
-				QMap<time_t,int>::iterator iterT = m_mapTimes.upperBound(pData->tmTime);
-				if(iterT!=m_mapTimes.end())
+				//非指数的绘制方式
+				double dVolume = 0.0;
+				double dAmount = 0.0;
+				while(iterTmp!=iterEnd)
 				{
-					int iIndex = (*iterT)-1;
-					float fV = (fMaxPrice - pData->fClose)*fPer+fTop;
-					float fH = fRight - fItemWidth*iIndex;
-					dVolume += pData->fVolume;
-					dAmount += pData->fAmount;
-					float fVA = (dVolume>0.0001) ? ((fMaxPrice - (dAmount/(dVolume*100)))*fPer+fTop) : -999;
-					if(fLastV>0.0)
+					RStockData* pData = (*iterTmp);
+					QMap<time_t,int>::iterator iterT = m_mapTimes.upperBound(pData->tmTime);
+					if(iterT!=m_mapTimes.end())
 					{
-						p.setPen(QColor(250,250,250));
-						p.drawLine(fH,fV,fLastH,fLastV);
-						p.setPen(QColor(192,192,0));
-						p.drawLine(fH,fVA,fLastH,fLastVA);
-					}
-					fLastV = fV;
-					fLastH = fH;
-					fLastVA = fVA;
+						int iIndex = (*iterT)-1;
+						float fV = (fMaxPrice - pData->fClose)*fPer+fTop;
+						float fH = fRight - fItemWidth*iIndex;
+						dVolume += pData->fVolume;
+						dAmount += pData->fAmount;
+						float fVA = (dVolume>0.0001) ? ((fMaxPrice - (dAmount/(dVolume*100)))*fPer+fTop) : -999;
+						if(fLastV>0.0)
+						{
+							p.setPen(QColor(250,250,250));
+							p.drawLine(fH,fV,fLastH,fLastV);
+							p.setPen(QColor(192,192,0));
+							p.drawLine(fH,fVA,fLastH,fLastVA);
+						}
+						fLastV = fV;
+						fLastH = fH;
+						fLastVA = fVA;
 
-					float fVol = fBottomVol - (pData->fVolume-fMinVolume)*fPerVol;
-					p.setPen(QColor(192,192,0));
-					p.drawLine(fH,fBottomVol,fH,fVol);
+						float fVol = fBottomVol - (pData->fVolume-fMinVolume)*fPerVol;
+						p.setPen(QColor(192,192,0));
+						p.drawLine(fH,fBottomVol,fH,fVol);
+					}
+					++iterTmp;
 				}
-				++iterTmp;
+			}
+			else
+			{
+				//指数的绘制方式
+				int iAVCount = 0;
+				float fAVPrice = 0.0;
+				while(iterTmp!=iterEnd)
+				{
+					RStockData* pData = (*iterTmp);
+					QMap<time_t,int>::iterator iterT = m_mapTimes.upperBound(pData->tmTime);
+					if(iterT!=m_mapTimes.end())
+					{
+						++iAVCount;
+						fAVPrice += pData->fClose;
+
+						int iIndex = (*iterT)-1;
+						float fV = (fMaxPrice - pData->fClose)*fPer+fTop;
+						float fH = fRight - fItemWidth*iIndex;
+						float fVA = ((fMaxPrice - (fAVPrice/iAVCount))*fPer+fTop);
+						if(fLastV>0.0)
+						{
+							p.setPen(QColor(250,250,250));
+							p.drawLine(fH,fV,fLastH,fLastV);
+							p.setPen(QColor(192,192,0));
+							p.drawLine(fH,fVA,fLastH,fLastVA);
+						}
+						fLastV = fV;
+						fLastH = fH;
+						fLastVA = fVA;
+
+						float fVol = fBottomVol - (pData->fVolume-fMinVolume)*fPerVol;
+						p.setPen(QColor(192,192,0));
+						p.drawLine(fH,fBottomVol,fH,fVol);
+					}
+					++iterTmp;
+				}
 			}
 		}
 
