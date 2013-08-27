@@ -49,14 +49,14 @@
    <FocusWhenMove>0</FocusWhenMove>
    <AssistIndex/>
   </widget>
-  <widget circle="1">
+  <widget circle="300">
    <name></name>
    <ClearMode>0</ClearMode>
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
    <size>51</size>
-   <code>300227SZ</code>
+   <code>900901SH</code>
    <liners>
     <Liner size="60">
      <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -65,6 +65,8 @@
      <exp>DrawHist(VOLUME)</exp>
     </Liner>
    </liners>
+   <YCoordAuto>1</YCoordAuto>
+   <YCoordPercent>1</YCoordPercent>
   </widget>
  </widget>
 </ROOT>

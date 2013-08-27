@@ -22,7 +22,7 @@
     <align>1</align>
     <size>43</size>
     <block>800002BB</block>
-    <stock>000007SZ</stock>
+    <stock>300169SZ</stock>
    </widget>
    <widget circle="1">
     <name></name>
@@ -31,7 +31,7 @@
     <relate>1</relate>
     <align>1</align>
     <size>36</size>
-    <code>002547SZ</code>
+    <code>002445SZ</code>
     <liners>
      <Liner size="80">
       <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
@@ -44,6 +44,8 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
       <exp>DrawHist(VOLUME)</exp>
      </Liner>
     </liners>
+    <YCoordAuto>1</YCoordAuto>
+    <YCoordPercent>1</YCoordPercent>
    </widget>
    <widget>
     <name></name>
@@ -59,7 +61,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>75</size>
-     <code>002547SZ</code>
+     <code>002445SZ</code>
     </widget>
     <widget dealtype="1">
      <name></name>
@@ -69,7 +71,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <align>1</align>
      <size>24</size>
      <color>红绿挂单类型</color>
-     <code>002547SZ</code>
+     <code>002445SZ</code>
     </widget>
    </widget>
   </widget>
@@ -80,13 +82,13 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
    <relate>1</relate>
    <align>1</align>
    <size>62</size>
-   <widget circle="300">
+   <widget circle="3602">
     <name></name>
     <ClearMode>0</ClearMode>
     <type>1</type>
     <relate>0</relate>
     <align>1</align>
-    <size>29</size>
+    <size>32</size>
     <code>1A0001SH</code>
     <liners>
      <Liner size="80">
@@ -100,6 +102,8 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
       <exp>DrawHist(VOLUME)</exp>
      </Liner>
     </liners>
+    <YCoordAuto>0</YCoordAuto>
+    <YCoordPercent>1</YCoordPercent>
    </widget>
    <widget CBHeight="20" CBWidth="10">
     <name></name>
@@ -107,7 +111,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
     <type>3</type>
     <relate>1</relate>
     <align>1</align>
-    <size>45</size>
+    <size>42</size>
     <color>红绿1</color>
     <Abnomals>
      <Abnomal type="10">0.05</Abnomal>
@@ -116,7 +120,7 @@ DrawCross(MA(OPEN,3),MA(OPEN,5),Color(255,0,255))</exp>
      <Abnomal type="15">0.05</Abnomal>
      <Abnomal type="19">0.05</Abnomal>
     </Abnomals>
-    <block>800011BB</block>
+    <block>800014BB</block>
     <ShowType volumeratio="0" turnratio="0" increase="1"/>
     <TopStocks>
      <Top1>

@@ -16,6 +16,11 @@ class CKLineWidget : public CCoordXBaseWidget
 {
 	Q_OBJECT
 public:
+	enum FenShiCoordY			//分时图Y轴的绘制方式
+	{
+		Percent10 = 0,				//10个百分比
+		PercentAuto = 1,			//自适应百分比
+	};
 	enum FenShiAsis				//分时图上的辅助图
 	{
 		FenShiVol = 0,			//量（无其它指标）
@@ -81,6 +86,9 @@ protected slots:
 	void onAdd2Block();									//添加到板块
 	void onAdd2NewBlock();								//添加到新建板块
 
+	void onSetYCoordAuto();								//设置自动显示Y轴的范围
+	void onSetYCoordPercent();							//设置Y轴以百分比方式显示
+
 protected:
 	void setShowCount(int _iShow);						//设置当前的显示个数
 
@@ -92,7 +100,7 @@ private:
 
 	virtual void drawCoordX(QPainter& p,const QRectF& rtCoordX,float fItemWidth);	//绘制X坐标轴
 	//绘制Y轴，主要用于K线图
-	virtual void drawCoordY(QPainter& p,const QRectF rtCoordY, float fMax, float fMin);
+	virtual void drawCoordY(QPainter& p,const QRectF rtCoordY, float fMax, float fMin, bool bPercent = false);
 
 	//绘制分时图
 	void drawFenShi(QPainter& p, QRect rtClient);
@@ -101,6 +109,7 @@ private:
 
 private:
 	QMenu* m_pMenuAdd2Block;				//自选板块菜单
+	QMenu* m_pMenuYCoordMode;				//Y轴显示样式
 
 private:
 	CAbstractStockItem* m_pStockItem;		//当前K线图的股票数据指针
@@ -131,8 +140,12 @@ private:
 	bool m_bLock;							//用于切换时的加锁
 	QDateTime m_tmLastUpdate;				//最后一次更新的时间
 
+	bool m_bYCoordPercent;					//Y轴坐标以相对于昨收价百分比显示
+	bool m_bYCoordAuto;						//是否为自动显示Y轴范围
+
 	//分时图设置项
 	int m_iFenShiCount;						//绘制分时图的天数
+	FenShiCoordY m_iFenShiCoordY;			//分时图Y轴的绘制方式（）
 	FenShiAsis m_iFenShiAsis;				//分时图的辅助项
 };
 

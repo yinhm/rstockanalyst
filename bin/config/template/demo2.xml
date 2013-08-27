@@ -30,6 +30,8 @@ DrawLine(MA(OPEN,5))
 DrawLine(MA(OPEN,3))</exp>
      </Liner>
     </liners>
+    <YCoordAuto>1</YCoordAuto>
+    <YCoordPercent>1</YCoordPercent>
    </widget>
    <widget CBHeight="8" CBWidth="7">
     <name></name>
@@ -89,6 +91,8 @@ DrawLine(MA(OPEN,3))</exp>
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
       </Liner>
      </liners>
+     <YCoordAuto>1</YCoordAuto>
+     <YCoordPercent>1</YCoordPercent>
     </widget>
     <widget CBHeight="30" CBWidth="1">
      <name></name>
@@ -205,6 +209,8 @@ DrawLine(MA(OPEN,3))</exp>
          <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
         </Liner>
        </liners>
+       <YCoordAuto>1</YCoordAuto>
+       <YCoordPercent>1</YCoordPercent>
       </widget>
       <widget>
        <name></name>
@@ -256,6 +262,8 @@ DrawLine(MA(OPEN,3))</exp>
 DrawLine(MA(CLOSE,1000))</exp>
       </Liner>
      </liners>
+     <YCoordAuto>1</YCoordAuto>
+     <YCoordPercent>1</YCoordPercent>
     </widget>
     <widget CBHeight="10" CBWidth="10">
      <name></name>
