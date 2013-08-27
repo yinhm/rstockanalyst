@@ -15,7 +15,7 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_iCurExp(0)
 	, m_bShowMax(false)
 	, m_iTitleHeight(16)
-	, m_iCoorYWidth(30)
+	, m_iCoorYWidth(40)
 	, m_iCoorXHeight(16)
 	, m_iMainLinerHeight(200)
 	, m_mapData(NULL)
@@ -23,6 +23,9 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	, m_tmLastUpdate(QDateTime::currentDateTime())
 	, m_iFenShiCount(1)
 	, m_iFenShiAsis(FenShiVol)
+	, m_iFenShiCoordY(PercentAuto)
+	, m_bYCoordPercent(true)
+	, m_bYCoordAuto(false)
 {
 	m_typeCircle = Min1;
 
@@ -42,6 +45,8 @@ CKLineWidget::CKLineWidget( CBaseWidget* parent /*= 0*/ )
 	m_pMenuCustom->addAction(tr("设置所有图的显示比例"),this,SLOT(onSetSizes()));
 
 	m_pMenuAdd2Block = m_pMenuCustom->addMenu(tr("添加到自选板块"));
+
+	m_pMenuYCoordMode = m_pMenuCustom->addMenu(tr("Y轴显示方式"));
 
 //	setMinimumSize(200,200);
 }
@@ -88,6 +93,13 @@ bool CKLineWidget::loadPanelInfo( const QDomElement& eleWidget )
 	if(eleCode.isElement())
 		setStockCode(eleCode.text());
 
+	QDomElement eleYCoordAuto = eleWidget.firstChildElement("YCoordAuto");
+	if(eleYCoordAuto.isElement())
+		m_bYCoordAuto = eleYCoordAuto.text().toInt();
+	QDomElement eleYCoordPercent = eleWidget.firstChildElement("YCoordPercent");
+	if(eleYCoordPercent.isElement())
+		m_bYCoordPercent = eleYCoordPercent.text().toInt();
+
 	return true;
 }
 
@@ -119,6 +131,14 @@ bool CKLineWidget::savePanelInfo( QDomDocument& doc,QDomElement& eleWidget )
 				eleLiner.appendChild(eleExp);
 			}
 		}
+
+		QDomElement eleYCoordAuto = doc.createElement("YCoordAuto");
+		eleYCoordAuto.appendChild(doc.createTextNode(QString("%1").arg(m_bYCoordAuto)));
+		eleWidget.appendChild(eleYCoordAuto);
+
+		QDomElement eleYCoordPercent = doc.createElement("YCoordPercent");
+		eleYCoordPercent.appendChild(doc.createTextNode(QString("%1").arg(m_bYCoordPercent)));
+		eleWidget.appendChild(eleYCoordPercent);
 	}
 
 	return true;
@@ -624,6 +644,17 @@ QMenu* CKLineWidget::getCustomMenu()
 		}
 		m_pMenuAdd2Block->addSeparator();
 		m_pMenuAdd2Block->addAction(tr("添加到新建板块"),this,SLOT(onAdd2NewBlock()));
+	}
+	{
+		//设置Y轴显示方式
+		m_pMenuYCoordMode->clear();
+		QAction* pActAuto = m_pMenuYCoordMode->addAction(tr("自动显示范围"),this,SLOT(onSetYCoordAuto()));
+		QAction* pActPercent = m_pMenuYCoordMode->addAction(tr("显示百分比"),this,SLOT(onSetYCoordPercent()));
+		pActAuto->setCheckable(true);
+		pActPercent->setCheckable(true);
+
+		pActAuto->setChecked(m_bYCoordAuto);
+		pActPercent->setChecked(m_bYCoordPercent);
 	}
 	return m_pMenuCustom;
 }
@@ -1254,7 +1285,7 @@ void CKLineWidget::drawCoordX( QPainter& p,const QRectF& rtCoordX,float fItemWid
 	return;
 }
 
-void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, float fMin )
+void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, float fMin, bool bPercent /*= false*/ )
 {
 	//最高精确到小数点后三位，将数据扩大1000倍进行计算
 	if(!rtCoordY.isValid())
@@ -1289,6 +1320,20 @@ void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, fl
 	float fLastY = -100;
 	int iDrawIndex = 0;
 
+
+	float fLastClose = m_pStockItem->getLastClose();
+	float fLastCloseY = -99999;
+	if(bPercent)
+	{
+		fLastCloseY = (fBottom-(fLastClose-fMin)*(fRealPerUi));
+		p.drawText(fX+7,fLastCloseY+4,QString("0.00%"));
+		QPen wPen = p.pen();
+		wPen.setWidth(2);
+		p.setPen(wPen);
+		p.drawLine(fX,fLastCloseY,m_rtClient.left(),fLastCloseY);
+	}
+
+
 	QPen oldPen = p.pen();
 	QPen newPen = QPen(Qt::DotLine);
 	newPen.setColor(QColor(155,155,155));
@@ -1297,6 +1342,11 @@ void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, fl
 	{
 		float fValue = iValue/(1000.0);
 		float fY = (fBottom - (fValue - fMin)*(fRealPerUi));
+		if(abs(fY-fLastCloseY)<30)
+		{
+			fLastY = fLastCloseY;
+		}
+
 		if(abs(fY-fLastY) > 30)
 		{
 			p.setPen(oldPen);
@@ -1310,13 +1360,21 @@ void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, fl
 			int iDot = 3 - int(log10(double(iValueIncre))+0.1);
 			if(iDot<0)
 				iDot = 0;
-			if(fValue>10000.0)
+			if(bPercent)
 			{
-				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
+				float fPercent = (fValue-fLastClose)/fLastClose*100;
+				p.drawText(fX+7,fY+4,QString("%1%").arg(fPercent,0,'f',2));
 			}
 			else
 			{
-				p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
+				if(fValue>10000.0)
+				{
+					p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'g',iDot));
+				}
+				else
+				{
+					p.drawText(fX+7,fY+4,QString("%1").arg(fValue,0,'f',iDot));
+				}
 			}
 
 			p.setPen(newPen);
@@ -1453,10 +1511,23 @@ void CKLineWidget::drawFenShi( QPainter& p, QRect rtClient )
 				++iterTmp;
 			}
 
-			if(fMaxPrice<fMinPrice)
+			if(fMaxPrice<fMinPrice || fMaxVolume<fMinVolume || fMinVolume<0)
 				return;
-			fMaxPrice+=(float)0.01;
-			fMinPrice-=(float)0.01;
+			float fLastClose = m_pStockItem->getLastClose();
+			if(!m_bYCoordAuto)
+			{
+				float fMaxPrice1 = int(fLastClose*110+0.999)/100.0;
+				float fMinPrice1 = int(fLastClose*90)/100.0;
+				if(fMaxPrice1>fMaxPrice)
+					fMaxPrice = fMaxPrice1;
+				if(fMinPrice1<fMinPrice)
+					fMinPrice = fMinPrice1;
+			}
+			else
+			{
+				fMaxPrice+=(float)0.01;
+				fMinPrice-=(float)0.01;
+			}
 			fMaxVolume = fMaxVolume*1.1;
 			fMinVolume = fMinVolume*0.9;
 		}
@@ -1466,6 +1537,12 @@ void CKLineWidget::drawFenShi( QPainter& p, QRect rtClient )
 		float fPer = rtMain.height()/(fMaxPrice-fMinPrice);
 		float fBottomVol = rtVolume.bottom();
 		float fPerVol = rtVolume.height()/(fMaxVolume-fMinVolume);
+
+		{
+			//绘制Y坐标轴
+			drawCoordY(p,QRectF(rtMain.right(),rtMain.top(),m_iCoorYWidth,rtMain.height()),fMaxPrice,fMinPrice,m_bYCoordPercent);
+			drawCoordY(p,QRectF(rtVolume.right(),rtVolume.top(),m_iCoorYWidth,rtVolume.height()),fMaxVolume,fMinVolume);
+		}
 
 		p.setPen(QColor(160,0,0));
 		p.drawRect(rtMain);
@@ -1559,4 +1636,16 @@ void CKLineWidget::drawFenShi( QPainter& p, QRect rtClient )
 		}
 
 	}
+}
+
+void CKLineWidget::onSetYCoordAuto()
+{
+	m_bYCoordAuto = !m_bYCoordAuto;
+	updateData();
+}
+
+void CKLineWidget::onSetYCoordPercent()
+{
+	m_bYCoordPercent = !m_bYCoordPercent;
+	updateData();
 }
