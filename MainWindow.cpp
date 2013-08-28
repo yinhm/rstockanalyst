@@ -450,6 +450,9 @@ long CMainWindow::OnStockDrvMsg( WPARAM wParam,LPARAM lParam )
 					++iCount;
 				}
 				pItem->appendFenBis(listFenBis);
+				pItem->recalcMinData();
+				pItem->recalc5MinData();
+				m_timerCalcBlock.start(30000);
 			}
 			qDebug()<<"Using Time: "<<tmNow.msecsTo(QDateTime::currentDateTime());
 		}
