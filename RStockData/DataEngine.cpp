@@ -402,6 +402,7 @@ int CDataEngine::importBaseInfoFromFinFile( const QString& qsFile )
 		{
 			CStockInfoItem* pItem = new CStockInfoItem(d);
 			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
+			messageShowed(QString("加载'%1'基本信息").arg(pItem->getCode()),15);
 		}
 
 		++iCout;
@@ -447,6 +448,7 @@ int CDataEngine::importBaseInfo( const QString& qsFile )
 			CStockInfoItem* pItem = new CStockInfoItem(baseInfo);
 			pItem->setLast5Volume(fLast5Volume);
 			CDataEngine::getDataEngine()->setStockInfoItem(pItem);
+			messageShowed(QString("加载'%1'基本信息").arg(pItem->getCode()),15);
 		}
 
 		++iCount;
@@ -684,8 +686,8 @@ int CDataEngine::exportFenBisData( const QString& qsFile )
 
 	foreach(CAbstractStockItem* pItem,listItem)
 	{
-		//保存当天所有的分钟数据
-		QList<qRcvFenBiData*> listFenBis= pItem->getFenBiList();
+		//保存当天所有的分笔数据
+		QList<qRcvFenBiData*> listFenBis= pItem->getTodayFenBiList();
 		int iSize = listFenBis.size()*sizeof(qRcvFenBiData);
 		char* pFenBiData = new char[iSize];
 		for(int i = 0; i<listFenBis.size(); ++i)
@@ -840,7 +842,7 @@ void CDataEngine::setCurrentTime(const time_t& t)
 		m_tmCurrent = t;
 }
 
-QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
+QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c, time_t tmNow /*= 0*/ )
 {
 //	int iCount = 1024;				//计算1024个时间
 	QMap<time_t,int> mapTimes;
@@ -851,7 +853,7 @@ QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
 		10分钟的1m周期（10）
 		其余为5m周期
 		*/
-		time_t tmCur = CDataEngine::getCurrentTime();
+		time_t tmCur = tmNow<1 ? CDataEngine::getCurrentTime() : tmNow;
 		time_t tmLast = ((tmCur/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
 		time_t tmCurrent = (tmCur+Sec3)/Sec3*Sec3;						//向上对周期取整
 		time_t tmNoon1 = ((tmCur/(3600*24))*3600*24)+3600*(11-8)+60*30;
@@ -915,9 +917,46 @@ QMap<time_t,int> CDataEngine::getTodayTimeMap( RStockCircle _c )
 			getTimeMapBySec(mapTimes,tmBegin,tmEnd,Min5);
 		}
 	}
-	else if(_c<Day)
+	else if(_c<Min1)
 	{
-		time_t tmCur = CDataEngine::getCurrentTime();
+		for (int i = 0;i < 2; ++i)
+		{
+			time_t tmCur = i==1 ? (CDataEngine::getCurrentTime()) : (CDataEngine::getCurrentTime()-3600*12);
+			time_t tmLast = ((tmCur/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
+			time_t tmCurrent = (tmCur+_c*2)/_c*_c;//向上对分钟取整
+			time_t tmNoon1 = ((tmCur/(3600*24))*3600*24)+3600*(11-8)+60*30;
+			time_t tmNoon2 = ((tmCur/(3600*24))*3600*24)+3600*(13-8);
+
+
+			if((tmCurrent%(3600*24))>3600*7)
+			{
+				tmCurrent = (tmCurrent/(3600*24))*3600*24 + 3600*7 + _c;		//3点收盘(多加一个周期)
+			}
+			/*需向上和向下多计算一个周期*/
+			if(tmCurrent>tmNoon2)
+			{
+				time_t tmBegin = tmNoon2-_c;
+				//time_t tmEnd = tmCurrent+m_typeCircle*2;
+				getTimeMapBySec(mapTimes,tmBegin,tmCurrent,_c);
+			}
+
+			if(tmCurrent>tmNoon1)
+			{
+				time_t tmBegin = tmLast-_c;
+				time_t tmEnd = tmNoon1+_c;
+				getTimeMapBySec(mapTimes,tmBegin,tmEnd,_c);
+			}
+			else if(tmCurrent>tmLast)
+			{
+				time_t tmBegin = tmLast-_c;
+				time_t tmEnd = tmCurrent;
+				getTimeMapBySec(mapTimes,tmBegin,tmEnd,_c);
+			}
+		}
+	}
+	else if(_c<Day&&_c>=Min1)
+	{
+		time_t tmCur = tmNow<1 ? CDataEngine::getCurrentTime() : tmNow;
 		time_t tmLast = ((tmCur/(3600*24))*3600*24)+3600*(9-8)+60*25;	//9：25开盘
 		time_t tmCurrent = (tmCur+_c*2)/_c*_c;//向上对分钟取整
 		time_t tmNoon1 = ((tmCur/(3600*24))*3600*24)+3600*(11-8)+60*30;

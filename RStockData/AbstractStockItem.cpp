@@ -214,6 +214,19 @@ qRcvReportData* CAbstractStockItem::getCurrentReport() const
 	return pCurrentReport;
 }
 
+QList<qRcvFenBiData*> CAbstractStockItem::getTodayFenBiList()
+{
+	QList<qRcvFenBiData*> listRet;
+	time_t tmBegin = (((CDataEngine::getCurrentTime())/(3600*24))*3600*24);
+	QMap<time_t,qRcvFenBiData*>::iterator iter = mapFenBis.lowerBound(tmBegin);
+	while(iter!=mapFenBis.end())
+	{
+		listRet.append(*iter);
+		++iter;
+	}
+	return listRet;
+}
+
 QList<qRcvFenBiData*> CAbstractStockItem::getFenBiList()
 {
 	//获取分笔数据，未完工
@@ -348,21 +361,24 @@ void CAbstractStockItem::appendToday5MinData( tagRStockData* pData )
 
 void CAbstractStockItem::appendFenBis( const QList<qRcvFenBiData*>& list )
 {
-	//追加分笔数据，未完工
-	if(mapFenBis.size()>0&&list.size()>0)
 	{
-		QDate myDate = QDateTime::fromTime_t(mapFenBis.begin().value()->tmTime).date();
-		QDate theDate = QDateTime::fromTime_t(list.first()->tmTime).date();
-		if(theDate>myDate)
-		{
-			//如果新来的数据的时间大于当前的时间，则清空当前的数据
-			foreach(qRcvFenBiData* p,mapFenBis.values())
-				delete p;
+		//检查删除昨天的分笔数据（已废弃）
+		//if(mapFenBis.size()>0&&list.size()>0)
+		//{
+		//	QDate myDate = QDateTime::fromTime_t(mapFenBis.begin().value()->tmTime).date();
+		//	QDate theDate = QDateTime::fromTime_t(list.first()->tmTime).date();
+		//	if(theDate>myDate)
+		//	{
+		//		//如果新来的数据的时间大于当前的时间，则清空当前的数据
+		//		foreach(qRcvFenBiData* p,mapFenBis.values())
+		//			delete p;
 
-			mapFenBis.clear();
-		}
+		//		mapFenBis.clear();
+		//	}
+		//}
 	}
 
+	//追加分笔数据
 	foreach(qRcvFenBiData* p,list)
 	{
 		bool bInsert = true;

@@ -378,7 +378,7 @@ void CColorBlockWidget::updateSortMode(bool bSelFirst)
 void CColorBlockWidget::updateTimesH()
 {
 	//更新当前的横坐标数据，从后向前计算时间
-	m_mapTimes = CDataEngine::getTodayTimeMap(Min5);
+	m_mapTimes = CDataEngine::getTodayTimeMap(Min5,((CDataEngine::getCurrentTime()/(3600*24))*3600*24 + 3600*7));
 }
 
 void CColorBlockWidget::setBlock( const QString& block )
@@ -960,7 +960,7 @@ void CColorBlockWidget::drawStock( QPainter& p,const QRect& rtCB,
 	drawColocBlock(p,rtCB.top(),_vColor,_vHeight,_vWidth,pClrItem);
 
 	//绘制左侧的辅助指标
-	float iBeginX = rtCB.right() - m_iCBWidth*57 - m_iRightLen;
+	float iBeginX = rtCB.right() - m_iCBWidth*56 - m_iRightLen;
 	p.setPen(QColor(255,0,0));
 	p.drawLine(iBeginX+3,rtCB.top(),iBeginX+3,rtCB.bottom());
 

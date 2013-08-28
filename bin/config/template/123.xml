@@ -13,7 +13,7 @@
    <type>0</type>
    <relate>1</relate>
    <align>2</align>
-   <size>10</size>
+   <size>0</size>
    <widget>
     <name></name>
     <ClearMode>0</ClearMode>
@@ -40,7 +40,7 @@
    <type>3</type>
    <relate>1</relate>
    <align>1</align>
-   <size>38</size>
+   <size>2</size>
    <color></color>
    <Abnomals/>
    <block>800010BB</block>
@@ -49,17 +49,20 @@
    <FocusWhenMove>0</FocusWhenMove>
    <AssistIndex/>
   </widget>
-  <widget circle="300">
+  <widget circle="12">
    <name></name>
    <ClearMode>0</ClearMode>
    <type>1</type>
    <relate>1</relate>
    <align>1</align>
-   <size>51</size>
+   <size>97</size>
    <code>900901SH</code>
    <liners>
     <Liner size="60">
-     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
+     <exp>DrawK(OPEN,CLOSE,HIGH,LOW)
+DrawLine(MA(OPEN,100))
+DrawLine(MA(OPEN,50))
+DrawLine(MA(OPEN,10))</exp>
     </Liner>
     <Liner size="20">
      <exp>DrawHist(VOLUME)</exp>

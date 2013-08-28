@@ -29,6 +29,7 @@ public:
 	virtual qRcvReportData* getCurrentReport() const;
 
 	//²¹³ä·Ö±ÊÊý¾Ý
+	virtual QList<qRcvFenBiData*> getTodayFenBiList();
 	virtual QList<qRcvFenBiData*> getFenBiList();
 	virtual void appendFenBis(const QList<qRcvFenBiData*>& list);
 
