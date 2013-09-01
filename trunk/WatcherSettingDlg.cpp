@@ -89,12 +89,13 @@ void CWatcherSettingDlg::onRefresh()
 	foreach(CRadarWatcher* pWatcher,list)
 	{
 		CBlockInfoItem* pDestBlock = pWatcher->getDestBlock();
+		CBlockInfoItem* pWatcherBlock = pWatcher->getBlock();
 		QStringList listValue;
 		listValue<<QString("%1").arg(pWatcher->getId())
 			<<QString("%1").arg(CRadarManager::getTypeName(pWatcher->getType()))
 			<<QString("%1").arg(pWatcher->getHold())
 			<<QString("%1").arg(pWatcher->getSec())
-			<<pWatcher->getBlock()->getName()
+			<<(pWatcherBlock ? pWatcherBlock->getName() : "NULL")
 			<<(pDestBlock ? pDestBlock->getName() : "NULL");
 		QTreeWidgetItem* pItem = new QTreeWidgetItem(listValue);
 		if(m_bForSel)

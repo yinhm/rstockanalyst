@@ -85,7 +85,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>24</size>
-     <code>900905SH</code>
+     <code>900952SH</code>
      <liners>
       <Liner size="60">
        <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -203,7 +203,7 @@ DrawLine(MA(OPEN,3))</exp>
        <relate>1</relate>
        <align>1</align>
        <size>47</size>
-       <code>900905SH</code>
+       <code>900952SH</code>
        <liners>
         <Liner size="60">
          <exp>DrawK(OPEN,CLOSE,HIGH,LOW)</exp>
@@ -226,7 +226,7 @@ DrawLine(MA(OPEN,3))</exp>
         <relate>1</relate>
         <align>1</align>
         <size>50</size>
-        <code>900905SH</code>
+        <code>900952SH</code>
        </widget>
        <widget>
         <name></name>
@@ -255,7 +255,7 @@ DrawLine(MA(OPEN,3))</exp>
      <relate>1</relate>
      <align>1</align>
      <size>50</size>
-     <code>900905SH</code>
+     <code>900952SH</code>
      <liners>
       <Liner size="20">
        <exp>DrawLine(CLOSE)
@@ -273,8 +273,10 @@ DrawLine(MA(CLOSE,1000))</exp>
      <align>1</align>
      <size>49</size>
      <color>红绿1</color>
-     <Abnomals/>
-     <block>800005BB</block>
+     <Abnomals>
+      <Abnomal type="1">0.05</Abnomal>
+     </Abnomals>
+     <block>800001BB</block>
      <ShowType volumeratio="1" turnratio="1" increase="1"/>
      <TopStocks/>
      <FocusWhenMove>0</FocusWhenMove>

@@ -1336,7 +1336,7 @@ void CKLineWidget::drawCoordY( QPainter& p,const QRectF rtCoordY, float fMax, fl
 
 	QPen oldPen = p.pen();
 	QPen newPen = QPen(Qt::DotLine);
-	newPen.setColor(QColor(155,155,155));
+	newPen.setColor(QColor(50,50,50));
 
 	while(iValue<iValueMax)
 	{
@@ -1444,14 +1444,18 @@ void CKLineWidget::drawFenShi( QPainter& p, QRect rtClient )
 			{
 				if((fLastX - fCurX)>40)
 				{
-					if(tmCurHalfHour%2==0)
+					QColor clrText(0,255,255);
+					if(((((tmTime%(3600*24))/1800)-6)>0 ? ((tmCurHalfHour%2)==0) : (tmCurHalfHour%2==1)))
+					{
 						p.setPen(oldPen);
+						clrText = QColor(255,0,0);
+					}
 					else
 						p.setPen(newPen);
 
 					p.drawLine(fCurX,rtClient.top(),fCurX,rtCoordX.top()+2);
 
-					p.setPen( tmCurHalfHour%2 ? QColor(0,255,255) : QColor(255,0,0));
+					p.setPen(clrText);
 					p.drawText(fCurX-14,rtCoordX.top()+2,30,rtCoordX.height()-2,
 						Qt::AlignCenter,QDateTime::fromTime_t(tmCurHalfHour*1800).toString("hh:mm"));
 
