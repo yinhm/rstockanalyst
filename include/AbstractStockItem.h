@@ -121,10 +121,10 @@ protected:
 	QMap<time_t,tagRStockData*> mapToday5MinDatas;	//当天5分钟历史数据
 
 	QMap<time_t,tagRStockData*> mapMinDatas;		//1分钟历史数据，一般存储7天的
-	QList<tagRStockData*> list5MinDatas;			//5分钟历史数据，一般存储7天的
-	QList<tagRStockData*> list15MinDatas;			//15分钟历史数据，一般存储7天的
-	QList<tagRStockData*> list30MinDatas;			//30分钟历史数据，一般存储7天的
-	QList<tagRStockData*> list60MinDatas;			//60分钟历史数据，一般存储7天的
+	QList<tagRStockData*> list5MinDatas;			//5分钟历史数据，一般存储100天的
+	QList<tagRStockData*> list15MinDatas;			//15分钟历史数据，一般从5分钟数据计算得出
+	QList<tagRStockData*> list30MinDatas;			//30分钟历史数据，一般从5分钟数据计算得出
+	QList<tagRStockData*> list60MinDatas;			//60分钟历史数据，一般从5分钟数据计算得出
 	QList<qRcvHistoryData*> listHistories;			//历史数据
 	qRcvReportData* pCurrentReport;					//当前的Report
 
